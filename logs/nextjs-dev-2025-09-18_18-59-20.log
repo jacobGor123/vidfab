@@ -119,3 +119,7 @@ Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` s
   code: 400
 }
  POST /api/video/generate 400 in 3237ms
+ ✓ Compiled in 466ms (606 modules)
+ GET /create?tool=image-to-video 200 in 74ms
+ ✓ Compiled in 826ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 114ms

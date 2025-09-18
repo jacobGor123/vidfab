@@ -158,12 +158,12 @@ export function ImageToVideoPanelEnhanced() {
   // Handle Vidfab Pro model selection
   useEffect(() => {
     if (params.model === "vidfab-pro") {
-      // 自动设置为8秒和720p（如果当前不是支持的选项）
+      // 自动设置为8秒、720p 和 16:9（Image-to-Video 的 Vidfab Pro 只支持 16:9）
       setParams(prev => ({
         ...prev,
         duration: "8s",
         resolution: prev.resolution === "480p" ? "720p" : prev.resolution,  // 如果是480p则改为720p，否则保持
-        // 移除强制设置 aspectRatio，保持用户选择
+        aspectRatio: "16:9"  // Image-to-Video 的 veo3 只支持 16:9
       }))
     }
   }, [params.model])
