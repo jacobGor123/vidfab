@@ -299,8 +299,16 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
     if (!["720p", "1080p"].includes(request.resolution)) {
       errors.push("Vidfab Pro only supports 720p and 1080p resolution")
     }
-    if (!["16:9", "9:16"].includes(request.aspectRatio)) {
-      errors.push("Vidfab Pro only supports 16:9 and 9:16 aspect ratios")
+
+    // 根据生成类型验证宽高比
+    if (generationType === "text-to-video") {
+      if (!["16:9", "9:16"].includes(request.aspectRatio)) {
+        errors.push("Text-to-Video Vidfab Pro supports 16:9 and 9:16 aspect ratios")
+      }
+    } else if (generationType === "image-to-video") {
+      if (request.aspectRatio !== "16:9") {
+        errors.push("Image-to-Video Vidfab Pro only supports 16:9 aspect ratio")
+      }
     }
   }
 

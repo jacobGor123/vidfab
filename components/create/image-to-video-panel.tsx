@@ -753,11 +753,11 @@ export function ImageToVideoPanelEnhanced() {
                   <div className="space-y-2">
                     <Label className="text-gray-300">Aspect Ratio</Label>
                     <div className="flex gap-2">
-                      {(params.model === "vidfab-pro" ? ["16:9", "9:16"] : ["16:9", "9:16", "1:1"]).map((ratio) => (
+                      {(params.model === "vidfab-pro" ? ["16:9"] : ["16:9", "9:16", "1:1"]).map((ratio) => (
                         <button
                           key={ratio}
                           onClick={() => updateParam("aspectRatio", ratio)}
-                          disabled={videoGeneration.isGenerating}
+                          disabled={videoGeneration.isGenerating || (params.model === "vidfab-pro" && ratio !== "16:9")}
                           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all disabled:opacity-50 ${
                             params.aspectRatio === ratio
                               ? "bg-primary text-primary-foreground"
@@ -770,7 +770,7 @@ export function ImageToVideoPanelEnhanced() {
                     </div>
                     {params.model === "vidfab-pro" && (
                       <p className="text-xs text-gray-500">
-                        Vidfab Pro supports 16:9 and 9:16 aspect ratios
+                        Image-to-Video Vidfab Pro only supports 16:9 aspect ratio
                       </p>
                     )}
                   </div>
@@ -819,7 +819,7 @@ export function ImageToVideoPanelEnhanced() {
 
         {/* Right preview area - Multi-task Grid Layout */}
         <div className="w-1/2 h-full overflow-hidden">
-          <div className="h-full overflow-y-auto p-6 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+          <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
             {/* 显示所有用户的任务（进行中+已完成） */}
             {(userJobs.length > 0 || userVideos.length > 0) ? (
               <div

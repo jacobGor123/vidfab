@@ -385,7 +385,7 @@ export function TextToVideoPanelEnhanced() {
                     </div>
                     {params.model === "vidfab-pro" && (
                       <p className="text-xs text-gray-500">
-                        Vidfab Pro supports 16:9 and 9:16 aspect ratios
+                        Text-to-Video Vidfab Pro supports 16:9 and 9:16 aspect ratios
                       </p>
                     )}
                   </div>
@@ -430,7 +430,7 @@ export function TextToVideoPanelEnhanced() {
 
         {/* Right preview area - Multi-task Grid Layout */}
         <div className="w-1/2 h-full overflow-hidden">
-          <div className="h-full overflow-y-auto p-6 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+          <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
             {/* 显示所有用户的任务（进行中+已完成） */}
             {(userJobs.length > 0 || userVideos.length > 0) ? (
               <div
