@@ -1,0 +1,93 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.10.24:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1439ms
+ ✓ Compiled /middleware in 326ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.2s (804 modules)
+ GET /login 200 in 2794ms
+ ✓ Compiled /_not-found in 952ms (794 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 505ms
+ GET /login 200 in 98ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 114ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 749ms (995 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1293ms
+ ✓ Compiled /api/auth/send-verification-code in 365ms (1057 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 654959 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 654959
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<b1557ce0-5dbf-b4c7-1d75-aabf5f25d2ae@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 654959'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<b1557ce0-5dbf-b4c7-1d75-aabf5f25d2ae@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 7625ms
+ GET /login 200 in 131ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 33ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 58ms
+ ✓ Compiled /api/auth/verify-code-login in 404ms (1059 modules)
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 2558ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 26ms
+ GET /api/auth/csrf 200 in 5ms
+✅ User saved: ithermocraft@hotmail.com (e15f9724-27c8-4464-aa12-5ddafa04a194)
+✅ User signed in: ithermocraft@hotmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 1015ms
+ GET /api/auth/session 200 in 8ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s (1996 modules)
+ GET / 200 in 2515ms
+ ✓ Compiled in 1334ms (1741 modules)
+ GET / 200 in 120ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1581ms (1926 modules)
+ GET /create 200 in 1687ms
+ GET /create?tool=discover 200 in 19ms
+ GET /create?tool=discover 200 in 15ms
+ GET /create?tool=text-to-video 200 in 12ms
+ GET /create?tool=image-to-video 200 in 9ms
+ ✓ Compiled in 753ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 55ms
+ ✓ Compiled in 674ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 46ms
+ ✓ Compiled in 717ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 403ms
+ ✓ Compiled in 564ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 59ms
+ ✓ Compiled in 992ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 68ms
+ ✓ Compiled in 857ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 78ms
+ ✓ Compiled in 783ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 82ms
+ ✓ Compiled in 598ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 72ms
+ ✓ Compiled in 643ms (1940 modules)
+ GET /create?tool=image-to-video 200 in 279ms
+ ✓ Compiled in 280ms (923 modules)
+ GET /create?tool=image-to-video 200 in 18ms
+ ✓ Compiled in 821ms (923 modules)
+ GET /create?tool=image-to-video 200 in 41ms
+ ✓ Compiled in 278ms (923 modules)
+ GET /create?tool=image-to-video 200 in 33ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1028ms (1218 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1181ms

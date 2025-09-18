@@ -1,0 +1,200 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1738ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 671ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled /create in 7.6s (2034 modules)
+ GET /create 200 in 6538ms
+ GET / 200 in 7978ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 677ms (2223 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1324ms
+ GET /api/auth/session 200 in 16ms
+ ✓ Compiled /_not-found in 460ms (2227 modules)
+ GET /api/user/credits 404 in 679ms
+ GET /api/audio-generation/my-tasks 404 in 679ms
+ GET /api/user/credits 404 in 100ms
+ GET /api/user/credits 404 in 91ms
+ GET /api/user/credits 404 in 73ms
+ GET /api/user/credits 404 in 43ms
+ GET /create 200 in 24ms
+ GET /create?tool=discover 200 in 12ms
+ GET /create?tool=discover 200 in 14ms
+ GET /create?tool=text-to-video 200 in 10ms
+ ✓ Compiled /api/video/generate in 353ms (2231 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创建 emj 表情...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创建 emj 表情',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: e12b30b0faf74788bcdce246106d173b
+ POST /api/video/generate 200 in 1678ms
+ ✓ Compiled /api/video/status/[requestId] in 313ms (2233 modules)
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 850ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 184ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 184ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 184ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 181ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 185ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 183ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 184ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 183ms
+🔍 Checking status for request e12b30b0faf74788bcdce246106d173b
+📊 Status check for e12b30b0faf74788bcdce246106d173b: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for e12b30b0faf74788bcdce246106d173b: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/e12b30b0faf74788bcdce246106d173b/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/e12b30b0faf74788bcdce246106d173b 200 in 184ms
+ ✓ Compiled /api/video/simple-store in 386ms (2235 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 431ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 67ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/user/credits 404 in 192ms
+ GET /api/audio-generation/my-tasks 404 in 194ms
+ GET /api/user/credits 404 in 92ms
+ GET /api/user/credits 404 in 77ms
+ GET /api/user/credits 404 in 41ms
+🔑 Auth modal user UUID: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 278ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/auth/session 200 in 7ms
+ GET /api/user/credits 404 in 100ms
+ GET /api/audio-generation/my-tasks 404 in 100ms
+ GET /api/user/credits 404 in 68ms
+ GET /api/user/credits 404 in 64ms
+ GET /api/user/credits 404 in 36ms
+[?25h

@@ -1,0 +1,57 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1595ms
+ ✓ Compiled /middleware in 316ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.3s (804 modules)
+ GET /login 200 in 2707ms
+ ✓ Compiled in 433ms (359 modules)
+ GET /login 200 in 37ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 820ms (991 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1361ms
+ ✓ Compiled /api/auth/send-verification-code in 352ms (1053 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 504413 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 504413
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<0ff92537-daba-750b-a7ad-873f41110bee@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 504413'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<0ff92537-daba-750b-a7ad-873f41110bee@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8229ms
+ GET /login 200 in 144ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 46ms
+Error generating verification code: Error: Please wait 3 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 862ms
+ ✓ Compiled in 443ms (359 modules)
+ GET /login 200 in 29ms
+ ✓ Compiled in 321ms (359 modules)
+ GET /login 200 in 22ms
+ ✓ Compiled in 216ms (359 modules)
+ GET /login 200 in 23ms

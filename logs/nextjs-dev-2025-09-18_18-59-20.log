@@ -1,0 +1,121 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.1s (552 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 3357ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 529ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 5.5s (1442 modules)
+ GET /create?tool=image-to-video 200 in 6286ms
+ GET /create?tool=text-to-video 200 in 3955ms
+ GET /create?tool=discover 200 in 3603ms
+ ✓ Compiled in 821ms (606 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 87ms
+ GET /create?tool=image-to-video 200 in 23ms
+ ✓ Compiled in 882ms (1442 modules)
+ GET /create?tool=image-to-video 200 in 77ms
+ ✓ Compiled in 599ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 108ms
+ ✓ Compiled in 813ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 63ms
+ ✓ Compiled /api/auth/[...nextauth] in 195ms (836 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 380ms
+ ✓ Compiled in 697ms (1442 modules)
+ GET /create?tool=image-to-video 200 in 115ms
+ ✓ Compiled in 1012ms (1442 modules)
+ GET /create?tool=image-to-video 200 in 104ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 113ms
+ GET /create?tool=image-to-video 200 in 206ms
+ GET /api/auth/session 200 in 15ms
+ GET /create?tool=discover 200 in 19ms
+ GET /create?tool=image-to-video 200 in 29ms
+ ○ Compiling /api/video/generate ...
+ ✓ Compiled /api/video/generate in 978ms (1432 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Video generation request body: {
+  prompt: '"animate the image..."',
+  promptLength: 17,
+  model: 'vidfab-pro',
+  resolution: '720p',
+  duration: 8,
+  aspectRatio: '9:16',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: 'animate the image...',
+  model: 'vidfab-pro',
+  resolution: '720p',
+  duration: 8,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to veo3 (veo3-fast-i2v): {
+  endpoint: '/google/veo3-fast/image-to-video',
+  prompt: 'animate the image',
+  aspect_ratio: '9:16',
+  duration: 8,
+  resolution: '720p',
+  generate_audio: true,
+  image: '[IMAGE_URL: https://static.vidfab.ai/user-image/vidfab-2910ad4...]'
+}
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/google/veo3-fast/image-to-video',
+  errorData: {
+    code: 400,
+    message: 'invalid request body, Error at "/aspect_ratio": value is not one of the allowed values ["16:9"]'
+  },
+  rawErrorText: '{"code":400,"message":"invalid request body, Error at \\"/aspect_ratio\\": value is not one of the allowed values [\\"16:9\\"]"}',
+  requestMethod: 'POST'
+}
+❌ Video generation request failed: Error [WavespeedAPIError]: HTTP 400: Bad Request
+    at makeAPIRequest (lib/services/wavespeed-api.ts:123:10)
+    at async eval (lib/services/wavespeed-api.ts:229:21)
+    at async retryWithBackoff (lib/services/wavespeed-api.ts:48:13)
+    at async POST (app/api/video/generate/route.ts:76:19)
+  121 |     })
+  122 |
+> 123 |     throw new WavespeedAPIError(
+      |          ^
+  124 |       errorMessage,
+  125 |       response.status,
+  126 |       errorData?.code {
+  status: 400,
+  code: 400
+}
+ POST /api/video/generate 400 in 3237ms

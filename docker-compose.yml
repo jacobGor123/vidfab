@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Redis service for queue management
+  redis:
+    image: redis:7-alpine
+    container_name: vidfab-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - vidfab-network
+
+  # Redis Commander (optional, for Redis GUI management)
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    container_name: vidfab-redis-commander
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=admin123
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - vidfab-network
+    profiles:
+      - debug  # Only start with --profile debug
+
+# Named volumes for data persistence
+volumes:
+  redis_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  vidfab-network:
+    driver: bridge

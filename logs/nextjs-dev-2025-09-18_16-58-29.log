@@ -1,0 +1,1959 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.1s
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1056ms (552 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1799ms
+ ✓ Compiled /middleware in 475ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.6s (1394 modules)
+ GET /create?tool=discover 200 in 786ms
+ GET /create?tool=text-to-video 200 in 3912ms
+ GET /create?tool=image-to-video 200 in 2578ms
+ ✓ Compiled in 317ms (582 modules)
+ GET /create?tool=discover 200 in 14ms
+ GET /create?tool=discover 200 in 705ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 183ms
+ GET /create?tool=discover 200 in 99ms
+ GET /api/auth/session 200 in 19ms
+ ✓ Compiled in 944ms (1394 modules)
+ GET /create?tool=discover 200 in 135ms
+ GET /create?tool=text-to-video 200 in 29ms
+ GET /create?tool=image-to-video 200 in 20ms
+ ✓ Compiled /api/images/upload in 491ms (1382 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 4228ms
+ ✓ Compiled /api/video/generate in 321ms (1386 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Video generation request body: {
+  prompt: '"让画面动起来..."',
+  promptLength: 6,
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  aspectRatio: '16:9',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '让画面动起来...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to seedance-v1-pro-i2v-480p: {
+  prompt: '让画面动起来',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_DATA]'
+}
+✅ image-to-video generation submitted successfully. Request ID: b8181d6fc6ed4ec29ce94418db838041
+ POST /api/video/generate 200 in 4431ms
+ ✓ Compiled /api/video/status/[requestId] in 251ms (1388 modules)
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 1437ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 490ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 489ms
+ GET /create?tool=text-to-video 200 in 45ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 490ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+ GET /create?tool=image-to-video 200 in 17ms
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 507ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 497ms
+ GET /create?tool=text-to-video 200 in 18ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 489ms
+ GET /create?tool=image-to-video 200 in 16ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 498ms
+ GET /create?tool=text-to-video 200 in 15ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 486ms
+ GET /create?tool=image-to-video 200 in 15ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 503ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 487ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 509ms
+🔍 Checking status for request b8181d6fc6ed4ec29ce94418db838041
+📊 Status check for b8181d6fc6ed4ec29ce94418db838041: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for b8181d6fc6ed4ec29ce94418db838041: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/b8181d6fc6ed4ec29ce94418db838041/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/b8181d6fc6ed4ec29ce94418db838041 200 in 497ms
+ ✓ Compiled /api/video/simple-store in 186ms (1390 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 206ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 508ms (824 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 574ms
+ GET /api/auth/session 200 in 28ms
+ ✓ Compiled in 1353ms (1406 modules)
+ GET /create?tool=image-to-video 200 in 94ms
+ ✓ Compiled in 951ms (1400 modules)
+ GET /create?tool=image-to-video 200 in 75ms
+ ✓ Compiled in 518ms (1400 modules)
+ GET /create?tool=image-to-video 200 in 98ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 165ms
+ GET /create?tool=text-to-video 200 in 18ms
+ GET /create?tool=image-to-video 200 in 16ms
+ GET /create?tool=text-to-video 200 in 11ms
+ GET /create?tool=image-to-video 200 in 12ms
+ GET /create?tool=text-to-video 200 in 13ms
+ GET /create?tool=image-to-video 200 in 13ms
+ ✓ Compiled /api/images/upload in 161ms (822 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 3337ms
+ GET /create?tool=discover 200 in 48ms
+ GET /create?tool=text-to-video 200 in 24ms
+ GET /create?tool=image-to-video 200 in 36ms
+ GET /create?tool=text-to-video 200 in 14ms
+ GET /create?tool=discover 200 in 17ms
+ GET /create?tool=text-to-video 200 in 21ms
+ GET /create?tool=image-to-video 200 in 19ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+ POST /api/images/upload 200 in 3128ms
+ ✓ Compiled /api/video/generate in 358ms (818 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Video generation request body: {
+  prompt: '"让画面动起来..."',
+  promptLength: 6,
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  aspectRatio: '9:16',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '让画面动起来...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to seedance-v1-pro-i2v-480p: {
+  prompt: '让画面动起来',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_DATA]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 16c5ebe4e385476e8aee6f5b3b816a13
+ POST /api/video/generate 200 in 3305ms
+ ✓ Compiled /api/video/status/[requestId] in 172ms (820 modules)
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 660ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 431ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 434ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 433ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 429ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 426ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 433ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 436ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 429ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 428ms
+🔍 Checking status for request 16c5ebe4e385476e8aee6f5b3b816a13
+📊 Status check for 16c5ebe4e385476e8aee6f5b3b816a13: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 16c5ebe4e385476e8aee6f5b3b816a13: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/16c5ebe4e385476e8aee6f5b3b816a13/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/16c5ebe4e385476e8aee6f5b3b816a13 200 in 429ms
+ ✓ Compiled /api/video/simple-store in 126ms (822 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 144ms
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Video generation request body: {
+  prompt: '"让画面动起来2..."',
+  promptLength: 7,
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  aspectRatio: '1:1',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '让画面动起来2...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to seedance-v1-pro-i2v-480p: {
+  prompt: '让画面动起来2',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_DATA]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 7f32d048ce4c48f6b49110a0e73f6a56
+ POST /api/video/generate 200 in 2316ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 461ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 604ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 458ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 447ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 454ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 453ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 455ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 450ms
+ GET /create?tool=text-to-video 200 in 59ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 456ms
+ GET /create?tool=discover 200 in 11ms
+ GET /create?tool=image-to-video 200 in 27ms
+🔍 Checking status for request 7f32d048ce4c48f6b49110a0e73f6a56
+📊 Status check for 7f32d048ce4c48f6b49110a0e73f6a56: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 7f32d048ce4c48f6b49110a0e73f6a56: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/7f32d048ce4c48f6b49110a0e73f6a56/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/7f32d048ce4c48f6b49110a0e73f6a56 200 in 1722ms
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 7ms
+ GET /create?tool=text-to-video 200 in 46ms
+ GET /create?tool=image-to-video 200 in 22ms
+ GET /create?tool=text-to-video 200 in 15ms
+ GET /create?tool=image-to-video 200 in 13ms
+ ✓ Compiled in 1190ms (1214 modules)
+ GET /create?tool=image-to-video 200 in 105ms
+ GET /create?tool=discover 200 in 15ms
+ GET /create?tool=image-to-video 200 in 31ms
+ ✓ Compiled /api/images/upload in 222ms (814 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /create?tool=image-to-video 200 in 71ms
+ POST /api/images/upload 200 in 3690ms
+ ✓ Compiled in 638ms (1396 modules)
+ GET /create?tool=image-to-video 200 in 517ms
+ GET /create?tool=discover 200 in 23ms
+ GET /create?tool=discover 200 in 33ms
+ GET /create?tool=discover 200 in 27ms
+ GET /create?tool=discover 200 in 20ms
+ GET /create?tool=text-to-video 200 in 17ms
+ GET /create?tool=image-to-video 200 in 16ms
+ GET /create?tool=image-to-video 200 in 25ms
+ GET /create?tool=image-to-video 200 in 219ms
+ ✓ Compiled /api/auth/[...nextauth] in 322ms (816 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 400ms
+ GET /create?tool=discover 200 in 39ms
+ GET /create?tool=text-to-video 200 in 20ms
+ GET /create?tool=image-to-video 200 in 20ms
+ ✓ Compiled in 423ms (582 modules)
+ GET /create?tool=image-to-video 200 in 27ms
+ GET /api/auth/session 200 in 25ms
+ GET /create?tool=text-to-video 200 in 15ms
+ GET /create?tool=discover 200 in 13ms
+ GET /create?tool=text-to-video 200 in 28ms
+ GET /create?tool=image-to-video 200 in 16ms
+ GET /create?tool=text-to-video 200 in 18ms
+ GET /create?tool=image-to-video 200 in 14ms
+ GET /create?tool=text-to-video 200 in 15ms
+ GET /create?tool=image-to-video 200 in 19ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+ POST /api/images/upload 200 in 3199ms
+ ✓ Compiled in 426ms (582 modules)
+ GET /create?tool=image-to-video 200 in 19ms
+ GET /create?tool=discover 200 in 13ms
+ GET /create?tool=text-to-video 200 in 25ms
+ GET /create?tool=image-to-video 200 in 17ms
+ GET /create?tool=text-to-video 200 in 14ms
+ ✓ Compiled in 1154ms (1192 modules)
+ GET /create?tool=text-to-video 200 in 119ms
+ ✓ Compiled in 182ms (582 modules)
+ GET /create?tool=text-to-video 200 in 48ms
+ ✓ Compiled in 404ms (1192 modules)
+ GET /create?tool=text-to-video 200 in 99ms
+ ✓ Compiled in 1985ms (1192 modules)
+ GET /create?tool=text-to-video 200 in 104ms
+ ✓ Compiled in 1372ms (1194 modules)
+ GET /create?tool=text-to-video 200 in 298ms
+ ✓ Compiled in 490ms (1194 modules)
+ GET /create?tool=text-to-video 200 in 58ms
+ ✓ Compiled in 355ms (1194 modules)
+ GET /create?tool=text-to-video 200 in 48ms
+ ✓ Compiled in 359ms (1194 modules)
+ GET /create?tool=text-to-video 200 in 89ms
+ ✓ Compiled in 653ms (1194 modules)
+ GET /create?tool=text-to-video 200 in 80ms
+ ✓ Compiled in 486ms (1194 modules)
+ GET /create?tool=text-to-video 200 in 103ms
+ ✓ Compiled in 776ms (583 modules)
+ GET /create?tool=text-to-video 200 in 34ms
+ GET /create?tool=image-to-video 200 in 17ms
+ GET /create?tool=image-to-video 200 in 222ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 745ms (813 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 920ms
+ GET /create?tool=discover 200 in 46ms
+ ✓ Compiled in 850ms (1396 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 91ms
+ GET /create?tool=discover 200 in 68ms
+ GET /create?tool=discover 200 in 178ms
+ GET /api/auth/session 200 in 17ms
+ ✓ Compiled in 1241ms (1396 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 707ms
+ GET /create?tool=discover 200 in 243ms
+ GET /create?tool=discover 200 in 329ms
+ GET /api/auth/session 200 in 12ms
+ GET /api/auth/session 200 in 77ms
+ GET /create?tool=text-to-video 200 in 29ms
+ GET /create?tool=image-to-video 200 in 16ms
+ ✓ Compiled /api/images/upload in 348ms (817 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 4149ms
+ ✓ Compiled /api/video/generate in 313ms (821 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Video generation request body: {
+  prompt: '"女孩拿着手机自拍..."',
+  promptLength: 8,
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  aspectRatio: '9:16',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '女孩拿着手机自拍...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to seedance-v1-pro-i2v-480p: {
+  prompt: '女孩拿着手机自拍',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_DATA]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 8bcd6bc873c0450f84a4a72e2d964156
+ POST /api/video/generate 200 in 3773ms
+ ✓ Compiled /api/video/status/[requestId] in 207ms (823 modules)
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 722ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 472ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 478ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 488ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 472ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 469ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 475ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 458ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 459ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 450ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 451ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 454ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 460ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 461ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 453ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 451ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 458ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 451ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 450ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 453ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 453ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 456ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 456ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 455ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 450ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 455ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 450ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 449ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 455ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 453ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 458ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 458ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 451ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 451ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 456ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 451ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 458ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 452ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 455ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 454ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 451ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 453ms
+ GET /create?tool=text-to-video 200 in 47ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 455ms
+ GET /create?tool=image-to-video 200 in 12ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 450ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 456ms
+ GET /create?tool=discover 200 in 19ms
+ GET /create?tool=image-to-video 200 in 17ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 3152ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 471ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 460ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 465ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 461ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 463ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 461ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 468ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 464ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 471ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 475ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 470ms
+🔍 Checking status for request 8bcd6bc873c0450f84a4a72e2d964156
+📊 Status check for 8bcd6bc873c0450f84a4a72e2d964156: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 8bcd6bc873c0450f84a4a72e2d964156: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/8bcd6bc873c0450f84a4a72e2d964156 200 in 457ms
+ GET /create?tool=discover 200 in 19ms
+ GET /create?tab=image-to-video 200 in 17ms
+ GET /create?tab=image-to-video&tool=discover 200 in 34ms
+ GET /create?tab=image-to-video 200 in 27ms
+ GET /create?tab=image-to-video&tool=discover 200 in 29ms
+ GET /create?tab=image-to-video&tool=discover 200 in 244ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 36ms
+ GET /create?tab=image-to-video 200 in 29ms
+ GET /create?tab=image-to-video&tool=discover 200 in 31ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 46ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 29ms
+ GET /create?tab=image-to-video&tool=text-to-video 200 in 17ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 19ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 142ms
+ GET /api/auth/session 200 in 25ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+ POST /api/images/upload 200 in 4459ms
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+🔍 Video generation request body: {
+  prompt: '"让图片动起来..."',
+  promptLength: 6,
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  aspectRatio: '16:9',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '让图片动起来...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to seedance-v1-pro-i2v-480p: {
+  prompt: '让图片动起来',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_DATA]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 2db6b3ebb9974550af2bfc11bd31b898
+ POST /api/video/generate 200 in 2777ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 454ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 455ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 499ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 454ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 454ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 455ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 454ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 451ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 458ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 459ms
+🔍 Checking status for request 2db6b3ebb9974550af2bfc11bd31b898
+📊 Status check for 2db6b3ebb9974550af2bfc11bd31b898: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 2db6b3ebb9974550af2bfc11bd31b898: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/2db6b3ebb9974550af2bfc11bd31b898/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/2db6b3ebb9974550af2bfc11bd31b898 200 in 449ms
+ ✓ Compiled /api/video/simple-store in 348ms (825 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 399ms
+ ✓ Compiled in 1139ms (1408 modules)
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 84ms
+ ✓ Compiled in 318ms (583 modules)
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 36ms
+ ✓ Compiled in 344ms (583 modules)
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 25ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 103ms
+ GET /create?tab=image-to-video&tool=discover 200 in 18ms
+ GET /create?tab=image-to-video&tool=text-to-video 200 in 39ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 20ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 205ms
+ GET /api/auth/session 200 in 15ms
+ GET /create?tab=image-to-video&tool=text-to-video 200 in 15ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 12ms
+ GET /create?tab=image-to-video&tool=my-assets 200 in 10ms
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 18ms
+ ✓ Compiled in 488ms (583 modules)
+ GET /create?tab=image-to-video&tool=image-to-video 200 in 26ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/auth/session 200 in 34ms
+ GET /create?tab=image-to-video&tool=discover 200 in 23ms
+ GET /create?tab=image-to-video&tool=discover 200 in 27ms
+ GET /create?tool=image-to-video 200 in 20ms
+ GET /create?tool=discover 200 in 29ms
+ GET /create?tool=image-to-video 200 in 25ms
+ GET /create?tool=discover 200 in 17ms
+ GET /create?tool=image-to-video 200 in 30ms
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+🔍 Video generation request body: {
+  prompt: '"Three scuba divers are swimming underwater near a ..."',
+  promptLength: 500,
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  aspectRatio: '9:16',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: 'Three scuba divers are swimming underwater near a ...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to seedance-v1-pro-i2v-480p: {
+  prompt: "Three scuba divers are swimming underwater near a large, calm shark. One diver reacts with surprise, flailing momentarily, while the other two notice and swim closer. The divers gather together and gesture to communicate, then swim slowly away from the shark. The underwater environment is serene, with sunlight streaming through the water's surface, casting a soft blue glow. The camera is positioned below and angled upward, highlighting the scale of the shark and the dramatic lighting from above.",
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_DATA]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 148498dd513f4ff9a88316d20eb545b5
+ POST /api/video/generate 200 in 2283ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 363ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 350ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 352ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 348ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 338ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 345ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 338ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 343ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 341ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 344ms
+🔍 Checking status for request 148498dd513f4ff9a88316d20eb545b5
+📊 Status check for 148498dd513f4ff9a88316d20eb545b5: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 148498dd513f4ff9a88316d20eb545b5: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/148498dd513f4ff9a88316d20eb545b5/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/148498dd513f4ff9a88316d20eb545b5 200 in 341ms
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 14ms
+ ✓ Compiled in 1276ms (1402 modules)
+ GET /create?tool=image-to-video 200 in 115ms
+ ✓ Compiled in 454ms (1402 modules)
+ GET /create?tool=image-to-video 200 in 80ms
+ ✓ Compiled in 602ms (1216 modules)
+ GET /create?tool=image-to-video 200 in 124ms
+ ✓ Compiled in 1063ms (1216 modules)
+ GET /create?tool=image-to-video 200 in 95ms
+ ✓ Compiled /api/auth/[...nextauth] in 414ms (819 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 583ms
+ ✓ Compiled in 525ms (1396 modules)
+ GET /create?tool=image-to-video 200 in 98ms
+ ✓ Compiled in 361ms (1396 modules)
+ GET /create?tool=image-to-video 200 in 78ms
+ ✓ Compiled in 312ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 117ms
+ ✓ Compiled in 306ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 54ms
+ ✓ Compiled in 1197ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 67ms
+ ✓ Compiled in 674ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 74ms
+ ✓ Compiled in 1460ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 69ms
+ ✓ Compiled in 365ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 91ms
+ ✓ Compiled in 495ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 66ms
+ ✓ Compiled in 716ms (1194 modules)
+ GET /create?tool=image-to-video 200 in 51ms
+ ✓ Compiled in 186ms (583 modules)
+ GET /create?tool=image-to-video 200 in 41ms

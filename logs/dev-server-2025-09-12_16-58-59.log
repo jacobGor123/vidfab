@@ -1,0 +1,42 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverComponentsExternalPackages' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ `experimental.serverComponentsExternalPackages` has been moved to `serverExternalPackages`. Please update your next.config.mjs file accordingly.
+ ✓ Ready in 1398ms
+ ✓ Compiled /middleware in 426ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 3.2s (1705 modules)
+ GET / 200 in 3710ms
+ ✓ Compiled in 538ms (811 modules)
+ GET / 200 in 71ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1021ms (1895 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1586ms
+ GET / 200 in 186ms
+ GET /api/auth/session 200 in 12ms
+ GET / 200 in 105ms
+ GET /api/auth/session 200 in 15ms
+ ✓ Compiled in 1038ms (1706 modules)
+ GET / 200 in 109ms
+ ✓ Compiled in 557ms (1706 modules)
+ GET / 200 in 77ms
+ ✓ Compiled in 461ms (1706 modules)
+ GET / 200 in 60ms
+ ✓ Compiled in 547ms (1706 modules)
+ GET / 200 in 79ms
+ ✓ Compiled in 627ms (1706 modules)
+ GET / 200 in 64ms
+ ✓ Compiled in 559ms (1706 modules)
+ GET / 200 in 68ms

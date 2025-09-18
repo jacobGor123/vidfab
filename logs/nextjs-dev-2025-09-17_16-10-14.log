@@ -1,0 +1,257 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /middleware in 1696ms (885 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+[31m[auth][error][0m JWTSessionError: Read more at https://errors.authjs.dev#jwtsessionerror
+[31m[auth][cause][0m: Error: no matching decryption secret
+    at clockTolerance (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:90:15)
+    at async flattenedDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/flattened/decrypt.js:106:15)
+    at async compactDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/compact/decrypt.js:22:23)
+    at async jwtDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwt/decrypt.js:12:23)
+    at async Object.decode (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:81:25)
+    at async Module.session (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/actions/session.js:23:29)
+    at async AuthInternal (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/index.js:47:24)
+    at async Auth (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/index.js:126:34)
+    at async handleAuth (webpack-internal:///(middleware)/./node_modules/.pnpm/next-auth@5.0.0-beta.20_next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1__nodemailer@7.0.6_react@19.1.1/node_modules/next-auth/lib/index.js:136:29)
+    at async eval (webpack-internal:///(middleware)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/build/webpack/loaders/next-middleware-loader.js?absolutePagePath=%2FUsers%2Fjacob%2FDesktop%2Fvidfab%2Fmiddleware.ts&page=%2Fmiddleware&rootDir=%2FUsers%2Fjacob%2FDesktop%2Fvidfab&matchers=&preferredRegion=&middlewareConfig=e30%3D!:32:20)
+[31m[auth][details][0m: {}
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+[31m[auth][error][0m JWTSessionError: Read more at https://errors.authjs.dev#jwtsessionerror
+[31m[auth][cause][0m: Error: no matching decryption secret
+    at clockTolerance (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:90:15)
+    at async flattenedDecrypt (webpack-internal:///(rsc)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/node/esm/jwe/flattened/decrypt.js:106:15)
+    at async compactDecrypt (webpack-internal:///(rsc)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/node/esm/jwe/compact/decrypt.js:22:23)
+    at async jwtDecrypt (webpack-internal:///(rsc)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/node/esm/jwt/decrypt.js:12:23)
+    at async Object.decode (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:81:25)
+    at async Module.session (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/actions/session.js:23:29)
+    at async AuthInternal (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/index.js:47:24)
+    at async Auth (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/index.js:126:34)
+    at async AppRouteRouteModule.do (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:895:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/router-server.js:235:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/router-server.js:426:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/router-server.js:450:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/start-server.js:158:13)
+[31m[auth][details][0m: {}
+ GET /api/auth/session 200 in 2899ms
+ ○ Compiling /create ...
+ ✓ Compiled /login in 5.8s (1367 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 5569ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /login 200 in 3553ms
+ GET /create?tool=text-to-video 200 in 6462ms
+ GET /api/auth/session 200 in 10ms
+ GET /api/auth/session 200 in 6ms
+ GET /login 200 in 14ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 759ms (1415 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 891897 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 891897
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<8acb1c2e-152d-e36c-4a88-bfaa5b977678@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 891897'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<8acb1c2e-152d-e36c-4a88-bfaa5b977678@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8963ms
+ ✓ Compiled /api/auth/verify-code-login in 294ms (1417 modules)
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 2818ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 54ms
+ GET /api/auth/csrf 200 in 7ms
+✅ User saved: ithermocraft@hotmail.com (a8115b45-7e90-4f6d-b752-f1850ce6f4f9)
+✅ User signed in: ithermocraft@hotmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 1419ms
+ GET /api/auth/session 200 in 9ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1609ms (2296 modules)
+ GET / 200 in 1720ms
+ GET /create 200 in 21ms
+ GET /create?tool=discover 200 in 15ms
+ GET /create?tool=discover 200 in 18ms
+ GET /create?tool=text-to-video 200 in 35ms
+ ○ Compiling /api/video/generate ...
+ ✓ Compiled /api/video/generate in 1054ms (2300 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创建 emj 表情，...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创建 emj 表情，',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: bcd59a23fff74af3beda4dd4efdbd378
+ POST /api/video/generate 200 in 2385ms
+ ✓ Compiled /api/video/status/[requestId] in 303ms (2302 modules)
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 1070ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 202ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 206ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 206ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 202ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 206ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 202ms
+ ✓ Compiled in 412ms (1003 modules)
+ GET /create?tool=text-to-video 200 in 63ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 212ms
+ ✓ Compiled in 338ms (1003 modules)
+ GET /create?tool=text-to-video 200 in 18ms
+🔍 Checking status for request bcd59a23fff74af3beda4dd4efdbd378
+📊 Status check for bcd59a23fff74af3beda4dd4efdbd378: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for bcd59a23fff74af3beda4dd4efdbd378: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 200 in 227ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 736ms (2318 modules)
+ GET /api/video/status/bcd59a23fff74af3beda4dd4efdbd378 404 in 987ms
+ ✓ Compiled in 308ms (1006 modules)
+ GET /create?tool=text-to-video 200 in 96ms
+ GET /create?tool=text-to-video 200 in 21ms
+ GET /_next/static/css/app/layout.css?v=1758096763890 404 in 34ms
+ GET /_next/static/css/app/layout.css?v=1758096763890 404 in 37ms
+ ✓ Compiled in 355ms (1006 modules)
+ GET /create?tool=text-to-video 200 in 18ms
+ GET /_next/static/css/app/layout.css?v=1758096770279 404 in 34ms
+ GET /_next/static/css/app/layout.css?v=1758096770279 404 in 32ms
+ ✓ Compiled in 197ms (1006 modules)
+ GET /create?tool=text-to-video 200 in 19ms
+ GET /_next/static/css/app/layout.css?v=1758096771612 404 in 29ms
+ GET /_next/static/css/app/layout.css?v=1758096771612 404 in 30ms
+ ✓ Compiled in 206ms (1006 modules)
+ GET /create?tool=text-to-video 200 in 22ms
+ GET /_next/static/css/app/layout.css?v=1758096772136 404 in 27ms
+ GET /_next/static/css/app/layout.css?v=1758096772136 404 in 32ms
+[?25h

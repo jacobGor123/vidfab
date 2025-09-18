@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频加载测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        video {
+            max-width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 4px;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background: #4caf50; }
+        .error { background: #f44336; }
+        .loading { background: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>🎬 视频加载测试页面</h1>
+    <p>这个页面用于测试视频URL是否可以正常加载和播放</p>
+
+    
+    <div class="test-container">
+        <h3>测试视频1</h3>
+        <p><strong>视频URL:</strong> <code>https://static.vidfab.ai/user-video/vidfab-2910ad47-9d15-4ab4-8a59-aea9cf2500d8.mp4</code></p>
+
+        <video id="video0" controls muted preload="none">
+            <source src="https://static.vidfab.ai/user-video/vidfab-2910ad47-9d15-4ab4-8a59-aea9cf2500d8.mp4" type="video/mp4">
+            您的浏览器不支持视频标签。
+        </video>
+
+        <div class="controls">
+            <button onclick="testVideo(0)">测试加载</button>
+            <button onclick="playVideo(0)">播放</button>
+            <button onclick="pauseVideo(0)">暂停</button>
+        </div>
+
+        <div id="status0" class="status loading">等待测试...</div>
+    </div>
+    
+    <div class="test-container">
+        <h3>测试视频2</h3>
+        <p><strong>视频URL:</strong> <code>https://static.vidfab.ai/user-video/vidfab-cc5fedd1-507a-4415-bef7-7bfe1d3e8c49.mp4</code></p>
+
+        <video id="video1" controls muted preload="none">
+            <source src="https://static.vidfab.ai/user-video/vidfab-cc5fedd1-507a-4415-bef7-7bfe1d3e8c49.mp4" type="video/mp4">
+            您的浏览器不支持视频标签。
+        </video>
+
+        <div class="controls">
+            <button onclick="testVideo(1)">测试加载</button>
+            <button onclick="playVideo(1)">播放</button>
+            <button onclick="pauseVideo(1)">暂停</button>
+        </div>
+
+        <div id="status1" class="status loading">等待测试...</div>
+    </div>
+    
+
+    <script>
+        function testVideo(index) {
+            const video = document.getElementById('video' + index);
+            const status = document.getElementById('status' + index);
+
+            status.className = 'status loading';
+            status.textContent = '正在加载视频...';
+
+            video.addEventListener('canplay', function() {
+                status.className = 'status success';
+                status.textContent = '✅ 视频加载成功，可以播放';
+            }, { once: true });
+
+            video.addEventListener('error', function(e) {
+                status.className = 'status error';
+                status.textContent = '❌ 视频加载失败: ' + (e.message || '未知错误');
+            }, { once: true });
+
+            video.load();
+        }
+
+        function playVideo(index) {
+            const video = document.getElementById('video' + index);
+            video.play().catch(e => {
+                const status = document.getElementById('status' + index);
+                status.className = 'status error';
+                status.textContent = '❌ 播放失败: ' + e.message;
+            });
+        }
+
+        function pauseVideo(index) {
+            const video = document.getElementById('video' + index);
+            video.pause();
+        }
+
+        // 自动测试所有视频
+        window.onload = function() {
+            
+                setTimeout(() => testVideo(0), 0);
+            
+                setTimeout(() => testVideo(1), 1000);
+            
+        }
+    </script>
+</body>
+</html>

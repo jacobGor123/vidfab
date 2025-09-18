@@ -1,0 +1,30 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.5s
+ ✓ Compiled /middleware in 82ms
+ ✓ Compiled (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.6s (1187 modules)
+ ✓ Compiled in 720ms (579 modules)
+ GET /create?tool=discover 200 in 4474ms
+ GET /create?tool=discover 200 in 72ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 916ms (1376 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1555ms
+ GET /create?tool=image-to-video 200 in 90ms
+ ✓ Compiled in 456ms (580 modules)
+ GET /create?tool=image-to-video 200 in 72ms
+ ✓ Compiled in 843ms (1192 modules)
+ GET /create?tool=image-to-video 200 in 94ms
+ ✓ Compiled in 576ms (1192 modules)
+ GET /create?tool=image-to-video 200 in 69ms

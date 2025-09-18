@@ -1,0 +1,86 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.10.24:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1523ms
+ ✓ Compiled /middleware in 377ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.6s (804 modules)
+ ✓ Compiled in 416ms (359 modules)
+ GET /login 200 in 3031ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /api/auth/[...nextauth] in 661ms (794 modules)
+ ✓ Compiled in 382ms (348 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1584ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1529ms
+ ✓ Compiled /api/auth/send-verification-code in 297ms (1057 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 377673 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 377673
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<add935eb-e65d-bfff-584a-606a21af9580@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 377673'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<add935eb-e65d-bfff-584a-606a21af9580@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8629ms
+ GET /login 200 in 128ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 39ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 49ms
+Error generating verification code: Error: Please wait 3 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 962ms
+Error generating verification code: Error: Please wait 2 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 915ms
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 518939 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 518939
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<1e0da839-21b8-8479-2a4d-9559adbf43ba@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 518939'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<1e0da839-21b8-8479-2a4d-9559adbf43ba@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 7473ms
+ GET /login 200 in 56ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 64ms
+ GET /api/auth/session 200 in 19ms
+ ✓ Compiled in 408ms (362 modules)
+ GET /login 200 in 24ms
+ ✓ Compiled in 293ms (359 modules)
+ GET /login 200 in 27ms

@@ -1,0 +1,46 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1923ms
+ ✓ Compiled /middleware in 462ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.4s (804 modules)
+ ✓ Compiled in 428ms (359 modules)
+ GET /login 200 in 2873ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 711ms (991 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1318ms
+ ✓ Compiled /api/auth/send-verification-code in 410ms (1053 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 974897 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 974897
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<306dd268-d13e-3868-5634-73d815864cd6@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 974897'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<306dd268-d13e-3868-5634-73d815864cd6@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8556ms
+ ✓ Compiled /api/auth/verify-code-login in 194ms (1055 modules)
+ POST /api/auth/verify-code-login 400 in 1391ms
+ GET /login 200 in 106ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 50ms
+ GET /login 200 in 51ms
+ GET /api/auth/session 200 in 6ms
+ GET /login 200 in 75ms
+ GET /api/auth/session 200 in 9ms
+ GET /login 200 in 56ms
+ GET /api/auth/session 200 in 13ms

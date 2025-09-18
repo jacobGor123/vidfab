@@ -1,0 +1,118 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.10.24:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1479ms
+ ✓ Compiled /middleware in 344ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 2.8s (1705 modules)
+ GET / 200 in 3203ms
+ ✓ Compiled in 463ms (811 modules)
+ GET / 200 in 92ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1016ms (1895 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1633ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 517ms (1928 modules)
+ GET /login 200 in 627ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 520ms (1990 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 677272 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 677272
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<27c2d56e-6ba9-e83b-71aa-313219540836@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 677272'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<27c2d56e-6ba9-e83b-71aa-313219540836@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8193ms
+ ✓ Compiled /api/auth/verify-code-login in 258ms (1992 modules)
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 2755ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 49ms
+ GET /api/auth/csrf 200 in 5ms
+✅ User saved: ithermocraft@hotmail.com (c3c86999-eda0-45a1-8965-b2b77b442d8e)
+✅ User signed in: ithermocraft@hotmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 1520ms
+ GET /api/auth/session 200 in 16ms
+ GET / 200 in 49ms
+ GET /api/auth/csrf 200 in 16ms
+👋 User signed out: ithermocraft@hotmail.com
+ POST /api/auth/signout 200 in 6ms
+ GET / 200 in 170ms
+ GET /api/auth/session 200 in 12ms
+ GET /login 200 in 31ms
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 162765 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 162765
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<8ac7cddf-d1bb-b2df-6e3b-5c56d3e5cbcc@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 162765'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<8ac7cddf-d1bb-b2df-6e3b-5c56d3e5cbcc@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 7767ms
+ POST /api/auth/verify-code-login 400 in 1741ms
+ GET /login 200 in 59ms
+ GET /api/auth/session 200 in 9ms
+ GET /login 200 in 43ms
+ GET /api/auth/session 200 in 7ms
+ GET /login 200 in 45ms
+ GET /login 200 in 46ms
+ GET /login 200 in 39ms
+ GET /api/auth/session 200 in 8ms
+ GET /login 200 in 53ms
+ GET /api/auth/session 200 in 7ms
+ GET /login 200 in 40ms
+ GET /api/auth/session 200 in 6ms
+ GET /login 200 in 109ms
+ GET /api/auth/session 200 in 81ms
+Error generating verification code: Error: Please wait 3 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 942ms
+ GET /login 200 in 55ms
+ GET /api/auth/session 200 in 13ms
+Error generating verification code: Error: Please wait 2 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 886ms
+ ✓ Compiled in 581ms (826 modules)
+ GET /login 200 in 18ms
+ ✓ Compiled in 513ms (826 modules)
+ GET /login 200 in 21ms
+ ✓ Compiled in 1087ms (1741 modules)
+ GET /login 200 in 122ms

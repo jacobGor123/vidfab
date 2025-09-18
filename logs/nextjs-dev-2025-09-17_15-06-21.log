@@ -1,0 +1,104 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1731ms
+ ✓ Compiled /middleware in 383ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.3s (1169 modules)
+ GET /create?tool=text-to-video 200 in 3912ms
+ ✓ Compiled in 618ms (568 modules)
+ GET /create?tool=text-to-video 200 in 97ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 992ms (1358 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1574ms
+ ✓ Compiled /api/video/generate in 295ms (1362 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创作一个 emj 表情...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创作一个 emj 表情',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 21a46afb86744bc999862453f0b876a5
+ POST /api/video/generate 200 in 1444ms
+ ✓ Compiled /api/video/status/[requestId] in 413ms (1364 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/video/status/21a46afb86744bc999862453f0b876a5 401 in 862ms
+ GET /api/video/status/21a46afb86744bc999862453f0b876a5 401 in 11ms
+ GET /api/video/status/21a46afb86744bc999862453f0b876a5 401 in 14ms
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创作一个 emj 表情...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创作一个 emj 表情',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: a80f1422532747339eb3af62fefcbb77
+ POST /api/video/generate 200 in 1126ms
+ GET /api/video/status/a80f1422532747339eb3af62fefcbb77 401 in 13ms
+ GET /api/video/status/a80f1422532747339eb3af62fefcbb77 401 in 8ms
+ GET /api/video/status/a80f1422532747339eb3af62fefcbb77 401 in 8ms
+ ✓ Compiled in 944ms (1374 modules)
+ GET /create?tool=text-to-video 200 in 96ms
+ ✓ Compiled in 466ms (1170 modules)
+ GET /create?tool=text-to-video 200 in 99ms
+ ✓ Compiled in 349ms (1170 modules)
+ GET /create?tool=text-to-video 200 in 72ms

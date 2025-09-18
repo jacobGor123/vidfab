@@ -1,0 +1,228 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverComponentsExternalPackages' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ `experimental.serverComponentsExternalPackages` has been moved to `serverExternalPackages`. Please update your next.config.mjs file accordingly.
+ ✓ Ready in 1492ms
+ ✓ Compiled /middleware in 403ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 3s (1705 modules)
+ ✓ Compiled in 444ms (811 modules)
+ GET / 200 in 86ms
+ GET / 200 in 96ms
+ GET / 200 in 82ms
+ GET / 200 in 93ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1452ms (1895 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2284ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1213ms (1727 modules)
+ GET /login 200 in 1343ms
+ GET / 200 in 153ms
+ ✓ Compiled /api/auth/[...nextauth] in 183ms (1116 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 303ms
+ ✓ Compiled in 1306ms (1942 modules)
+ GET / 200 in 114ms
+ ✓ Compiled in 990ms (1923 modules)
+ GET / 200 in 143ms
+ ✓ Compiled in 924ms (1720 modules)
+ GET / 200 in 176ms
+ ✓ Compiled in 444ms (1720 modules)
+ GET / 200 in 124ms
+ ✓ Compiled in 691ms (1720 modules)
+ GET / 200 in 33ms
+ ✓ Compiled in 927ms (1720 modules)
+ GET / 200 in 58ms
+ ✓ Compiled in 558ms (1720 modules)
+ GET / 200 in 62ms
+ ✓ Compiled in 743ms (1720 modules)
+ GET / 200 in 91ms
+ ✓ Compiled /login in 284ms (915 modules)
+ GET /login 200 in 414ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 608ms (1116 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 727ms
+ GET /api/auth/csrf 200 in 4ms
+[90m[auth][debug]:[0m CREATE_PKCECODEVERIFIER {
+  "value": "VgaZsd8v76Jbc5jgBlJL_P2ffHq8wdgw57sQWEwJnAc",
+  "maxAge": 900
+}
+[90m[auth][debug]:[0m authorization url is ready {
+  "url": "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=827684711935-so1rhvk9iu5a86f9ko0bik020v8v9jgn.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fcallback%2Fgoogle&code_challenge=KjE6imUbkuDik1Tg9L1LvhWTiTxQNl-bNo2AYfSTHno&code_challenge_method=S256&scope=openid+profile+email",
+  "cookies": [
+    {
+      "name": "authjs.pkce.code_verifier",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiemNwQkJUdlhaWXZ1S1E2VkxIXzN2cDBoSVR6aEZkVVdSRnpuQURtbzl0bi13VUlfYXhQOU1wcGFYS0tLeEdyVXAzU3RNM2JnQUFEWmg3T2RNMlNmNlEifQ..rv4A3pcIT-zYJTPNL7YUpg.4TCfY4h2n3BAWmMhSDauV8uJZNV_rXRjFef3VErzjCbxQtYZqs4fRg_wmN8MsNcNmjVuLp9jETGzNs81W44NuIspKER8dhxkSQZW4chib8KMwYiEXmGJ7zrjz0fR2HxyHNcy59FIv7aEgEar98RTzSbVguCIzRWWMDojWTgJSyw4lw6Ul95GuyDQ6dhmFPqV.ik9OXcWCtXIvELnyMc9vtXwTcqpR1BP8DJMhgKr30pc",
+      "options": {
+        "httpOnly": true,
+        "sameSite": "lax",
+        "path": "/",
+        "secure": false,
+        "maxAge": 900,
+        "expires": "2025-09-15T02:34:06.285Z"
+      }
+    }
+  ],
+  "provider": {
+    "id": "google",
+    "name": "Google",
+    "type": "oidc",
+    "issuer": "https://accounts.google.com",
+    "style": {
+      "brandColor": "#1a73e8"
+    },
+    "clientId": "827684711935-so1rhvk9iu5a86f9ko0bik020v8v9jgn.apps.googleusercontent.com",
+    "clientSecret": "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",
+    "signinUrl": "http://localhost:3000/api/auth/signin/google",
+    "callbackUrl": "http://localhost:3000/api/auth/callback/google",
+    "wellKnown": "https://accounts.google.com/.well-known/openid-configuration",
+    "checks": [
+      "pkce"
+    ]
+  }
+}
+ POST /api/auth/signin/google? 200 in 238ms
+[90m[auth][debug]:[0m authorization result {
+  "user": {
+    "id": "cc4c58ca-eaf2-480e-ba03-be671c80baae",
+    "name": "Jacob",
+    "email": "jsdasww593@gmail.com"
+  },
+  "account": {
+    "access_token": "ya29.a0AQQ_BDRCm-x1Y8MhPNuItS11cQlPqJadNoi0MDIHuvLOUAlcEHygEaO_l29F2ddjt8D5YbcJFzPZPCDgPhefjjGxn1uwAJCINtuXSBAWYW2I3XvOz4SF72T_HEb0ybrp1J9BUgpJhfj0c3kQLY_7CUtB-CWoWxppXKNAkMsvuZffaTIJfLqEYvCv0-ikM2w0k-hdrkkaCgYKAbwSARcSFQHGX2MirqCEvRPjZEwFNjg7XMD1cw0206",
+    "expires_in": 3599,
+    "scope": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid",
+    "token_type": "bearer",
+    "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA3ZjA3OGYyNjQ3ZThjZDAxOWM0MGRhOTU2OWU0ZjUyNDc5OTEwOTQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI4Mjc2ODQ3MTE5MzUtc28xcmh2azlpdTVhODZmOWtvMGJpazAyMHY4djlqZ24uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI4Mjc2ODQ3MTE5MzUtc28xcmh2azlpdTVhODZmOWtvMGJpazAyMHY4djlqZ24uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDgxMDI4MzY4ODYxODEzMTAwMDMiLCJlbWFpbCI6ImpzZGFzd3c1OTNAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJhVTY4V3BmY3F5Ujl2SVNBZm95MkFnIiwibmFtZSI6IkphY29iIiwiZ2l2ZW5fbmFtZSI6IkphY29iIiwiaWF0IjoxNzU3OTAyNzkzLCJleHAiOjE3NTc5MDYzOTN9.HkKZQ8cqCmLnr7ubNIfZrk7E-kA573sZKjygIuchtmUH9pYTBvdLR1ieOnOTeuLeXF2Yv3hYHZydG8vgi-ELbYHbC-XERSj0qdSlCJ9O79qlupUGypcW58nLISwG0wF2zS2DF9cPzMHSAPyXMJLX0Z6Ee-mz-pqnN0cguP-4aE_Rwyl08eK21iBPCWq9-iVWFep9nZAswBSCb_-zSfEV8BhlucsjX0D9ywTnHKuGcCIZOhmdjimh1C_ffwKowhWd0bpNaXvWRNZNZbw9McpQIiFkdv_fmncUgM4_E7c56Iswmfur1_K64a2Y9Qhgu09SQ5hxs_3OKVoRE2d9h7Jekw",
+    "expires_at": 1757906392,
+    "provider": "google",
+    "type": "oidc",
+    "providerAccountId": "108102836886181310003"
+  },
+  "profile": {
+    "iss": "https://accounts.google.com",
+    "azp": "827684711935-so1rhvk9iu5a86f9ko0bik020v8v9jgn.apps.googleusercontent.com",
+    "aud": "827684711935-so1rhvk9iu5a86f9ko0bik020v8v9jgn.apps.googleusercontent.com",
+    "sub": "108102836886181310003",
+    "email": "jsdasww593@gmail.com",
+    "email_verified": true,
+    "at_hash": "aU68WpfcqyR9vISAfoy2Ag",
+    "name": "Jacob",
+    "given_name": "Jacob",
+    "iat": 1757902793,
+    "exp": 1757906393
+  },
+  "cookies": [
+    {
+      "name": "authjs.pkce.code_verifier",
+      "value": "",
+      "options": {
+        "httpOnly": true,
+        "sameSite": "lax",
+        "path": "/",
+        "secure": false,
+        "maxAge": 0
+      }
+    }
+  ]
+}
+Error: Route "/api/auth/[...nextauth]" used `headers().get('x-forwarded-for')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at getClientIp (lib/ip.ts:14:38)
+    at Object.jwt (auth/config.ts:211:40)
+  12 |     
+  13 |     // Try different header sources for IP
+> 14 |     const xForwardedFor = headersList.get('x-forwarded-for');
+     |                                      ^
+  15 |     const xRealIp = headersList.get('x-real-ip');
+  16 |     const cfConnectingIp = headersList.get('cf-connecting-ip');
+  17 |     
+Error: Route "/api/auth/[...nextauth]" used `headers().get('x-real-ip')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at getClientIp (lib/ip.ts:15:32)
+    at Object.jwt (auth/config.ts:211:40)
+  13 |     // Try different header sources for IP
+  14 |     const xForwardedFor = headersList.get('x-forwarded-for');
+> 15 |     const xRealIp = headersList.get('x-real-ip');
+     |                                ^
+  16 |     const cfConnectingIp = headersList.get('cf-connecting-ip');
+  17 |     
+  18 |     if (xForwardedFor) {
+Error: Route "/api/auth/[...nextauth]" used `headers().get('cf-connecting-ip')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at getClientIp (lib/ip.ts:16:39)
+    at Object.jwt (auth/config.ts:211:40)
+  14 |     const xForwardedFor = headersList.get('x-forwarded-for');
+  15 |     const xRealIp = headersList.get('x-real-ip');
+> 16 |     const cfConnectingIp = headersList.get('cf-connecting-ip');
+     |                                       ^
+  17 |     
+  18 |     if (xForwardedFor) {
+  19 |       // x-forwarded-for can contain multiple IPs, get the first one
+Save user error: {
+  code: 'PGRST205',
+  details: null,
+  hint: null,
+  message: "Could not find the table 'public.users' in the schema cache"
+}
+Supabase error: {
+  code: 'PGRST205',
+  details: null,
+  hint: null,
+  message: "Could not find the table 'public.users' in the schema cache"
+}
+Error in saveUser: Error: Could not find the table 'public.users' in the schema cache
+    at handleSupabaseError (lib/supabase.ts:106:10)
+    at saveUser (services/user.ts:52:26)
+    at async Object.jwt (auth/config.ts:215:30)
+  104 |   
+  105 |   if (error?.message) {
+> 106 |     throw new Error(error.message);
+      |          ^
+  107 |   }
+  108 |   
+  109 |   throw new Error('Database operation failed');
+Failed to save user: Error: Could not find the table 'public.users' in the schema cache
+    at handleSupabaseError (lib/supabase.ts:106:10)
+    at saveUser (services/user.ts:52:26)
+    at async Object.jwt (auth/config.ts:215:30)
+  104 |   
+  105 |   if (error?.message) {
+> 106 |     throw new Error(error.message);
+      |          ^
+  107 |   }
+  108 |   
+  109 |   throw new Error('Database operation failed');
+✅ User signed in: jsdasww593@gmail.com via google
+ GET /api/auth/callback/google?code=4%2F0AVGzR1Am8Os4aMrx8GuGwPpJmwXr4zbSpqTKY0AsI5F7Z6c8hwuYWL5thuWRpcaFhM6aYA&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid&authuser=0&prompt=consent 302 in 2094ms
+ GET / 200 in 191ms
+ GET /api/auth/session 200 in 22ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1988ms (2135 modules)
+ GET /create 200 in 2098ms
+ GET /create?tool=text-to-video 200 in 19ms
+ GET /create?tool=image-to-video 200 in 17ms
+ GET /create?tool=template-gallery 200 in 17ms
+ GET /create?tool=my-assets 200 in 17ms
+ GET /create?tool=my-assets 200 in 231ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 63ms
+ GET /create?tool=text-to-video 200 in 21ms
+ GET /create?tool=template-gallery 200 in 12ms
+ GET /create?tool=template-gallery 200 in 105ms
+ GET /api/auth/session 200 in 11ms
+ GET /create?tool=text-to-video 200 in 13ms
+ GET /create?tool=my-assets 200 in 13ms
+ GET /create?tool=image-to-video 200 in 11ms
+ GET /create 200 in 97ms
+ GET /api/auth/session 200 in 13ms

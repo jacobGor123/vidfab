@@ -1,0 +1,105 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.10.24:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1605ms
+ ✓ Compiled /middleware in 310ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2s (804 modules)
+ GET /login 200 in 2580ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.1s (995 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1935ms
+ GET /login 200 in 51ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1970ms
+ ✓ Compiled /api/auth/send-verification-code in 433ms (1057 modules)
+Error generating verification code: Error: Please wait 1 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 1771ms
+Error generating verification code: Error: Please wait 1 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 767ms
+Error generating verification code: Error: Please wait 1 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 785ms
+Error generating verification code: Error: Please wait 1 minute(s) before requesting another code
+    at VerificationCodeManager.checkRateLimit (lib/verification-codes.ts:84:14)
+    at async VerificationCodeManager.generateCode (lib/verification-codes.ts:19:6)
+    at async POST (app/api/auth/send-verification-code/route.ts:65:29)
+  82 |       
+  83 |       if (waitTime > 0) {
+> 84 |         throw new Error(`Please wait ${waitTime} minute(s) before requesting another code`);
+     |              ^
+  85 |       }
+  86 |     }
+  87 |   }
+ POST /api/auth/send-verification-code 500 in 1005ms
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 820706 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 820706
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<74302dd3-3603-7b39-e68e-7d5ffd915c07@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 820706'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<74302dd3-3603-7b39-e68e-7d5ffd915c07@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 7386ms
+ GET /login 200 in 133ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 112ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 55ms
+ ✓ Compiled in 757ms (804 modules)
+ GET /login 200 in 108ms
+ ✓ Compiled in 457ms (804 modules)
+ GET /login 200 in 63ms
+ ✓ Compiled in 495ms (804 modules)
+ GET /login 200 in 128ms
+ ✓ Compiled in 413ms (804 modules)
+ GET /login 200 in 93ms
+ ✓ Compiled in 492ms (804 modules)
+ GET /login 200 in 73ms
+ ✓ Compiled in 495ms (804 modules)
+ GET /login 200 in 48ms
+ ✓ Compiled in 493ms (804 modules)
+ GET /login 200 in 67ms
+ ✓ Compiled in 434ms (804 modules)
+ GET /login 200 in 56ms

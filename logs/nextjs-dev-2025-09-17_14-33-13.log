@@ -1,0 +1,431 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1970ms
+ ✓ Compiled /middleware in 357ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.1s (1169 modules)
+ GET /create?tool=text-to-video 200 in 3764ms
+ ✓ Compiled in 584ms (568 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 693ms (1358 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1328ms
+ ✓ Compiled /api/video/generate in 412ms (1362 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创建一个 emj 表情动态效果...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创建一个 emj 表情动态效果',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 1b511e2c2e9f46eb9c005f73c219224a
+ POST /api/video/generate 200 in 1399ms
+ ✓ Compiled /api/video/status/[requestId] in 192ms (1364 modules)
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 933ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 248ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 256ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 289ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 258ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 266ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 247ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 254ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 252ms
+Error: Route "/api/video/status/[requestId]" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+Error: Route "/api/video/status/[requestId]" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/status/[requestId]/route.ts:27:30)
+  25 |
+  26 |     // 验证用户登录状态
+> 27 |     const session = await auth()
+     |                              ^
+  28 |
+  29 |     if (!session?.user) {
+  30 |       return NextResponse.json(
+🔍 Checking status for request 1b511e2c2e9f46eb9c005f73c219224a (user: ithermocraft@hotmail.com)
+📊 Status check for 1b511e2c2e9f46eb9c005f73c219224a: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 1b511e2c2e9f46eb9c005f73c219224a: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/1b511e2c2e9f46eb9c005f73c219224a/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/1b511e2c2e9f46eb9c005f73c219224a 200 in 257ms
+ ✓ Compiled /api/video/store in 478ms (1366 modules)
+Error: Route "/api/video/store" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/store/route.ts:15:30)
+  13 |   try {
+  14 |     // Verify user authentication
+> 15 |     const session = await auth()
+     |                              ^
+  16 |     if (!session?.user) {
+  17 |       return NextResponse.json(
+  18 |         { success: false, error: 'Authentication required' },
+Error: Route "/api/video/store" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/store/route.ts:15:30)
+  13 |   try {
+  14 |     // Verify user authentication
+> 15 |     const session = await auth()
+     |                              ^
+  16 |     if (!session?.user) {
+  17 |       return NextResponse.json(
+  18 |         { success: false, error: 'Authentication required' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 Starting independent video storage for: ithermocraft@hotmail.com
+🎬 Starting independent video storage: {
+  user: 'ithermocraft@hotmail.com',
+  wavespeedRequestId: '1b511e2c2e9f46eb9c005f73c219224a',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/1b511e2c2e9f46eb9c005f73c219224a/1.mp4...',
+  settings: {
+    model: 'vidu-q1',
+    duration: '5',
+    resolution: '480p',
+    aspectRatio: '16:9',
+    seed: -1,
+    prompt: '创建一个 emj 表情动态效果'
+  }
+}
+Error creating independent video record: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.user_videos'",
+  message: "Could not find the table 'public.generated_videos' in the schema cache"
+}
+ POST /api/video/store 200 in 2586ms
+Error: Route "/api/video/store" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/store/route.ts:219:30)
+  217 |
+  218 |     // Verify user authentication
+> 219 |     const session = await auth()
+      |                              ^
+  220 |     if (!session?.user) {
+  221 |       return NextResponse.json(
+  222 |         { success: false, error: 'Authentication required' },
+Error: Route "/api/video/store" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/store/route.ts:219:30)
+  217 |
+  218 |     // Verify user authentication
+> 219 |     const session = await auth()
+      |                              ^
+  220 |     if (!session?.user) {
+  221 |       return NextResponse.json(
+  222 |         { success: false, error: 'Authentication required' },
+ GET /api/video/store?videoId=undefined 404 in 329ms
+Error: Route "/api/video/store" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/store/route.ts:219:30)
+  217 |
+  218 |     // Verify user authentication
+> 219 |     const session = await auth()
+      |                              ^
+  220 |     if (!session?.user) {
+  221 |       return NextResponse.json(
+  222 |         { success: false, error: 'Authentication required' },
+Error: Route "/api/video/store" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/video/store/route.ts:219:30)
+  217 |
+  218 |     // Verify user authentication
+> 219 |     const session = await auth()
+      |                              ^
+  220 |     if (!session?.user) {
+  221 |       return NextResponse.json(
+  222 |         { success: false, error: 'Authentication required' },
+ GET /api/video/store?videoId=undefined 404 in 347ms
+ GET /create?tool=discover 200 in 127ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.7s (2227 modules)
+ GET / 200 in 2860ms
+ GET /create?tool=text-to-video 200 in 250ms
+ ✓ Compiled /api/auth/[...nextauth] in 224ms (1242 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 375ms
+ ✓ Compiled in 997ms (2237 modules)
+ GET /create?tool=text-to-video 200 in 100ms
+ ✓ Compiled in 283ms (1001 modules)
+ GET /create?tool=text-to-video 200 in 32ms
