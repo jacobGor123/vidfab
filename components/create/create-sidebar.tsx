@@ -3,15 +3,16 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { 
-  ChevronLeft, 
+import {
+  ChevronLeft,
   ChevronRight,
-  Video, 
-  Image, 
-  Search, 
+  Video,
+  Image,
+  Search,
   FolderOpen,
   Type,
-  ImageIcon
+  ImageIcon,
+  Sparkles
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -20,7 +21,7 @@ interface CreateSidebarProps {
   onToggle: () => void
 }
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "my-assets"
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets"
 
 // Discover 单独菜单项
 const discoverItem = {
@@ -43,9 +44,15 @@ const menuCategories = [
       },
       {
         id: "image-to-video" as ToolType,
-        label: "Image to Video", 
+        label: "Image to Video",
         icon: ImageIcon,
         description: "Convert images to video sequences"
+      },
+      {
+        id: "video-effects" as ToolType,
+        label: "Video Effects",
+        icon: Sparkles,
+        description: "Apply stunning effects to your images"
       }
     ]
   },

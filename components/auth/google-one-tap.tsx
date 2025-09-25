@@ -41,7 +41,6 @@ export function GoogleOneTap({ onSuccess, onError, disabled = false }: GoogleOne
 
     // Disable Google One Tap in development to avoid FedCM errors
     if (process.env.NODE_ENV === 'development') {
-      console.log("Google One Tap is disabled in development environment");
       return;
     }
 
@@ -54,7 +53,6 @@ export function GoogleOneTap({ onSuccess, onError, disabled = false }: GoogleOne
     const clientId = process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID;
     
     if (!isEnabled || !clientId) {
-      console.log("Google One Tap is not enabled or configured");
       return;
     }
 
@@ -99,7 +97,6 @@ export function GoogleOneTap({ onSuccess, onError, disabled = false }: GoogleOne
           throw new Error("No credential received from Google");
         }
 
-        console.log("🔐 Google One Tap credential received");
 
         // Sign in using NextAuth with the credential
         const result = await signIn("google-one-tap", {
@@ -112,9 +109,8 @@ export function GoogleOneTap({ onSuccess, onError, disabled = false }: GoogleOne
         }
 
         if (result?.ok) {
-          console.log("✅ Google One Tap sign-in successful");
           onSuccess?.();
-          router.push("/"); // Redirect to homepage
+          router.push("/create"); // Redirect to create page
         }
       } catch (error) {
         console.error("Google One Tap sign-in error:", error);

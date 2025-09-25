@@ -1,0 +1,682 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1919ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /middleware in 253ms (174 modules)
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.4s (1135 modules)
+ GET /create?tool=my-assets 200 in 3736ms
+ ✓ Compiled in 384ms (559 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 576ms (882 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔧 用户不存在于数据库，重新创建: e2be12f6-402d-599c-b312-acf88f5487b7
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+JWT用户验证失败: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+ GET /api/auth/session 200 in 4049ms
+ ✓ Compiled /api/user/videos in 209ms (910 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔧 用户不存在于数据库，重新创建: e2be12f6-402d-599c-b312-acf88f5487b7
+🔧 用户不存在于数据库，重新创建: e2be12f6-402d-599c-b312-acf88f5487b7
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async getServerSession (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:129:19)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/videos/route.ts:24:25)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+JWT用户验证失败: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async getServerSession (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:129:19)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/videos/route.ts:24:25)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+JWT用户验证失败: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+ GET /api/auth/session 200 in 1489ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1713ms
+ ✓ Compiled /api/video/generate in 448ms (915 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔧 用户不存在于数据库，重新创建: e2be12f6-402d-599c-b312-acf88f5487b7
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async getServerSession (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:129:19)
+    at async POST (webpack-internal:///(rsc)/./app/api/video/generate/route.ts:22:25)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+JWT用户验证失败: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async getServerSession (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:129:19)
+    at async POST (webpack-internal:///(rsc)/./app/api/video/generate/route.ts:22:25)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+🚀 Submitting text-to-video request to bytedance (seedance-v1-pro-t2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-t2v-480p',
+  prompt: '创建一个大西瓜',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  aspect_ratio: '16:9',
+  image: undefined
+}
+✅ text-to-video generation submitted successfully. Request ID: f0710640d9c94cb8bda615afc71427f1
+ POST /api/video/generate 200 in 6934ms
+ ✓ Compiled /api/video/status/[requestId] in 225ms (917 modules)
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 961ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 201ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 201ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 255ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 204ms
+🔧 用户不存在于数据库，重新创建: e2be12f6-402d-599c-b312-acf88f5487b7
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async getServerSession (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:129:19)
+    at async POST (webpack-internal:///(rsc)/./app/api/video/generate/route.ts:22:25)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+JWT用户验证失败: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async getServerSession (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:129:19)
+    at async POST (webpack-internal:///(rsc)/./app/api/video/generate/route.ts:22:25)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+🚀 Submitting text-to-video request to bytedance (seedance-v1-pro-t2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-t2v-480p',
+  prompt: '创建一个大西瓜2',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  aspect_ratio: '16:9',
+  image: undefined
+}
+✅ text-to-video generation submitted successfully. Request ID: 423b235f51584b2081d567b87e1654b6
+ POST /api/video/generate 200 in 1853ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 205ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 202ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 801ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 201ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 259ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 342ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 201ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 1148ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 196ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 1976ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 196ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 385ms
+🔧 用户不存在于数据库，重新创建: e2be12f6-402d-599c-b312-acf88f5487b7
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+JWT用户验证失败: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:232:29)
+    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:44:21)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+ GET /api/auth/session 200 in 1555ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 195ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 810ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 195ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 200ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 197ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 427ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 198ms
+📊 Status check for f0710640d9c94cb8bda615afc71427f1: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/f0710640d9c94cb8bda615afc71427f1 200 in 202ms
+ ✓ Compiled /api/video/store in 269ms (919 modules)
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 621ms
+📊 Status check for 423b235f51584b2081d567b87e1654b6: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/423b235f51584b2081d567b87e1654b6 200 in 202ms
+🎬 尝试直接创建视频: f0710640d9c94cb8bda615afc71427f1 for user e2be12f6-402d-599c-b312-acf88f5487b7
+🎬 尝试直接创建视频: 423b235f51584b2081d567b87e1654b6 for user e2be12f6-402d-599c-b312-acf88f5487b7
+🎬 尝试直接创建视频: 423b235f51584b2081d567b87e1654b6 for user e2be12f6-402d-599c-b312-acf88f5487b7
+⚠️ 直接创建失败，错误码: 23503
+🔧 外键约束错误，启动用户创建流程
+🔥 开始强制创建用户和视频: e2be12f6-402d-599c-b312-acf88f5487b7, unknown@vidfab.ai
+⚠️ 直接创建失败，错误码: 23503
+🔧 外键约束错误，启动用户创建流程
+🔥 开始强制创建用户和视频: e2be12f6-402d-599c-b312-acf88f5487b7, unknown@vidfab.ai
+⚠️ 直接创建失败，错误码: 23503
+🔧 外键约束错误，启动用户创建流程
+🔥 开始强制创建用户和视频: e2be12f6-402d-599c-b312-acf88f5487b7, unknown@vidfab.ai
+👤 用户不存在，创建新用户: e2be12f6-402d-599c-b312-acf88f5487b7
+👤 用户不存在，创建新用户: e2be12f6-402d-599c-b312-acf88f5487b7
+⚠️ Email冲突，使用UUID作为email重试
+⚠️ Email冲突，使用UUID作为email重试
+👤 用户不存在，创建新用户: e2be12f6-402d-599c-b312-acf88f5487b7
+⚠️ Email冲突，使用UUID作为email重试
+✅ 用户创建成功(重试): e2be12f6-402d-599c-b312-acf88f5487b7
+❌ 重试用户创建失败: {
+  code: '23505',
+  details: 'Key (uuid)=(e2be12f6-402d-599c-b312-acf88f5487b7) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "users_pkey"'
+}
+❌ 重试用户创建失败: {
+  code: '23505',
+  details: 'Key (uuid)=(e2be12f6-402d-599c-b312-acf88f5487b7) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "users_pkey"'
+}
+✅ 视频创建成功: 4a9222b0-79e5-4e9e-b6a7-6a9a9bf18532
+✅ 视频创建成功: d450da01-256d-4051-a3b4-a71c403a37ad
+✅ Video status updated to completed: 4a9222b0-79e5-4e9e-b6a7-6a9a9bf18532
+ POST /api/video/store 200 in 4729ms
+✅ Video status updated to completed: d450da01-256d-4051-a3b4-a71c403a37ad
+ POST /api/video/store 200 in 4002ms
+❌ 视频创建失败: {
+  code: '23505',
+  details: 'Key (wavespeed_request_id)=(423b235f51584b2081d567b87e1654b6) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "user_videos_wavespeed_request_id_key"'
+}
+❌ forceCreateUserAndVideo final error: {
+  code: '23505',
+  details: 'Key (wavespeed_request_id)=(423b235f51584b2081d567b87e1654b6) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "user_videos_wavespeed_request_id_key"'
+}
+🔄 创建临时视频记录作为降级方案
+🔄 跳过临时视频状态更新: temp-1758798911959
+ POST /api/video/store 200 in 4409ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1121ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1021ms
+ GET /create?tool=my-assets 200 in 152ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 573ms
+ GET /api/auth/session 200 in 863ms
+ GET /api/auth/session 200 in 282ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1416ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 2160ms
+ GET /api/auth/csrf 200 in 8ms
+ POST /api/auth/signout 200 in 6ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1925ms (2317 modules)
+ GET / 200 in 2116ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 46ms
+ GET /api/auth/session 200 in 9ms
+ ✓ Compiled /login in 452ms (2325 modules)
+ ✓ Compiled /api/auth/send-verification-code in 243ms (1404 modules)
+✅ Verification code generated for jsdasww593@gmail.com
+📧 Sending verification code 904021 to jsdasww593@gmail.com
+🔐 Development Mode - Verification code for jsdasww593@gmail.com: 904021
+✅ Verification email sent successfully to jsdasww593@gmail.com { messageId: '<442aae05-8e97-e5cc-0d1b-c3ef98acabe3@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 11918ms
+ ✓ Compiled /api/auth/verify-code-login in 349ms (1406 modules)
+✅ Verification code verified for jsdasww593@gmail.com
+ POST /api/auth/verify-code-login 200 in 2474ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/providers 200 in 37ms
+ GET /api/auth/csrf 200 in 5ms
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+Failed to save user: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/auth/callback/verification-code 200 in 1444ms
+ GET /api/auth/session 200 in 288ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 2179ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1022ms
+ GET /api/auth/session 200 in 661ms

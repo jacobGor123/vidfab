@@ -27,11 +27,9 @@ export const redis = new Redis(redisConfig)
 
 // Connection event handlers
 redis.on('connect', () => {
-  console.log('✅ Redis connected successfully')
 })
 
 redis.on('ready', () => {
-  console.log('🚀 Redis ready for operations')
 })
 
 redis.on('error', (error) => {
@@ -39,11 +37,9 @@ redis.on('error', (error) => {
 })
 
 redis.on('close', () => {
-  console.log('🔌 Redis connection closed')
 })
 
 redis.on('reconnecting', () => {
-  console.log('🔄 Redis reconnecting...')
 })
 
 // Health check function
@@ -61,7 +57,6 @@ export async function checkRedisHealth(): Promise<boolean> {
 export async function closeRedisConnection(): Promise<void> {
   try {
     await redis.quit()
-    console.log('✅ Redis connection closed gracefully')
   } catch (error) {
     console.error('Error closing Redis connection:', error)
   }

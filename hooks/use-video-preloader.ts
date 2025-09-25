@@ -115,7 +115,7 @@ export function useVideoPreloader(
 
       // 错误率过高时的降级策略
       if (errorCountRef.current > 5 && now - lastErrorTimeRef.current < 60000) {
-        console.warn('预加载错误率过高，启用降级模式')
+        console.warn('Preload error rate too high, enabling fallback mode')
         preloader.updateConfig({
           maxConcurrentLoads: 1,
           loadTimeout: 60000,
@@ -144,7 +144,6 @@ export function useVideoPreloader(
 
     metricsUpdateIntervalRef.current = window.setInterval(updateRealtimeMetrics, 2000)
 
-    console.log('视频预加载Hook已初始化')
 
     // 清理函数
     return () => {
@@ -160,7 +159,6 @@ export function useVideoPreloader(
       preloaderRef.current = null
       setIsInitialized(false)
 
-      console.log('视频预加载Hook已清理')
     }
   }, []) // 空依赖数组，确保只在挂载时初始化一次
 
@@ -168,13 +166,13 @@ export function useVideoPreloader(
 
   const preloadVideo = useCallback(async (video: VideoItem): Promise<HTMLVideoElement> => {
     if (!preloaderRef.current) {
-      throw new Error('预加载器未初始化')
+      throw new Error('Preloader not initialized')
     }
 
     try {
       return await preloaderRef.current.preloadVideo(video)
     } catch (error) {
-      console.error('视频预加载失败:', error)
+      console.error('Video preload failed:', error)
       throw error
     }
   }, [])
@@ -200,7 +198,7 @@ export function useVideoPreloader(
       setTimeout(() => {
         if (preloaderRef.current) {
           preloaderRef.current.preloadVideo(video).catch(error => {
-            console.warn(`自动预加载失败: ${video.id}`, error)
+            console.warn(`Auto preload failed: ${video.id}`, error)
           })
         }
       }, 0)
@@ -248,10 +246,9 @@ export function useVideoPreloader(
 
       const preloadPromise = preloaderRef.current.preloadVideo(video)
         .then(() => {
-          console.log(`预加载完成: ${video.id}`)
         })
         .catch(error => {
-          console.warn(`预加载失败: ${video.id}`, error)
+          console.warn(`Preload failed: ${video.id}`, error)
         })
 
       preloadPromises.push(preloadPromise)
@@ -272,7 +269,7 @@ export function useVideoPreloader(
     const memoryLimit = config.memoryLimit
 
     if (currentMemory > memoryLimit * 0.8) {
-      console.warn('内存使用接近限制，开始清理')
+      console.warn('Memory usage approaching limit, starting cleanup')
 
       // 暂停新的预加载
       preloaderRef.current.pauseAll()
@@ -320,7 +317,6 @@ export function useVideoPreloader(
     }
 
     // 可以将数据导出为JSON文件或发送到分析服务
-    console.log('预加载器性能数据:', exportData)
     return exportData
   }, [config, metrics, realtimeMetrics, getDebugInfo])
 
@@ -358,7 +354,6 @@ export function useVideoPreloader(
     if (typeof navigator !== 'undefined' && (navigator as any).connection) {
       const connection = (navigator as any).connection
       const handleNetworkChange = () => {
-        console.log('网络状态变化，重新优化配置')
         adaptToNetworkConditions()
       }
 
@@ -376,7 +371,6 @@ export function useVideoPreloader(
       return
     }
 
-    console.log('🚀 Hook触发激进预加载策略')
     await preloaderRef.current.batchPreloadInitial(videos)
   }, [])
 
@@ -385,7 +379,6 @@ export function useVideoPreloader(
       return
     }
 
-    console.log('📦 Hook触发渐进式预加载')
     await preloaderRef.current.batchPreloadRemaining(videos)
   }, [])
 
@@ -447,7 +440,8 @@ export function useSimpleVideoPreloader() {
 
     return new Promise((resolve, reject) => {
       const videoElement = document.createElement('video')
-      videoElement.crossOrigin = 'anonymous'
+      // Remove crossOrigin to avoid CORS issues
+      // videoElement.crossOrigin = 'anonymous'
       videoElement.preload = 'auto'
       videoElement.muted = true
 
@@ -457,7 +451,7 @@ export function useSimpleVideoPreloader() {
       }
 
       const onError = () => {
-        reject(new Error(`视频加载失败: ${video.videoUrl}`))
+        reject(new Error(`Video loading failed: ${video.videoUrl}`))
       }
 
       videoElement.addEventListener('canplaythrough', onCanPlayThrough, { once: true })
@@ -498,7 +492,8 @@ export function useVideoPreloadStatus(videoId: string | number) {
 
     return new Promise((resolve, reject) => {
       const videoElement = document.createElement('video')
-      videoElement.crossOrigin = 'anonymous'
+      // Remove crossOrigin to avoid CORS issues
+      // videoElement.crossOrigin = 'anonymous'
       videoElement.preload = 'auto'
       videoElement.muted = true
 
@@ -517,7 +512,7 @@ export function useVideoPreloadStatus(videoId: string | number) {
       }
 
       const onError = () => {
-        const errorMsg = `视频加载失败: ${videoUrl}`
+        const errorMsg = `Video loading failed: ${videoUrl}`
         setStatus('error')
         setError(errorMsg)
         reject(new Error(errorMsg))

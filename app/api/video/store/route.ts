@@ -4,7 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { getServerSession } from 'next-auth'
+import { authConfig } from '@/auth/config'
 import { UserVideosDB } from '@/lib/database/user-videos'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -15,7 +16,6 @@ export async function POST(request: NextRequest) {
     // 🔥 检查是否是内部调用（包含userId参数）
     if (body.userId) {
       // 内部调用，直接使用传递的userId，跳过session验证
-      console.log('🔄 Internal storage call for user:', body.userId)
       const userId = body.userId
       const userEmail = body.userEmail || 'internal@vidfab.ai'
 
@@ -28,27 +28,16 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      console.log(`🎬 Starting internal video storage for user: ${userId}`, {
-        wavespeedRequestId,
-        originalUrl: originalUrl.substring(0, 100) + '...',
-        settings
-      })
 
       return await processVideoStorage(userId, userEmail, { wavespeedRequestId, originalUrl, settings })
     }
 
-    // 外部调用，需要session验证
-    const session = await auth(request)
+    // 外部调用，需要session验证 - NextAuth 4.x
+    const session = await getServerSession(authConfig)
 
-    console.log('🔐 Auth session check:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userEmail: session?.user?.email,
-      userUuid: session?.user?.uuid
-    })
 
     if (!session?.user?.uuid) {
-      console.error('❌ Authentication failed:', {
+      console.error('❌ Video store: Authentication failed', {
         session: !!session,
         user: !!session?.user,
         uuid: session?.user?.uuid
@@ -71,11 +60,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`🎬 Starting external video storage for user: ${userId}`, {
-      wavespeedRequestId,
-      originalUrl: originalUrl.substring(0, 100) + '...',
-      settings
-    })
 
     return await processVideoStorage(userId, userEmail, { wavespeedRequestId, originalUrl, settings })
 
@@ -88,7 +72,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 共用的视频存储处理逻辑
+// 🔥 极简化的视频存储处理逻辑 - 直接依赖UserVideosDB的内置用户创建
 async function processVideoStorage(userId: string, userEmail: string, data: {
   wavespeedRequestId: string,
   originalUrl: string,
@@ -96,118 +80,81 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
 }) {
   const { wavespeedRequestId, originalUrl, settings } = data
 
-  // 🔥 强制创建用户记录，解决外键约束问题
-  console.log(`👤 Force creating/updating user record: ${userId}`)
 
   try {
-    // 直接使用 UPSERT 操作，无论用户是否存在都会成功
-    const { error: upsertUserError } = await supabaseAdmin
-      .from('users')
-      .upsert({
-        uuid: userId,
-        email: userEmail,
-        nickname: userEmail?.split('@')[0] || 'User',
-        avatar_url: '',
-        signin_type: 'oauth',
-        signin_provider: 'google',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        email_verified: true,
-        is_active: true
-      }, {
-        onConflict: 'uuid'  // 如果存在则更新
+    // 检查是否已存在
+    let existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
+
+    if (existingVideo) {
+      await UserVideosDB.updateVideoStatus(existingVideo.id, {
+        status: 'completed',
+        downloadProgress: 100
       })
 
-    if (upsertUserError) {
-      console.error('Failed to upsert user:', upsertUserError)
-      // 直接返回成功，使用临时ID
       return NextResponse.json({
         success: true,
         data: {
-          videoId: `temp_${wavespeedRequestId}`,
+          videoId: existingVideo.id,
           status: 'completed',
           videoUrl: originalUrl,
-          message: 'Video ready (temporary - user creation failed)',
+          message: 'Video ready',
           userEmail
         }
       })
     }
 
-    console.log(`✅ User record ensured: ${userId}`)
+    // 🔥 直接创建视频，UserVideosDB会自动处理用户不存在的情况
+    const newVideo = await UserVideosDB.createVideo(userId, {
+      wavespeedRequestId,
+      prompt: settings.prompt || 'Generated video',
+      settings: {
+        model: settings.model,
+        duration: settings.duration,
+        resolution: settings.resolution,
+        aspectRatio: settings.aspectRatio,
+        style: settings.style
+      },
+      originalUrl
+    }, userEmail) // 🔥 传递userEmail参数
+
+
+    // 🔥 只更新真实数据库记录，跳过临时记录
+    if (!newVideo.id.startsWith('temp-') && !newVideo.id.startsWith('00000000-0000-4000-8000-')) {
+      // 立即标记为完成
+      try {
+        await UserVideosDB.updateVideoStatus(newVideo.id, {
+          status: 'completed',
+          downloadProgress: 100
+        })
+        console.log(`✅ Video status updated to completed: ${newVideo.id}`)
+      } catch (updateError) {
+        console.error(`❌ Failed to update video status:`, updateError)
+        // 不抛出错误，允许继续执行
+      }
+    } else {
+      console.log(`🔄 跳过临时视频状态更新: ${newVideo.id}`)
+    }
+
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        videoId: newVideo.id,
+        status: 'completed',
+        videoUrl: originalUrl,
+        message: 'Video saved successfully',
+        userEmail
+      }
+    })
 
   } catch (error) {
-    console.error('User upsert error:', error)
-    // 继续使用临时方案，确保视频能显示
+    console.error('❌ Video storage failed:', error)
     return NextResponse.json({
-      success: true,
-      data: {
-        videoId: `temp_${wavespeedRequestId}`,
-        status: 'completed',
-        videoUrl: originalUrl,
-        message: 'Video ready (temporary - user error)',
-        userEmail
-      }
-    })
+      success: false,
+      error: 'Failed to save video',
+      details: error.message
+    }, { status: 500 })
   }
-
-  // Check if video already exists
-  let existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
-
-  if (existingVideo) {
-    console.log(`📝 Found existing video record: ${existingVideo.id}`)
-
-    // Update existing video to completed status
-    await UserVideosDB.updateVideoStatus(existingVideo.id, {
-      status: 'completed',
-      downloadProgress: 100
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        videoId: existingVideo.id,
-        status: 'completed',
-        videoUrl: originalUrl,
-        message: 'Video ready',
-        userEmail
-      }
-    })
-  }
-
-  // Create new video record using existing user_videos table
-  const newVideo = await UserVideosDB.createVideo(userId, {
-    wavespeedRequestId,
-    prompt: settings.prompt || 'Generated video',
-    settings: {
-      model: settings.model,
-      duration: settings.duration,
-      resolution: settings.resolution,
-      aspectRatio: settings.aspectRatio,
-      style: settings.style
-    },
-    originalUrl
-  })
-
-  console.log(`✨ Created video record: ${newVideo.id}`)
-
-  // Immediately update to completed status since video is ready
-  await UserVideosDB.updateVideoStatus(newVideo.id, {
-    status: 'completed',
-    downloadProgress: 100
-  })
-
-  console.log(`✅ Video storage completed for user: ${userId}`)
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      videoId: newVideo.id,
-      status: 'completed',
-      videoUrl: originalUrl,
-      message: 'Video ready',
-      userEmail
-    }
-  })
 }
 
 export async function GET(request: NextRequest) {
@@ -224,7 +171,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify user authentication
-    const session = await auth(request)
+    const session = await getServerSession(authConfig)
     if (!session?.user?.uuid) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' },

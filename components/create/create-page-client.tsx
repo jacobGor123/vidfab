@@ -6,7 +6,7 @@ import { CreateTabs } from "./create-tabs"
 import { CreateContent } from "./create-content"
 import { useIsMobile } from "@/hooks/use-mobile"
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "my-assets" | null
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | null
 
 export function CreatePageClient() {
   const searchParams = useSearchParams()
@@ -15,6 +15,7 @@ export function CreatePageClient() {
 
   // 直接从 URL 参数获取当前工具，默认为 "discover"
   const activeTool = (searchParams.get("tool") as ToolType) || "discover"
+  const initialPrompt = searchParams.get("prompt") || ""
 
   // 如果没有 tool 参数，自动设置为 discover
   useEffect(() => {
@@ -49,6 +50,7 @@ export function CreatePageClient() {
       <CreateContent
         activeTool={activeTool}
         onToolChange={handleToolChange}
+        initialPrompt={initialPrompt}
       />
     </div>
   )

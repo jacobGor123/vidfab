@@ -21,7 +21,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   const [loginMethod, setLoginMethod] = useState<"options" | "verification-code">("options")
 
   const handleAuthSuccess = () => {
-    console.log("✅ Authentication successful")
     // Additional success handling can be added here
   }
 
@@ -36,7 +35,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         <VerificationCodeLogin
           onBack={() => setLoginMethod("options")}
           onSuccess={handleAuthSuccess}
-          callbackUrl="/dashboard"
+          callbackUrl="/create"
         />
         <GoogleOneTap 
           onSuccess={handleAuthSuccess} 
@@ -70,7 +69,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           <GoogleLoginButton
             onSuccess={handleAuthSuccess}
             onError={handleAuthError}
-            callbackUrl="/dashboard"
+            callbackUrl="/create"
             className="w-full"
           />
 

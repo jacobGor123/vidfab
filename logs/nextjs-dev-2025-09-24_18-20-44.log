@@ -1,0 +1,122 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 3.2s
+ ✓ Compiled /middleware in 284ms (174 modules)
+ ○ Compiling /create ...
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /create in 5.5s (1135 modules)
+ GET /create?tool=video-effects 200 in 5893ms
+ ✓ Compiled in 383ms (559 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1494ms (882 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1838ms
+ GET /api/auth/session 200 in 9ms
+ GET /api/auth/session 200 in 25ms
+ ✓ Compiled /api/images/upload in 240ms (910 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Image upload auth check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+ POST /api/images/upload 200 in 2178ms
+ ✓ Compiled /api/video/effects in 134ms (913 modules)
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: undefined,
+  userEmail: 'jsdasww593@gmail.com',
+  sessionKeys: [ 'user' ],
+  userKeys: [ 'name', 'email', 'image' ]
+}
+❌ User session exists but missing UUID: { name: 'jsdasww593', email: 'jsdasww593@gmail.com', image: undefined }
+ POST /api/video/effects 401 in 188ms
+ GET /api/auth/session 200 in 27ms
+ GET /api/auth/session 200 in 49ms
+ ✓ Compiled in 553ms (1117 modules)
+ ✓ Compiled in 199ms (559 modules)
+ ✓ Compiled in 327ms (559 modules)
+ ✓ Compiled in 266ms (559 modules)
+ ✓ Compiled in 248ms (559 modules)
+ ✓ Compiled in 194ms (559 modules)
+ ✓ Compiled in 256ms (559 modules)
+ ✓ Compiled /_not-found in 328ms (1106 modules)
+ GET /create?tool=video-effects 200 in 145ms
+ GET /_next/static/css/app/layout.css?v=1758709816404 404 in 15ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 20ms
+ GET /_next/static/chunks/main-app.js?v=1758709816404 404 in 23ms
+ GET /_next/static/chunks/app/(main)/create/page.js 404 in 33ms
+ GET /_next/static/chunks/app/(main)/layout.js 404 in 19ms
+ GET /_next/static/chunks/app/(main)/create/layout.js 404 in 22ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat '/Users/jacob/Desktop/vidfab/.next/server/app/api'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/api/auth/[...nextauth]/route' in /Users/jacob/Desktop/vidfab/node_modules/next/dist/server for build dependencies doesn't lead to expected result '/Users/jacob/Desktop/vidfab/.next/server/app/api/auth/[...nextauth]/route.js', but to 'Error: Can't resolve '../../../../.next/server/app/api/auth/[...nextauth]/route' in '/Users/jacob/Desktop/vidfab/node_modules/next/dist/server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/api/auth/[...nextauth]/route (expected /Users/jacob/Desktop/vidfab/.next/server/app/api/auth/[...nextauth]/route.js)
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js
+<w>  at resolve commonjs /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/api/video/effects/route' in /Users/jacob/Desktop/vidfab/node_modules/next/dist/server for build dependencies doesn't lead to expected result '/Users/jacob/Desktop/vidfab/.next/server/app/api/video/effects/route.js', but to 'Error: Can't resolve '../../../../.next/server/app/api/video/effects/route' in '/Users/jacob/Desktop/vidfab/node_modules/next/dist/server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/api/video/effects/route (expected /Users/jacob/Desktop/vidfab/.next/server/app/api/video/effects/route.js)
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js
+<w>  at resolve commonjs /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js

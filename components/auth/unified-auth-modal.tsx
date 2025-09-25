@@ -134,7 +134,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
   })
 
   const handleAuthSuccess = () => {
-    router.push("/")
+    router.push("/create")
   }
 
   const handleAuthError = (error: any) => {
@@ -225,7 +225,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
       const signInResult = await signIn("verification-code", {
         email: email.trim().toLowerCase(),
         token: verifyData.verified_token,
-        callbackUrl: "/",
+        callbackUrl: "/create",
         redirect: false,
       })
 
@@ -339,7 +339,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
               <GoogleLoginButton
                 onSuccess={handleAuthSuccess}
                 onError={handleAuthError}
-                callbackUrl="/"
+                callbackUrl="/create"
                 className="w-full"
               />
 

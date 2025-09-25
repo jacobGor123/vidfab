@@ -1,15 +1,19 @@
 /**
- * NextAuth v5 Main Configuration for VidFab AI Video Platform
+ * NextAuth v4 Main Configuration for VidFab AI Video Platform
  */
-import NextAuth, { type DefaultSession } from "next-auth"
+import NextAuth, { type DefaultSession, type NextAuthOptions } from "next-auth"
 import { authConfig } from "@/auth/config"
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth(authConfig)
+// NextAuth v4 handler for API routes
+const handler = NextAuth(authConfig as NextAuthOptions)
+
+// Export handler for API routes
+export default handler
+
+// Export auth functions for server components
+import { getServerSession } from "next-auth"
+
+export const auth = () => getServerSession(authConfig)
 
 // Export auth configuration for middleware
 export { authConfig } from "@/auth/config"

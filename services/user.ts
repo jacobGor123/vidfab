@@ -4,7 +4,7 @@
 import { supabaseAdmin, TABLES, handleSupabaseError, type DatabaseUser } from '@/lib/supabase';
 import { User, CreateUserData, UpdateUserData, UserProfile } from '@/types/user';
 import { getIsoTimestr } from '@/lib/time';
-import { getUuid } from '@/lib/hash';
+import { getUuid, getUserUuidFromEmail } from '@/lib/hash';
 
 /**
  * Save or update a user in the database
@@ -15,7 +15,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     
     // Prepare user data with defaults
     const userToSave: Partial<DatabaseUser> = {
-      uuid: userData.uuid || getUuid(),
+      uuid: userData.uuid || getUserUuidFromEmail(userData.email),
       email: userData.email.toLowerCase().trim(),
       nickname: userData.nickname || userData.email.split('@')[0],
       avatar_url: userData.avatar_url || '',
@@ -37,12 +37,12 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       max_storage_mb: 1024, // 1GB default
     };
 
-    // Try to upsert user
+    // 🔥 修复：使用UUID作为冲突键，避免email冲突问题
     const { data, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .upsert(userToSave, { 
-        onConflict: 'email',
-        ignoreDuplicates: false 
+      .upsert(userToSave, {
+        onConflict: 'uuid',
+        ignoreDuplicates: false
       })
       .select()
       .single();
@@ -56,7 +56,6 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       throw new Error('No user data returned from database');
     }
 
-    console.log(`✅ User saved: ${data.email} (${data.uuid})`);
     
     return {
       uuid: data.uuid,
@@ -195,7 +194,6 @@ export async function updateUser(uuid: string, updateData: UpdateUserData): Prom
       throw new Error('No user data returned from update');
     }
 
-    console.log(`✅ User updated: ${data.email} (${data.uuid})`);
     
     return {
       uuid: data.uuid,
@@ -303,7 +301,6 @@ export async function deactivateUser(uuid: string): Promise<void> {
       handleSupabaseError(error);
     }
 
-    console.log(`✅ User deactivated: ${uuid}`);
   } catch (error: any) {
     console.error('Error in deactivateUser:', error);
     throw error;
@@ -340,7 +337,6 @@ export async function updateUserCredits(uuid: string, creditsUsed: number): Prom
       handleSupabaseError(updateError);
     }
 
-    console.log(`✅ User credits updated: ${uuid}, used: ${creditsUsed}, remaining: ${newCredits}`);
     return newCredits;
   } catch (error: any) {
     console.error('Error in updateUserCredits:', error);
@@ -378,7 +374,6 @@ export async function addUserCredits(uuid: string, creditsToAdd: number): Promis
       handleSupabaseError(updateError);
     }
 
-    console.log(`✅ User credits added: ${uuid}, added: ${creditsToAdd}, total: ${newCredits}`);
     return newCredits;
   } catch (error: any) {
     console.error('Error in addUserCredits:', error);

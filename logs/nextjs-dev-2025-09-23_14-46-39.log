@@ -1,0 +1,251 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.50.96:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.1s
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /middleware in 1475ms (885 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ GET /api/auth/session 200 in 2406ms
+ ✓ Compiled /create in 4s (1404 modules)
+ ✓ Compiled in 586ms (587 modules)
+ GET /create?tool=text-to-video 200 in 3206ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 67ms
+ GET /api/auth/session 200 in 19ms
+ GET /api/auth/session 200 in 11ms
+ GET /create?tool=text-to-video 200 in 82ms
+ GET /api/auth/session 200 in 7ms
+ GET /create?tool=image-to-video 200 in 13ms
+ GET /create?tool=video-effects 200 in 15ms
+ ○ Compiling /api/images/upload ...
+ ✓ Compiled /api/images/upload in 904ms (1394 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 2992ms
+ ○ Compiling /api/video/effects ...
+ ✓ Compiled /api/video/effects in 614ms (1396 modules)
+Error: Route "/api/video/effects" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+Error: Route "/api/video/effects" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  userEmail: 'jsdasww593@gmail.com',
+  sessionKeys: [ 'user', 'expires' ],
+  userKeys: [ 'name', 'email', 'uuid', 'nickname', 'avatar_url', 'created_at' ]
+}
+🎬 Video effects generation request: {
+  effectId: 'cartoon-doll',
+  effectName: 'Cartoon Doll',
+  hasImage: true,
+  userId: '66f306c4-bac8-4f29-a3cf-554ffe871e86'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/cartoon-doll',
+  effectId: 'cartoon-doll',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: '166987f6d6c64a47aa4c974e14d6cfdc',
+  error: undefined,
+  effectId: 'cartoon-doll'
+}
+✅ Video effects generation submitted: {
+  requestId: '166987f6d6c64a47aa4c974e14d6cfdc',
+  effectId: 'cartoon-doll',
+  userId: '66f306c4-bac8-4f29-a3cf-554ffe871e86'
+}
+ POST /api/video/effects 200 in 2994ms
+ ✓ Compiled /api/video/status/[requestId] in 283ms (1400 modules)
+🔍 Checking status for request 166987f6d6c64a47aa4c974e14d6cfdc
+📊 Status check for 166987f6d6c64a47aa4c974e14d6cfdc: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 166987f6d6c64a47aa4c974e14d6cfdc: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/166987f6d6c64a47aa4c974e14d6cfdc 200 in 1172ms
+🔍 Checking status for request 166987f6d6c64a47aa4c974e14d6cfdc
+📊 Status check for 166987f6d6c64a47aa4c974e14d6cfdc: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 166987f6d6c64a47aa4c974e14d6cfdc: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/166987f6d6c64a47aa4c974e14d6cfdc 200 in 301ms
+🔍 Checking status for request 166987f6d6c64a47aa4c974e14d6cfdc
+📊 Status check for 166987f6d6c64a47aa4c974e14d6cfdc: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 166987f6d6c64a47aa4c974e14d6cfdc: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/166987f6d6c64a47aa4c974e14d6cfdc 200 in 241ms
+🔍 Checking status for request 166987f6d6c64a47aa4c974e14d6cfdc
+📊 Status check for 166987f6d6c64a47aa4c974e14d6cfdc: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 166987f6d6c64a47aa4c974e14d6cfdc: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/166987f6d6c64a47aa4c974e14d6cfdc 200 in 238ms
+🔍 Checking status for request 166987f6d6c64a47aa4c974e14d6cfdc
+📊 Status check for 166987f6d6c64a47aa4c974e14d6cfdc: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 166987f6d6c64a47aa4c974e14d6cfdc: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/166987f6d6c64a47aa4c974e14d6cfdc 200 in 213ms
+🔍 Checking status for request 166987f6d6c64a47aa4c974e14d6cfdc
+📊 Status check for 166987f6d6c64a47aa4c974e14d6cfdc: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 166987f6d6c64a47aa4c974e14d6cfdc: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/166987f6d6c64a47aa4c974e14d6cfdc 200 in 222ms
+🔍 Checking status for request 166987f6d6c64a47aa4c974e14d6cfdc
+📊 Status check for 166987f6d6c64a47aa4c974e14d6cfdc: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 166987f6d6c64a47aa4c974e14d6cfdc: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/166987f6d6c64a47aa4c974e14d6cfdc/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/166987f6d6c64a47aa4c974e14d6cfdc 200 in 217ms
+ ✓ Compiled /api/video/store in 321ms (1404 modules)
+🔄 Internal storage call for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🎬 Starting internal video storage for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86 {
+  wavespeedRequestId: '166987f6d6c64a47aa4c974e14d6cfdc',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/166987f6d6c64a47aa4c974e14d6cfdc/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/66f306c4-bac8-4f29-a3cf-554ffe871e86/f7b37dc8-6320-4e1b-8f10-a5d5efacd65f.webp',
+    effectId: 'cartoon-doll',
+    effectName: 'Cartoon Doll',
+    prompt: 'Cartoon Doll Effect'
+  }
+}
+🎬 Starting video storage for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔄 Using force method to create user and video: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔄 Force creating user and video with delays: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔧 Attempting to create user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "users_pkey"',
+  details: 'Key (uuid)=(66f306c4-bac8-4f29-a3cf-554ffe871e86) already exists.',
+  hint: null
+}
+✅ User already exists (expected): 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 Starting user verification for: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 Verification attempt 1/5 for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+✅ User verified exists on attempt 1: {
+  uuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  email: 'jsdasww593@gmail.com',
+  created_at: '2025-09-23T05:47:25.934+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  email: 'jsdasww593@gmail.com',
+  created_at: '2025-09-23T05:47:25.934+00:00',
+  is_active: true
+}
+🎯 Using raw SQL to bypass foreign key constraints...
+⚠️ Database function not available, using direct insert...
+💡 Creating temporary video record for frontend...
+✅ Temporary video record created: 00000000-0000-4000-8000-758610172413
+✨ Created video record: 00000000-0000-4000-8000-758610172413
+⚠️ Skipping database update for temporary video record
+✅ Video storage completed for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+ POST /api/video/store 200 in 5114ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 19ms
+ GET /create?tool=my-assets 200 in 46ms
+ GET /create?tool=my-assets 200 in 187ms
+ GET /api/auth/session 200 in 9ms
+ GET /create?tool=video-effects 200 in 12ms
+ GET /api/auth/session 200 in 34ms
+ GET /api/auth/session 200 in 23ms
+ GET /api/auth/session 200 in 29ms
+ ✓ Compiled in 1170ms (1202 modules)
+ GET /create?tool=video-effects 200 in 120ms
+ ✓ Compiled in 346ms (1202 modules)
+ GET /create?tool=video-effects 200 in 64ms
+ ✓ Compiled in 379ms (1202 modules)
+ GET /create?tool=video-effects 200 in 56ms
+ ✓ Compiled in 327ms (1202 modules)
+ GET /create?tool=video-effects 200 in 56ms
+ ✓ Compiled in 501ms (1202 modules)
+ GET /create?tool=video-effects 200 in 44ms
+ ✓ Compiled in 514ms (1202 modules)
+ GET /create?tool=video-effects 200 in 77ms
+ ✓ Compiled in 552ms (1202 modules)
+ GET /create?tool=video-effects 200 in 83ms
+ ✓ Compiled in 415ms (1202 modules)
+ GET /create?tool=video-effects 200 in 49ms
+ ✓ Compiled in 301ms (1202 modules)
+ GET /create?tool=video-effects 200 in 56ms
+ ✓ Compiled in 315ms (1202 modules)
+ GET /create?tool=video-effects 200 in 80ms

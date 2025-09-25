@@ -14,12 +14,21 @@ import { VideoGenerationRequest, getGenerationType } from "@/lib/types/video"
 
 export async function POST(request: NextRequest) {
   try {
-    // 验证用户登录状态
+    // NextAuth 4.x 认证方式
     const session = await auth()
 
     if (!session?.user) {
+      console.error('❌ Video generate: Authentication failed')
       return NextResponse.json(
         { error: "Authentication required", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      )
+    }
+
+    if (!session.user.uuid) {
+      console.error('❌ Video generate: User UUID missing')
+      return NextResponse.json(
+        { error: "User UUID required", code: "AUTH_REQUIRED" },
         { status: 401 }
       )
     }
@@ -35,17 +44,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 🔍 添加请求体调试信息
-    console.log('🔍 Video generation request body:', {
-      prompt: body.prompt ? `"${body.prompt.substring(0, 50)}..."` : 'MISSING',
-      promptLength: body.prompt?.length || 0,
-      model: body.model || 'MISSING',
-      resolution: body.resolution || 'MISSING',
-      duration: body.duration || 'MISSING',
-      aspectRatio: body.aspectRatio || 'MISSING',
-      hasImage: !!body.image,
-      imageType: body.image ? 'provided' : 'MISSING'
-    })
 
     // 验证请求参数
     const validationErrors = validateVideoRequest(body)
@@ -63,14 +61,6 @@ export async function POST(request: NextRequest) {
     // 确定生成类型
     const generationType = getGenerationType(body)
 
-    console.log(`🎬 User ${session.user.email} requesting video generation:`, {
-      prompt: body.prompt.substring(0, 50) + "...",
-      model: body.model,
-      resolution: body.resolution,
-      duration: body.duration,
-      generationType,
-      hasImage: !!body.image
-    })
 
     // 调用统一的视频生成API（自动处理text-to-video和image-to-video）
     const result = await submitVideoGeneration(body)

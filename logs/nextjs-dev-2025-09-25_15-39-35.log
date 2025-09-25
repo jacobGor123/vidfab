@@ -1,0 +1,2769 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1580ms
+ ✓ Compiled /middleware in 230ms (174 modules)
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ○ Compiling /create ...
+ ✓ Compiled /create in 2.6s (1117 modules)
+ GET /create?tool=video-effects 200 in 2956ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /api/auth/[...nextauth] in 1439ms (1430 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1267ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1060ms
+ GET /api/auth/session 200 in 1062ms
+ ✓ Compiled /api/user/videos in 267ms (911 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1425ms
+ ✓ Compiled /api/images/upload in 114ms (915 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/images/upload 200 in 1435ms
+ ✓ Compiled /api/video/effects in 339ms (918 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/video/effects 200 in 2869ms
+ ✓ Compiled /api/video/status/[requestId] in 165ms (922 modules)
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 580ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 1140ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 179ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 176ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 178ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 178ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 179ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 178ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 178ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 179ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 176ms
+📊 Status check for 4ea0243dfdf44a0f9b74f0bfd78d434a: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/4ea0243dfdf44a0f9b74f0bfd78d434a 200 in 897ms
+ ✓ Compiled /api/video/store in 312ms (912 modules)
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 11606ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 549ms (1471 modules)
+ POST /api/video/store 200 in 7860ms
+ GET /create?tool=image-to-video 200 in 392ms
+ ✓ Compiled /_not-found in 200ms (1460 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 317ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ ✓ Compiled /api/auth/[...nextauth] in 316ms (915 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 387ms
+ GET /api/auth/session 200 in 388ms
+ ✓ Compiled /api/user/videos in 235ms (917 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 676ms
+ ✓ Compiled in 607ms (1478 modules)
+ ✓ Compiled in 305ms (1472 modules)
+ ✓ Compiled in 346ms (1117 modules)
+ ✓ Compiled in 548ms (1117 modules)
+ ✓ Compiled in 319ms (1117 modules)
+ ✓ Compiled in 279ms (1117 modules)
+ ✓ Compiled in 320ms (1117 modules)
+ ✓ Compiled /_not-found in 413ms (1106 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 576ms
+ GET /create?tool=image-to-video 200 in 65ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 56ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 581ms (883 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 711ms
+ GET /api/auth/session 200 in 716ms
+ ✓ Compiled /api/user/videos in 166ms (911 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1403ms
+ ✓ Compiled /api/images/upload in 94ms (915 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/images/upload 200 in 2198ms
+ ✓ Compiled /api/video/generate-image-to-video in 178ms (920 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🚀 Submitting image-to-video request to bytedance (seedance-v1-pro-i2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-i2v-480p',
+  prompt: '让图片动起来',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_URL: https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v...]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 88bf8e0e491e45658dc3228d33e4d2ee
+ POST /api/video/generate-image-to-video 200 in 1131ms
+🚀 Submitting image-to-video request to bytedance (seedance-v1-pro-i2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-i2v-480p',
+  prompt: '让图片动起来2',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_URL: https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v...]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 5257460999634479847ca0cfd13cb50f
+ POST /api/video/generate-image-to-video 200 in 846ms
+🚀 Submitting image-to-video request to bytedance (seedance-v1-pro-i2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-i2v-480p',
+  prompt: '让图片动起来3',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_URL: https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v...]'
+}
+✅ image-to-video generation submitted successfully. Request ID: e4a5734ab0a44e8cb5f42f2d541870e8
+ POST /api/video/generate-image-to-video 200 in 223ms
+🚀 Submitting image-to-video request to bytedance (seedance-v1-pro-i2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-i2v-480p',
+  prompt: '让图片动起来4',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_URL: https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v...]'
+}
+🔥 API Request Failed: {
+  status: 429,
+  statusText: 'Too Many Requests',
+  url: 'https://api.wavespeed.ai/api/v3/bytedance/seedance-v1-pro-i2v-480p',
+  errorData: { code: 429, message: 'Too many requests. Please try again later.' },
+  rawErrorText: '{"code":429,"message":"Too many requests. Please try again later."}',
+  requestMethod: 'POST'
+}
+❌ Image-to-video generation request failed: WavespeedAPIError: HTTP 429: Too Many Requests
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:170:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async POST (webpack-internal:///(rsc)/./app/api/video/generate-image-to-video/route.ts:83:24)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 429,
+  code: 429
+}
+ POST /api/video/generate-image-to-video 400 in 223ms
+🚀 Submitting image-to-video request to bytedance (seedance-v1-pro-i2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-i2v-480p',
+  prompt: '让图片动起来4',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_URL: https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v...]'
+}
+✅ image-to-video generation submitted successfully. Request ID: b0a0109bbe13446c9b354bb56d3e8fd0
+ POST /api/video/generate-image-to-video 200 in 839ms
+ GET /create?tool=image-to-video 200 in 197ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 48ms
+ GET /api/auth/session 200 in 24ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 2697ms
+ GET /api/auth/session 200 in 29ms
+ ✓ Compiled in 692ms (1441 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 835ms (1106 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1000ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 27ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 41ms
+ GET /create?tool=image-to-video 200 in 68ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 32ms
+ ✓ Compiled /api/auth/[...nextauth] in 116ms (883 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 231ms
+ GET /api/auth/session 200 in 235ms
+ ✓ Compiled /api/user/videos in 129ms (911 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1364ms
+ ✓ Compiled in 875ms (1472 modules)
+ ✓ Compiled in 414ms (1472 modules)
+ ✓ Compiled in 739ms (1117 modules)
+ ✓ Compiled in 266ms (1117 modules)
+ ✓ Compiled /api/video/status/[requestId] in 242ms (590 modules)
+📊 Status check for b0a0109bbe13446c9b354bb56d3e8fd0: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/b0a0109bbe13446c9b354bb56d3e8fd0 200 in 3221ms
+ ✓ Compiled /api/video/store in 96ms (912 modules)
+📊 Status check for e4a5734ab0a44e8cb5f42f2d541870e8: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/e4a5734ab0a44e8cb5f42f2d541870e8 200 in 3393ms
+📊 Status check for 88bf8e0e491e45658dc3228d33e4d2ee: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/88bf8e0e491e45658dc3228d33e4d2ee 200 in 3395ms
+📊 Status check for 5257460999634479847ca0cfd13cb50f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/5257460999634479847ca0cfd13cb50f 200 in 3535ms
+📊 Status check for 5257460999634479847ca0cfd13cb50f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/5257460999634479847ca0cfd13cb50f 200 in 382ms
+📊 Status check for 88bf8e0e491e45658dc3228d33e4d2ee: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/88bf8e0e491e45658dc3228d33e4d2ee 200 in 394ms
+📊 Status check for 88bf8e0e491e45658dc3228d33e4d2ee: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/88bf8e0e491e45658dc3228d33e4d2ee 200 in 316ms
+📊 Status check for e4a5734ab0a44e8cb5f42f2d541870e8: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/e4a5734ab0a44e8cb5f42f2d541870e8 200 in 321ms
+📊 Status check for e4a5734ab0a44e8cb5f42f2d541870e8: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/e4a5734ab0a44e8cb5f42f2d541870e8 200 in 187ms
+📊 Status check for 5257460999634479847ca0cfd13cb50f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/5257460999634479847ca0cfd13cb50f 200 in 182ms
+📊 Status check for 88bf8e0e491e45658dc3228d33e4d2ee: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/88bf8e0e491e45658dc3228d33e4d2ee 200 in 200ms
+📊 Status check for 88bf8e0e491e45658dc3228d33e4d2ee: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/88bf8e0e491e45658dc3228d33e4d2ee 200 in 186ms
+📊 Status check for 5257460999634479847ca0cfd13cb50f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/5257460999634479847ca0cfd13cb50f 200 in 178ms
+📊 Status check for 5257460999634479847ca0cfd13cb50f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/5257460999634479847ca0cfd13cb50f 200 in 192ms
+📊 Status check for 5257460999634479847ca0cfd13cb50f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/5257460999634479847ca0cfd13cb50f 200 in 671ms
+📊 Status check for 5257460999634479847ca0cfd13cb50f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/5257460999634479847ca0cfd13cb50f 200 in 187ms
+ ✓ Compiled in 405ms (1471 modules)
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 9235ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8874ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 9065ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 9197ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 9393ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 11333ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7350ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8292ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8913ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7990ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8426ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8146ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6948ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6464ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6931ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7881ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8623ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6579ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6527ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7411ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6479ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6862ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6892ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7021ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7503ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6521ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7422ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6458ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6667ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7017ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6924ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7336ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6494ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6865ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6971ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7024ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6487ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6535ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6511ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6472ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6529ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6904ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6524ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6510ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6969ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6913ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6488ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7373ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6620ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6507ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6553ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6585ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6689ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6855ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6629ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7475ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6791ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6638ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6734ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6752ms
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ User verification failed after 5 attempts: 13b23625-0790-40ef-95c4-a4afc5913e10
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6593ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6532ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6623ms
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(13b23625-0790-40ef-95c4-a4afc5913e10) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 7000ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1588ms (2315 modules)
+ GET / 200 in 1744ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 534ms (1342 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1035ms
+ HEAD / 200 in 146ms
+ GET /api/auth/session 200 in 30ms
+ ✓ Compiled in 513ms (989 modules)
+ GET /create 200 in 110ms
+ GET /create 200 in 36ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/auth/session 200 in 10ms
+ ✓ Compiled /api/video/status/[requestId] in 329ms (910 modules)
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/test-request-id/result',
+  errorData: { code: 400, message: 'prediction test-request-id not found' },
+  rawErrorText: '{"code":400,"message":"prediction test-request-id not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request test-request-id: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/test-request-id 400 in 1223ms
+ ✓ Compiled in 378ms (989 modules)
+ ○ Compiling /api/video/generate ...
+ ✓ Compiled /api/video/generate in 517ms (909 modules)
+ GET /api/video/generate 405 in 600ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+❌ Video generate: Authentication failed
+ POST /api/video/generate 401 in 9ms
+ ✓ Compiled /api/video/status/[requestId] in 97ms (911 modules)
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/test-request-id/result',
+  errorData: { code: 400, message: 'prediction test-request-id not found' },
+  rawErrorText: '{"code":400,"message":"prediction test-request-id not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request test-request-id: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/test-request-id 400 in 891ms
+ ✓ Compiled /api/video/generate-image-to-video in 201ms (913 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+❌ Image-to-video generate: Authentication failed
+ POST /api/video/generate-image-to-video 401 in 268ms
+ ✓ Compiled /api/video/effects in 208ms (915 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+❌ No session or user found for video effects request
+ POST /api/video/effects 401 in 250ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/fake-request-1/result',
+  errorData: { code: 400, message: 'prediction fake-request-1 not found' },
+  rawErrorText: '{"code":400,"message":"prediction fake-request-1 not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request fake-request-1: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/fake-request-1 400 in 187ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/fake-request-2/result',
+  errorData: { code: 400, message: 'prediction fake-request-2 not found' },
+  rawErrorText: '{"code":400,"message":"prediction fake-request-2 not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request fake-request-2: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/fake-request-2 400 in 181ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/non-existent-id/result',
+  errorData: { code: 400, message: 'prediction non-existent-id not found' },
+  rawErrorText: '{"code":400,"message":"prediction non-existent-id not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request non-existent-id: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/non-existent-id 400 in 183ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/test-request/result',
+  errorData: { code: 400, message: 'prediction test-request not found' },
+  rawErrorText: '{"code":400,"message":"prediction test-request not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request test-request: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/test-request 400 in 193ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/test-request/result',
+  errorData: { code: 400, message: 'prediction test-request not found' },
+  rawErrorText: '{"code":400,"message":"prediction test-request not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request test-request: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/test-request 400 in 933ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/test-request/result',
+  errorData: { code: 400, message: 'prediction test-request not found' },
+  rawErrorText: '{"code":400,"message":"prediction test-request not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request test-request: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/test-request 400 in 980ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/test-request/result',
+  errorData: { code: 400, message: 'prediction test-request not found' },
+  rawErrorText: '{"code":400,"message":"prediction test-request not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request test-request: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/test-request 400 in 1007ms
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/predictions/test-request/result',
+  errorData: { code: 400, message: 'prediction test-request not found' },
+  rawErrorText: '{"code":400,"message":"prediction test-request not found"}',
+  requestMethod: 'POST'
+}
+❌ Status check failed for request test-request: WavespeedAPIError: HTTP 400: Bad Request
+    at makeAPIRequest (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:94:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:184:26)
+    at async retryWithBackoff (webpack-internal:///(rsc)/./lib/services/wavespeed-api.ts:37:20)
+    at async GET (webpack-internal:///(rsc)/./app/api/video/status/[requestId]/route.ts:35:30)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  status: 400,
+  code: 400
+}
+ GET /api/video/status/test-request 400 in 1010ms

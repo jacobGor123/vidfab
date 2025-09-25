@@ -19,7 +19,7 @@ export function GetStartedButton({ className }: GetStartedButtonProps) {
       asChild
     >
       <Link href="/create">
-        Get Started
+        Start for free
       </Link>
     </Button>
   )

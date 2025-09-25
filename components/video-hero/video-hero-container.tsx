@@ -37,29 +37,18 @@ export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
   } = useVideoCarousel({
     items: HERO_VIDEO_ITEMS,
     onIndexChange: (index) => {
-      console.log('Video switched to:', HERO_VIDEO_ITEMS[index]?.title)
     },
     autoPlay: isDesktop && !isSlowConnection
   })
 
   const handleVideoEnd = () => {
-    console.log('🎬 handleVideoEnd called', {
-      isAutoPlaying: state.isAutoPlaying,
-      isPaused: state.isPaused,
-      itemsLength: HERO_VIDEO_ITEMS.length
-    })
-    
     // 如果有多个视频，总是进行轮播（无论是否自动播放状态）
     if (HERO_VIDEO_ITEMS.length > 1) {
-      console.log('🔄 Proceeding with next video')
       controls.goToNext()
-    } else {
-      console.log('📺 Single video mode, no switching needed')
     }
   }
 
   const handleVideoCanPlay = (itemId: string) => {
-    console.log('Video ready:', itemId)
   }
 
   return (
@@ -98,7 +87,6 @@ export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
           items={HERO_VIDEO_ITEMS}
           currentIndex={state.currentIndex}
           onItemSelect={(index) => {
-            console.log('🎯 Manual switch to:', index, HERO_VIDEO_ITEMS[index]?.title)
             controls.goToIndex(index)
           }}
           isVideoReady={() => true} // 简化，总是显示可点击

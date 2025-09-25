@@ -1,0 +1,152 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ✓ Ready in 3.2s
+ ✓ Compiled /middleware in 420ms (174 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 7.5s (1717 modules)
+ GET / 200 in 7917ms
+ ✓ Compiled in 498ms (859 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.9s (1182 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 3360ms
+ GET /api/auth/session 200 in 13ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 542ms (2059 modules)
+ ✓ Compiled /api/auth/send-verification-code in 310ms (1280 modules)
+✅ Verification code generated for jsdasww593@gmail.com
+📧 Sending verification code 809568 to jsdasww593@gmail.com
+🔐 Development Mode - Verification code for jsdasww593@gmail.com: 809568
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+✅ Verification email sent successfully to jsdasww593@gmail.com { messageId: '<7825b5c0-53d3-1d97-354f-6a40828d1562@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8957ms
+ ✓ Compiled /api/auth/verify-code-login in 241ms (1282 modules)
+ POST /api/auth/verify-code-login 400 in 2270ms
+ GET /login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Fcreate 200 in 152ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 94ms
+ GET /api/auth/session 200 in 9ms
+✅ Verification code verified for jsdasww593@gmail.com
+ POST /api/auth/verify-code-login 200 in 2638ms
+ GET /api/auth/providers 200 in 20ms
+ GET /api/auth/csrf 200 in 5ms
+✅ User saved: jsdasww593@gmail.com (97b58959-ac28-46b6-a35f-62f91d28fbba)
+✅ User signed in: jsdasww593@gmail.com via verification-code
+ POST /api/auth/callback/verification-code 200 in 870ms
+ GET /api/auth/session 200 in 9ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1641ms (2377 modules)
+ ✓ Compiled /api/images/upload in 471ms (1405 modules)
+ POST /api/images/upload 401 in 610ms
+ GET /create?tool=video-effects 200 in 182ms
+ GET /api/auth/session 200 in 17ms
+ GET /api/auth/session 200 in 9ms
+ POST /api/images/upload 401 in 22ms
+ GET /api/auth/session 200 in 37ms
+ ✓ Compiled in 756ms (2311 modules)
+ ✓ Compiled in 189ms (991 modules)
+ ✓ Compiled in 676ms (991 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 503ms (1976 modules)
+ GET /create?tool=video-effects 200 in 187ms
+ GET /_next/static/css/app/layout.css?v=1758709006179 404 in 25ms
+ GET /_next/static/chunks/main-app.js?v=1758709006179 404 in 37ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 33ms
+ GET /_next/static/chunks/app/(main)/create/page.js 404 in 28ms
+ GET /_next/static/chunks/app/(main)/create/layout.js 404 in 22ms
+ GET /_next/static/chunks/app/(main)/layout.js 404 in 23ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat '/Users/jacob/Desktop/vidfab/.next/server/vendor-chunks/class-variance-authority.js'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/class-variance-authority' in /Users/jacob/Desktop/vidfab/.next/server for build dependencies doesn't lead to expected result '/Users/jacob/Desktop/vidfab/.next/server/vendor-chunks/class-variance-authority.js', but to 'Error: Can't resolve './vendor-chunks/class-variance-authority' in '/Users/jacob/Desktop/vidfab/.next/server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/class-variance-authority (expected /Users/jacob/Desktop/vidfab/.next/server/vendor-chunks/class-variance-authority.js)
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/.next/server/webpack-runtime.js
+<w>  at file /Users/jacob/Desktop/vidfab/.next/server/webpack-runtime.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/.next/server/app/(main)/create/page.js
+<w>  at file /Users/jacob/Desktop/vidfab/.next/server/app/(main)/create/page.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w>  at resolve commonjs /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/@radix-ui' in /Users/jacob/Desktop/vidfab/.next/server for build dependencies doesn't lead to expected result '/Users/jacob/Desktop/vidfab/.next/server/vendor-chunks/@radix-ui.js', but to 'Error: Can't resolve './vendor-chunks/@radix-ui' in '/Users/jacob/Desktop/vidfab/.next/server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/@radix-ui (expected /Users/jacob/Desktop/vidfab/.next/server/vendor-chunks/@radix-ui.js)
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/.next/server/webpack-runtime.js
+<w>  at file /Users/jacob/Desktop/vidfab/.next/server/webpack-runtime.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/.next/server/app/(main)/create/page.js
+<w>  at file /Users/jacob/Desktop/vidfab/.next/server/app/(main)/create/page.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w>  at resolve commonjs /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/lucide-react' in /Users/jacob/Desktop/vidfab/.next/server for build dependencies doesn't lead to expected result '/Users/jacob/Desktop/vidfab/.next/server/vendor-chunks/lucide-react.js', but to 'Error: Can't resolve './vendor-chunks/lucide-react' in '/Users/jacob/Desktop/vidfab/.next/server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/lucide-react (expected /Users/jacob/Desktop/vidfab/.next/server/vendor-chunks/lucide-react.js)
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/.next/server/webpack-runtime.js
+<w>  at file /Users/jacob/Desktop/vidfab/.next/server/webpack-runtime.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/.next/server/app/(main)/create/page.js
+<w>  at file /Users/jacob/Desktop/vidfab/.next/server/app/(main)/create/page.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/require.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/load-components.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/utils.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-app-loader.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/bundle5.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/webpack/webpack.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/plugins/define-env-plugin.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/swc/index.js
+<w>  at file dependencies /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w>  at file /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+<w>  at resolve commonjs /Users/jacob/Desktop/vidfab/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js

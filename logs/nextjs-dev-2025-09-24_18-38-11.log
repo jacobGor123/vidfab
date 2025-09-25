@@ -1,0 +1,559 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 2.3s
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /middleware in 165ms (174 modules)
+ ○ Compiling /create ...
+ ✓ Compiled /create in 5.6s (1135 modules)
+ GET /create?tool=video-effects 200 in 5291ms
+ ✓ Compiled in 433ms (559 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.1s (882 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 2382ms
+ GET /api/auth/session 200 in 9ms
+ GET /create?tool=video-effects 200 in 157ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/auth/session 200 in 9ms
+ ✓ Compiled /api/images/upload in 228ms (910 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Image upload auth check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+ POST /api/images/upload 200 in 1887ms
+ ✓ Compiled /api/video/effects in 159ms (912 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userEmail: 'jsdasww593@gmail.com',
+  sessionKeys: [ 'user' ],
+  userKeys: [
+    'name',
+    'email',
+    'image',
+    'uuid',
+    'nickname',
+    'avatar_url',
+    'created_at'
+  ]
+}
+🎬 Video effects generation request: {
+  effectId: 'couple-arrival',
+  effectName: 'Couple Arrival',
+  hasImage: true,
+  userId: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/couple-arrival',
+  effectId: 'couple-arrival',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: '791b8f8b82c44dc9a7f21bcec2fb17f0',
+  error: undefined,
+  effectId: 'couple-arrival'
+}
+✅ Video effects generation submitted: {
+  requestId: '791b8f8b82c44dc9a7f21bcec2fb17f0',
+  effectId: 'couple-arrival',
+  userId: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+ POST /api/video/effects 200 in 1397ms
+ ✓ Compiled /api/video/status/[requestId] in 118ms (916 modules)
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 559ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 211ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 23ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 191ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 222ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 189ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 193ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 188ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 189ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 188ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 190ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 187ms
+🔍 Checking status for request 791b8f8b82c44dc9a7f21bcec2fb17f0
+📊 Status check for 791b8f8b82c44dc9a7f21bcec2fb17f0: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 791b8f8b82c44dc9a7f21bcec2fb17f0: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/791b8f8b82c44dc9a7f21bcec2fb17f0/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/791b8f8b82c44dc9a7f21bcec2fb17f0 200 in 189ms
+ ✓ Compiled /api/video/store in 112ms (920 modules)
+🔄 Internal storage call for user: 97b58959-ac28-46b6-a35f-62f91d28fbba
+🎬 Starting internal video storage for user: 97b58959-ac28-46b6-a35f-62f91d28fbba {
+  wavespeedRequestId: '791b8f8b82c44dc9a7f21bcec2fb17f0',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/791b8f8b82c44dc9a7f21bcec2fb17f0/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/97b58959-ac28-46b6-a35f-62f91d28fbba/6f385c48-543b-46df-8d2a-e612ae9baf04.webp',
+    effectId: 'couple-arrival',
+    effectName: 'Couple Arrival',
+    prompt: 'Couple Arrival Effect'
+  }
+}
+🎬 Starting video storage for user: 97b58959-ac28-46b6-a35f-62f91d28fbba
+✨ Created video record: 11c0992f-e7ee-41d4-ad48-3369d05617df
+✅ Video status updated to completed
+✅ Video storage completed for user: 97b58959-ac28-46b6-a35f-62f91d28fbba
+ POST /api/video/store 200 in 2024ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 18ms
+ ✓ Compiled /api/user/videos in 98ms (922 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1233ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 506ms
+ GET /create?tool=my-assets 200 in 142ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/auth/session 200 in 9ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1028ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 518ms
+ GET /create?tool=my-assets 200 in 34ms
+ GET /api/auth/session 200 in 12ms
+ GET /api/auth/session 200 in 7ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 506ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 508ms
+ GET /api/auth/session 200 in 13ms
+🔐 Image upload auth check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+ POST /api/images/upload 200 in 1602ms
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userEmail: 'jsdasww593@gmail.com',
+  sessionKeys: [ 'user' ],
+  userKeys: [
+    'name',
+    'email',
+    'image',
+    'uuid',
+    'nickname',
+    'avatar_url',
+    'created_at'
+  ]
+}
+🎬 Video effects generation request: {
+  effectId: 'fashion-stride',
+  effectName: 'Fashion Stride',
+  hasImage: true,
+  userId: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/fashion-stride',
+  effectId: 'fashion-stride',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: 'a16ca487584b4562a69a05ee3411f24f',
+  error: undefined,
+  effectId: 'fashion-stride'
+}
+✅ Video effects generation submitted: {
+  requestId: 'a16ca487584b4562a69a05ee3411f24f',
+  effectId: 'fashion-stride',
+  userId: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+ POST /api/video/effects 200 in 971ms
+🔍 Checking status for request a16ca487584b4562a69a05ee3411f24f
+📊 Status check for a16ca487584b4562a69a05ee3411f24f: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for a16ca487584b4562a69a05ee3411f24f: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a16ca487584b4562a69a05ee3411f24f 200 in 200ms
+🔍 Checking status for request a16ca487584b4562a69a05ee3411f24f
+📊 Status check for a16ca487584b4562a69a05ee3411f24f: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a16ca487584b4562a69a05ee3411f24f: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a16ca487584b4562a69a05ee3411f24f 200 in 185ms
+ GET /create?tool=video-effects 200 in 35ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/auth/session 200 in 8ms
+ GET /api/auth/session 200 in 198ms
+ GET /api/auth/session 200 in 33ms
+ ✓ Compiled in 917ms (1117 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /create?tool=video-effects 200 in 112ms
+ ✓ Compiled /api/auth/[...nextauth] in 259ms (882 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 352ms
+ GET /api/auth/session 200 in 7ms
+ GET /api/auth/session 200 in 18ms
+ ✓ Compiled /api/user/videos in 107ms (910 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1545ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 478ms
+ GET /api/auth/session 200 in 11ms
+ ✓ Compiled in 485ms (1469 modules)

@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Sparkles, BookOpen, Zap } from "lucide-react"
@@ -24,7 +25,6 @@ const useTypingAnimation = (texts: string[], resetKey?: string) => {
   // 重置动画当resetKey变化时
   useEffect(() => {
     if (resetKey && !isFocused) {
-      console.log('🔄 Resetting typing animation for:', resetKey)
       setCurrentText('')
       setCurrentTextIndex(0)
       setIsDeleting(false)
@@ -89,6 +89,7 @@ export const HeroContent: React.FC<HeroContentProps> = ({
 }) => {
   const [query, setQuery] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
 
   const typingTexts = currentItem?.typingTexts || ["Create amazing videos with AI..."]
   
@@ -106,11 +107,10 @@ export const HeroContent: React.FC<HeroContentProps> = ({
     if (!query.trim()) return
 
     setIsProcessing(true)
-    onQuerySubmit(query)
 
-    setTimeout(() => {
-      setIsProcessing(false)
-    }, 3000)
+    // 跳转到 create 页面并携带 prompt 参数
+    const encodedPrompt = encodeURIComponent(query.trim())
+    router.push(`/create?tool=text-to-video&prompt=${encodedPrompt}`)
   }
 
   const placeholderClasses = cn(

@@ -534,7 +534,6 @@ export class VideoStorageManager {
     onProgress?: (progress: number) => void
   ): Promise<{ path: string; size: number; url: string }> {
     try {
-      console.log(`Starting download: ${externalUrl}`)
 
       // Download file from external URL
       const response = await fetch(externalUrl)
@@ -585,7 +584,6 @@ export class VideoStorageManager {
       await this.uploadBlob(storagePath, blob)
       const publicUrl = await this.getPublicUrl(storagePath)
 
-      console.log(`Download and upload completed: ${publicUrl}`)
 
       return {
         path: storagePath,

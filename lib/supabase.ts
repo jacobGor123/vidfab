@@ -129,6 +129,7 @@ export interface UserQuotaInfo {
   videos_percentage: number;
   storage_percentage: number;
   can_upload: boolean;
+  is_subscribed: boolean;
 }
 
 // Legacy interface (keeping for compatibility)

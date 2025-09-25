@@ -69,80 +69,81 @@ export function ImageToVideoPanelEnhanced() {
   const authModal = useVideoGenerationAuth()
   const { getRemixData, clearRemixData } = useRemix()
 
+  // Video polling
+  const videoPolling = useVideoPolling({
+    onCompleted: (job, resultUrl) => {
+      console.log('Image-to-video generation completed:', job.id)
+    },
+    onFailed: (job, error) => {
+      console.error(`Image-to-video generation failed: ${job.id}`, error)
+    }
+  })
+
+  const { startPolling } = videoPolling
+
   // Video generation
   const videoGeneration = useVideoGeneration({
     onSuccess: (jobId) => {
-      console.log(`Image-to-video generation started: ${jobId}`)
-      startPolling(jobId)
+      console.log('Image-to-video generation started successfully:', jobId)
+      startPolling(jobId) // 🔥 启动轮询
     },
     onError: (error) => {
-      console.error("Image-to-video generation failed:", error)
+      console.error('Image-to-video generation failed:', error)
     },
     onAuthRequired: () => {
       authModal.showAuthModal()
     }
   })
 
-  // Video polling
-  const videoPolling = useVideoPolling({
-    onCompleted: (job, resultUrl) => {
-      console.log(`Image-to-video generation completed: ${job.id}`)
-    },
-    onFailed: (job, error) => {
-      console.error(`Image-to-video generation failed: ${job.id}`, error)
-    },
-    onProgress: (job, progress) => {
-      console.log(`Task progress updated: ${job.id} - ${progress}%`)
-    }
-  })
-
-  const { startPolling } = videoPolling
-
   // 使用useSession获取用户信息
   const { data: session } = useSession()
   const currentUserId = session?.user?.uuid
 
-  // 🔥 调试用户ID匹配问题
-  console.log('🔑 Current user UUID from session:', currentUserId)
-  console.log('🔑 All active jobs:', videoContext.activeJobs.map(job => ({
-    id: job.id,
-    userId: job.userId,
-    status: job.status
-  })))
 
-  // Get current user's jobs - 只有当用户已登录时才显示数据
+  // 🔥 修复：获取所有用户的任务和视频 - 包含进行中和已完成的
   const userJobs = currentUserId
     ? videoContext.activeJobs.filter(job => job.userId === currentUserId)
-    : [] // 如果没有用户ID，不显示任何内容，避免闪现
+    : []
 
   const userVideos = currentUserId
     ? videoContext.completedVideos.filter(video => video.userId === currentUserId)
-    : [] // 如果没有用户ID，不显示任何内容，避免闪现
+    : []
 
-  console.log('🔑 Filtered user jobs count:', userJobs.length)
-  console.log('🔑 Filtered user videos count:', userVideos.length)
+  // 🔥 新增：获取临时视频（刚完成的）
+  const userTemporaryVideos = currentUserId
+    ? videoContext.temporaryVideos.filter(video => video.userId === currentUserId)
+    : []
 
-  // Resume polling on page load
-  useEffect(() => {
-    if (authModal.isAuthenticated && userJobs.length > 0) {
-      console.log(`Resuming polling for ${userJobs.length} tasks`)
-      userJobs.forEach(job => {
-        if (job.status === "processing" && job.requestId) {
-          startPolling(job.id)
-        }
-      })
-    }
-  }, [authModal.isAuthenticated, userJobs.length, startPolling])
+  // 🔥 合并所有要显示的项目：进行中任务 + 临时完成视频
+  const allUserItems = [
+    ...userJobs,
+    ...userTemporaryVideos.map(video => ({
+      id: video.id,
+      userId: video.userId || currentUserId,
+      status: 'completed' as const,
+      prompt: video.prompt,
+      settings: video.settings,
+      resultUrl: video.videoUrl,
+      createdAt: video.createdAt,
+      updatedAt: video.createdAt,
+      requestId: '',
+      progress: 100,
+      error: null
+    }))
+  ]
+
+
+  // Note: Polling is now handled automatically by useVideoGeneration hook
 
   // Check for remix data on component mount
   useEffect(() => {
     const remixData = getRemixData()
     if (remixData) {
-      console.log('🎬 Loading remix data:', remixData)
+
       setParams(prev => ({
         ...prev,
         prompt: remixData.prompt,
-        image: remixData.imageUrl,
+        image: remixData.imageUrl, // URL已在存储时转换为webp格式
         uploadMode: 'url' // Use URL mode for remix images
       }))
       setImagePreview(remixData.imageUrl)
@@ -150,8 +151,6 @@ export function ImageToVideoPanelEnhanced() {
       // Clear remix data after loading to prevent re-triggering
       clearRemixData()
 
-      // Show success message
-      console.log('✅ Remix data loaded successfully')
     }
   }, [getRemixData, clearRemixData])
 
@@ -180,7 +179,7 @@ export function ImageToVideoPanelEnhanced() {
       errors.push("Video description cannot exceed 500 characters")
     }
 
-    if (!params.image) {
+    if (!params.image || params.image.trim() === '') {
       errors.push("Please upload an image or provide image URL")
     }
 
@@ -207,18 +206,24 @@ export function ImageToVideoPanelEnhanced() {
   const handleImageUpload = async (file: File) => {
     if (!file) return
 
+    // 检查用户认证状态
+    const authSuccess = await authModal.requireAuth(async () => {
+      await uploadImageFile(file)
+    })
+
+    if (!authSuccess) {
+      return
+    }
+  }
+
+  // 实际的图片上传逻辑，分离出来以便于认证检查
+  const uploadImageFile = async (file: File) => {
     setIsUploadingImage(true)
     setImageUploadProgress(0)
 
     const startTime = Date.now()
 
     try {
-      console.log('📸 Processing image:', {
-        name: file.name,
-        size: `${(file.size / 1024).toFixed(1)}KB`,
-        type: file.type,
-        autoOptimization: true
-      })
 
       // Step 1: Validate image (5%)
       setImageUploadProgress(5)
@@ -236,12 +241,6 @@ export function ImageToVideoPanelEnhanced() {
       setImageUploadProgress(30)
       const processedResult = await ImageProcessor.processImageSmart(file)
 
-      console.log('🔧 Image processed:', {
-        originalSize: `${(processedResult.originalMetadata.size / 1024).toFixed(1)}KB`,
-        processedSize: `${(processedResult.metadata.size / 1024).toFixed(1)}KB`,
-        compressionRatio: `${processedResult.compressionRatio.toFixed(2)}x`,
-        dimensions: `${processedResult.metadata.width}x${processedResult.metadata.height}`
-      })
 
       setImageUploadProgress(60)
 
@@ -280,18 +279,10 @@ export function ImageToVideoPanelEnhanced() {
         timestamp: new Date()
       }, ...prev.slice(0, 4)]) // Keep only last 5 uploads
 
-      console.log('✅ Upload completed:', {
-        id: result.data.id,
-        url: result.data.url,
-        finalSize: `${(result.data.size / 1024).toFixed(1)}KB`,
-        compression: `${((file.size - result.data.size) / file.size * 100).toFixed(1)}% saved`,
-        processingTime: `${(Date.now() - startTime) / 1000}s`
-      })
 
       setValidationErrors([])
 
     } catch (error) {
-      console.error('❌ Image processing/upload failed:', error)
       setValidationErrors([error instanceof Error ? error.message : "Failed to process image. Please try again."])
       setImagePreview(null)
       setParams(prev => ({ ...prev, imageFile: null, image: '' }))
@@ -343,13 +334,11 @@ export function ImageToVideoPanelEnhanced() {
           await fetch(`/api/images/upload?imageId=${imageId}`, {
             method: 'DELETE'
           })
-          console.log('🗑️ Image deleted from Supabase:', imageId)
 
           // Remove from upload history
           setUploadHistory(prev => prev.filter(item => item.id !== imageId))
         }
       } catch (error) {
-        console.warn('⚠️ Failed to delete image from Supabase:', error)
         // Don't throw error, just log warning
       }
     }
@@ -394,29 +383,34 @@ export function ImageToVideoPanelEnhanced() {
 
         // Additional URL validation
         if (!imageUrl.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i)) {
-          console.warn('⚠️ URL does not have image extension, proceeding anyway...')
-        }
+          }
       } catch {
         throw new Error("Please provide a valid image URL")
       }
     }
 
-    // Build request
-    const request: VideoGenerationRequest = {
-      prompt: params.prompt.trim(),
-      image: imageUrl, // 🆕 Image parameter
-      model: params.model,
-      duration: DURATION_MAP[params.duration] || 5,
-      resolution: params.resolution,
-      aspectRatio: params.aspectRatio,
-      seed: -1,
-      cameraFixed: false
-    }
+    try {
+      // Use auth hook to ensure user is logged in
+      const isAuthenticated = await authModal.requireAuth(async () => {
+        await videoGeneration.generateImageToVideo(
+          imageUrl, // 图片URL
+          params.prompt.trim(), // 提示词
+          {
+            model: params.model,
+            duration: DURATION_MAP[params.duration] || 5,
+            resolution: params.resolution,
+            aspectRatio: params.aspectRatio
+          }
+        )
+      })
 
-    // Use auth hook to ensure user is logged in
-    await authModal.requireAuth(async () => {
-      await videoGeneration.generateVideo(request)
-    })
+      if (!isAuthenticated) {
+        // 用户未登录，不执行任何操作
+        return
+      }
+    } catch (error) {
+      setValidationErrors([error instanceof Error ? error.message : 'Generation failed'])
+    }
   }, [params, validateForm, authModal, videoGeneration, userJobs.length])
 
   // Update form parameters
@@ -432,40 +426,8 @@ export function ImageToVideoPanelEnhanced() {
   const activeJobs = userJobs.filter(job => job.status === "processing" || job.status === "queued")
   const processingJobs = userJobs.filter(job => job.status === "processing")
 
-  // 🔍 调试按钮禁用状态
-  console.log('🔍 Generate Video Button Debug:', {
-    hasPrompt: !!params.prompt.trim(),
-    hasImage: !!params.image,
-    isGenerating: videoGeneration.isGenerating,
-    isAuthLoading: authModal.isLoading,
-    isAuthenticated: authModal.isAuthenticated,
-    processingJobsCount: processingJobs.length,
-    isUploadingImage: isUploadingImage,
-    shouldBeDisabled: !params.prompt.trim() || !params.image || videoGeneration.isGenerating || authModal.isLoading || processingJobs.length >= 4 || isUploadingImage
-  })
 
-  // 🔥 修复视频显示逻辑：检查activeJobs中已完成的job
-  const completedJobsFromActive = userJobs.filter(job =>
-    job.status === "completed" && job.resultUrl
-  )
 
-  // 🔥 调试：打印所有job状态
-  console.log('🔍 All user jobs:', userJobs.map(job => ({
-    id: job.id,
-    status: job.status,
-    resultUrl: job.resultUrl,
-    progress: job.progress
-  })))
-  console.log('🔍 Completed jobs from active:', completedJobsFromActive)
-  console.log('🔍 User videos from database:', userVideos)
-
-  // 找到最新的已完成视频（只来自当前会话，不包括数据库历史视频）
-  const latestCompletedJob = completedJobsFromActive[0] // Latest completed job from active jobs
-
-  // 预览区域只显示当前会话中生成的视频，不显示历史视频
-  const videoToShow = latestCompletedJob
-
-  console.log('🎬 Video to show:', videoToShow)
 
   return (
     <>
@@ -683,11 +645,12 @@ export function ImageToVideoPanelEnhanced() {
                     <Label className="text-gray-300">Model</Label>
                     <Select
                       value={params.model}
+                      defaultValue="vidu-q1"
                       onValueChange={(value) => updateParam("model", value)}
                       disabled={videoGeneration.isGenerating}
                     >
                       <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                        <SelectValue />
+                        <SelectValue placeholder="Select model" />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-900 border-gray-700">
                         <SelectItem value="vidu-q1">Vidfab Q1 ⭐</SelectItem>
@@ -702,11 +665,12 @@ export function ImageToVideoPanelEnhanced() {
                       <Label className="text-gray-300">Duration</Label>
                       <Select
                         value={params.duration}
+                        defaultValue="5s"
                         onValueChange={(value) => updateParam("duration", value)}
                         disabled={videoGeneration.isGenerating}
                       >
                         <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                          <SelectValue />
+                          <SelectValue placeholder="Select duration" />
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-gray-700">
                           {params.model === "vidfab-pro" ? (
@@ -725,11 +689,12 @@ export function ImageToVideoPanelEnhanced() {
                       <Label className="text-gray-300">Resolution</Label>
                       <Select
                         value={params.resolution}
+                        defaultValue="480p"
                         onValueChange={(value) => updateParam("resolution", value)}
                         disabled={videoGeneration.isGenerating}
                       >
                         <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                          <SelectValue />
+                          <SelectValue placeholder="Select resolution" />
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-gray-700">
                           {params.model === "vidfab-pro" ? (
@@ -821,17 +786,17 @@ export function ImageToVideoPanelEnhanced() {
         <div className="w-1/2 h-full overflow-hidden">
           <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
             {/* 显示所有用户的任务（进行中+已完成） */}
-            {(userJobs.length > 0 || userVideos.length > 0) ? (
+            {(allUserItems.length > 0 || userVideos.length > 0) ? (
               <div
                 className={`
                   grid gap-4
-                  ${userJobs.length === 1 ? 'grid-cols-1' : ''}
-                  ${userJobs.length === 2 ? 'grid-cols-2' : ''}
-                  ${userJobs.length >= 3 ? 'grid-cols-2' : ''}
+                  ${allUserItems.length === 1 ? 'grid-cols-1' : ''}
+                  ${allUserItems.length === 2 ? 'grid-cols-2' : ''}
+                  ${allUserItems.length >= 3 ? 'grid-cols-2' : ''}
                 `}
               >
                 {/* 显示最多20个任务 */}
-                {userJobs.slice(0, 20).map((job) => {
+                {allUserItems.slice(0, 20).map((job) => {
                   // 如果任务已完成，查找对应的视频
                   const completedVideo = job.status === 'completed' && job.resultUrl
                     ? {
@@ -864,35 +829,6 @@ export function ImageToVideoPanelEnhanced() {
                   )
                 })}
 
-                {/* 如果没有当前任务但有当前会话的已完成视频，显示最新的一个 */}
-                {userJobs.length === 0 && videoToShow && (
-                  <VideoResult
-                    videoUrl={videoToShow.resultUrl!}
-                    thumbnailUrl={undefined}
-                    prompt={videoToShow.prompt}
-                    settings={{
-                      model: videoToShow.settings.model,
-                      duration: videoToShow.settings.duration,
-                      resolution: videoToShow.settings.resolution,
-                      aspectRatio: videoToShow.settings.aspectRatio,
-                      style: videoToShow.settings.style || "realistic"
-                    }}
-                    onRegenerateClick={() => {
-                      setParams({
-                        ...params,
-                        prompt: videoToShow.prompt,
-                        model: videoToShow.settings.model,
-                        duration: videoToShow.settings.duration,
-                        resolution: videoToShow.settings.resolution,
-                        aspectRatio: videoToShow.settings.aspectRatio,
-                        style: videoToShow.settings.style || "realistic"
-                      })
-                    }}
-                    video={videoToShow}
-                    isFromDatabase={false}
-                    videoId={videoToShow.id}
-                  />
-                )}
 
               </div>
             ) : (
@@ -914,9 +850,9 @@ export function ImageToVideoPanelEnhanced() {
 
       {/* Login modal */}
       <Dialog open={authModal.isAuthModalOpen} onOpenChange={() => authModal.hideAuthModal()}>
-        <DialogContent className="p-0 border-none bg-transparent max-w-md">
+        <DialogContent className="p-0 max-w-md">
           <DialogTitle className="sr-only">user login</DialogTitle>
-          <UnifiedAuthModal />
+          <UnifiedAuthModal className="min-h-0 p-0" />
         </DialogContent>
       </Dialog>
 

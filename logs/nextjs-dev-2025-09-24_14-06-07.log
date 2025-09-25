@@ -1,0 +1,577 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.3.19:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1945ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 540ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 3.4s (1800 modules)
+ GET / 200 in 3969ms
+ ✓ Compiled in 622ms (886 modules)
+ GET / 200 in 108ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 926ms (1989 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1566ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1721ms (2051 modules)
+ GET /create 200 in 1839ms
+ GET /create?tool=discover 200 in 11ms
+ GET /create?tool=discover 200 in 8ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 907ms (2060 modules)
+ GET /login 200 in 1006ms
+ GET /create?tool=video-effects 200 in 27ms
+ GET /create?tool=video-effects 200 in 200ms
+ ✓ Compiled /api/auth/[...nextauth] in 230ms (1256 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 409ms
+ ✓ Compiled /_not-found in 476ms (2264 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 702ms
+ GET /create?tool=image-to-video 200 in 20ms
+ GET /create?tool=image-to-video 200 in 26ms
+ GET /create?tool=image-to-video 200 in 158ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 47ms
+ GET /create?tool=video-effects 200 in 15ms
+ GET /create?tool=my-assets 200 in 11ms
+ GET /create?tool=image-to-video 200 in 15ms
+ GET /create?tool=video-effects 200 in 23ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 717ms (2326 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 447032 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 447032
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<e1aa9db7-fecc-7d15-eb98-a0af5c9fba4a@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 23595ms
+ ○ Compiling /api/auth/verify-code-login ...
+ ✓ Compiled /api/auth/verify-code-login in 815ms (2162 modules)
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 5347ms
+ ✓ Compiled /api/auth/[...nextauth] in 277ms (1312 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 399ms
+ GET /api/auth/csrf 200 in 5ms
+✅ User saved: ithermocraft@hotmail.com (ea514c32-f0fe-445c-9249-d4df8eb20bd5)
+✅ User signed in: ithermocraft@hotmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 1223ms
+ GET /api/auth/session 200 in 8ms
+ GET /create 200 in 68ms
+ GET /create?tool=discover 200 in 22ms
+ ○ Compiling /api/images/upload ...
+ ✓ Compiled /api/images/upload in 552ms (2320 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 2400ms
+ GET /api/auth/session 200 in 72ms
+ GET /create?tool=video-effects 200 in 84ms
+ GET /create?tool=image-to-video 200 in 19ms
+ GET /create?tool=discover 200 in 13ms
+ GET /create?tool=image-to-video 200 in 12ms
+ GET /create?tool=video-effects 200 in 16ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+ POST /api/images/upload 200 in 2021ms
+ GET /create?tool=video-effects 200 in 201ms
+ GET /api/auth/session 200 in 10ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+ POST /api/images/upload 200 in 4561ms
+ ○ Compiling /api/video/effects ...
+ ✓ Compiled /api/video/effects in 829ms (2260 modules)
+Error: Route "/api/video/effects" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+Error: Route "/api/video/effects" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  userEmail: 'ithermocraft@hotmail.com',
+  sessionKeys: [ 'user', 'expires' ],
+  userKeys: [ 'name', 'email', 'uuid', 'nickname', 'avatar_url', 'created_at' ]
+}
+🎬 Video effects generation request: {
+  effectId: 'cartoon-doll',
+  effectName: 'Cartoon Doll',
+  hasImage: true,
+  userId: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/cartoon-doll',
+  effectId: 'cartoon-doll',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: '358aea9c40a643249e29a592279cd16c',
+  error: undefined,
+  effectId: 'cartoon-doll'
+}
+✅ Video effects generation submitted: {
+  requestId: '358aea9c40a643249e29a592279cd16c',
+  effectId: 'cartoon-doll',
+  userId: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5'
+}
+ POST /api/video/effects 200 in 2965ms
+ ✓ Compiled /api/video/status/[requestId] in 238ms (2264 modules)
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 54ms
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 1226ms
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 508ms
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 518ms
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 446ms
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 214ms
+ GET /api/auth/session 200 in 10ms
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 455ms
+ GET /api/auth/session 200 in 10ms
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 208ms
+🔍 Checking status for request 358aea9c40a643249e29a592279cd16c
+📊 Status check for 358aea9c40a643249e29a592279cd16c: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 358aea9c40a643249e29a592279cd16c: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/358aea9c40a643249e29a592279cd16c/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/358aea9c40a643249e29a592279cd16c 200 in 205ms
+ ✓ Compiled /api/video/store in 412ms (2268 modules)
+🔄 Internal storage call for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🎬 Starting internal video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5 {
+  wavespeedRequestId: '358aea9c40a643249e29a592279cd16c',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/358aea9c40a643249e29a592279cd16c/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/ea514c32-f0fe-445c-9249-d4df8eb20bd5/529abcd6-7e61-4a0e-9999-283b51f54519.webp',
+    effectId: 'cartoon-doll',
+    effectName: 'Cartoon Doll',
+    prompt: 'Cartoon Doll Effect'
+  }
+}
+🎬 Starting video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Using force method to create user and video: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Force creating user and video with delays: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔧 Attempting to create user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "users_pkey"',
+  details: 'Key (uuid)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) already exists.',
+  hint: null
+}
+✅ User already exists (expected): ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Starting user verification for: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Verification attempt 1/5 for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+🎯 Using raw SQL to bypass foreign key constraints...
+⚠️ Database function not available, using direct insert...
+💡 Foreign key constraint error - attempting to force create user first...
+✅ User forcibly created: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 6724ms
+🔄 Internal storage call for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🎬 Starting internal video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5 {
+  wavespeedRequestId: '358aea9c40a643249e29a592279cd16c',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/358aea9c40a643249e29a592279cd16c/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/ea514c32-f0fe-445c-9249-d4df8eb20bd5/529abcd6-7e61-4a0e-9999-283b51f54519.webp',
+    effectId: 'cartoon-doll',
+    effectName: 'Cartoon Doll',
+    prompt: 'Cartoon Doll Effect'
+  }
+}
+🎬 Starting video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Using force method to create user and video: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Force creating user and video with delays: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔧 Attempting to create user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "users_pkey"',
+  details: 'Key (uuid)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) already exists.',
+  hint: null
+}
+✅ User already exists (expected): ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Starting user verification for: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Verification attempt 1/5 for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+🎯 Using raw SQL to bypass foreign key constraints...
+⚠️ Database function not available, using direct insert...
+💡 Foreign key constraint error - attempting to force create user first...
+✅ User forcibly created: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 5861ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 31ms
+🔄 Internal storage call for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🎬 Starting internal video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5 {
+  wavespeedRequestId: '358aea9c40a643249e29a592279cd16c',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/358aea9c40a643249e29a592279cd16c/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/ea514c32-f0fe-445c-9249-d4df8eb20bd5/529abcd6-7e61-4a0e-9999-283b51f54519.webp',
+    effectId: 'cartoon-doll',
+    effectName: 'Cartoon Doll',
+    prompt: 'Cartoon Doll Effect'
+  }
+}
+🎬 Starting video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Using force method to create user and video: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Force creating user and video with delays: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔧 Attempting to create user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "users_pkey"',
+  details: 'Key (uuid)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) already exists.',
+  hint: null
+}
+✅ User already exists (expected): ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Starting user verification for: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Verification attempt 1/5 for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+ GET /api/auth/session 200 in 14ms
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+🎯 Using raw SQL to bypass foreign key constraints...
+⚠️ Database function not available, using direct insert...
+💡 Foreign key constraint error - attempting to force create user first...
+✅ User forcibly created: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8687ms
+🔄 Internal storage call for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🎬 Starting internal video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5 {
+  wavespeedRequestId: '358aea9c40a643249e29a592279cd16c',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/358aea9c40a643249e29a592279cd16c/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/ea514c32-f0fe-445c-9249-d4df8eb20bd5/529abcd6-7e61-4a0e-9999-283b51f54519.webp',
+    effectId: 'cartoon-doll',
+    effectName: 'Cartoon Doll',
+    prompt: 'Cartoon Doll Effect'
+  }
+}
+🎬 Starting video storage for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Using force method to create user and video: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔄 Force creating user and video with delays: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔧 Attempting to create user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "users_pkey"',
+  details: 'Key (uuid)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) already exists.',
+  hint: null
+}
+✅ User already exists (expected): ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Starting user verification for: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+🔍 Verification attempt 1/5 for user: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: 'ea514c32-f0fe-445c-9249-d4df8eb20bd5',
+  email: 'ithermocraft@hotmail.com',
+  created_at: '2025-09-24T08:09:30.485+00:00',
+  is_active: true
+}
+🎯 Using raw SQL to bypass foreign key constraints...
+⚠️ Database function not available, using direct insert...
+💡 Foreign key constraint error - attempting to force create user first...
+✅ User forcibly created: ea514c32-f0fe-445c-9249-d4df8eb20bd5
+❌ Video creation failed even after user creation: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Failed to force create user: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ All video creation attempts failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ea514c32-f0fe-445c-9249-d4df8eb20bd5) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8045ms
+ GET /api/auth/session 200 in 38ms
+ GET /api/auth/session 200 in 50ms
+ ✓ Compiled in 1287ms (2399 modules)
+ GET /create?tool=video-effects 200 in 186ms
+ ✓ Compiled in 389ms (1351 modules)
+ GET /create?tool=video-effects 200 in 18ms
+[?25h

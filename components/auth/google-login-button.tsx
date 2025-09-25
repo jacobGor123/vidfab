@@ -23,7 +23,7 @@ interface GoogleLoginButtonProps {
 export function GoogleLoginButton({
   onSuccess,
   onError,
-  callbackUrl = "/dashboard",
+  callbackUrl = "/create",
   variant = "outline",
   size = "default",
   className,
@@ -37,7 +37,6 @@ export function GoogleLoginButton({
     try {
       setIsLoading(true);
       
-      console.log("🔐 Starting Google OAuth sign-in");
 
       const result = await signIn("google", {
         callbackUrl,
@@ -49,7 +48,6 @@ export function GoogleLoginButton({
       }
 
       if (result?.ok) {
-        console.log("✅ Google OAuth sign-in successful");
         onSuccess?.();
         
         // Redirect to callback URL
@@ -128,7 +126,7 @@ export function GoogleLoginButton({
 export function GoogleLoginIconButton({
   onSuccess,
   onError,
-  callbackUrl = "/dashboard",
+  callbackUrl = "/create",
   className,
   disabled = false,
 }: Omit<GoogleLoginButtonProps, 'children' | 'variant' | 'size'>) {

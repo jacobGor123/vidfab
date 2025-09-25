@@ -14,12 +14,21 @@ import { VideoGenerationRequest, getGenerationType } from "@/lib/types/video"
 
 export async function POST(request: NextRequest) {
   try {
-    // 验证用户登录状态
+    // NextAuth 4.x 认证方式 - 与text-to-video保持一致
     const session = await auth()
 
     if (!session?.user) {
+      console.error('❌ Image-to-video generate: Authentication failed')
       return NextResponse.json(
         { error: "Authentication required", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      )
+    }
+
+    if (!session.user.uuid) {
+      console.error('❌ Image-to-video generate: User UUID missing')
+      return NextResponse.json(
+        { error: "User UUID required", code: "AUTH_REQUIRED" },
         { status: 401 }
       )
     }
@@ -60,7 +69,9 @@ export async function POST(request: NextRequest) {
 
     // 验证请求参数
     const validationErrors = validateVideoRequest(body)
+
     if (validationErrors.length > 0) {
+      console.error('❌ Validation failed:', validationErrors)
       return NextResponse.json(
         {
           error: "Validation failed",
@@ -70,16 +81,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`🎨 User ${session.user.email} requesting image-to-video generation:`, {
-      prompt: body.prompt.substring(0, 50) + "...",
-      model: body.model,
-      resolution: body.resolution,
-      duration: body.duration,
-      hasImage: !!body.image,
-      imageSize: body.image ? Math.round(body.image.length / 1024) + "KB" : undefined,
-      cameraFixed: body.cameraFixed,
-      seed: body.seed
-    })
 
     // 调用Wavespeed Image-to-Video API
     const result = await submitImageToVideoGeneration(body)

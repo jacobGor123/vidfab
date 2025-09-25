@@ -1,0 +1,53 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1684ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /middleware in 241ms (174 modules)
+ ○ Compiling /create ...
+ ✓ Compiled /create in 2.8s (1117 modules)
+ GET /create?tool=text-to-video 200 in 3309ms
+ ✓ Compiled /_not-found in 924ms (1106 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 569ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 688ms (883 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1189ms
+ GET /api/auth/session 200 in 1196ms
+ ✓ Compiled /api/user/videos in 191ms (911 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1519ms
+ GET /create?tool=image-to-video 200 in 154ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 46ms
+ GET /api/auth/session 200 in 26ms
+ GET /api/auth/session 200 in 33ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 892ms
+ ○ Compiling /api/images/upload ...
+ ✓ Compiled /api/images/upload in 577ms (915 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/images/upload 200 in 2443ms
+ ✓ Compiled in 1126ms (1117 modules)
+ ✓ Compiled in 570ms (1117 modules)

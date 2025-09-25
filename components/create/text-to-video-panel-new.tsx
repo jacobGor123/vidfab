@@ -47,7 +47,11 @@ interface VideoJobProgress {
   startTime: number
 }
 
-export function TextToVideoPanelEnhanced() {
+interface TextToVideoPanelEnhancedProps {
+  initialPrompt?: string
+}
+
+export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnhancedProps = {}) {
   const [params, setParams] = useState<VideoGenerationParams>({
     prompt: "",
     model: "vidu-q1",
@@ -60,74 +64,85 @@ export function TextToVideoPanelEnhanced() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [showLimitDialog, setShowLimitDialog] = useState(false)
 
+  // 设置初始 prompt
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      setParams(prev => ({
+        ...prev,
+        prompt: initialPrompt.trim()
+      }))
+    }
+  }, [initialPrompt])
+
   // Context and hooks
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
 
   // Video generation
+  // Video polling
+  const videoPolling = useVideoPolling({
+    onCompleted: (job, resultUrl) => {
+      console.log('Video generation completed:', job.id)
+    },
+    onFailed: (job, error) => {
+      console.error(`Video generation failed: ${job.id}`, error)
+    }
+  })
+
+  const { startPolling } = videoPolling
+
   const videoGeneration = useVideoGeneration({
     onSuccess: (jobId) => {
-      console.log(`Video generation started: ${jobId}`)
-      startPolling(jobId)
+      console.log('Video generation started successfully:', jobId)
+      startPolling(jobId) // 🔥 启动轮询
     },
     onError: (error) => {
-      console.error("Video generation failed:", error)
+      console.error('Video generation failed:', error)
     },
     onAuthRequired: () => {
       authModal.showAuthModal()
     }
   })
 
-  // Video polling
-  const videoPolling = useVideoPolling({
-    onCompleted: (job, resultUrl) => {
-      console.log(`Video generation completed: ${job.id}`)
-    },
-    onFailed: (job, error) => {
-      console.error(`Video generation failed: ${job.id}`, error)
-    },
-    onProgress: (job, progress) => {
-      console.log(`Task progress updated: ${job.id} - ${progress}%`)
-    }
-  })
-
-  const { startPolling, stopPolling, restartPolling } = videoPolling
-
   // 使用useSession获取用户信息
   const { data: session } = useSession()
   const currentUserId = session?.user?.uuid
 
-  // 🔥 调试用户ID匹配问题
-  console.log('🔑 Current user UUID from session:', currentUserId)
-  console.log('🔑 All active jobs:', videoContext.activeJobs.map(job => ({
-    id: job.id,
-    userId: job.userId,
-    status: job.status
-  })))
 
-  // Get current user's jobs - 只有当用户已登录时才显示数据
+  // 🔥 修复：获取所有用户的任务和视频 - 包含进行中和已完成的
   const userJobs = currentUserId
     ? videoContext.activeJobs.filter(job => job.userId === currentUserId)
-    : [] // 如果没有用户ID，不显示任何内容，避免闪现
+    : []
 
   const userVideos = currentUserId
     ? videoContext.completedVideos.filter(video => video.userId === currentUserId)
-    : [] // 如果没有用户ID，不显示任何内容，避免闪现
+    : []
 
-  console.log('🔑 Filtered user jobs count:', userJobs.length)
-  console.log('🔑 Filtered user videos count:', userVideos.length)
+  // 🔥 新增：获取临时视频（刚完成的）
+  const userTemporaryVideos = currentUserId
+    ? videoContext.temporaryVideos.filter(video => video.userId === currentUserId)
+    : []
 
-  // Resume polling on page load
-  useEffect(() => {
-    if (authModal.isAuthenticated && userJobs.length > 0) {
-      console.log(`Resuming polling for ${userJobs.length} tasks`)
-      userJobs.forEach(job => {
-        if (job.status === "processing" && job.requestId) {
-          startPolling(job.id)
-        }
-      })
-    }
-  }, [authModal.isAuthenticated, userJobs.length, startPolling])
+  // 🔥 合并所有要显示的项目：进行中任务 + 临时完成视频
+  const allUserItems = [
+    ...userJobs,
+    ...userTemporaryVideos.map(video => ({
+      id: video.id,
+      userId: video.userId || currentUserId,
+      status: 'completed' as const,
+      prompt: video.prompt,
+      settings: video.settings,
+      resultUrl: video.videoUrl,
+      createdAt: video.createdAt,
+      updatedAt: video.createdAt,
+      requestId: '',
+      progress: 100,
+      error: null
+    }))
+  ]
+
+
+  // Note: Polling is now handled automatically by useVideoGeneration hook
 
   // Handle Vidfab Pro model selection
   useEffect(() => {
@@ -202,9 +217,23 @@ export function TextToVideoPanelEnhanced() {
     }
 
     // Use auth hook to ensure user is logged in
-    await authModal.requireAuth(async () => {
-      await videoGeneration.generateVideo(request)
+    const isAuthenticated = await authModal.requireAuth(async () => {
+      await videoGeneration.generateTextToVideo(
+        params.prompt.trim(),
+        {
+          model: params.model,
+          duration: DURATION_MAP[params.duration] || 5,
+          resolution: params.resolution,
+          aspectRatio: params.aspectRatio,
+          style: 'realistic' // 添加默认样式
+        }
+      )
     })
+
+    if (!isAuthenticated) {
+      // 用户未登录，不执行任何操作
+      return
+    }
   }, [params, validateForm, authModal, videoGeneration, userJobs.length])
 
   // Update form parameters
@@ -221,28 +250,7 @@ export function TextToVideoPanelEnhanced() {
   const processingJobs = userJobs.filter(job => job.status === "processing")
   const hasActiveJobs = activeJobs.length > 0
 
-  // 🔥 修复视频显示逻辑：检查activeJobs中已完成的job
-  const completedJobsFromActive = userJobs.filter(job =>
-    job.status === "completed" && job.resultUrl
-  )
 
-  // 🔥 调试：打印所有job状态
-  console.log('🔍 All user jobs:', userJobs.map(job => ({
-    id: job.id,
-    status: job.status,
-    resultUrl: job.resultUrl,
-    progress: job.progress
-  })))
-  console.log('🔍 Completed jobs from active:', completedJobsFromActive)
-  console.log('🔍 User videos from database:', userVideos)
-
-  // 找到最新的已完成视频（只来自当前会话，不包括数据库历史视频）
-  const latestCompletedJob = completedJobsFromActive[0] // Latest completed job from active jobs
-
-  // 预览区域只显示当前会话中生成的视频，不显示历史视频
-  const videoToShow = latestCompletedJob
-
-  console.log('🎬 Video to show:', videoToShow)
 
   return (
     <>
@@ -432,17 +440,18 @@ export function TextToVideoPanelEnhanced() {
         <div className="w-1/2 h-full overflow-hidden">
           <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
             {/* 显示所有用户的任务（进行中+已完成） */}
-            {(userJobs.length > 0 || userVideos.length > 0) ? (
+            {(allUserItems.length > 0 || userVideos.length > 0) ? (
               <div
                 className={`
                   grid gap-4
-                  ${userJobs.length === 1 ? 'grid-cols-1' : ''}
-                  ${userJobs.length === 2 ? 'grid-cols-2' : ''}
-                  ${userJobs.length >= 3 ? 'grid-cols-2' : ''}
+                  ${allUserItems.length === 1 ? 'grid-cols-1' : ''}
+                  ${allUserItems.length === 2 ? 'grid-cols-2' : ''}
+                  ${allUserItems.length >= 3 ? 'grid-cols-2' : ''}
                 `}
               >
                 {/* 显示最多20个任务 */}
-                {userJobs.slice(0, 20).map((job) => {
+                {allUserItems.slice(0, 20).map((job) => {
+
                   // 如果任务已完成，查找对应的视频
                   const completedVideo = job.status === 'completed' && job.resultUrl
                     ? {
@@ -454,6 +463,7 @@ export function TextToVideoPanelEnhanced() {
                         createdAt: job.createdAt
                       }
                     : userVideos.find(v => v.id === job.id)
+
 
                   return (
                     <VideoTaskGridItem
@@ -474,34 +484,6 @@ export function TextToVideoPanelEnhanced() {
                   )
                 })}
 
-                {/* 如果没有当前任务但有当前会话的已完成视频，显示最新的一个 */}
-                {userJobs.length === 0 && videoToShow && (
-                  <VideoResult
-                    videoUrl={videoToShow.resultUrl!}
-                    thumbnailUrl={undefined}
-                    prompt={videoToShow.prompt}
-                    settings={{
-                      model: videoToShow.settings.model,
-                      duration: videoToShow.settings.duration,
-                      resolution: videoToShow.settings.resolution,
-                      aspectRatio: videoToShow.settings.aspectRatio,
-                      style: videoToShow.settings.style || "realistic"
-                    }}
-                    onRegenerateClick={() => {
-                      setParams({
-                        prompt: videoToShow.prompt,
-                        model: videoToShow.settings.model,
-                        duration: videoToShow.settings.duration,
-                        resolution: videoToShow.settings.resolution,
-                        aspectRatio: videoToShow.settings.aspectRatio,
-                        style: videoToShow.settings.style || "realistic"
-                      })
-                    }}
-                    video={videoToShow}
-                    isFromDatabase={false}
-                    videoId={videoToShow.id}
-                  />
-                )}
 
               </div>
             ) : (
@@ -523,9 +505,9 @@ export function TextToVideoPanelEnhanced() {
 
       {/* Login modal */}
       <Dialog open={authModal.isAuthModalOpen} onOpenChange={() => authModal.hideAuthModal()}>
-        <DialogContent className="p-0 border-none bg-transparent max-w-md">
+        <DialogContent className="p-0 max-w-md">
           <DialogTitle className="sr-only">user login</DialogTitle>
-          <UnifiedAuthModal />
+          <UnifiedAuthModal className="min-h-0 p-0" />
         </DialogContent>
       </Dialog>
 

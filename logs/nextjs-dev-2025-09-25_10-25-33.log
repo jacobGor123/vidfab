@@ -1,0 +1,124 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1566ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /middleware in 231ms (174 modules)
+ ○ Compiling /create ...
+ ⨯ ./components/create/video-effects-panel.tsx
+Error: 
+  [31mx[0m Expected ';', '}' or <eof>
+     ,-[[36;1;4m/Users/jacob/Desktop/vidfab/components/create/video-effects-panel.tsx[0m:187:1]
+ [2m187[0m |         : []
+ [2m188[0m |     
+ [2m189[0m |       // Debug logging for troubleshooting
+ [2m190[0m | [31;1m,[0m[31;1m-[0m[31;1m>[0m     currentUserId,
+ [2m191[0m | [31;1m|[0m[31;1m-[0m[31;1m>[0m     totalActiveJobs: videoContext.activeJobs.length,
+     : [31;1m`[0m[31;1m---[0m[33;1m                   ^[0m
+     : [31;1m`[0m[31;1m---[0m[31;1m-[0m [31;1mThis is the expression part of an expression statement[0m
+ [2m192[0m |         videoEffectsJobs: userJobs.length,
+ [2m193[0m |         activeJobsDetails: videoContext.activeJobs.map(job => ({
+ [2m194[0m |           id: job.id,
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/create/video-effects-panel.tsx
+./components/create/create-content.tsx
+./components/create/create-page-client.tsx
+./app/(main)/create/page.tsx
+ ⨯ ./components/create/video-effects-panel.tsx
+Error: 
+  [31mx[0m Expected ';', '}' or <eof>
+     ,-[[36;1;4m/Users/jacob/Desktop/vidfab/components/create/video-effects-panel.tsx[0m:187:1]
+ [2m187[0m |         : []
+ [2m188[0m |     
+ [2m189[0m |       // Debug logging for troubleshooting
+ [2m190[0m | [31;1m,[0m[31;1m-[0m[31;1m>[0m     currentUserId,
+ [2m191[0m | [31;1m|[0m[31;1m-[0m[31;1m>[0m     totalActiveJobs: videoContext.activeJobs.length,
+     : [31;1m`[0m[31;1m---[0m[33;1m                   ^[0m
+     : [31;1m`[0m[31;1m---[0m[31;1m-[0m [31;1mThis is the expression part of an expression statement[0m
+ [2m192[0m |         videoEffectsJobs: userJobs.length,
+ [2m193[0m |         activeJobsDetails: videoContext.activeJobs.map(job => ({
+ [2m194[0m |           id: job.id,
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/create/video-effects-panel.tsx
+./components/create/create-content.tsx
+./components/create/create-page-client.tsx
+./app/(main)/create/page.tsx
+ ⨯ ./components/create/video-effects-panel.tsx
+Error: 
+  [31mx[0m Expected ';', '}' or <eof>
+     ,-[[36;1;4m/Users/jacob/Desktop/vidfab/components/create/video-effects-panel.tsx[0m:187:1]
+ [2m187[0m |         : []
+ [2m188[0m |     
+ [2m189[0m |       // Debug logging for troubleshooting
+ [2m190[0m | [31;1m,[0m[31;1m-[0m[31;1m>[0m     currentUserId,
+ [2m191[0m | [31;1m|[0m[31;1m-[0m[31;1m>[0m     totalActiveJobs: videoContext.activeJobs.length,
+     : [31;1m`[0m[31;1m---[0m[33;1m                   ^[0m
+     : [31;1m`[0m[31;1m---[0m[31;1m-[0m [31;1mThis is the expression part of an expression statement[0m
+ [2m192[0m |         videoEffectsJobs: userJobs.length,
+ [2m193[0m |         activeJobsDetails: videoContext.activeJobs.map(job => ({
+ [2m194[0m |           id: job.id,
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/create/video-effects-panel.tsx
+./components/create/create-content.tsx
+./components/create/create-page-client.tsx
+./app/(main)/create/page.tsx
+ GET /create 500 in 4493ms
+ ⨯ ./components/create/video-effects-panel.tsx
+Error: 
+  [31mx[0m Expected ';', '}' or <eof>
+     ,-[[36;1;4m/Users/jacob/Desktop/vidfab/components/create/video-effects-panel.tsx[0m:193:1]
+ [2m193[0m |       )
+ [2m194[0m |     
+ [2m195[0m |       // 🔥 调试：打印所有job状态
+ [2m196[0m | [31;1m,[0m[31;1m-[0m[31;1m>[0m     id: job.id,
+ [2m197[0m | [31;1m|[0m[31;1m-[0m[31;1m>[0m     status: job.status,
+     : [31;1m`[0m[31;1m---[0m[33;1m          ^[0m
+     : [31;1m`[0m[31;1m---[0m[31;1m-[0m [31;1mThis is the expression part of an expression statement[0m
+ [2m198[0m |         resultUrl: job.resultUrl,
+ [2m199[0m |         progress: job.progress
+ [2m200[0m |       })))
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/create/video-effects-panel.tsx
+./components/create/create-content.tsx
+./components/create/create-page-client.tsx
+./app/(main)/create/page.tsx

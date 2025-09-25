@@ -1,0 +1,268 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 2.5s
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 620ms (358 modules)
+ ✓ Compiled /middleware in 168ms (174 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1088ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 2.6s (1441 modules)
+ ✓ Compiled in 253ms (559 modules)
+ ✓ Compiled /api/user/videos in 404ms (910 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+ GET /api/auth/session 200 in 20ms
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 2035ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 432ms
+ GET /api/auth/session 200 in 16ms
+ GET /create?tool=my-assets 200 in 147ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/auth/session 200 in 9ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1063ms
+🔐 Auth session check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userId: undefined,
+  sessionData: {
+    user: {
+      name: 'jsdasww593',
+      email: 'jsdasww593@gmail.com',
+      image: undefined,
+      uuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+      nickname: 'jsdasww593',
+      avatar_url: '',
+      created_at: '2025-09-24T10:10:48.279+00:00'
+    }
+  }
+}
+📋 Fetching user videos for 97b58959-ac28-46b6-a35f-62f91d28fbba: {
+  page: 1,
+  limit: 50,
+  status: undefined,
+  orderBy: 'created_at',
+  orderDirection: 'desc',
+  search: undefined
+}
+✅ Found 1 videos for user 97b58959-ac28-46b6-a35f-62f91d28fbba
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 463ms
+ ✓ Compiled /api/images/upload in 133ms (914 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Image upload auth check: {
+  hasSession: true,
+  hasUser: true,
+  userEmail: 'jsdasww593@gmail.com',
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+ POST /api/images/upload 200 in 1342ms
+ ✓ Compiled /api/video/effects in 188ms (916 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: '97b58959-ac28-46b6-a35f-62f91d28fbba',
+  userEmail: 'jsdasww593@gmail.com',
+  sessionKeys: [ 'user' ],
+  userKeys: [
+    'name',
+    'email',
+    'image',
+    'uuid',
+    'nickname',
+    'avatar_url',
+    'created_at'
+  ]
+}
+🎬 Video effects generation request: {
+  effectId: 'couple-arrival',
+  effectName: 'Couple Arrival',
+  hasImage: true,
+  userId: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/couple-arrival',
+  effectId: 'couple-arrival',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: '629d9803e9ef42ba8d5ae18142fd4da2',
+  error: undefined,
+  effectId: 'couple-arrival'
+}
+✅ Video effects generation submitted: {
+  requestId: '629d9803e9ef42ba8d5ae18142fd4da2',
+  effectId: 'couple-arrival',
+  userId: '97b58959-ac28-46b6-a35f-62f91d28fbba'
+}
+ POST /api/video/effects 200 in 1778ms
+ ✓ Compiled /api/video/status/[requestId] in 106ms (920 modules)
+🔍 Checking status for request 629d9803e9ef42ba8d5ae18142fd4da2
+📊 Status check for 629d9803e9ef42ba8d5ae18142fd4da2: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 629d9803e9ef42ba8d5ae18142fd4da2: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/629d9803e9ef42ba8d5ae18142fd4da2 200 in 589ms
+🔍 Checking status for request 629d9803e9ef42ba8d5ae18142fd4da2
+📊 Status check for 629d9803e9ef42ba8d5ae18142fd4da2: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 629d9803e9ef42ba8d5ae18142fd4da2: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/629d9803e9ef42ba8d5ae18142fd4da2 200 in 214ms
+ GET /create?tool=video-effects 200 in 144ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 17ms
+ GET /api/auth/session 200 in 6ms
+ GET /api/auth/session 200 in 26ms
+ ✓ Compiled /_not-found in 435ms (1468 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 646ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 34ms
+ GET /api/auth/session 200 in 48ms
+ ✓ Compiled in 1180ms (1117 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=video-effects 200 in 131ms
+ ✓ Compiled /_not-found in 154ms (1106 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 261ms
+ ✓ Compiled /api/auth/[...nextauth] in 108ms (883 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 235ms
+ GET /api/auth/session 200 in 237ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 503ms (1444 modules)
+ GET /create?tool=video-effects 200 in 429ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 28ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 38ms
+ GET /api/auth/session 200 in 41ms
+ ✓ Compiled in 441ms (1444 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=video-effects 200 in 149ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 27ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 24ms
+ GET /api/auth/session 200 in 35ms
+ ✓ Compiled in 249ms (561 modules)
+ ✓ Compiled in 212ms (561 modules)

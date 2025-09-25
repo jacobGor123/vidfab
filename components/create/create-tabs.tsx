@@ -1,9 +1,9 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Type, ImageIcon, Search, FolderOpen } from "lucide-react"
+import { Type, ImageIcon, Search, FolderOpen, Sparkles } from "lucide-react"
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "my-assets" | null
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | null
 
 interface CreateTabsProps {
   activeTool: ToolType
@@ -28,6 +28,12 @@ const tabs = [
     label: "Image to Video",
     icon: ImageIcon,
     shortLabel: "Image"
+  },
+  {
+    id: "video-effects" as ToolType,
+    label: "Video Effects",
+    icon: Sparkles,
+    shortLabel: "Effects"
   },
   {
     id: "my-assets" as ToolType,

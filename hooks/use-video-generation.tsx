@@ -9,7 +9,7 @@ import { useVideoContext } from '@/lib/contexts/video-context'
 
 // 🎯 生成状态
 export interface VideoGenerationState {
-  isGenerating: boolean
+  isGenerating: boolean  // 只表示是否正在提交新任务
   activeJobs: number
   error: string | null
 }
@@ -33,10 +33,18 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
   const videoContext = useVideoContext()
 
   const [state, setState] = useState<VideoGenerationState>({
-    isGenerating: false,
+    isGenerating: false, // 强制重置为false
     activeJobs: 0,
     error: null
   })
+
+  // 初始化状态，不强制重置现有任务
+  useEffect(() => {
+    setState(prev => ({
+      ...prev,
+      error: null
+    }))
+  }, [])
 
   const optionsRef = useRef<Map<string, GenerationOptions>>(new Map())
   const hookOptionsRef = useRef<UseVideoGenerationOptions>(options)
@@ -48,13 +56,17 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
   // 🎯 监听活跃任务变化
   useEffect(() => {
-    const activeJobs = videoContext.activeJobs.length
-    const isGenerating = activeJobs > 0
+    // 只计算真正在进行中的任务，排除failed/completed任务
+    const activeJobsInProgress = videoContext.activeJobs.filter(job =>
+      job.status === 'processing' || job.status === 'queued' || job.status === 'generating'
+    )
+    const activeJobs = activeJobsInProgress.length
 
     setState(prev => ({
       ...prev,
-      activeJobs,
-      isGenerating
+      activeJobs
+      // 🔥 注意：不再根据activeJobs设置isGenerating
+      // isGenerating应该只在API调用过程中为true
     }))
 
     // 检测完成的任务
@@ -91,6 +103,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     }
 
 
+    // 🔥 设置正在生成状态
+    setState(prev => ({ ...prev, isGenerating: true }))
+
     try {
       // 创建新任务
       const job = videoContext.addJob({
@@ -99,7 +114,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         prompt,
         settings: {
           generationType: 'text-to-video',
-          model: settings.model || 'blueprint',
+          model: settings.model || 'vidu-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -122,7 +137,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         },
         body: JSON.stringify({
           prompt,
-          model: settings.model || 'blueprint',
+          model: settings.model || 'vidu-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -133,6 +148,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const data = await response.json()
 
       if (!response.ok) {
+        // 🔥 API失败时，移除已创建的本地job
+        videoContext.removeJob(job.id)
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
@@ -141,6 +158,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         requestId: data.data.requestId,
         status: 'processing'
       })
+
+      // 🔥 重置生成状态
+      setState(prev => ({ ...prev, isGenerating: false }))
 
       // 🔥 调用onSuccess回调，让组件启动轮询
       hookOptionsRef.current?.onSuccess?.(job.id)
@@ -151,7 +171,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('VideoGeneration: 文本转视频失败:', errorMessage)
 
-      setState(prev => ({ ...prev, error: errorMessage }))
+      // 🔥 重置生成状态
+      setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
 
       // 🔥 调用onError回调
       hookOptionsRef.current?.onError?.(errorMessage)
@@ -165,6 +186,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     imageUrl: string,
     prompt: string = '',
     settings: {
+      model?: string
       duration?: number
       resolution?: string
       aspectRatio?: string
@@ -175,6 +197,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       throw new Error('User not authenticated')
     }
 
+    // 🔥 设置正在生成状态
+    setState(prev => ({ ...prev, isGenerating: true }))
 
     try {
       const job = videoContext.addJob({
@@ -184,6 +208,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         settings: {
           generationType: 'image-to-video',
           imageUrl,
+          model: settings.model || 'vidu-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'
@@ -205,6 +230,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         body: JSON.stringify({
           image: imageUrl,
           prompt: prompt || 'Convert image to video',
+          model: settings.model || 'vidu-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'
@@ -214,6 +240,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const data = await response.json()
 
       if (!response.ok) {
+        // 🔥 API失败时，移除已创建的本地job
+        videoContext.removeJob(job.id)
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
@@ -223,6 +251,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         status: 'processing'
       })
 
+      // 🔥 重置生成状态
+      setState(prev => ({ ...prev, isGenerating: false }))
+
       // 🔥 调用onSuccess回调，让组件启动轮询
       hookOptionsRef.current?.onSuccess?.(job.id)
 
@@ -230,9 +261,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      console.error('VideoGeneration: 图片转视频失败:', errorMessage)
 
-      setState(prev => ({ ...prev, error: errorMessage }))
+      // 🔥 重置生成状态
+      setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
 
       // 🔥 调用onError回调
       hookOptionsRef.current?.onError?.(errorMessage)
@@ -272,6 +303,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       effectNameFinal = requestOrVideoUrl.effectName
     }
 
+    // 🔥 设置正在生成状态
+    setState(prev => ({ ...prev, isGenerating: true }))
 
     try {
       // 1. 创建本地任务
@@ -332,6 +365,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       })
 
 
+      // 🔥 重置生成状态
+      setState(prev => ({ ...prev, isGenerating: false }))
+
       // 🔥 调用onSuccess回调，让组件启动轮询
       hookOptionsRef.current?.onSuccess?.(job.id)
 
@@ -341,7 +377,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('VideoGeneration: 视频特效失败:', errorMessage)
 
-      setState(prev => ({ ...prev, error: errorMessage }))
+      // 🔥 重置生成状态
+      setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
 
       // 🔥 调用onError回调
       hookOptionsRef.current?.onError?.(errorMessage)
@@ -414,7 +451,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     getActiveTasks,
 
     // 兼容旧API的别名
-    generateVideo: generateImageToVideo, // 🔥 修复：添加缺失的generateVideo别名
+    generateVideo: generateTextToVideo, // 🔥 修复：generateVideo应该是text-to-video的别名
     startGeneration: generateTextToVideo,
     startPolling: () => {
       console.warn('startPolling is deprecated, use generateTextToVideo instead')

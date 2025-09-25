@@ -1,0 +1,83 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1904ms
+ ✓ Compiled /middleware in 481ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled /create in 5.3s (1217 modules)
+ ✓ Compiled in 660ms (594 modules)
+ GET /create?tool=image-to-video 200 in 3727ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1883ms (1406 modules)
+ GET /create?tool=video-effects 200 in 57ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2526ms
+ GET /create?tool=video-effects 200 in 15ms
+ GET /create?tool=video-effects 200 in 29ms
+ GET /create?tool=video-effects 200 in 289ms
+ GET /api/auth/session 200 in 50ms
+ ✓ Compiled in 1009ms (595 modules)
+ GET /create?tool=video-effects 200 in 28ms
+ ✓ Compiled in 1441ms (1420 modules)
+ GET /create?tool=video-effects 200 in 91ms
+ ✓ Compiled in 856ms (1420 modules)
+ GET /create?tool=video-effects 200 in 88ms
+ GET /create?tool=image-to-video 200 in 19ms
+ GET /create?tool=text-to-video 200 in 17ms
+ GET /create?tool=video-effects 200 in 18ms
+ ✓ Compiled in 997ms (1218 modules)
+ GET /create?tool=video-effects 200 in 112ms
+ GET /create?tool=image-to-video 200 in 20ms
+ GET /create?tool=video-effects 200 in 27ms
+ ✓ Compiled in 689ms (1218 modules)
+ GET /create?tool=video-effects 200 in 74ms
+ GET /create?tool=image-to-video 200 in 20ms
+ ✓ Compiled /api/auth/[...nextauth] in 329ms (825 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 503ms
+ ✓ Compiled in 811ms (1420 modules)
+ GET /create?tool=image-to-video 200 in 83ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 139ms
+ ✓ Compiled in 845ms (1420 modules)
+ GET /create?tool=image-to-video 200 in 77ms
+ GET /create?tool=video-effects 200 in 16ms
+ ✓ Compiled in 698ms (1420 modules)
+ GET /create?tool=video-effects 200 in 65ms
+ ✓ Compiled in 329ms (1420 modules)
+ GET /create?tool=video-effects 200 in 131ms
+ ✓ Compiled in 263ms (595 modules)
+ GET /create?tool=video-effects 200 in 26ms
+ ✓ Compiled in 238ms (595 modules)
+ GET /create?tool=video-effects 200 in 23ms
+ ✓ Compiled in 1017ms (1218 modules)
+ GET /create?tool=video-effects 200 in 112ms
+ ✓ Compiled in 388ms (1218 modules)
+ GET /create?tool=video-effects 200 in 131ms
+ ✓ Compiled in 348ms (1218 modules)
+ GET /create?tool=video-effects 200 in 82ms
+ ✓ Compiled in 431ms (1218 modules)
+ GET /create?tool=video-effects 200 in 58ms
+ ✓ Compiled in 472ms (1218 modules)
+ GET /create?tool=video-effects 200 in 95ms
+ ✓ Compiled in 491ms (1218 modules)
+ GET /create?tool=video-effects 200 in 60ms
+ ✓ Compiled in 325ms (1218 modules)
+ GET /create?tool=video-effects 200 in 112ms
+ ✓ Compiled in 304ms (1218 modules)
+ GET /create?tool=video-effects 200 in 50ms
+ ✓ Compiled in 379ms (1218 modules)
+ GET /create?tool=video-effects 200 in 61ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 955ms (825 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1134ms

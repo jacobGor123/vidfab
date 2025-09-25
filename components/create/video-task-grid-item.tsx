@@ -7,11 +7,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoJob, VideoResult as VideoResultType } from "@/lib/contexts/video-context"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { cn } from "@/lib/utils"
-import { X } from "lucide-react"
+import { X, AlertTriangle, Sparkles } from "lucide-react"
 import toast from "react-hot-toast"
 import {
   AlertDialog,
@@ -23,6 +24,68 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+
+// 🔥 Error message translation function - English version
+function getFriendlyErrorMessage(error: string): string {
+  const errorMessages: Record<string, string> = {
+    'ImageObjectsUndetected': 'No clear objects detected in image. Please try using images with visible people, objects, or buildings',
+    'InputTooLarge': 'File too large. Please use images smaller than 10MB',
+    'InvalidImageFormat': 'Unsupported image format. Please use JPG, PNG, or WebP formats',
+    'ContentPolicyViolation': 'Image content violates usage policy. Please select a different image',
+    'ProcessingTimeout': 'Processing timeout. Please retry or use a smaller resolution image',
+    'InsufficientCredits': 'Insufficient credits. Please top up your account and try again',
+    'ImageTooSmall': 'Image resolution too low. Please use images of at least 512x512 pixels',
+    'ImageTooBlurry': 'Image too blurry. Please use a higher quality, clearer image',
+    'NoFaceDetected': 'No face detected. Please ensure image contains a clear human face',
+    'MultipleFacesDetected': 'Multiple faces detected. Please use an image with only one person',
+    'NetworkError': 'Network connection failed. Please check your connection and retry',
+    'ServerError': 'Server temporarily unavailable. Please try again later',
+    'RateLimitExceeded': 'Too many requests. Please wait a moment and try again',
+    'UnknownError': 'Unknown error occurred. Please retry or contact support'
+  }
+
+  // Exact match
+  if (errorMessages[error]) {
+    return errorMessages[error]
+  }
+
+  // Fuzzy match
+  for (const [key, message] of Object.entries(errorMessages)) {
+    if (error.toLowerCase().includes(key.toLowerCase())) {
+      return message
+    }
+  }
+
+  // Special keyword matching
+  const errorLower = error.toLowerCase()
+  if (errorLower.includes('object') && errorLower.includes('detect')) {
+    return errorMessages['ImageObjectsUndetected']
+  }
+  if (errorLower.includes('face') && errorLower.includes('not')) {
+    return errorMessages['NoFaceDetected']
+  }
+  if (errorLower.includes('multiple') && errorLower.includes('face')) {
+    return errorMessages['MultipleFacesDetected']
+  }
+  if (errorLower.includes('blur') || errorLower.includes('quality')) {
+    return errorMessages['ImageTooBlurry']
+  }
+  if (errorLower.includes('small') || errorLower.includes('resolution')) {
+    return errorMessages['ImageTooSmall']
+  }
+  if (errorLower.includes('network') || errorLower.includes('connection')) {
+    return errorMessages['NetworkError']
+  }
+  if (errorLower.includes('server')) {
+    return errorMessages['ServerError']
+  }
+  if (errorLower.includes('rate') && errorLower.includes('limit')) {
+    return errorMessages['RateLimitExceeded']
+  }
+
+  // Default return
+  return error || 'Unknown error. Please try again with a different image'
+}
 
 interface VideoTaskGridItemProps {
   job?: VideoJob
@@ -39,6 +102,7 @@ export function VideoTaskGridItem({
   const [animatedProgress, setAnimatedProgress] = useState(0)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const videoContext = useVideoContext()
+
 
   // 计算预期时长（秒）
   const estimatedDuration = useMemo(() => {
@@ -72,7 +136,6 @@ export function VideoTaskGridItem({
 
   // Delete video task
   const handleDelete = useCallback(async () => {
-    console.log('🗑️ Delete clicked:', { job, completedVideo })
 
     try {
       let deleted = false
@@ -81,17 +144,13 @@ export function VideoTaskGridItem({
       const deleteId = job?.id || completedVideo?.id
 
       if (!deleteId) {
-        console.error('🗑️ No ID found to delete')
         toast.error('No video found to delete.')
         setShowDeleteConfirm(false)
         return
       }
 
-      console.log('🗑️ Deleting video with ID:', deleteId)
-
       // Always try to remove from both places for completed videos
       if (job?.status === "completed" || completedVideo) {
-        console.log('🗑️ Removing from both activeJobs and completedVideos')
         // Remove from activeJobs (if it exists there)
         videoContext.removeJob(deleteId)
         // Remove from completedVideos (if it exists there)
@@ -99,12 +158,10 @@ export function VideoTaskGridItem({
       }
       // For processing jobs, only remove from activeJobs
       else if (job?.status === "processing") {
-        console.log('🗑️ Removing processing job from activeJobs only')
         videoContext.removeJob(deleteId)
       }
       // Fallback: try both just in case
       else {
-        console.log('🗑️ Unknown state, removing from both locations')
         videoContext.removeJob(deleteId)
         videoContext.removeCompletedVideo(deleteId)
       }
@@ -113,25 +170,23 @@ export function VideoTaskGridItem({
       if (completedVideo?.id) {
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(completedVideo.id)
         if (isUUID) {
-          console.log('🗑️ UUID detected, calling deleteVideo API')
           await videoContext.deleteVideo(completedVideo.id)
         }
       }
 
       deleted = true
-      console.log('🗑️ Delete operation completed successfully')
       toast.success('Video deleted successfully!')
 
     } catch (error) {
-      console.error('🗑️ Failed to delete video:', error)
       toast.error('Failed to delete video. Please try again.')
     }
 
     setShowDeleteConfirm(false)
   }, [job, completedVideo, videoContext])
 
-  // If there's a completed video, show video result
+  // 🔥 关键修复：优先检查job的completed状态，确保轮询更新能立即显示
   if (completedVideo || (job?.status === "completed" && job.resultUrl)) {
+
     const showDelete = true // Allow deleting completed videos
     const videoUrl = completedVideo?.videoUrl || job?.resultUrl!
     const prompt = completedVideo?.prompt || job?.prompt!
@@ -187,6 +242,7 @@ export function VideoTaskGridItem({
 
   // If there's a processing task, show loading state
   if (job && (job.status === "processing" || job.status === "queued")) {
+
     return (
       <Card className="h-full bg-gray-950 border-gray-800 relative">
         {/* Delete button */}
@@ -249,7 +305,77 @@ export function VideoTaskGridItem({
     )
   }
 
+  // If there's a failed task, show error state
+  if (job && job.status === "failed") {
+
+    return (
+      <Card className="h-full bg-gray-950 border-red-800/30 relative">
+        {/* Delete button */}
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all"
+          title="Remove failed task"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <CardContent className="h-full flex flex-col items-center justify-center p-6">
+          <div className="flex items-center justify-center flex-col w-full text-center">
+            {/* Error icon */}
+            <div className="relative mb-4">
+              <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-red-400" />
+              </div>
+            </div>
+
+            {/* Error text */}
+            <h3 className="text-sm font-semibold text-red-300 mb-2">Generation Failed</h3>
+            <p className="text-xs text-gray-400 mb-4 max-w-[200px] text-center">
+              {getFriendlyErrorMessage(job.error || "Video generation failed")}
+            </p>
+
+            {/* Retry button */}
+            <Button
+              onClick={onRegenerateClick}
+              size="sm"
+              variant="outline"
+              className="text-red-300 border-red-300/30 hover:bg-red-500/10 hover:border-red-300"
+              disabled={!onRegenerateClick}
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+
+        {/* Delete confirmation dialog */}
+        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <AlertDialogContent className="bg-gray-900 border-gray-800">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">Remove Failed Task</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-400">
+                This action will remove this failed video generation task. You can try generating again with different settings. Are you sure you want to continue?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-700">
+                Keep Task
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                Remove Task
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Card>
+    )
+  }
+
   // 骨架屏动画状态 - 模拟视频加载中的样子
+
   return (
     <Card className="h-full bg-gray-950 border-gray-800 overflow-hidden">
       <CardContent className="h-full p-0">

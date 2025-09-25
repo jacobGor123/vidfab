@@ -136,7 +136,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
 
   initialize(config: Partial<PreloadConfig> = {}): void {
     if (this.isInitialized) {
-      console.warn('VideoPreloader已经初始化')
+      console.warn('VideoPreloader already initialized')
       return
     }
 
@@ -149,7 +149,6 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
       config: this.config
     })
 
-    console.log('智能视频预加载器已初始化', this.config)
   }
 
   destroy(): void {
@@ -174,7 +173,6 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
     this.eventListeners.clear()
 
     this.isInitialized = false
-    console.log('视频预加载器已销毁')
   }
 
   // ===== 配置管理 =====
@@ -242,7 +240,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
   private async executePreload(videoId: string | number): Promise<HTMLVideoElement> {
     const queueItem = this.queue.get(videoId)
     if (!queueItem) {
-      throw new Error(`队列中找不到视频: ${videoId}`)
+      throw new Error(`Video not found in queue: ${videoId}`)
     }
 
     // 检查并发限制
@@ -269,7 +267,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
       return videoElement
     } catch (error) {
       queueItem.status = PreloadStatus.Error
-      queueItem.error = error instanceof Error ? error.message : '未知错误'
+      queueItem.error = error instanceof Error ? error.message : 'Unknown error'
 
       this.updateMetrics('failure', queueItem)
       this.emitEvent(PreloadEventType.LoadError, videoId, { error: queueItem.error })
@@ -283,7 +281,8 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
 
     return new Promise((resolve, reject) => {
       const videoElement = document.createElement('video')
-      videoElement.crossOrigin = 'anonymous'
+      // Remove crossOrigin to avoid CORS issues
+      // videoElement.crossOrigin = 'anonymous'
       videoElement.preload = 'auto'
       videoElement.muted = true
 
@@ -304,7 +303,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
         resolve(element)
       }
 
-      const reject错误 = (error: Error) => {
+      const rejectError = (error: Error) => {
         if (isResolved) return
         isResolved = true
         cleanup()
@@ -316,7 +315,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
       }
 
       const onError = () => {
-        reject错误(new Error(`视频加载失败: ${video.videoUrl}`))
+        rejectError(new Error(`Video loading failed: ${video.videoUrl}`))
       }
 
       const onProgress = () => {
@@ -340,7 +339,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
 
       // 设置超时
       timeoutId = window.setTimeout(() => {
-        reject错误(new Error('预加载超时'))
+        rejectError(new Error('Preload timeout'))
       }, this.config.loadTimeout)
 
       // 开始加载
@@ -353,14 +352,14 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
       const checkStatus = () => {
         const queueItem = this.queue.get(videoId)
         if (!queueItem) {
-          reject(new Error('视频已从队列中移除'))
+          reject(new Error('Video removed from queue'))
           return
         }
 
         if (queueItem.status === PreloadStatus.Loaded && queueItem.videoElement) {
           resolve(queueItem.videoElement)
         } else if (queueItem.status === PreloadStatus.Error) {
-          reject(new Error(queueItem.error || '预加载失败'))
+          reject(new Error(queueItem.error || 'Preload failed'))
         } else {
           // 继续等待
           setTimeout(checkStatus, 100)
@@ -569,7 +568,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
     try {
       await this.executePreload(videoId)
     } catch (error) {
-      console.warn(`预加载失败: ${videoId}`, error)
+      console.warn(`Preload failed: ${videoId}`, error)
     }
   }
 
@@ -588,7 +587,6 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
     const networkType = this.detectNetworkType()
     const initialPreloadCount = this.getInitialPreloadCount(networkType)
 
-    console.log(`🚀 开始激进预加载策略: 预加载前${initialPreloadCount}个视频 (网络类型: ${networkType})`)
 
     // 按位置优先级排序（顶部优先）
     const sortedVideos = [...videos]
@@ -627,7 +625,6 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
 
     if (remainingVideos.length === 0) return
 
-    console.log(`📦 开始渐进式预加载: ${remainingVideos.length}个剩余视频`)
 
     // 以更低的优先级添加剩余视频
     for (let i = 0; i < remainingVideos.length; i++) {
@@ -893,7 +890,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
 
   private setupIntersectionObserver(): void {
     if (typeof IntersectionObserver === 'undefined') {
-      console.warn('IntersectionObserver不支持，将跳过可见性检测')
+      console.warn('IntersectionObserver not supported, skipping visibility detection')
       return
     }
 
@@ -970,7 +967,7 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
         try {
           listener(event)
         } catch (error) {
-          console.error(`事件监听器错误 (${type}):`, error)
+          console.error(`Event listener error (${type}):`, error)
         }
       })
     }

@@ -1,0 +1,185 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ✓ Ready in 2.6s
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ○ Compiling /api/auth/[...nextauth] ...
+ GET /api/auth/signin?callbackUrl=%2Fcreate%3Ftool%3Dvideo-effects 405 in 428ms
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ GET / 200 in 49ms
+ GET /api/auth/session 405 in 45ms
+ GET /api/auth/session 405 in 9ms
+ POST /api/auth/_log 405 in 11ms
+ POST /api/auth/_log 405 in 5ms
+ GET /api/auth/signin?callbackUrl=%2Fcreate 405 in 6ms
+ GET / 200 in 36ms
+ GET /api/auth/session 405 in 12ms
+ GET /api/auth/session 405 in 12ms
+ POST /api/auth/_log 405 in 11ms
+ POST /api/auth/_log 405 in 8ms
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ GET /api/auth/providers 405 in 43ms
+ POST /api/auth/_log 405 in 5ms
+ GET /api/auth/error 405 in 7ms
+ GET /login 200 in 109ms
+ GET /api/auth/session 405 in 7ms
+ GET /api/auth/session 405 in 7ms
+ POST /api/auth/_log 405 in 5ms
+ POST /api/auth/_log 405 in 4ms
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 337369 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 337369
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<9f1f21fa-3441-05cb-6c21-4bf1f88525b8@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 9212ms
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 3604ms
+ GET /api/auth/providers 405 in 35ms
+ POST /api/auth/_log 405 in 10ms
+ GET /api/auth/error 405 in 9ms
+ GET /login 200 in 150ms
+ GET /api/auth/session 405 in 11ms
+ GET /api/auth/session 405 in 5ms
+ POST /api/auth/_log 405 in 7ms
+ POST /api/auth/_log 405 in 4ms
+ GET /api/auth/signin?callbackUrl=%2Fcreate 405 in 34ms
+ ✓ Compiled /api/auth/verify-code-login in 628ms (1749 modules)

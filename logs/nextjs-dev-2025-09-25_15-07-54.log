@@ -1,0 +1,139 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1593ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ○ Compiling /_not-found ...
+ ✓ Compiled /middleware in 2.8s (1195 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 3336ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 2.1s (1430 modules)
+ GET /_next/static/media/e4af272ccee01ff0-s.p.woff2 404 in 5073ms
+ GET /_next/static/media/8a1d8947e5852e30-s.p.woff2 404 in 5090ms
+ GET /_next/static/media/8a1d8947e5852e30-s.p.woff2 404 in 5077ms
+ GET /create?tool=image-to-video 200 in 2171ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 34ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 53ms
+ GET /api/auth/session 200 in 52ms
+ ✓ Compiled /api/auth/send-verification-code in 300ms (963 modules)
+✅ Verification code generated for jsdasww593@gmail.com
+📧 Sending verification code 271489 to jsdasww593@gmail.com
+🔐 Development Mode - Verification code for jsdasww593@gmail.com: 271489
+✅ Verification email sent successfully to jsdasww593@gmail.com { messageId: '<f5e609bf-b87e-ee8c-7798-a6b4e64d66cb@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 12893ms
+ ✓ Compiled /api/auth/verify-code-login in 116ms (965 modules)
+✅ Verification code verified for jsdasww593@gmail.com
+ POST /api/auth/verify-code-login 200 in 2554ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/providers 200 in 36ms
+ GET /api/auth/csrf 200 in 7ms
+Save user error: {
+  code: '23503',
+  details: 'Key (uuid)=(97b58959-ac28-46b6-a35f-62f91d28fbba) is still referenced from table "user_videos".',
+  hint: null,
+  message: 'update or delete on table "users" violates foreign key constraint "user_videos_user_id_fkey" on table "user_videos"'
+}
+Supabase error: {
+  code: '23503',
+  details: 'Key (uuid)=(97b58959-ac28-46b6-a35f-62f91d28fbba) is still referenced from table "user_videos".',
+  hint: null,
+  message: 'update or delete on table "users" violates foreign key constraint "user_videos_user_id_fkey" on table "user_videos"'
+}
+Error in saveUser: Error: update or delete on table "users" violates foreign key constraint "user_videos_user_id_fkey" on table "user_videos"
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:53:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+Failed to save user: Error: update or delete on table "users" violates foreign key constraint "user_videos_user_id_fkey" on table "user_videos"
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:53:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/auth/callback/verification-code 200 in 731ms
+ GET /api/auth/session 200 in 9ms
+ ✓ Compiled /api/images/upload in 277ms (969 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/images/upload 200 in 2238ms
+ POST /api/images/upload 200 in 1594ms
+ ✓ Compiled /api/video/generate-image-to-video in 180ms (974 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+❌ Validation failed: [
+  'Model is required',
+  'Unsupported model configuration: undefined-i2v-480p'
+]
+ POST /api/video/generate-image-to-video 400 in 221ms
+ ✓ Compiled in 925ms (1117 modules)
+ ✓ Compiled in 399ms (1117 modules)
+ ✓ Compiled in 356ms (1117 modules)
+ ✓ Compiled in 280ms (1117 modules)

@@ -33,6 +33,8 @@ interface UseVideoPollingReturn {
 const DEFAULT_POLLING_INTERVAL = 3000 // 3 seconds
 const MAX_POLLING_DURATION = 30 * 60 * 1000 // 30 minutes
 const MAX_CONSECUTIVE_ERRORS = 5
+const MAX_STORAGE_RETRIES = 3 // 最大存储重试次数
+const STORAGE_RETRY_DELAY = 2000 // 存储重试延迟（毫秒）
 
 export function useVideoPolling(
   options: UseVideoPollingOptions = {}
@@ -56,6 +58,56 @@ export function useVideoPolling(
   // 使用 ref 立即同步追踪应该停止轮询的任务，避免异步状态更新导致的时序问题
   const stoppedJobIdsRef = useRef<Set<string>>(new Set())
 
+  // 🔥 改进的数据库保存函数，包含重试机制
+  const saveVideoToDatabase = useCallback(async (job: VideoJob, resultUrl: string, retryCount = 0) => {
+    try {
+
+      const response = await fetch('/api/video/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: job.userId,
+          userEmail: job.userEmail || 'unknown@vidfab.ai',
+          wavespeedRequestId: job.requestId,
+          originalUrl: resultUrl,
+          settings: {
+            ...job.settings,
+            prompt: job.prompt
+          }
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      if (data.success && data.data.videoId) {
+
+        // 🔥 存储成功时，安全调用处理方法
+        try {
+          await videoContext.handleVideoStorageCompleted?.(data.data.videoId)
+        } catch (storageError) {
+          console.warn('handleVideoStorageCompleted failed but video is stored:', storageError)
+        }
+      } else {
+        throw new Error(data.error || 'Storage API returned success=false')
+      }
+    } catch (error) {
+      console.error(`❌ Video storage attempt ${retryCount + 1} failed:`, error)
+
+      // 🔥 如果还有重试次数，等待后重试
+      if (retryCount < MAX_STORAGE_RETRIES) {
+        setTimeout(() => {
+          saveVideoToDatabase(job, resultUrl, retryCount + 1)
+        }, STORAGE_RETRY_DELAY * (retryCount + 1)) // 递增延迟
+      } else {
+        console.error(`💥 All storage attempts failed for video ${job.id}. Video will remain in temporary storage.`)
+        // 🔥 所有重试失败时，仍然保持视频在临时存储中可见
+      }
+    }
+  }, [videoContext])
+
   // Get current polling jobs - include all statuses that might need polling
   const pollingJobs = videoContext.activeJobs.filter(job =>
     pollingJobIds.has(job.id) &&
@@ -70,7 +122,6 @@ export function useVideoPolling(
   const pollJobStatus = useCallback(async (job: VideoJob) => {
     // 立即检查任务是否已被标记停止，避免重复处理
     if (stoppedJobIdsRef.current.has(job.id)) {
-      console.log(`⏭️ 跳过已停止轮询的任务: ${job.id}`)
       return
     }
 
@@ -86,7 +137,6 @@ export function useVideoPolling(
     }
 
     try {
-      console.log(`🔍 轮询任务状态: ${job.id} (requestId: ${job.requestId})`)
 
       // 🔥 简化状态检查：直接使用fetch，跳过复杂的API client
       const response = await fetch(`/api/video/status/${job.requestId}`, {
@@ -98,7 +148,7 @@ export function useVideoPolling(
         if (response.status === 404) {
           // 任务不存在或已过期
           console.warn(`Task ${job.requestId} not found, marking as failed`)
-          videoContext.failJob(job.id, "任务已过期或不存在")
+          videoContext.failJob(job.id, "Task expired or not found")
           stoppedJobIdsRef.current.add(job.id) // 立即标记停止
           setPollingJobIds(prev => {
             const newSet = new Set(prev)
@@ -118,83 +168,45 @@ export function useVideoPolling(
 
       const { status, progress, resultUrl, error } = responseData.data
 
-      console.log(`📊 任务 ${job.id} 状态更新:`, {
-        status,
-        progress,
-        hasResult: !!resultUrl
-      })
 
       // 重置错误计数
       errorCountRef.current.delete(job.id)
 
       switch (status) {
         case "completed":
-          // 🔥 关键修复：无论如何都要立即停止轮询，避免重复请求
-          console.log(`🛑 Immediately stopping polling for completed job: ${job.id}`)
-          stoppedJobIdsRef.current.add(job.id) // 立即标记停止
-          setPollingJobIds(prev => {
-            const newSet = new Set(prev)
-            newSet.delete(job.id)
-            return newSet
-          })
-
           if (resultUrl) {
-            console.log(`✅ Video generation completed: ${job.id}`)
-            console.log(`🔄 Starting storage process for video...`)
 
-            // 🔥 立即更新任务状态为完成，确保前端显示视频
-            console.log(`🎬 SHOWING VIDEO NOW: ${resultUrl}`)
-
-            // 1. 立即更新任务状态
-            videoContext.updateJob(job.id, {
-              status: 'completed',
+            // 🔥 关键修复：先更新状态，再停止轮询
+            const updateData = {
+              status: 'completed' as const,
               progress: 100,
               resultUrl: resultUrl
-            })
+            }
+            videoContext.updateJob(job.id, updateData)
 
             // 2. 触发完成回调，确保前端更新
             onCompleted?.(job, resultUrl)
 
-            // 3. 🔥 不再调用 completeJob，让任务继续保留在activeJobs中显示
-            // 这样已完成的视频会继续在对应的宫格中显示
-            // setTimeout(() => {
-            //   videoContext.completeJob(job.id, {
-            //     videoUrl: resultUrl,
-            //     prompt: job.prompt,
-            //     settings: job.settings,
-            //     createdAt: new Date().toISOString(),
-            //     userId: job.userId,
-            //     isStored: true
-            //   })
-            // }, 100)
-
-            // 4. 🔥 使用简化的存储API（无外键约束）
-            fetch('/api/video/simple-store', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId: job.userId,
-                userEmail: job.userEmail || 'unknown@vidfab.ai',
-                wavespeedRequestId: job.requestId,
-                originalUrl: resultUrl,
-                settings: {
-                  ...job.settings,
-                  prompt: job.prompt
-                }
-              })
-            }).then(async response => {
-              const data = await response.json()
-              if (data.success && data.data.videoId) {
-                console.log(`📦 Video stored successfully: ${data.data.videoId}`)
-                // 不需要额外操作，视频已经在UI中显示
-              }
-            }).catch(error => {
-              console.warn('Storage error (ignored):', error)
-              // 静默失败，用户仍然可以看到视频
+            // 3. 然后停止轮询
+            stoppedJobIdsRef.current.add(job.id)
+            setPollingJobIds(prev => {
+              const newSet = new Set(prev)
+              newSet.delete(job.id)
+              return newSet
             })
 
-            console.log(`✅ Video should be visible now: ${job.id}`)
+            // 3. 🔥 立即将视频添加到completedVideos供用户预览，标记为临时存储
+            videoContext.completeJob(job.id, {
+              videoUrl: resultUrl,
+              prompt: job.prompt,
+              settings: job.settings,
+              createdAt: new Date().toISOString(),
+              userId: job.userId,
+              isStored: false // 初始标记为未存储，等待数据库存储完成
+            })
 
+            // 4. 🔥 改进的数据库保存流程，包含重试机制
+            saveVideoToDatabase(job, resultUrl)
           } else {
             // 完成但没有结果URL，标记为失败
             console.warn(`⚠️ Video generation completed but no result URL: ${job.id}`)
@@ -205,12 +217,11 @@ export function useVideoPolling(
 
         case "failed":
           // 任务失败
-          const failureReason = error || "视频生成失败"
+          const failureReason = error || "Video generation failed"
           videoContext.failJob(job.id, failureReason)
           onFailed?.(job, failureReason)
 
           // 停止轮询此任务
-          console.log(`🛑 Stopping polling for failed job: ${job.id}`)
           stoppedJobIdsRef.current.add(job.id) // 立即标记停止
           setPollingJobIds(prev => {
             const newSet = new Set(prev)
@@ -233,8 +244,8 @@ export function useVideoPolling(
           const startTime = startTimeRef.current.get(job.id) || Date.now()
           if (Date.now() - startTime > MAX_POLLING_DURATION) {
             console.warn(`任务 ${job.id} 轮询超时，停止轮询`)
-            videoContext.failJob(job.id, "任务超时")
-            onFailed?.(job, "任务超时")
+            videoContext.failJob(job.id, "Task timeout")
+            onFailed?.(job, "Task timeout")
             stoppedJobIdsRef.current.add(job.id) // 立即标记停止
             setPollingJobIds(prev => {
               const newSet = new Set(prev)
@@ -258,10 +269,10 @@ export function useVideoPolling(
 
       // 如果连续错误过多，停止轮询
       if (errorCount >= MAX_CONSECUTIVE_ERRORS) {
-        const errorMessage = error instanceof Error ? error.message : "轮询状态失败"
+        const errorMessage = error instanceof Error ? error.message : "Polling status failed"
         console.error(`任务 ${job.id} 轮询失败次数过多，停止轮询`)
 
-        videoContext.failJob(job.id, `轮询失败: ${errorMessage}`)
+        videoContext.failJob(job.id, `Polling failed: ${errorMessage}`)
         onFailed?.(job, errorMessage)
 
         stoppedJobIdsRef.current.add(job.id) // 立即标记停止
@@ -279,7 +290,6 @@ export function useVideoPolling(
   // 轮询存储进度
   const pollStorageProgress = useCallback(async (videoId: string, originalJob: VideoJob) => {
     try {
-      console.log(`🔍 Polling storage progress for video: ${videoId}`)
 
       // Use resilient API client with automatic retries
       const response = await videoApiClient.getStorageProgress(videoId)
@@ -290,10 +300,6 @@ export function useVideoPolling(
 
       const { status, progress, error: storageError } = response.data.data
 
-      console.log(`📊 Storage progress for ${videoId}:`, {
-        status,
-        progress
-      })
 
       // Update job progress
       videoContext.updateJob(originalJob.id, {
@@ -303,18 +309,14 @@ export function useVideoPolling(
 
       switch (status) {
         case 'completed':
-          console.log(`✅ Video storage completed: ${videoId}`)
 
-          // Storage completed, update to final completed state
-          videoContext.completeJob(originalJob.id, {
-            videoUrl: originalJob.resultUrl, // Use original result URL for now
-            prompt: originalJob.prompt,
-            settings: originalJob.settings,
-            createdAt: new Date().toISOString(),
-            userId: originalJob.userId,
-            videoId, // Include the database video ID
-            isStored: true // Mark as permanently stored
-          })
+          // 🔥 修复：存储完成时只更新状态，不再重复调用completeJob
+          // 通过handleVideoStorageCompleted通知数据库存储完成即可
+          try {
+            await videoContext.handleVideoStorageCompleted?.(videoId)
+          } catch (storageError) {
+            console.warn('handleVideoStorageCompleted failed but storage completed:', storageError)
+          }
 
           // Stop polling this storage
           setStoragePollingIds(prev => {
@@ -329,16 +331,8 @@ export function useVideoPolling(
         case 'failed':
           console.error(`❌ Video storage failed: ${videoId} - ${storageError}`)
 
-          // Storage failed, but keep the temporary video result
-          videoContext.completeJob(originalJob.id, {
-            videoUrl: originalJob.resultUrl,
-            prompt: originalJob.prompt,
-            settings: originalJob.settings,
-            createdAt: new Date().toISOString(),
-            userId: originalJob.userId,
-            isTemporary: true,
-            storageError
-          })
+          // 🔥 修复：存储失败时不再重复调用completeJob，视频已经在completedVideos中
+          console.warn(`Video ${originalJob.id} storage failed, keeping in temporary state`)
 
           // Stop polling this storage
           setStoragePollingIds(prev => {
@@ -361,16 +355,8 @@ export function useVideoPolling(
       console.error(`Error polling storage progress for ${videoId}:`, error)
       ErrorReporter.getInstance().reportError(error, 'Storage polling')
 
-      // On error, create temporary video result to prevent user from losing access
-      videoContext.completeJob(originalJob.id, {
-        videoUrl: originalJob.resultUrl,
-        prompt: originalJob.prompt,
-        settings: originalJob.settings,
-        createdAt: new Date().toISOString(),
-        userId: originalJob.userId,
-        isTemporary: true,
-        storageError: error instanceof Error ? error.message : 'Storage polling failed'
-      })
+      // 🔥 修复：错误时不再重复调用completeJob，视频已经在completedVideos中
+      console.warn(`Video ${originalJob.id} storage polling error, keeping in temporary state`)
 
       // Stop polling this storage
       setStoragePollingIds(prev => {
@@ -383,7 +369,6 @@ export function useVideoPolling(
 
   // Start storage polling for a video
   const startStoragePolling = useCallback((videoId: string, originalJob: VideoJob) => {
-    console.log(`📦 Starting storage polling for video: ${videoId}`)
     setStoragePollingIds(prev => new Set(prev).add(videoId))
 
     // Store the original job reference for later use
@@ -397,7 +382,6 @@ export function useVideoPolling(
   const pollAllStorageJobs = useCallback(async () => {
     if (storagePollingIds.size === 0) return
 
-    console.log(`🔄 Polling storage for ${storagePollingIds.size} videos`)
 
     // We need to get the original job data for each storage polling
     // For now, we'll implement a simpler approach
@@ -431,11 +415,9 @@ export function useVideoPolling(
         const job = videoContext.activeJobs.find(j => j.id === jobId)
         if (!job) {
           // 任务不存在，应该清理
-          console.log(`🧹 清理不存在的轮询任务: ${jobId}`)
           jobIdsToClean.add(jobId)
         } else if (job.status === "completed" || job.status === "failed" || job.status === "storing") {
           // 任务已完成，应该清理
-          console.log(`🧹 清理已完成的轮询任务: ${jobId} (状态: ${job.status})`)
           jobIdsToClean.add(jobId)
         }
       })
@@ -462,7 +444,6 @@ export function useVideoPolling(
       return
     }
 
-    console.log(`🔄 轮询 ${jobsToPoll.length} 个活跃任务`)
 
     // 并发轮询所有任务
     await Promise.allSettled(
@@ -472,12 +453,13 @@ export function useVideoPolling(
 
   // 启动轮询
   const startPolling = useCallback((jobId: string) => {
-    console.log(`▶️  开始轮询任务: ${jobId}`)
-
     // 清除之前的停止标记，允许重新轮询
     stoppedJobIdsRef.current.delete(jobId)
 
-    setPollingJobIds(prev => new Set(prev).add(jobId))
+    setPollingJobIds(prev => {
+      const newSet = new Set(prev).add(jobId)
+      return newSet
+    })
     startTimeRef.current.set(jobId, Date.now())
     errorCountRef.current.delete(jobId)
   }, [])
@@ -485,7 +467,6 @@ export function useVideoPolling(
   // 停止轮询
   const stopPolling = useCallback((jobId?: string) => {
     if (jobId) {
-      console.log(`⏹️  停止轮询任务: ${jobId}`)
       stoppedJobIdsRef.current.add(jobId) // 添加停止标记
       setPollingJobIds(prev => {
         const newSet = new Set(prev)
@@ -495,7 +476,6 @@ export function useVideoPolling(
       startTimeRef.current.delete(jobId)
       errorCountRef.current.delete(jobId)
     } else {
-      console.log(`⏹️  停止所有轮询`)
       setPollingJobIds(new Set())
       setStoragePollingIds(new Set())
       startTimeRef.current.clear()
@@ -507,7 +487,6 @@ export function useVideoPolling(
   // 停止存储轮询
   const stopStoragePolling = useCallback((videoId?: string) => {
     if (videoId) {
-      console.log(`⏹️  停止存储轮询: ${videoId}`)
       setStoragePollingIds(prev => {
         const newSet = new Set(prev)
         newSet.delete(videoId)
@@ -515,7 +494,6 @@ export function useVideoPolling(
       })
       startTimeRef.current.delete(`storage_${videoId}`)
     } else {
-      console.log(`⏹️  停止所有存储轮询`)
       setStoragePollingIds(new Set())
       // Clean up storage-related entries from startTimeRef
       for (const key of startTimeRef.current.keys()) {
@@ -528,7 +506,6 @@ export function useVideoPolling(
 
   // 重启轮询
   const restartPolling = useCallback(() => {
-    console.log("🔄 重启轮询")
 
     // 找到所有需要轮询的任务
     const jobsToRestart = videoContext.activeJobs
@@ -592,6 +569,36 @@ export function useVideoPolling(
       }
     }
   }, [enabled, storagePollingIds.size, interval, pollAllStorageJobs])
+
+  // 🔥 改进：自动恢复轮询任务
+  useEffect(() => {
+    if (!enabled || !videoContext) return
+
+
+    // 等待VideoContext初始化完成
+    const timer = setTimeout(() => {
+      const activeJobs = videoContext.activeJobs || []
+
+
+      const jobsNeedingPolling = activeJobs.filter(job => {
+        const needsPolling = job.requestId &&
+          (job.status === "processing" || job.status === "queued") &&
+          !pollingJobIds.has(job.id)
+
+
+        return needsPolling
+      })
+
+      if (jobsNeedingPolling.length > 0) {
+        jobsNeedingPolling.forEach(job => {
+          startPolling(job.id)
+        })
+      } else {
+      }
+    }, 2000) // 延长到2秒，确保初始化完成
+
+    return () => clearTimeout(timer)
+  }, [videoContext, enabled, startPolling]) // 简化依赖项
 
   // 页面卸载时清理
   useEffect(() => {

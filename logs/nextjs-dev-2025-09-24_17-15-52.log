@@ -1,0 +1,133 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ✓ Ready in 3s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 2.3s (1083 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'custom')
+    at <unknown> (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115:12)
+    at (middleware)/./node_modules/openid-client/lib/device_flow_handle.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2172:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/client.js:32:26)
+    at (middleware)/./node_modules/openid-client/lib/client.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2162:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/issuer.js:5:19)
+    at (middleware)/./node_modules/openid-client/lib/issuer.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2402:1)
+ GET /_next/static/webpack/d9e2a2c7529736b9.webpack.hot-update.json 404 in 2719ms
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'custom')
+    at <unknown> (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115:12)
+    at (middleware)/./node_modules/openid-client/lib/device_flow_handle.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2172:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/client.js:32:26)
+    at (middleware)/./node_modules/openid-client/lib/client.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2162:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/issuer.js:5:19)
+    at (middleware)/./node_modules/openid-client/lib/issuer.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2402:1)
+ ○ Compiling /_error ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'custom')
+    at <unknown> (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115:12)
+    at (middleware)/./node_modules/openid-client/lib/device_flow_handle.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2172:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/client.js:32:26)
+    at (middleware)/./node_modules/openid-client/lib/client.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2162:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/issuer.js:5:19)
+    at (middleware)/./node_modules/openid-client/lib/issuer.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2402:1)
+ ✓ Compiled /_error in 1239ms (909 modules)
+ GET /create?tool=video-effects 404 in 1ms
+ ⨯ Error [ERR_HTTP_HEADERS_SENT]: Cannot append headers after they are sent to the client
+    at ServerResponse.appendHeader (node:_http_outgoing:711:11)
+    at AsyncLocalStorage.run (node:async_hooks:346:14)
+digest: "2221684407"
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'custom')
+    at <unknown> (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115:12)
+    at (middleware)/./node_modules/openid-client/lib/device_flow_handle.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2172:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/client.js:32:26)
+    at (middleware)/./node_modules/openid-client/lib/client.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2162:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/issuer.js:5:19)
+    at (middleware)/./node_modules/openid-client/lib/issuer.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2402:1)
+ GET /_next/static/webpack/d9e2a2c7529736b9.webpack.hot-update.json 404 in 1043ms
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'custom')
+    at <unknown> (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115:12)
+    at (middleware)/./node_modules/openid-client/lib/device_flow_handle.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2172:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/client.js:32:26)
+    at (middleware)/./node_modules/openid-client/lib/client.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2162:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/issuer.js:5:19)
+    at (middleware)/./node_modules/openid-client/lib/issuer.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2402:1)
+ GET /create?tool=video-effects 404 in 1ms
+ ⨯ Error [ERR_HTTP_HEADERS_SENT]: Cannot append headers after they are sent to the client
+    at ServerResponse.appendHeader (node:_http_outgoing:711:11)
+    at AsyncLocalStorage.run (node:async_hooks:346:14)
+digest: "2221684407"
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 526ms (606 modules)
+ ⨯ middleware.ts (61:1) @ <unknown>
+ ⨯ auth is not defined
+[0m [90m 59 |[39m }[0m
+[0m [90m 60 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 61 |[39m [36mexport[39m [36mdefault[39m auth((req) [33m=>[39m {[0m
+[0m [90m    |[39m [31m[1m^[22m[39m[0m
+[0m [90m 62 |[39m   [36mconst[39m { nextUrl } [33m=[39m req[0m
+[0m [90m 63 |[39m   [36mconst[39m isLoggedIn [33m=[39m [33m![39m[33m![39mreq[33m.[39mauth[0m
+[0m [90m 64 |[39m   [0m
+ ⨯ middleware.ts (61:1) @ <unknown>
+ ⨯ auth is not defined
+[0m [90m 59 |[39m }[0m
+[0m [90m 60 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 61 |[39m [36mexport[39m [36mdefault[39m auth((req) [33m=>[39m {[0m
+[0m [90m    |[39m [31m[1m^[22m[39m[0m
+[0m [90m 62 |[39m   [36mconst[39m { nextUrl } [33m=[39m req[0m
+[0m [90m 63 |[39m   [36mconst[39m isLoggedIn [33m=[39m [33m![39m[33m![39mreq[33m.[39mauth[0m
+[0m [90m 64 |[39m   [0m
+ GET /create?tool=video-effects 404 in 0ms
+ ✓ Compiled /_not-found in 363ms (909 modules)
+ ⨯ Error [ERR_HTTP_HEADERS_SENT]: Cannot append headers after they are sent to the client
+    at ServerResponse.appendHeader (node:_http_outgoing:711:11)
+    at AsyncLocalStorage.run (node:async_hooks:346:14)
+digest: "2221684407"
+ ✓ Compiled in 337ms (710 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ⚠ ./app/api/auth/[...nextauth]/route.ts
+export 'GET' (reexported as 'GET') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+
+./app/api/auth/[...nextauth]/route.ts
+export 'POST' (reexported as 'POST') was not found in '@/auth' (possible exports: auth, authConfig, default)
+
+Import trace for requested module:
+./app/api/auth/[...nextauth]/route.ts
+ GET /api/auth/signin?callbackUrl=%2Fcreate%3Ftool%3Dvideo-effects 405 in 1281ms
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
