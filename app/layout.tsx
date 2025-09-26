@@ -21,7 +21,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", openSans.variable)}>
+      <head>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @font-face {
+              font-family: 'Open Sans';
+              font-style: normal;
+              font-weight: 300 800;
+              font-display: swap;
+              src: url('/fonts/open-sans-variable.woff2') format('woff2');
+            }
+            :root {
+              --font-open-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            }
+          `
+        }} />
+      </head>
+      <body className={`min-h-screen bg-background antialiased font-sans ${openSans.variable}`}>
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <VideoProvider>
