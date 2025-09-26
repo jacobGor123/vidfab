@@ -1,0 +1,29 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.3.19:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1693ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 689ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 4.5s (1778 modules)
+ GET / 200 in 5052ms
+ ✓ Compiled in 619ms (875 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1438ms (1967 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2059ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1432ms (2253 modules)
+ GET /create 200 in 1548ms
+ GET /create?tool=discover 200 in 16ms
+ GET /create?tool=discover 200 in 10ms
+ GET /create?tool=video-effects 200 in 16ms

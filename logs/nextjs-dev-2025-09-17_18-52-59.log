@@ -1,0 +1,386 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ✓ Compiled /middleware in 490ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+[31m[auth][error][0m JWTSessionError: Read more at https://errors.authjs.dev#jwtsessionerror
+[31m[auth][cause][0m: Error: no matching decryption secret
+    at clockTolerance (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:90:15)
+    at async flattenedDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/flattened/decrypt.js:106:15)
+    at async compactDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/compact/decrypt.js:22:23)
+    at async jwtDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwt/decrypt.js:12:23)
+    at async Object.decode (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:81:25)
+    at async Module.session (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/actions/session.js:23:29)
+    at async AuthInternal (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/index.js:47:24)
+    at async Auth (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/index.js:126:34)
+    at async handleAuth (webpack-internal:///(middleware)/./node_modules/.pnpm/next-auth@5.0.0-beta.20_next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1__nodemailer@7.0.6_react@19.1.1/node_modules/next-auth/lib/index.js:136:29)
+    at async eval (webpack-internal:///(middleware)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/build/webpack/loaders/next-middleware-loader.js?absolutePagePath=%2FUsers%2Fjacob%2FDesktop%2Fvidfab%2Fmiddleware.ts&page=%2Fmiddleware&rootDir=%2FUsers%2Fjacob%2FDesktop%2Fvidfab&matchers=&preferredRegion=&middlewareConfig=e30%3D!:32:20)
+[31m[auth][details][0m: {}
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.6s (1168 modules)
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 4165ms
+[31m[auth][error][0m JWTSessionError: Read more at https://errors.authjs.dev#jwtsessionerror
+[31m[auth][cause][0m: Error: no matching decryption secret
+    at clockTolerance (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:90:15)
+    at async flattenedDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/flattened/decrypt.js:106:15)
+    at async compactDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/compact/decrypt.js:22:23)
+    at async jwtDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwt/decrypt.js:12:23)
+    at async Object.decode (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:81:25)
+    at async Module.session (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/actions/session.js:23:29)
+    at async AuthInternal (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/index.js:47:24)
+    at async Auth (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/index.js:126:34)
+    at async handleAuth (webpack-internal:///(middleware)/./node_modules/.pnpm/next-auth@5.0.0-beta.20_next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1__nodemailer@7.0.6_react@19.1.1/node_modules/next-auth/lib/index.js:136:29)
+    at async eval (webpack-internal:///(middleware)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/build/webpack/loaders/next-middleware-loader.js?absolutePagePath=%2FUsers%2Fjacob%2FDesktop%2Fvidfab%2Fmiddleware.ts&page=%2Fmiddleware&rootDir=%2FUsers%2Fjacob%2FDesktop%2Fvidfab&matchers=&preferredRegion=&middlewareConfig=e30%3D!:32:20)
+[31m[auth][details][0m: {}
+ ✓ Compiled in 648ms (568 modules)
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 118ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1922ms (1357 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2537ms
+ GET /api/auth/session 200 in 18ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 518ms (1364 modules)
+ GET /login 200 in 596ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 835ms (1426 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 649182 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 649182
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<74eefdaf-79fd-cc8b-8737-5cc8bade217d@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 649182'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<74eefdaf-79fd-cc8b-8737-5cc8bade217d@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 11550ms
+ ○ Compiling /api/auth/verify-code-login ...
+ ✓ Compiled /api/auth/verify-code-login in 1025ms (1274 modules)
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 4290ms
+ ✓ Compiled /api/auth/[...nextauth] in 205ms (870 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 371ms
+ GET /api/auth/csrf 200 in 9ms
+✅ User saved: ithermocraft@hotmail.com (e1b73c7a-0b21-40e6-8d16-bac9690cd095)
+✅ User signed in: ithermocraft@hotmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 1756ms
+ GET /api/auth/session 200 in 18ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.4s (2305 modules)
+ GET / 200 in 2490ms
+ GET /create 200 in 25ms
+ GET /create?tool=discover 200 in 26ms
+ GET /create?tool=discover 200 in 26ms
+ GET /create?tool=text-to-video 200 in 9ms
+ ○ Compiling /api/video/generate ...
+ ✓ Compiled /api/video/generate in 750ms (2309 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创作一个雪人...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创作一个雪人',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 234d169e1f154d2ea2acc6e2e896e93a
+ POST /api/video/generate 200 in 2115ms
+ ✓ Compiled /api/video/status/[requestId] in 410ms (2311 modules)
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 1051ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 251ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 256ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 247ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 256ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 248ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 247ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 247ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 254ms
+🔍 Checking status for request 234d169e1f154d2ea2acc6e2e896e93a
+📊 Status check for 234d169e1f154d2ea2acc6e2e896e93a: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 234d169e1f154d2ea2acc6e2e896e93a: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/234d169e1f154d2ea2acc6e2e896e93a/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/234d169e1f154d2ea2acc6e2e896e93a 200 in 242ms
+ ✓ Compiled /api/video/simple-store in 464ms (2313 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 520ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 907ms (2255 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1150ms
+ ✓ Compiled in 2.1s (2057 modules)
+ GET /create?tool=text-to-video 200 in 196ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 273ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 814ms (2047 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 942ms
+ ✓ Compiled /api/auth/[...nextauth] in 412ms (1249 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 808ms
+ GET /api/auth/session 200 in 51ms
+ GET /api/user/credits 404 in 268ms
+ GET /api/watermark-removal/my-tasks 404 in 266ms
+ GET /api/user/credits 404 in 117ms
+ GET /api/user/credits 404 in 127ms
+ GET /api/user/credits 404 in 107ms
+ GET /api/user/credits 404 in 58ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 207ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 41ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/auth/session 200 in 15ms
+ GET /api/user/credits 404 in 518ms
+ GET /api/watermark-removal/my-tasks 404 in 522ms
+ GET /api/user/credits 404 in 225ms
+ GET /api/user/credits 404 in 137ms
+ GET /api/user/credits 404 in 62ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 48ms
+ GET /create?tool=text-to-video 200 in 203ms
+ GET /api/auth/session 200 in 11ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/user/credits 404 in 211ms
+ GET /api/user/credits 404 in 200ms
+ GET /api/user/credits 404 in 143ms
+ GET /api/user/credits 404 in 60ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 146ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 37ms
+ GET /api/auth/session 200 in 30ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/user/credits 404 in 105ms
+ GET /api/user/credits 404 in 102ms
+ GET /api/user/credits 404 in 84ms
+ GET /api/user/credits 404 in 42ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 146ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 35ms
+ GET /api/auth/session 200 in 17ms
+ GET /api/auth/session 200 in 30ms
+ GET /api/user/credits 404 in 128ms
+ GET /api/watermark-removal/my-tasks 404 in 127ms
+ GET /api/user/credits 404 in 88ms
+ GET /api/user/credits 404 in 90ms
+ GET /api/user/credits 404 in 49ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 134ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 35ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/auth/session 200 in 18ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 65ms
+ GET /create?tool=text-to-video 200 in 336ms
+ GET /api/user/credits 404 in 206ms
+ GET /api/user/credits 404 in 168ms
+ GET /api/user/credits 404 in 102ms
+ GET /api/user/credits 404 in 50ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/auth/session 200 in 12ms
+ GET /api/user/credits 404 in 75ms
+ GET /api/user/credits 404 in 71ms
+ GET /api/user/credits 404 in 69ms
+ GET /api/user/credits 404 in 41ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 136ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 29ms
+ GET /api/auth/session 200 in 11ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/user/credits 404 in 117ms
+ GET /api/watermark-removal/my-tasks 404 in 118ms
+ GET /api/user/credits 404 in 100ms
+ GET /api/user/credits 404 in 96ms
+ GET /api/user/credits 404 in 48ms

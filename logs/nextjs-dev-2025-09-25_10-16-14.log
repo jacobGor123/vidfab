@@ -1,0 +1,34 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1723ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /middleware in 227ms (174 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 549ms (358 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.9s (1122 modules)
+ ✓ Compiled in 287ms (399 modules)
+ ✓ Compiled in 567ms (573 modules)

@@ -1,0 +1,332 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1619ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1190ms (885 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+[31m[auth][error][0m JWTSessionError: Read more at https://errors.authjs.dev#jwtsessionerror
+[31m[auth][cause][0m: Error: no matching decryption secret
+    at clockTolerance (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:90:15)
+    at async flattenedDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/flattened/decrypt.js:106:15)
+    at async compactDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwe/compact/decrypt.js:22:23)
+    at async jwtDecrypt (webpack-internal:///(middleware)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/browser/jwt/decrypt.js:12:23)
+    at async Object.decode (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:81:25)
+    at async Module.session (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/actions/session.js:23:29)
+    at async AuthInternal (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/index.js:47:24)
+    at async Auth (webpack-internal:///(middleware)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/index.js:126:34)
+    at async handleAuth (webpack-internal:///(middleware)/./node_modules/.pnpm/next-auth@5.0.0-beta.20_next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1__nodemailer@7.0.6_react@19.1.1/node_modules/next-auth/lib/index.js:136:29)
+    at async eval (webpack-internal:///(middleware)/./node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/build/webpack/loaders/next-middleware-loader.js?absolutePagePath=%2FUsers%2Fjacob%2FDesktop%2Fvidfab%2Fmiddleware.ts&page=%2Fmiddleware&rootDir=%2FUsers%2Fjacob%2FDesktop%2Fvidfab&matchers=&preferredRegion=&middlewareConfig=e30%3D!:32:20)
+[31m[auth][details][0m: {}
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+[31m[auth][error][0m JWTSessionError: Read more at https://errors.authjs.dev#jwtsessionerror
+[31m[auth][cause][0m: Error: no matching decryption secret
+    at clockTolerance (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:90:15)
+    at async flattenedDecrypt (webpack-internal:///(rsc)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/node/esm/jwe/flattened/decrypt.js:106:15)
+    at async compactDecrypt (webpack-internal:///(rsc)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/node/esm/jwe/compact/decrypt.js:22:23)
+    at async jwtDecrypt (webpack-internal:///(rsc)/./node_modules/.pnpm/jose@5.10.0/node_modules/jose/dist/node/esm/jwt/decrypt.js:12:23)
+    at async Object.decode (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/jwt.js:81:25)
+    at async Module.session (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/actions/session.js:23:29)
+    at async AuthInternal (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/lib/index.js:47:24)
+    at async Auth (webpack-internal:///(rsc)/./node_modules/.pnpm/@auth+core@0.34.2_nodemailer@7.0.6/node_modules/@auth/core/index.js:126:34)
+    at async AppRouteRouteModule.do (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)
+    at async AppRouteRouteModule.handle (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:1513:42)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:1915:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:2393:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:2430:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:1003:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next-server.js:304:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/base-server.js:895:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/dev/next-dev-server.js:371:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/dev/next-dev-server.js:368:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/router-server.js:235:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/router-server.js:426:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/router-server.js:450:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/.pnpm/next@15.2.4_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/start-server.js:158:13)
+[31m[auth][details][0m: {}
+ GET /api/auth/session 200 in 1811ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.5s (1074 modules)
+ GET /login?callbackUrl=%252Fvideo-watermark-remover 200 in 2947ms
+ ✓ Compiled in 401ms (421 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 54ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1501ms (1997 modules)
+ GET / 200 in 1699ms
+ GET / 200 in 76ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 61ms
+ GET /api/auth/session 200 in 6ms
+ GET /login 200 in 35ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 769ms (2059 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 444184 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 444184
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<8e22345b-0652-0dd7-7d33-5b822b3159aa@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 444184'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<8e22345b-0652-0dd7-7d33-5b822b3159aa@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8966ms
+ ○ Compiling /api/auth/verify-code-login ...
+ ✓ Compiled /api/auth/verify-code-login in 801ms (2061 modules)
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 2876ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 61ms
+ GET /api/auth/csrf 200 in 8ms
+✅ User saved: ithermocraft@hotmail.com (b0879289-28f6-4164-aa89-b2a3f5e38029)
+✅ User signed in: ithermocraft@hotmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 564ms
+ GET /api/auth/session 200 in 15ms
+ GET / 200 in 84ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 4.3s (2302 modules)
+ GET /create 200 in 4545ms
+ GET /create 200 in 36ms
+ GET /create 200 in 49ms
+ GET /create 200 in 62ms
+ GET /create 200 in 26ms
+ GET /create?tool=discover 200 in 24ms
+ GET /create?tool=discover 200 in 24ms
+ GET /create?tool=text-to-video 200 in 17ms
+ GET /create?tool=image-to-video 200 in 11ms
+ GET /create?tool=text-to-video 200 in 16ms
+ ○ Compiling /api/video/generate ...
+ ✓ Compiled /api/video/generate in 1726ms (2306 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创建 emj 表情...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创建 emj 表情',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 0eb34b0e6a5f41ebbc66989a19d16538
+ POST /api/video/generate 200 in 3444ms
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创建 emj 表情...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创建 emj 表情',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 6b48b856d52748ca84509c2299fc1565
+ POST /api/video/generate 200 in 930ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 290ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/auth/session 200 in 10ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 199ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/auth/session 200 in 11ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 117ms
+ GET /api/auth/session 200 in 30ms
+ GET /api/auth/session 200 in 46ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 123ms
+ GET /api/auth/session 200 in 11ms
+ GET /api/auth/session 200 in 29ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 113ms
+ GET /api/auth/session 200 in 11ms
+ GET /api/auth/session 200 in 8ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 125ms
+ GET /api/auth/session 200 in 11ms
+ GET /api/auth/session 200 in 7ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 119ms
+ GET /api/auth/session 200 in 10ms
+ GET /api/auth/session 200 in 8ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 191ms
+ GET /api/auth/session 200 in 33ms
+ GET /api/auth/session 200 in 23ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 133ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/auth/session 200 in 6ms
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创建 emj 表情...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创建 emj 表情',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 0c47e1107dc34118bfaf5bab4f6470d4
+ POST /api/video/generate 200 in 916ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 124ms
+ GET /api/auth/session 200 in 8ms
+ GET /api/auth/session 200 in 6ms
+🔑 Current user UUID from session: undefined
+🔑 All active jobs: []
+🔑 Filtered user jobs count: 0
+🔑 Filtered user videos count: 0
+🔍 All user jobs: []
+🔍 Completed jobs from active: []
+🔍 User videos from database: []
+🎬 Video to show: undefined
+ GET /create?tool=text-to-video 200 in 123ms
+ GET /api/auth/session 200 in 10ms
+ GET /api/auth/session 200 in 6ms

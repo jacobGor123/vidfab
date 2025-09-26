@@ -1,0 +1,41 @@
+
+[0;35m🚀 VidFab AI 开发环境启动中...[0m
+[0;34m═══════════════════════════════════════[0m
+
+[0;36m📦 启动 Redis...[0m
+[0;32m✅ Docker 正在运行[0m
+[0;32m✅ Redis 容器已在运行[0m
+
+[0;36m⚡ 启动队列工作进程...[0m
+[0;32m✅ Node.js 依赖已安装[0m
+[0;32m✅ Redis 连接正常[0m
+[1;33m🔄 启动队列工作进程...[0m
+[0;32m✅ 队列工作进程启动成功 (PID: 89949)[0m
+[0;34m📝 队列日志: logs/queue-worker-2025-09-26_17-38-29.log[0m
+
+[0;36m🌐 启动 Next.js 开发服务器...[0m
+[0;34m═══════════════════════════════════════[0m
+[1;33m🔄 正在启动 Next.js...[0m
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3001
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1781ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}

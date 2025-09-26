@@ -1,0 +1,48 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://172.30.22.17:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1661ms
+ ✓ Compiled /middleware in 418ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.6s (1201 modules)
+ GET /create?tool=video-effects 200 in 4151ms
+ ✓ Compiled in 578ms (586 modules)
+ GET /create?tool=video-effects 200 in 99ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1842ms (1390 modules)
+ GET /create?tool=discover 200 in 1267ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2942ms
+ ✓ Compiled in 3.9s (1404 modules)
+ GET /create?tool=discover 200 in 354ms
+ GET /create?tool=image-to-video 200 in 24ms
+ ✓ Compiled in 600ms (1202 modules)
+ GET /create?tool=image-to-video 200 in 153ms
+ ✓ Compiled in 563ms (1202 modules)
+ GET /create?tool=image-to-video 200 in 63ms
+ GET /create?tool=discover 200 in 15ms
+ GET /create?tool=discover 200 in 16ms
+ GET /create?tool=discover 200 in 18ms
+ ✓ Compiled in 672ms (1202 modules)
+ GET /create?tool=discover 200 in 82ms
+ GET /create?tool=discover 200 in 209ms
+ ✓ Compiled /api/auth/[...nextauth] in 153ms (817 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 370ms
+ GET /create?tool=text-to-video 200 in 53ms
+ GET /create?tool=image-to-video 200 in 11ms
+ ✓ Compiled in 1079ms (1202 modules)
+ GET /create?tool=image-to-video 200 in 116ms
+ ✓ Compiled in 546ms (1202 modules)
+ GET /create?tool=image-to-video 200 in 390ms
+ ✓ Compiled in 486ms (1202 modules)
+ GET /create?tool=image-to-video 200 in 49ms

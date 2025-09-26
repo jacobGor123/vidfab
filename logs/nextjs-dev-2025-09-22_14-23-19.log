@@ -1,0 +1,269 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1450ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1514ms (885 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2318ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.7s (1404 modules)
+ GET /create?tool=video-effects 200 in 4219ms
+ ✓ Compiled in 497ms (587 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 76ms
+ ○ Compiling /api/images/upload ...
+ ✓ Compiled /api/images/upload in 746ms (1394 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 4537ms
+ ✓ Compiled /api/video/effects in 285ms (1396 modules)
+Error: Route "/api/video/effects" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     if (!session?.user) {
+  35 |       return NextResponse.json(
+Error: Route "/api/video/effects" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     if (!session?.user) {
+  35 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 Video effects generation request: {
+  effectId: 'flying',
+  effectName: 'Flying',
+  hasImage: true,
+  userId: '485d612a-a59e-4185-85f5-5de16c01c67c'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/flying',
+  effectId: 'flying',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: '6b1b54736f1f4c58966c2969e2ceee1c',
+  error: undefined,
+  effectId: 'flying'
+}
+✅ Video effects generation submitted: {
+  requestId: '6b1b54736f1f4c58966c2969e2ceee1c',
+  effectId: 'flying',
+  userId: '485d612a-a59e-4185-85f5-5de16c01c67c'
+}
+ POST /api/video/effects 200 in 4577ms
+ ✓ Compiled /api/video/status/[requestId] in 273ms (1400 modules)
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 925ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 188ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 189ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 181ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 61ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 184ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 189ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 192ms
+ GET /api/auth/session 200 in 16ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 194ms
+ GET /api/auth/session 200 in 23ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 190ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 190ms
+🔍 Checking status for request 6b1b54736f1f4c58966c2969e2ceee1c
+📊 Status check for 6b1b54736f1f4c58966c2969e2ceee1c: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 6b1b54736f1f4c58966c2969e2ceee1c: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/6b1b54736f1f4c58966c2969e2ceee1c/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/6b1b54736f1f4c58966c2969e2ceee1c 200 in 180ms
+ ✓ Compiled /api/video/store in 388ms (1404 modules)
+🔄 Internal storage call for user: 485d612a-a59e-4185-85f5-5de16c01c67c
+🎬 Starting internal video storage for user: 485d612a-a59e-4185-85f5-5de16c01c67c {
+  wavespeedRequestId: '6b1b54736f1f4c58966c2969e2ceee1c',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/6b1b54736f1f4c58966c2969e2ceee1c/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    effectId: 'flying',
+    effectName: 'Flying',
+    prompt: 'Flying Effect'
+  }
+}
+🎬 Starting video storage for user: 485d612a-a59e-4185-85f5-5de16c01c67c (retry: 0)
+👤 Ensuring user exists: 485d612a-a59e-4185-85f5-5de16c01c67c
+✅ User ensured: 485d612a-a59e-4185-85f5-5de16c01c67c
+Error creating video: {
+  code: '23503',
+  details: 'Key (user_id)=(485d612a-a59e-4185-85f5-5de16c01c67c) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+[UserVideosDB.createVideo] {
+  code: '23503',
+  details: 'Key (user_id)=(485d612a-a59e-4185-85f5-5de16c01c67c) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+Supabase error: {
+  code: '23503',
+  details: 'Key (user_id)=(485d612a-a59e-4185-85f5-5de16c01c67c) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Foreign key error after user creation - database issue: insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"
+🔄 Retrying video storage (attempt 1)
+🎬 Starting video storage for user: 485d612a-a59e-4185-85f5-5de16c01c67c (retry: 1)
+👤 Ensuring user exists: 485d612a-a59e-4185-85f5-5de16c01c67c
+✅ User ensured: 485d612a-a59e-4185-85f5-5de16c01c67c
+Error creating video: {
+  code: '23503',
+  details: 'Key (user_id)=(485d612a-a59e-4185-85f5-5de16c01c67c) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+[UserVideosDB.createVideo] {
+  code: '23503',
+  details: 'Key (user_id)=(485d612a-a59e-4185-85f5-5de16c01c67c) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+Supabase error: {
+  code: '23503',
+  details: 'Key (user_id)=(485d612a-a59e-4185-85f5-5de16c01c67c) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Foreign key error after user creation - database issue: insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"
+ POST /api/video/store 500 in 5071ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 40ms
+ ✓ Compiled in 1798ms (1202 modules)
+ GET /create?tool=video-effects 200 in 137ms
+ ✓ Compiled in 324ms (587 modules)
+ GET /create?tool=video-effects 200 in 20ms

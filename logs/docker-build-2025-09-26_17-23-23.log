@@ -1,0 +1,152 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.02kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 3.09kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:18-alpine
+#3 DONE 0.7s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 820B done
+#4 DONE 0.0s
+
+#5 [base 1/1] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 16.92kB 0.0s done
+#6 DONE 0.0s
+
+#7 [builder 2/4] COPY --from=deps /app/node_modules ./node_modules
+#7 CACHED
+
+#8 [deps 2/4] WORKDIR /app
+#8 CACHED
+
+#9 [deps 3/4] COPY package*.json ./
+#9 CACHED
+
+#10 [builder 1/4] WORKDIR /app
+#10 CACHED
+
+#11 [deps 1/4] RUN apk add --no-cache libc6-compat
+#11 CACHED
+
+#12 [deps 4/4] RUN npm install
+#12 CACHED
+
+#13 [builder 3/4] COPY . .
+#13 CACHED
+
+#14 [builder 4/4] RUN npm run build; EXIT_CODE=$?; if [ $EXIT_CODE -eq 0 ]; then echo "Build successful"; else echo "Build completed with prerender warnings - continuing deployment"; fi
+#14 0.327 
+#14 0.327 > my-v0-project@0.1.0 build
+#14 0.327 > next build
+#14 0.327 
+#14 0.735   ▲ Next.js 14.2.17
+#14 0.735 
+#14 0.748    Creating an optimized production build ...
+#14 0.763  ⚠ Found lockfile missing swc dependencies, patching...
+#14 0.981    Downloading swc package @next/swc-linux-arm64-gnu...
+#14 3.840  ⚠ Lockfile was successfully patched, please run "npm install" to ensure @next/swc dependencies are downloaded
+#14 6.442    Downloading swc package @next/swc-linux-arm64-musl...
+#14 29.38  ✓ Compiled successfully
+#14 29.38    Skipping validation of types
+#14 29.38    Skipping linting
+#14 29.56    Collecting page data ...
+#14 29.96 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 29.98 ⚠️ No email provider configured, defaulting to AWS SES
+#14 30.02 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 30.03 ⚠️ No email provider configured, defaulting to AWS SES
+#14 30.04 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.32    Generating static pages (0/24) ...
+#14 31.42 ⚠️ No email provider configured, defaulting to AWS SES
+#14 31.42 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.42    Generating static pages (6/24) 
+#14 31.60 ⚠️ No email provider configured, defaulting to AWS SES
+#14 31.60 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.60    Generating static pages (12/24) 
+#14 31.60 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.60 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.60  ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/create". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+#14 31.60     at r (/app/.next/server/chunks/1940.js:21:117793)
+#14 31.60     at o (/app/.next/server/chunks/1940.js:21:128776)
+#14 31.60     at g (/app/.next/server/app/(main)/create/page.js:1:3586)
+#14 31.60     at nj (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+#14 31.60     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+#14 31.60     at nN (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+#14 31.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+#14 31.60     at nD (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+#14 31.60     at nN (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+#14 31.60     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+#14 31.60 
+#14 31.60 Error occurred prerendering page "/create". Read more: https://nextjs.org/docs/messages/prerender-error
+#14 31.60 
+#14 31.74    Generating static pages (18/24) 
+#14 31.74 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.74 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.74 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.82 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#14 31.86  ✓ Generating static pages (24/24)
+#14 31.87 
+#14 31.87 > Export encountered errors on following paths:
+#14 31.87 	/(main)/create/page: /create
+#14 31.93 npm notice
+#14 31.93 npm notice New major version of npm available! 10.8.2 -> 11.6.1
+#14 31.93 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+#14 31.93 npm notice To update run: npm install -g npm@11.6.1
+#14 31.93 npm notice
+#14 31.93 Build completed with prerender warnings - continuing deployment
+#14 DONE 32.0s
+
+#15 [runner  2/13] RUN addgroup --system --gid 1001 nodejs
+#15 CACHED
+
+#16 [runner  3/13] RUN adduser --system --uid 1001 nextjs
+#16 CACHED
+
+#17 [runner  4/13] COPY --from=builder /app/public ./public
+#17 DONE 0.0s
+
+#18 [runner  5/13] RUN mkdir .next
+#18 DONE 0.1s
+
+#19 [runner  6/13] RUN chown nextjs:nodejs .next
+#19 DONE 0.1s
+
+#20 [runner  7/13] RUN echo "Checking available .next outputs..."
+#20 0.137 Checking available .next outputs...
+#20 DONE 0.1s
+
+#21 [runner  8/13] COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+#21 DONE 0.2s
+
+#22 [runner  9/13] COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+#22 DONE 2.0s
+
+#23 [runner 10/13] COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+#23 DONE 0.0s
+
+#24 [runner 11/13] RUN if [ ! -f ./.next/prerender-manifest.json ]; then echo '{"version":4,"routes":{},"dynamicRoutes":{},"notFoundRoutes":[],"preview":{"previewModeId":"","previewModeSigningKey":"","previewModeEncryptionKey":""}}' > ./.next/prerender-manifest.json; fi
+#24 DONE 0.1s
+
+#25 [runner 12/13] RUN if [ ! -f ./.next/routes-manifest.json ]; then echo '{"version":3,"pages404":false,"basePath":"","redirects":[],"rewrites":{"beforeFiles":[],"afterFiles":[],"fallback":[]},"headers":[]}' > ./.next/routes-manifest.json; fi
+#25 DONE 0.1s
+
+#26 [runner 13/13] RUN if [ ! -f ./.next/BUILD_ID ]; then echo "production-build-$(date +%s)" > ./.next/BUILD_ID; fi
+#26 DONE 0.1s
+
+#27 exporting to image
+#27 exporting layers
+#27 exporting layers 2.3s done
+#27 writing image sha256:50fa56056b8e285f8cd29da089cbdaeeffb0b0e1ee677599b94969d07d023422
+#27 writing image sha256:50fa56056b8e285f8cd29da089cbdaeeffb0b0e1ee677599b94969d07d023422 done
+#27 naming to docker.io/library/vidfab-app done
+#27 DONE 2.3s
+
+#28 resolving provenance for metadata file
+#28 DONE 0.0s
+ app  Built

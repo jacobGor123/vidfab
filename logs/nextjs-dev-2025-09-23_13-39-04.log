@@ -1,0 +1,583 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1888ms
+ ✓ Compiled /middleware in 469ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.9s (1201 modules)
+ GET /create?tool=video-effects 200 in 4530ms
+ ✓ Compiled in 639ms (586 modules)
+ GET /create?tool=video-effects 200 in 88ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1167ms (1390 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1761ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 551ms (1397 modules)
+ GET /login 200 in 651ms
+ ✓ Compiled /api/auth/send-verification-code in 453ms (1459 modules)
+✅ Verification code generated for jsdasww593@gmail.com
+📧 Sending verification code 553139 to jsdasww593@gmail.com
+🔐 Development Mode - Verification code for jsdasww593@gmail.com: 553139
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to jsdasww593@gmail.com...
+✅ Email sent successfully: {
+  messageId: '<59f14da7-d5c4-c53c-2a0b-db44384701ce@vidfab.ai>',
+  to: 'jsdasww593@gmail.com',
+  subject: 'VidFab - Your Verification Code: 553139'
+}
+✅ Verification email sent successfully to jsdasww593@gmail.com { messageId: '<59f14da7-d5c4-c53c-2a0b-db44384701ce@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 9254ms
+ ○ Compiling /api/auth/verify-code-login ...
+ ✓ Compiled /api/auth/verify-code-login in 695ms (1305 modules)
+ POST /api/auth/verify-code-login 400 in 2782ms
+ POST /api/auth/verify-code-login 400 in 735ms
+ ✓ Compiled /api/auth/send-verification-code in 120ms (733 modules)
+✅ Verification code generated for jsdasww593@gmail.com
+📧 Sending verification code 707148 to jsdasww593@gmail.com
+🔐 Development Mode - Verification code for jsdasww593@gmail.com: 707148
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to jsdasww593@gmail.com...
+✅ Email sent successfully: {
+  messageId: '<db526943-6441-1a59-c712-2cf392e8dc49@vidfab.ai>',
+  to: 'jsdasww593@gmail.com',
+  subject: 'VidFab - Your Verification Code: 707148'
+}
+✅ Verification email sent successfully to jsdasww593@gmail.com { messageId: '<db526943-6441-1a59-c712-2cf392e8dc49@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 8488ms
+✅ Verification code verified for jsdasww593@gmail.com
+ POST /api/auth/verify-code-login 200 in 2811ms
+ ✓ Compiled /api/auth/[...nextauth] in 153ms (887 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/providers 200 in 265ms
+ GET /api/auth/csrf 200 in 73ms
+✅ User saved: jsdasww593@gmail.com (66f306c4-bac8-4f29-a3cf-554ffe871e86)
+✅ User signed in: jsdasww593@gmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 675ms
+ GET /api/auth/session 200 in 12ms
+ GET /create 200 in 52ms
+ GET /create?tool=discover 200 in 13ms
+ GET /create?tool=discover 200 in 10ms
+ GET /create?tool=image-to-video 200 in 12ms
+ GET /create?tool=image-to-video 200 in 193ms
+ GET /api/auth/session 200 in 9ms
+ GET /create?tool=video-effects 200 in 20ms
+ ○ Compiling /api/images/upload ...
+ ✓ Compiled /api/images/upload in 666ms (1463 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 2412ms
+ ○ Compiling /api/video/effects ...
+ ✓ Compiled /api/video/effects in 640ms (1465 modules)
+Error: Route "/api/video/effects" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+Error: Route "/api/video/effects" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  userEmail: 'jsdasww593@gmail.com',
+  sessionKeys: [ 'user', 'expires' ],
+  userKeys: [ 'name', 'email', 'uuid', 'nickname', 'avatar_url', 'created_at' ]
+}
+🎬 Video effects generation request: {
+  effectId: 'couple-arrival',
+  effectName: 'Couple Arrival',
+  hasImage: true,
+  userId: '66f306c4-bac8-4f29-a3cf-554ffe871e86'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/couple-arrival',
+  effectId: 'couple-arrival',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: 'e6507ca308104449961b0a75cdfbab2b',
+  error: undefined,
+  effectId: 'couple-arrival'
+}
+✅ Video effects generation submitted: {
+  requestId: 'e6507ca308104449961b0a75cdfbab2b',
+  effectId: 'couple-arrival',
+  userId: '66f306c4-bac8-4f29-a3cf-554ffe871e86'
+}
+ POST /api/video/effects 200 in 2417ms
+ ○ Compiling /api/video/status/[requestId] ...
+ ✓ Compiled /api/video/status/[requestId] in 643ms (1469 modules)
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 1400ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 229ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 222ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 221ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 222ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 221ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 223ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 224ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 221ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 227ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 222ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 224ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 225ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 219ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 223ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 226ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 222ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 224ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 225ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 224ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 219ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 217ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 232ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 221ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 218ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 231ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 238ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 220ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 231ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 219ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 221ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 232ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 240ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 237ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 251ms
+🔍 Checking status for request e6507ca308104449961b0a75cdfbab2b
+📊 Status check for e6507ca308104449961b0a75cdfbab2b: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for e6507ca308104449961b0a75cdfbab2b: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/e6507ca308104449961b0a75cdfbab2b/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/e6507ca308104449961b0a75cdfbab2b 200 in 250ms
+ ○ Compiling /api/video/store ...
+ ✓ Compiled /api/video/store in 861ms (1403 modules)
+🔄 Internal storage call for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🎬 Starting internal video storage for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86 {
+  wavespeedRequestId: 'e6507ca308104449961b0a75cdfbab2b',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/e6507ca308104449961b0a75cdfbab2b/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/66f306c4-bac8-4f29-a3cf-554ffe871e86/ba97bde6-2f94-40b0-8b9a-693afba4542a.webp',
+    effectId: 'couple-arrival',
+    effectName: 'Couple Arrival',
+    prompt: 'Couple Arrival Effect'
+  }
+}
+🎬 Starting video storage for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔄 Using force method to create user and video: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔄 Force creating user and video with delays: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔧 Attempting to create user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "users_pkey"',
+  details: 'Key (uuid)=(66f306c4-bac8-4f29-a3cf-554ffe871e86) already exists.',
+  hint: null
+}
+✅ User already exists (expected): 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 Starting user verification for: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 Verification attempt 1/5 for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+✅ User verified exists on attempt 1: {
+  uuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  email: 'jsdasww593@gmail.com',
+  created_at: '2025-09-23T05:47:25.934+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  email: 'jsdasww593@gmail.com',
+  created_at: '2025-09-23T05:47:25.934+00:00',
+  is_active: true
+}
+🎯 Using raw SQL to bypass foreign key constraints...
+⚠️ Database function not available, using direct insert...
+💡 Creating temporary video record for frontend...
+✅ Temporary video record created: 00000000-0000-4000-8000-758606581268
+✨ Created video record: 00000000-0000-4000-8000-758606581268
+⚠️ Skipping database update for temporary video record
+✅ Video storage completed for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+ POST /api/video/store 200 in 6244ms
+ ✓ Compiled /api/auth/[...nextauth] in 149ms (831 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 221ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 783ms (1409 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1102ms
+ GET /create?tool=discover 200 in 28ms
+ GET /create?tool=image-to-video 200 in 16ms
+ GET /create?tool=text-to-video 200 in 12ms
+ GET /create?tool=image-to-video 200 in 15ms
+ GET /create?tool=video-effects 200 in 19ms
+ GET /create?tool=image-to-video 200 in 20ms
+ GET /create?tool=text-to-video 200 in 18ms
+ GET /create?tool=image-to-video 200 in 13ms
+ GET /create?tool=text-to-video 200 in 12ms
+ GET /create?tool=video-effects 200 in 18ms
+ GET /create?tool=my-assets 200 in 15ms
+ GET /create?tool=my-assets 200 in 187ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 61ms
+ GET /create?tool=text-to-video 200 in 11ms
+ GET /create?tool=image-to-video 200 in 16ms
+ GET /create?tool=video-effects 200 in 13ms

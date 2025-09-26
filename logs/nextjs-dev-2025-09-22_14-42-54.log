@@ -1,0 +1,209 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1359ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1015ms (552 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1746ms
+ ✓ Compiled /middleware in 471ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 4.1s (1408 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/images/upload/route.ts:87:30)
+  85 |
+  86 |     // Verify user authentication - Next.js 15 compatible
+> 87 |     const session = await auth()
+     |                              ^
+  88 |     if (!session?.user?.uuid) {
+  89 |       return NextResponse.json(
+  90 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/images/upload/route.ts:87:30)
+  85 |
+  86 |     // Verify user authentication - Next.js 15 compatible
+> 87 |     const session = await auth()
+     |                              ^
+  88 |     if (!session?.user?.uuid) {
+  89 |       return NextResponse.json(
+  90 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ DELETE /api/images/upload?imageId=ec9c9907-7545-4e0b-af6f-c9125092d384 200 in 4841ms
+ GET /create?tool=video-effects 200 in 1233ms
+ ✓ Compiled in 786ms (587 modules)
+ GET /api/auth/session 200 in 28ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+ POST /api/images/upload 200 in 1554ms
+ ○ Compiling /api/video/effects ...
+ ✓ Compiled /api/video/effects in 723ms (1396 modules)
+Error: Route "/api/video/effects" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     if (!session?.user) {
+  35 |       return NextResponse.json(
+Error: Route "/api/video/effects" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     if (!session?.user) {
+  35 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 Video effects generation request: {
+  effectId: 'cartoon-doll',
+  effectName: 'Cartoon Doll',
+  hasImage: true,
+  userId: '485d612a-a59e-4185-85f5-5de16c01c67c'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/cartoon-doll',
+  effectId: 'cartoon-doll',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: 'e0cb9bd6b53d4f32be323ed55bcced84',
+  error: undefined,
+  effectId: 'cartoon-doll'
+}
+✅ Video effects generation submitted: {
+  requestId: 'e0cb9bd6b53d4f32be323ed55bcced84',
+  effectId: 'cartoon-doll',
+  userId: '485d612a-a59e-4185-85f5-5de16c01c67c'
+}
+ POST /api/video/effects 200 in 5363ms
+ ✓ Compiled /api/video/status/[requestId] in 285ms (1400 modules)
+🔍 Checking status for request e0cb9bd6b53d4f32be323ed55bcced84
+📊 Status check for e0cb9bd6b53d4f32be323ed55bcced84: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e0cb9bd6b53d4f32be323ed55bcced84: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e0cb9bd6b53d4f32be323ed55bcced84 200 in 1030ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 47ms
+🔍 Checking status for request e0cb9bd6b53d4f32be323ed55bcced84
+📊 Status check for e0cb9bd6b53d4f32be323ed55bcced84: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e0cb9bd6b53d4f32be323ed55bcced84: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e0cb9bd6b53d4f32be323ed55bcced84 200 in 191ms
+🔍 Checking status for request e0cb9bd6b53d4f32be323ed55bcced84
+📊 Status check for e0cb9bd6b53d4f32be323ed55bcced84: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e0cb9bd6b53d4f32be323ed55bcced84: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e0cb9bd6b53d4f32be323ed55bcced84 200 in 193ms
+🔍 Checking status for request e0cb9bd6b53d4f32be323ed55bcced84
+📊 Status check for e0cb9bd6b53d4f32be323ed55bcced84: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e0cb9bd6b53d4f32be323ed55bcced84: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e0cb9bd6b53d4f32be323ed55bcced84 200 in 189ms
+🔍 Checking status for request e0cb9bd6b53d4f32be323ed55bcced84
+📊 Status check for e0cb9bd6b53d4f32be323ed55bcced84: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for e0cb9bd6b53d4f32be323ed55bcced84: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/e0cb9bd6b53d4f32be323ed55bcced84 200 in 190ms
+🔍 Checking status for request e0cb9bd6b53d4f32be323ed55bcced84
+📊 Status check for e0cb9bd6b53d4f32be323ed55bcced84: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for e0cb9bd6b53d4f32be323ed55bcced84: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/e0cb9bd6b53d4f32be323ed55bcced84/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/e0cb9bd6b53d4f32be323ed55bcced84 200 in 188ms
+ ✓ Compiled /api/video/store in 341ms (1404 modules)
+🔄 Internal storage call for user: 485d612a-a59e-4185-85f5-5de16c01c67c
+🎬 Starting internal video storage for user: 485d612a-a59e-4185-85f5-5de16c01c67c {
+  wavespeedRequestId: 'e0cb9bd6b53d4f32be323ed55bcced84',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/e0cb9bd6b53d4f32be323ed55bcced84/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    effectId: 'cartoon-doll',
+    effectName: 'Cartoon Doll',
+    prompt: 'Cartoon Doll Effect'
+  }
+}
+🎬 Starting video storage for user: 485d612a-a59e-4185-85f5-5de16c01c67c
+🔄 Creating user and video in transaction: 485d612a-a59e-4185-85f5-5de16c01c67c
+❌ Transaction failed: {
+  code: 'PGRST202',
+  details: 'Searched for the function public.create_user_and_video with parameters p_original_url, p_prompt, p_settings, p_user_email, p_user_id, p_user_nickname, p_wavespeed_request_id or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.',
+  hint: 'Perhaps you meant to call the function public.can_user_upload_video',
+  message: 'Could not find the function public.create_user_and_video(p_original_url, p_prompt, p_settings, p_user_email, p_user_id, p_user_nickname, p_wavespeed_request_id) in the schema cache'
+}
+UserVideosDB.createVideo exception: {
+  code: 'PGRST202',
+  details: 'Searched for the function public.create_user_and_video with parameters p_original_url, p_prompt, p_settings, p_user_email, p_user_id, p_user_nickname, p_wavespeed_request_id or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.',
+  hint: 'Perhaps you meant to call the function public.can_user_upload_video',
+  message: 'Could not find the function public.create_user_and_video(p_original_url, p_prompt, p_settings, p_user_email, p_user_id, p_user_nickname, p_wavespeed_request_id) in the schema cache'
+}
+❌ Video storage failed: {
+  code: 'PGRST202',
+  details: 'Searched for the function public.create_user_and_video with parameters p_original_url, p_prompt, p_settings, p_user_email, p_user_id, p_user_nickname, p_wavespeed_request_id or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.',
+  hint: 'Perhaps you meant to call the function public.can_user_upload_video',
+  message: 'Could not find the function public.create_user_and_video(p_original_url, p_prompt, p_settings, p_user_email, p_user_id, p_user_nickname, p_wavespeed_request_id) in the schema cache'
+}
+ POST /api/video/store 500 in 2683ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 75ms
+ ✓ Compiled in 849ms (1404 modules)
+ GET /create?tool=video-effects 200 in 74ms
+[?25h

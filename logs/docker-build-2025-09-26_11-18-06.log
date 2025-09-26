@@ -1,0 +1,144 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 347B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.83kB done
+#2 DONE 0.0s
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/node:18-alpine
+#4 DONE 1.7s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 820B done
+#5 DONE 0.0s
+
+#6 [base 1/1] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#6 DONE 0.0s
+
+#7 [builder 1/4] WORKDIR /app
+#7 CACHED
+
+#8 [runner 2/8] RUN addgroup --system --gid 1001 nodejs
+#8 CACHED
+
+#9 [runner 3/8] RUN adduser --system --uid 1001 nextjs
+#9 CACHED
+
+#10 [internal] load build context
+#10 transferring context: 17.74kB 0.0s done
+#10 DONE 0.0s
+
+#11 [deps 2/4] WORKDIR /app
+#11 CACHED
+
+#12 [deps 1/4] RUN apk add --no-cache libc6-compat
+#12 CACHED
+
+#13 [deps 4/4] RUN npm ci
+#13 CACHED
+
+#14 [deps 3/4] COPY package*.json ./
+#14 CACHED
+
+#15 [builder 2/4] COPY --from=deps /app/node_modules ./node_modules
+#15 CACHED
+
+#16 [builder 3/4] COPY . .
+#16 DONE 0.1s
+
+#17 [builder 4/4] RUN npm run build
+#17 0.410 
+#17 0.410 > my-v0-project@0.1.0 build
+#17 0.410 > next build
+#17 0.410 
+#17 0.878   ▲ Next.js 14.2.17
+#17 0.879 
+#17 0.890    Creating an optimized production build ...
+#17 0.906  ⚠ Found lockfile missing swc dependencies, patching...
+#17 1.135    Downloading swc package @next/swc-linux-arm64-gnu...
+#17 2.111  ⚠ Lockfile was successfully patched, please run "npm install" to ensure @next/swc dependencies are downloaded
+#17 6.834    Downloading swc package @next/swc-linux-arm64-musl...
+#17 29.97  ✓ Compiled successfully
+#17 29.97    Skipping validation of types
+#17 29.97    Skipping linting
+#17 30.15    Collecting page data ...
+#17 30.48 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 30.50 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 30.51 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 30.51 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 30.52 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.46    Generating static pages (0/23) ...
+#17 31.55    Generating static pages (5/23) 
+#17 31.72 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.72 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.73    Generating static pages (11/23) 
+#17 31.82 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.82 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.82 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.82 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.82 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.82  ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/create". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+#17 31.82     at r (/app/.next/server/chunks/962.js:21:117793)
+#17 31.82     at o (/app/.next/server/chunks/962.js:21:128776)
+#17 31.82     at g (/app/.next/server/app/(main)/create/page.js:1:3582)
+#17 31.82     at nj (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+#17 31.82     at nM (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+#17 31.82     at nN (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+#17 31.82     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+#17 31.82     at nD (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+#17 31.82     at nN (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+#17 31.82     at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+#17 31.82 
+#17 31.82 Error occurred prerendering page "/create". Read more: https://nextjs.org/docs/messages/prerender-error
+#17 31.82 
+#17 31.82    Generating static pages (17/23) 
+#17 31.88 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#17 31.92  ✓ Generating static pages (23/23)
+#17 31.93 
+#17 31.93 > Export encountered errors on following paths:
+#17 31.93 	/(main)/create/page: /create
+#17 31.97 npm notice
+#17 31.97 npm notice New major version of npm available! 10.8.2 -> 11.6.1
+#17 31.97 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+#17 31.97 npm notice To update run: npm install -g npm@11.6.1
+#17 31.97 npm notice
+#17 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [builder 4/4] RUN npm run build:
+31.88 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+31.92  ✓ Generating static pages (23/23)
+31.93 
+31.93 > Export encountered errors on following paths:
+31.93 	/(main)/create/page: /create
+31.97 npm notice
+31.97 npm notice New major version of npm available! 10.8.2 -> 11.6.1
+31.97 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+31.97 npm notice To update run: npm install -g npm@11.6.1
+31.97 npm notice
+------
+Dockerfile:29
+
+--------------------
+
+  27 |     ENV SUPABASE_SERVICE_ROLE_KEY=dummy-service-key-for-build
+
+  28 |     
+
+  29 | >>> RUN npm run build
+
+  30 |     
+
+  31 |     # Production image, copy all the files and run next
+
+--------------------
+
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
+
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/77heeo887dqww95qvd1eczf0e
+

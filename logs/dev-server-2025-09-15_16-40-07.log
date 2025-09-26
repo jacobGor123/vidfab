@@ -1,0 +1,87 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+ ⚠ Port 3002 is in use, trying 3003 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3003
+   - Network:      http://192.168.10.24:3003
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1868ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 969ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled / in 5.8s (1723 modules)
+ GET / 200 in 6615ms
+ ✓ Compiled in 875ms (811 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.7s (1895 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 3359ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1232ms (2102 modules)
+ GET /create 200 in 1353ms
+ GET /create?tool=discover 200 in 14ms
+ GET /create?tool=discover 200 in 17ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 767ms (2127 modules)
+ GET /login 200 in 841ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 821ms (2189 modules)
+Error: Route "/api/auth/send-verification-code" used `headers().get('x-forwarded-for')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at getClientIp (lib/ip.ts:14:38)
+    at POST (app/api/auth/send-verification-code/route.ts:19:38)
+  12 |     
+  13 |     // Try different header sources for IP
+> 14 |     const xForwardedFor = headersList.get('x-forwarded-for');
+     |                                      ^
+  15 |     const xRealIp = headersList.get('x-real-ip');
+  16 |     const cfConnectingIp = headersList.get('cf-connecting-ip');
+  17 |     
+Error: Route "/api/auth/send-verification-code" used `headers().get('x-real-ip')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at getClientIp (lib/ip.ts:15:32)
+    at POST (app/api/auth/send-verification-code/route.ts:19:38)
+  13 |     // Try different header sources for IP
+  14 |     const xForwardedFor = headersList.get('x-forwarded-for');
+> 15 |     const xRealIp = headersList.get('x-real-ip');
+     |                                ^
+  16 |     const cfConnectingIp = headersList.get('cf-connecting-ip');
+  17 |     
+  18 |     if (xForwardedFor) {
+Error: Route "/api/auth/send-verification-code" used `headers().get('cf-connecting-ip')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at getClientIp (lib/ip.ts:16:39)
+    at POST (app/api/auth/send-verification-code/route.ts:19:38)
+  14 |     const xForwardedFor = headersList.get('x-forwarded-for');
+  15 |     const xRealIp = headersList.get('x-real-ip');
+> 16 |     const cfConnectingIp = headersList.get('cf-connecting-ip');
+     |                                       ^
+  17 |     
+  18 |     if (xForwardedFor) {
+  19 |       // x-forwarded-for can contain multiple IPs, get the first one
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 840501 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 840501
+❌ Email sending failed: TypeError: nodemailer__WEBPACK_IMPORTED_MODULE_0__.createTransporter is not a function
+    at createTransporter (lib/aws-email.ts:8:20)
+    at sendEmailViaSES (lib/aws-email.ts:302:24)
+    at sendVerificationCodeEmail (lib/aws-email.ts:383:9)
+    at sendVerificationEmail (lib/verification-codes.ts:316:25)
+    at async POST (app/api/auth/send-verification-code/route.ts:78:22)
+   6 | // AWS SES SMTP配置
+   7 | const createTransporter = () => {
+>  8 |   return nodemailer.createTransporter({
+     |                    ^
+   9 |     host: process.env.AWS_SES_SMTP_HOST || 'email-smtp.us-west-1.amazonaws.com',
+  10 |     port: 587,
+  11 |     secure: false, // true for 465, false for other ports
+❌ Failed to send verification email to ithermocraft@hotmail.com: nodemailer__WEBPACK_IMPORTED_MODULE_0__.createTransporter is not a function
+ POST /api/auth/send-verification-code 500 in 5418ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1778ms (2193 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1978ms

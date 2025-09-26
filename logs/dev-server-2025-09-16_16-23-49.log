@@ -1,0 +1,48 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+ ✓ Compiled /middleware in 106ms
+ ✓ Compiled (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled / in 5.2s (1711 modules)
+ GET / 200 in 5859ms
+ ✓ Compiled in 665ms (813 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.5s (1901 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 3099ms
+ GET /api/auth/csrf 200 in 20ms
+👋 User signed out: jsdasww593@gmail.com
+ POST /api/auth/signout 200 in 7ms
+ GET / 200 in 223ms
+ GET /api/auth/session 200 in 14ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1862ms (2152 modules)
+ GET /create 200 in 2005ms
+ GET /create?tool=discover 200 in 27ms
+ GET /create?tool=discover 200 in 27ms
+ ✓ Compiled in 349ms (937 modules)
+ GET /create?tool=discover 200 in 46ms
+ GET /create 200 in 13ms
+ GET /create?tool=discover 200 in 14ms
+ GET /create?tool=my-assets 200 in 11ms
+ ✓ Compiled in 360ms (937 modules)
+ GET /create?tool=my-assets 200 in 47ms
+ GET /create?tool=text-to-video 200 in 22ms
+ GET /create?tool=text-to-video 200 in 14ms
+ ✓ Compiled in 247ms (937 modules)
+ GET /create?tool=text-to-video 200 in 26ms
+ GET /create?tool=my-assets 200 in 25ms
+ GET /create?tool=my-assets 200 in 11ms
+ GET /create?tool=discover 200 in 11ms
+ GET /create?tool=text-to-video 200 in 19ms

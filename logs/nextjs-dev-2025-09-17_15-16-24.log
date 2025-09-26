@@ -1,0 +1,221 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1647ms
+ ✓ Compiled /middleware in 323ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.1s (1169 modules)
+ GET /create?tool=text-to-video 200 in 3627ms
+ ✓ Compiled in 521ms (568 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 517ms (1358 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 969ms
+ GET /api/auth/session 200 in 12ms
+ ✓ Compiled /api/video/generate in 393ms (1362 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创建 emj 表情...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创建 emj 表情',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 66290fe8011e4b27973aa2b0c50c242b
+ POST /api/video/generate 200 in 1442ms
+ ✓ Compiled /api/video/status/[requestId] in 305ms (1364 modules)
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 870ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 220ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 209ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 205ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 200ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 199ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 197ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 201ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 198ms
+🔍 Checking status for request 66290fe8011e4b27973aa2b0c50c242b
+📊 Status check for 66290fe8011e4b27973aa2b0c50c242b: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 66290fe8011e4b27973aa2b0c50c242b: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/66290fe8011e4b27973aa2b0c50c242b/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/66290fe8011e4b27973aa2b0c50c242b 200 in 199ms
+ ✓ Compiled /api/video/store in 329ms (1368 modules)
+🔄 Internal storage call for user: 6abac19c-fcb3-4266-b9ea-7984bde69f97
+🎬 Starting internal video storage for user: 6abac19c-fcb3-4266-b9ea-7984bde69f97 {
+  wavespeedRequestId: '66290fe8011e4b27973aa2b0c50c242b',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/66290fe8011e4b27973aa2b0c50c242b/1.mp4...',
+  settings: {
+    model: 'vidu-q1',
+    duration: '5',
+    resolution: '480p',
+    aspectRatio: '16:9',
+    seed: -1,
+    prompt: '创建 emj 表情'
+  }
+}
+👤 Force creating/updating user record: 6abac19c-fcb3-4266-b9ea-7984bde69f97
+✅ User record ensured: 6abac19c-fcb3-4266-b9ea-7984bde69f97
+Error creating video: {
+  code: '23503',
+  details: 'Key (user_id)=(6abac19c-fcb3-4266-b9ea-7984bde69f97) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+[UserVideosDB.createVideo] {
+  code: '23503',
+  details: 'Key (user_id)=(6abac19c-fcb3-4266-b9ea-7984bde69f97) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+Supabase error: {
+  code: '23503',
+  details: 'Key (user_id)=(6abac19c-fcb3-4266-b9ea-7984bde69f97) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+Video storage API error: Error: insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"
+    at handleSupabaseError (lib/supabase.ts:173:10)
+    at eval (lib/database/user-videos.ts:42:30)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:178:19)
+    at async POST (app/api/video/store/route.ts:37:13)
+  171 |   
+  172 |   if (error?.message) {
+> 173 |     throw new Error(error.message);
+      |          ^
+  174 |   }
+  175 |   
+  176 |   throw new Error('Database operation failed');
+ POST /api/video/store 500 in 2671ms
+ ✓ Compiled in 453ms (569 modules)
+ GET /create?tool=text-to-video 200 in 66ms
+ ✓ Compiled in 808ms (1489 modules)
+ GET /create?tool=text-to-video 200 in 609ms
+ GET /create?tool=text-to-video 200 in 57ms
+ ✓ Compiled /api/auth/[...nextauth] in 145ms (803 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 317ms
+ ✓ Compiled in 919ms (1372 modules)
+ GET /create?tool=text-to-video 200 in 170ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 94ms
+ GET /api/auth/session 200 in 28ms

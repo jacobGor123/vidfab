@@ -1,0 +1,19 @@
+time="2025-09-26T16:27:45+08:00" level=warning msg="The \"NEXT_PUBLIC_AUTH_GOOGLE_ID\" variable is not set. Defaulting to a blank string."
+time="2025-09-26T16:27:45+08:00" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_URL\" variable is not set. Defaulting to a blank string."
+time="2025-09-26T16:27:45+08:00" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_ANON_KEY\" variable is not set. Defaulting to a blank string."
+ Network vidfab_vidfab-network  Creating
+ Network vidfab_vidfab-network  Created
+ Container vidfab-redis  Creating
+ Container vidfab-redis  Created
+ Container vidfab-app  Creating
+ Container vidfab-app  Created
+ Container vidfab-redis  Starting
+ Container vidfab-redis  Started
+ Container vidfab-app  Starting
+ Container vidfab-app  Started
+time="2025-09-26T16:27:50+08:00" level=warning msg="The \"NEXT_PUBLIC_AUTH_GOOGLE_ID\" variable is not set. Defaulting to a blank string."
+time="2025-09-26T16:27:50+08:00" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_URL\" variable is not set. Defaulting to a blank string."
+time="2025-09-26T16:27:50+08:00" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_ANON_KEY\" variable is not set. Defaulting to a blank string."
+NAME           IMAGE            COMMAND                   SERVICE   CREATED         STATUS                            PORTS
+vidfab-app     vidfab-app       "docker-entrypoint.s…"   app       5 seconds ago   Restarting (1) 1 second ago       
+vidfab-redis   redis:7-alpine   "docker-entrypoint.s…"   redis     5 seconds ago   Up 5 seconds (health: starting)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp

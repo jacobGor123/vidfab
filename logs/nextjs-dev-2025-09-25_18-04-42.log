@@ -1,0 +1,771 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1542ms
+ ✓ Compiled /middleware in 205ms (174 modules)
+ ○ Compiling /create ...
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /create in 3.7s (1135 modules)
+ GET /create?tool=video-effects 200 in 3458ms
+ ✓ Compiled in 427ms (559 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 517ms (882 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 882ms
+ ✓ Compiled /api/user/videos in 211ms (910 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 390ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1269ms
+ ✓ Compiled /api/images/upload in 129ms (914 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/images/upload 200 in 1959ms
+ ✓ Compiled /api/video/generate-image-to-video in 143ms (919 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🚀 Submitting image-to-video request to bytedance (seedance-v1-pro-i2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-i2v-480p',
+  prompt: '让画面动起来',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_URL: https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v...]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 12f78aad562848bcaae583ed9e28d2c0
+ POST /api/video/generate-image-to-video 200 in 4242ms
+ ✓ Compiled /api/video/status/[requestId] in 138ms (921 modules)
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 541ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 183ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 185ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 181ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 183ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 187ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 181ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 182ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 186ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 184ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 189ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 188ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 181ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 185ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 179ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 185ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 179ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 181ms
+ POST /api/images/upload 200 in 1354ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 183ms
+ ✓ Compiled /api/video/effects in 115ms (923 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 417ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 181ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 181ms
+ POST /api/video/effects 200 in 1201ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 183ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 188ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 189ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 195ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 804ms
+📊 Status check for 12f78aad562848bcaae583ed9e28d2c0: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/12f78aad562848bcaae583ed9e28d2c0 200 in 818ms
+ ✓ Compiled /api/video/store in 134ms (925 modules)
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 446ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 194ms
+🔥 开始强制创建用户和视频: 13b23625-0790-40ef-95c4-a4afc5913e10, unknown@vidfab.ai
+❌ User upsert failed: {
+  code: '23505',
+  details: 'Key (email)=(unknown@vidfab.ai) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 197ms
+❌ 仍然有外键约束错误，但视频已存储在临时状态，跳过数据库存储: 13b23625-0790-40ef-95c4-a4afc5913e10
+🔄 跳过临时视频状态更新: temp-1758794748349
+ POST /api/video/store 200 in 3422ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 195ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 195ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 195ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 194ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 194ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 193ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 192ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 195ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 193ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 193ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 194ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 882ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 742ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 1309ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 208ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 448ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 201ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 200ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 209ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 205ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 206ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 202ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 204ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 201ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 205ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 442ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 962ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 201ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 198ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 202ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 999ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 185ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 184ms
+ GET /api/auth/session 200 in 47ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 234ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 184ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 188ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 182ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 189ms
+📊 Status check for ed849191b17c47c1ae1355abcaaec979: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/ed849191b17c47c1ae1355abcaaec979 200 in 187ms
+🔥 开始强制创建用户和视频: 13b23625-0790-40ef-95c4-a4afc5913e10, unknown@vidfab.ai
+❌ User upsert failed: {
+  code: '23505',
+  details: 'Key (email)=(unknown@vidfab.ai) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+❌ 仍然有外键约束错误，但视频已存储在临时状态，跳过数据库存储: 13b23625-0790-40ef-95c4-a4afc5913e10
+🔄 跳过临时视频状态更新: temp-1758794872574
+ POST /api/video/store 200 in 3368ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 838ms
+ GET /create?tool=my-assets 200 in 128ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 619ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/auth/session 200 in 10ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 748ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 857ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 274ms
+ ✓ Compiled in 707ms (1469 modules)
+ ✓ Compiled in 263ms (1117 modules)
+ ✓ Compiled in 366ms (1117 modules)
+ ✓ Compiled in 252ms (559 modules)
+ ✓ Compiled in 418ms (1117 modules)
+ ✓ Compiled /api/auth/[...nextauth] in 327ms (882 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 480ms
+ GET /create?tool=my-assets 200 in 161ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/auth/session 200 in 10ms
+ ✓ Compiled /api/user/videos in 347ms (910 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1585ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 1079ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 732ms
+ ✓ Compiled /api/images/upload in 129ms (914 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/images/upload 200 in 1530ms
+ ✓ Compiled /api/video/effects in 90ms (917 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/video/effects 200 in 1051ms
+ ✓ Compiled /api/video/status/[requestId] in 79ms (921 modules)
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 295ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 188ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 189ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 580ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 183ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 190ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 183ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 183ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 184ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 186ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 184ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 183ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 189ms
+ ✓ Compiled /api/video/generate in 102ms (923 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🚀 Submitting text-to-video request to bytedance (seedance-v1-pro-t2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-t2v-480p',
+  prompt: '生成一个大西瓜',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  aspect_ratio: '16:9',
+  image: undefined
+}
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 356ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 183ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 182ms
+✅ text-to-video generation submitted successfully. Request ID: 002d10917c76443a9a7ff07dfb7539c0
+ POST /api/video/generate 200 in 866ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 181ms
+📊 Status check for 002d10917c76443a9a7ff07dfb7539c0: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/002d10917c76443a9a7ff07dfb7539c0 200 in 188ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 180ms
+📊 Status check for 002d10917c76443a9a7ff07dfb7539c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/002d10917c76443a9a7ff07dfb7539c0 200 in 185ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 186ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 183ms
+📊 Status check for 002d10917c76443a9a7ff07dfb7539c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/002d10917c76443a9a7ff07dfb7539c0 200 in 188ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 183ms
+📊 Status check for 002d10917c76443a9a7ff07dfb7539c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/002d10917c76443a9a7ff07dfb7539c0 200 in 188ms
+📊 Status check for 002d10917c76443a9a7ff07dfb7539c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/002d10917c76443a9a7ff07dfb7539c0 200 in 181ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 190ms
+📊 Status check for 002d10917c76443a9a7ff07dfb7539c0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/002d10917c76443a9a7ff07dfb7539c0 200 in 635ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 638ms
+📊 Status check for 002d10917c76443a9a7ff07dfb7539c0: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/002d10917c76443a9a7ff07dfb7539c0 200 in 197ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 199ms
+ ✓ Compiled /api/video/store in 87ms (925 modules)
+ ✓ Compiled in 1ms (925 modules)
+ ✓ Compiled in 1ms (925 modules)
+ ✓ Compiled in 0ms (925 modules)
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 645ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 203ms
+🎬 尝试直接创建视频: 002d10917c76443a9a7ff07dfb7539c0 for user 13b23625-0790-40ef-95c4-a4afc5913e10
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 194ms
+⚠️ 直接创建失败，错误码: 23503
+🔧 外键约束错误，启动用户创建流程
+🔥 开始强制创建用户和视频: 13b23625-0790-40ef-95c4-a4afc5913e10, unknown@vidfab.ai
+👤 用户不存在，创建新用户: 13b23625-0790-40ef-95c4-a4afc5913e10
+⚠️ Email冲突，使用UUID作为email重试
+✅ 用户创建成功(重试): 13b23625-0790-40ef-95c4-a4afc5913e10
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 197ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 199ms
+✅ 视频创建成功: 8f395f20-8ed0-4504-a97f-f949e9008653
+✅ Video status updated to completed: 8f395f20-8ed0-4504-a97f-f949e9008653
+ POST /api/video/store 200 in 4992ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 197ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 199ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 199ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 956ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 733ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 412ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 727ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 705ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 796ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 711ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 411ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 305ms
+ GET /api/auth/session 200 in 50ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/auth/session 200 in 26ms
+📊 Status check for d03d9a28ea8c4cd38c2a5f7b3de263b0: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/d03d9a28ea8c4cd38c2a5f7b3de263b0 200 in 1003ms
+🎬 尝试直接创建视频: d03d9a28ea8c4cd38c2a5f7b3de263b0 for user 13b23625-0790-40ef-95c4-a4afc5913e10
+✅ 视频直接创建成功: 2e868c71-3c66-4c3b-9836-2d11cb0cc8bc
+✅ Video status updated to completed: 2e868c71-3c66-4c3b-9836-2d11cb0cc8bc
+ POST /api/video/store 200 in 2284ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 919ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 280ms
+ GET /create?tool=my-assets 200 in 168ms
+ GET /api/auth/session 200 in 15ms
+ GET /api/auth/session 200 in 17ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 454ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 847ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 742ms
+ GET /api/auth/csrf 200 in 11ms
+ POST /api/auth/signout 200 in 8ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s (2323 modules)
+ GET / 200 in 2486ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 41ms
+ GET /api/auth/session 200 in 9ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 540ms (2331 modules)
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 552ms (1406 modules)
+✅ Verification code generated for jsdasww593@gmail.com
+📧 Sending verification code 123348 to jsdasww593@gmail.com
+🔐 Development Mode - Verification code for jsdasww593@gmail.com: 123348
+✅ Verification email sent successfully to jsdasww593@gmail.com { messageId: '<708812a8-a995-62b8-ccee-26d8d12896f4@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 9539ms
+ ✓ Compiled /api/auth/verify-code-login in 314ms (1178 modules)
+✅ Verification code verified for jsdasww593@gmail.com
+ POST /api/auth/verify-code-login 200 in 2489ms
+ ✓ Compiled /api/auth/[...nextauth] in 389ms (1400 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/providers 200 in 485ms
+ GET /api/auth/csrf 200 in 9ms
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+Failed to save user: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/auth/callback/verification-code 200 in 735ms
+ GET /api/auth/session 200 in 11ms
+ ✓ Compiled /api/user/videos in 192ms (1404 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 614ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 269ms
+ GET /api/auth/session 200 in 40ms
+ ✓ Compiled in 714ms (1987 modules)
+ ✓ Compiled in 174ms (991 modules)
+ ✓ Compiled in 154ms (991 modules)
+ ✓ Compiled in 263ms (991 modules)
+ ✓ Compiled in 174ms (991 modules)
+ ✓ Compiled in 163ms (991 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 672ms (1320 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 957ms
+ GET /api/auth/session 200 in 27ms
+ GET /api/auth/session 200 in 147ms
+ GET /create?tool=my-assets 200 in 390ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/auth/session 200 in 22ms
+ ✓ Compiled /api/user/videos in 455ms (1348 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 3087ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 2447ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 770ms
+ GET /api/auth/session 200 in 29ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 844ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 275ms
+ ✓ Compiled /api/images/upload in 486ms (1352 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ POST /api/images/upload 200 in 2731ms
+ ✓ Compiled /api/video/generate-image-to-video in 131ms (1357 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🚀 Submitting image-to-video request to bytedance (seedance-v1-pro-i2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-i2v-480p',
+  prompt: '让画面动起来',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  image: '[IMAGE_URL: https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v...]'
+}
+✅ image-to-video generation submitted successfully. Request ID: 684000f6cb4a400e8fce43b4bb7449fb
+ POST /api/video/generate-image-to-video 200 in 2482ms
+ ✓ Compiled /api/video/status/[requestId] in 132ms (1359 modules)
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 364ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 206ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 206ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 205ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 204ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 245ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 205ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 204ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 205ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 211ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 205ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 205ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 204ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 203ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 200ms
+ ✓ Compiled /api/video/generate in 124ms (1361 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 224ms
+🚀 Submitting text-to-video request to bytedance (seedance-v1-pro-t2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-t2v-480p',
+  prompt: '生成一个大西瓜',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  aspect_ratio: '16:9',
+  image: undefined
+}
+✅ text-to-video generation submitted successfully. Request ID: 33d0a471d1534f5a912db71cf701d11f
+ POST /api/video/generate 200 in 597ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 585ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'created', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 199ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 178ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 202ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 180ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 202ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 201ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 201ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 201ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 199ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 203ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 200ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 183ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 202ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 183ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 201ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 185ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 204ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 181ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 201ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 192ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 203ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 182ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 202ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 183ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 204ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 184ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 202ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 187ms
+📊 Status check for 684000f6cb4a400e8fce43b4bb7449fb: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/684000f6cb4a400e8fce43b4bb7449fb 200 in 203ms
+ ✓ Compiled /api/video/store in 140ms (1363 modules)
+ ✓ Compiled in 1ms (1363 modules)
+ ✓ Compiled in 0ms (1363 modules)
+ ✓ Compiled in 0ms (1363 modules)
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 714ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 214ms
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 198ms
+🎬 尝试直接创建视频: 684000f6cb4a400e8fce43b4bb7449fb for user 18a675b6-2828-407a-bf63-c5ba27dce935
+⚠️ 直接创建失败，错误码: 23503
+🔧 外键约束错误，启动用户创建流程
+🔥 开始强制创建用户和视频: 18a675b6-2828-407a-bf63-c5ba27dce935, unknown@vidfab.ai
+👤 用户不存在，创建新用户: 18a675b6-2828-407a-bf63-c5ba27dce935
+⚠️ Email冲突，使用UUID作为email重试
+📊 Status check for 33d0a471d1534f5a912db71cf701d11f: { status: 'completed', progress: undefined, hasOutputs: true }
+ GET /api/video/status/33d0a471d1534f5a912db71cf701d11f 200 in 210ms
+✅ 用户创建成功(重试): 18a675b6-2828-407a-bf63-c5ba27dce935
+🎬 尝试直接创建视频: 33d0a471d1534f5a912db71cf701d11f for user 18a675b6-2828-407a-bf63-c5ba27dce935
+✅ 视频直接创建成功: e690b717-abe4-4a5d-aeae-45d60ab97d4d
+✅ 视频创建成功: 468d5ab0-9a3d-4652-a1a3-dd0f8a4e644e
+✅ Video status updated to completed: e690b717-abe4-4a5d-aeae-45d60ab97d4d
+ POST /api/video/store 200 in 2170ms
+✅ Video status updated to completed: 468d5ab0-9a3d-4652-a1a3-dd0f8a4e644e
+ POST /api/video/store 200 in 5929ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 623ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 276ms
+ GET /create?tool=my-assets 200 in 163ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/auth/session 200 in 17ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 442ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 729ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 723ms
+ GET /api/auth/csrf 200 in 11ms
+ POST /api/auth/signout 200 in 9ms
+ GET / 200 in 56ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/auth/session 200 in 16ms
+ ✓ Compiled /api/auth/send-verification-code in 357ms (1413 modules)
+✅ Verification code generated for jsdasww593@gmail.com
+📧 Sending verification code 671903 to jsdasww593@gmail.com
+🔐 Development Mode - Verification code for jsdasww593@gmail.com: 671903
+✅ Verification email sent successfully to jsdasww593@gmail.com { messageId: '<102746a1-327d-997e-916c-bdde7d4d0716@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 10880ms
+ ✓ Compiled /api/auth/verify-code-login in 204ms (1406 modules)
+✅ Verification code verified for jsdasww593@gmail.com
+ POST /api/auth/verify-code-login 200 in 2712ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/providers 200 in 15ms
+ GET /api/auth/csrf 200 in 8ms
+Save user error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Supabase error: {
+  code: '23505',
+  details: 'Key (email)=(jsdasww593@gmail.com) already exists.',
+  hint: null,
+  message: 'duplicate key value violates unique constraint "unique_email"'
+}
+Error in saveUser: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+Failed to save user: Error: Resource already exists
+    at handleSupabaseError (webpack-internal:///(rsc)/./lib/supabase.ts:50:15)
+    at saveUser (webpack-internal:///(rsc)/./services/user.ts:56:79)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.jwt (webpack-internal:///(rsc)/./auth/config.ts:192:43)
+    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:386:19)
+    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:260:28)
+    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:57:28)
+    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:89:16)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1562:40)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:1948:32)
+    at async DevServer.pipeImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/jacob/Desktop/vidfab/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/jacob/Desktop/vidfab/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/auth/callback/verification-code 200 in 295ms
+ GET /api/auth/session 200 in 10ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 298ms
+ GET /api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc 200 in 291ms
+[?25h

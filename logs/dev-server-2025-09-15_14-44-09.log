@@ -1,0 +1,49 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverComponentsExternalPackages' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ `experimental.serverComponentsExternalPackages` has been moved to `serverExternalPackages`. Please update your next.config.mjs file accordingly.
+ ✓ Ready in 1797ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 575ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.2s (1033 modules)
+ GET /create?tool=text-to-video 200 in 3769ms
+ ✓ Compiled in 568ms (473 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1408ms (1223 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2147ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1052ms (1227 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1278ms
+ ✓ Compiled in 3.6s (1241 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 5.6s (1556 modules)
+ GET /create?tool=text-to-video 404 in 6148ms
+ GET /create?tool=text-to-video 200 in 117ms
+ GET /create?tool=text-to-video 200 in 25ms
+ GET /create?tool=text-to-video 200 in 312ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 115ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 84ms
+ ✓ Compiled in 1777ms (1570 modules)
+ GET /create?tool=text-to-video 200 in 111ms
+ ✓ Compiled in 1019ms (1570 modules)
+ GET /create?tool=text-to-video 200 in 289ms
+ ✓ Compiled in 1374ms (1320 modules)
+ GET /create?tool=text-to-video 200 in 130ms
+ GET /create?tool=text-to-video 200 in 235ms
+ ✓ Compiled /api/auth/[...nextauth] in 211ms (808 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 361ms

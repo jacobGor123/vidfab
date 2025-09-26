@@ -1,0 +1,13 @@
+time="2025-09-26T16:29:09+08:00" level=warning msg="The \"NEXT_PUBLIC_AUTH_GOOGLE_ID\" variable is not set. Defaulting to a blank string."
+time="2025-09-26T16:29:09+08:00" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_URL\" variable is not set. Defaulting to a blank string."
+time="2025-09-26T16:29:09+08:00" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_ANON_KEY\" variable is not set. Defaulting to a blank string."
+ Container vidfab-app  Stopping
+ Container vidfab-app  Stopped
+ Container vidfab-app  Removing
+ Container vidfab-app  Removed
+ Container vidfab-redis  Stopping
+ Container vidfab-redis  Stopped
+ Container vidfab-redis  Removing
+ Container vidfab-redis  Removed
+ Network vidfab_vidfab-network  Removing
+ Network vidfab_vidfab-network  Removed

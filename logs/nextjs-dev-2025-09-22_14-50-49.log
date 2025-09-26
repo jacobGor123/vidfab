@@ -1,0 +1,512 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1623ms
+ ○ Compiling /api/video/store ...
+ ✓ Compiled /api/video/store in 1083ms (554 modules)
+🔄 Internal storage call for user: test-user-1758523920398
+🎬 Starting internal video storage for user: test-user-1758523920398 {
+  wavespeedRequestId: 'ws_test_1758523920398',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: test-user-1758523920398
+Error getting video by Wavespeed ID: {
+  code: '22P02',
+  details: null,
+  hint: null,
+  message: 'invalid input syntax for type uuid: "test-user-1758523920398"'
+}
+Supabase error: {
+  code: '22P02',
+  details: null,
+  hint: null,
+  message: 'invalid input syntax for type uuid: "test-user-1758523920398"'
+}
+Get video by Wavespeed ID error: Error: invalid input syntax for type uuid: "test-user-1758523920398"
+    at handleSupabaseError (lib/supabase.ts:174:10)
+    at UserVideosDB.getVideoByWavespeedId (lib/database/user-videos.ts:250:28)
+    at async processVideoStorage (app/api/video/store/route.ts:103:24)
+    at async POST (app/api/video/store/route.ts:37:13)
+  172 |   
+  173 |   if (error?.message) {
+> 174 |     throw new Error(error.message);
+      |          ^
+  175 |   }
+  176 |   
+  177 |   throw new Error('Database operation failed');
+Error creating video: {
+  code: '22P02',
+  details: null,
+  hint: null,
+  message: 'invalid input syntax for type uuid: "test-user-1758523920398"'
+}
+[UserVideosDB.createVideo] {
+  code: '22P02',
+  details: null,
+  hint: null,
+  message: 'invalid input syntax for type uuid: "test-user-1758523920398"'
+}
+Supabase error: {
+  code: '22P02',
+  details: null,
+  hint: null,
+  message: 'invalid input syntax for type uuid: "test-user-1758523920398"'
+}
+UserVideosDB.createVideo exception: Error: invalid input syntax for type uuid: "test-user-1758523920398"
+    at handleSupabaseError (lib/supabase.ts:174:10)
+    at eval (lib/database/user-videos.ts:60:30)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  172 |   
+  173 |   if (error?.message) {
+> 174 |     throw new Error(error.message);
+      |          ^
+  175 |   }
+  176 |   
+  177 |   throw new Error('Database operation failed');
+❌ Video storage failed: Error: invalid input syntax for type uuid: "test-user-1758523920398"
+    at handleSupabaseError (lib/supabase.ts:174:10)
+    at eval (lib/database/user-videos.ts:60:30)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  172 |   
+  173 |   if (error?.message) {
+> 174 |     throw new Error(error.message);
+      |          ^
+  175 |   }
+  176 |   
+  177 |   throw new Error('Database operation failed');
+ POST /api/video/store 500 in 2429ms
+🔄 Internal storage call for user: cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1
+🎬 Starting internal video storage for user: cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1 {
+  wavespeedRequestId: 'ws_test_1758523941163',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1
+🔄 Using force method to create user and video: cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1
+🔄 Force creating user and video with delays: cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1
+✅ User verified exists: cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1
+❌ Final video creation attempt failed: {
+  code: '23503',
+  details: 'Key (user_id)=(cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(cd22de9f-5fa6-4a43-b2ec-852a9c8f22c1) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 3925ms
+ ✓ Compiled in 296ms (278 modules)
+🔄 Internal storage call for user: 62041bac-1155-455d-8bbf-cf31c5cedd5e
+🎬 Starting internal video storage for user: 62041bac-1155-455d-8bbf-cf31c5cedd5e {
+  wavespeedRequestId: 'ws_test_1758523992733',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: 62041bac-1155-455d-8bbf-cf31c5cedd5e
+🔄 Using force method to create user and video: 62041bac-1155-455d-8bbf-cf31c5cedd5e
+🔄 Force creating user and video with delays: 62041bac-1155-455d-8bbf-cf31c5cedd5e
+🔧 Attempting to create user: 62041bac-1155-455d-8bbf-cf31c5cedd5e
+✅ User already exists (expected): 62041bac-1155-455d-8bbf-cf31c5cedd5e
+UserVideosDB.createVideo exception: Error: User verification failed after creation: 62041bac-1155-455d-8bbf-cf31c5cedd5e
+    at UserVideosDB.forceCreateUserAndVideo (lib/database/user-videos.ts:131:12)
+    at async eval (lib/database/user-videos.ts:54:19)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  129 |
+  130 |     if (!verifyUser) {
+> 131 |       throw new Error(`User verification failed after creation: ${userId}`)
+      |            ^
+  132 |     }
+  133 |
+  134 |     console.log(`✅ User verified exists: ${userId}`)
+❌ Video storage failed: Error: User verification failed after creation: 62041bac-1155-455d-8bbf-cf31c5cedd5e
+    at UserVideosDB.forceCreateUserAndVideo (lib/database/user-videos.ts:131:12)
+    at async eval (lib/database/user-videos.ts:54:19)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  129 |
+  130 |     if (!verifyUser) {
+> 131 |       throw new Error(`User verification failed after creation: ${userId}`)
+      |            ^
+  132 |     }
+  133 |
+  134 |     console.log(`✅ User verified exists: ${userId}`)
+ POST /api/video/store 500 in 3339ms
+ ✓ Compiled in 87ms (278 modules)
+🔄 Internal storage call for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🎬 Starting internal video storage for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454 {
+  wavespeedRequestId: 'ws_test_1758524034430',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔄 Using force method to create user and video: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔄 Force creating user and video with delays: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔧 Attempting to create user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+✅ User already exists (expected): 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Starting user verification for: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Verification attempt 1/5 for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Verification attempt 1 error: {
+  code: 'PGRST116',
+  details: 'The result contains 0 rows',
+  hint: null,
+  message: 'Cannot coerce the result to a single JSON object'
+}
+🔍 Verification attempt 2/5 for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Verification attempt 2 error: {
+  code: 'PGRST116',
+  details: 'The result contains 0 rows',
+  hint: null,
+  message: 'Cannot coerce the result to a single JSON object'
+}
+🔍 Verification attempt 3/5 for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Verification attempt 3 error: {
+  code: 'PGRST116',
+  details: 'The result contains 0 rows',
+  hint: null,
+  message: 'Cannot coerce the result to a single JSON object'
+}
+🔍 Verification attempt 4/5 for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Verification attempt 4 error: {
+  code: 'PGRST116',
+  details: 'The result contains 0 rows',
+  hint: null,
+  message: 'Cannot coerce the result to a single JSON object'
+}
+🔍 Verification attempt 5/5 for user: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Verification attempt 5 error: {
+  code: 'PGRST116',
+  details: 'The result contains 0 rows',
+  hint: null,
+  message: 'Cannot coerce the result to a single JSON object'
+}
+❌ User verification failed after 5 attempts: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+🔍 Database connection test - found 4 users: OK
+UserVideosDB.createVideo exception: Error: User verification failed after 5 attempts: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+    at UserVideosDB.forceCreateUserAndVideo (lib/database/user-videos.ts:166:12)
+    at async eval (lib/database/user-videos.ts:54:19)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  164 |       }
+  165 |
+> 166 |       throw new Error(`User verification failed after ${maxAttempts} attempts: ${userId}`)
+      |            ^
+  167 |     }
+  168 |
+  169 |     // 4. 再次尝试创建视频
+❌ Video storage failed: Error: User verification failed after 5 attempts: 82adf7d1-459a-401b-bc2a-b7cdab1ae454
+    at UserVideosDB.forceCreateUserAndVideo (lib/database/user-videos.ts:166:12)
+    at async eval (lib/database/user-videos.ts:54:19)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  164 |       }
+  165 |
+> 166 |       throw new Error(`User verification failed after ${maxAttempts} attempts: ${userId}`)
+      |            ^
+  167 |     }
+  168 |
+  169 |     // 4. 再次尝试创建视频
+ POST /api/video/store 500 in 9365ms
+ ✓ Compiled in 80ms (278 modules)
+🔄 Internal storage call for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+🎬 Starting internal video storage for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f {
+  wavespeedRequestId: 'ws_test_1758524082089',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+🔄 Using force method to create user and video: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+🔄 Force creating user and video with delays: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+🔧 Attempting to create user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+✅ User already exists (expected): f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+🔍 Starting user verification for: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+🔍 Verification attempt 1/5 for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+✅ User verified exists on attempt 1: null
+🔍 Verification attempt 2/5 for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+✅ User verified exists on attempt 2: null
+🔍 Verification attempt 3/5 for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+✅ User verified exists on attempt 3: null
+🔍 Verification attempt 4/5 for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+✅ User verified exists on attempt 4: null
+🔍 Verification attempt 5/5 for user: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+✅ User verified exists on attempt 5: null
+❌ User verification failed after 5 attempts: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+🔍 Database connection test - found 4 users: OK
+UserVideosDB.createVideo exception: Error: User verification failed after 5 attempts: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+    at UserVideosDB.forceCreateUserAndVideo (lib/database/user-videos.ts:166:12)
+    at async eval (lib/database/user-videos.ts:54:19)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  164 |       }
+  165 |
+> 166 |       throw new Error(`User verification failed after ${maxAttempts} attempts: ${userId}`)
+      |            ^
+  167 |     }
+  168 |
+  169 |     // 4. 再次尝试创建视频
+❌ Video storage failed: Error: User verification failed after 5 attempts: f2df10fd-c2d4-4617-92f7-dcd89d773e5f
+    at UserVideosDB.forceCreateUserAndVideo (lib/database/user-videos.ts:166:12)
+    at async eval (lib/database/user-videos.ts:54:19)
+    at async retryWithBackoff (lib/utils/error-handling.ts:58:21)
+    at async processVideoStorage (app/api/video/store/route.ts:125:21)
+    at async POST (app/api/video/store/route.ts:37:13)
+  164 |       }
+  165 |
+> 166 |       throw new Error(`User verification failed after ${maxAttempts} attempts: ${userId}`)
+      |            ^
+  167 |     }
+  168 |
+  169 |     // 4. 再次尝试创建视频
+ POST /api/video/store 500 in 8911ms
+ ✓ Compiled in 124ms (278 modules)
+🔄 Internal storage call for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+🎬 Starting internal video storage for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60 {
+  wavespeedRequestId: 'ws_test_1758524129021',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+🔄 Using force method to create user and video: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+🔄 Force creating user and video with delays: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+🔧 Attempting to create user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+✅ User already exists (expected): 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+🔍 Starting user verification for: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+🔍 Verification attempt 1/5 for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+✅ User verified exists on attempt 1: null
+🔍 Verification attempt 2/5 for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+✅ User verified exists on attempt 2: null
+🔍 Verification attempt 3/5 for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+✅ User verified exists on attempt 3: null
+🔍 Verification attempt 4/5 for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+✅ User verified exists on attempt 4: null
+🔍 Verification attempt 5/5 for user: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+✅ User verified exists on attempt 5: null
+⚠️ User verification failed after 5 attempts: 4f113eea-7b67-4378-bb7b-6a6ddfaf8e60
+🎯 Proceeding with video creation anyway - user INSERT returned duplicate error
+🔍 Database connection test - found 4 users: OK
+🎲 Attempting video creation despite verification failure...
+❌ Final video creation attempt failed: {
+  code: '23503',
+  details: 'Key (user_id)=(4f113eea-7b67-4378-bb7b-6a6ddfaf8e60) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(4f113eea-7b67-4378-bb7b-6a6ddfaf8e60) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(4f113eea-7b67-4378-bb7b-6a6ddfaf8e60) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8305ms
+ ✓ Compiled in 88ms (278 modules)
+🔄 Internal storage call for user: f2713417-97bd-4250-806e-54f4820e1138
+🎬 Starting internal video storage for user: f2713417-97bd-4250-806e-54f4820e1138 {
+  wavespeedRequestId: 'ws_test_1758524173724',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: f2713417-97bd-4250-806e-54f4820e1138
+🔄 Using force method to create user and video: f2713417-97bd-4250-806e-54f4820e1138
+🔄 Force creating user and video with delays: f2713417-97bd-4250-806e-54f4820e1138
+🔧 Attempting to create user: f2713417-97bd-4250-806e-54f4820e1138
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "unique_email"',
+  details: 'Key (email)=(test@vidfab.ai) already exists.',
+  hint: null
+}
+✅ User already exists (expected): f2713417-97bd-4250-806e-54f4820e1138
+🔍 Starting user verification for: f2713417-97bd-4250-806e-54f4820e1138
+🔍 Verification attempt 1/5 for user: f2713417-97bd-4250-806e-54f4820e1138
+✅ User verified exists on attempt 1: null
+🔍 Verification attempt 2/5 for user: f2713417-97bd-4250-806e-54f4820e1138
+✅ User verified exists on attempt 2: null
+🔍 Verification attempt 3/5 for user: f2713417-97bd-4250-806e-54f4820e1138
+✅ User verified exists on attempt 3: null
+🔍 Verification attempt 4/5 for user: f2713417-97bd-4250-806e-54f4820e1138
+✅ User verified exists on attempt 4: null
+🔍 Verification attempt 5/5 for user: f2713417-97bd-4250-806e-54f4820e1138
+✅ User verified exists on attempt 5: null
+⚠️ User verification failed after 5 attempts: f2713417-97bd-4250-806e-54f4820e1138
+🎯 Proceeding with video creation anyway - user INSERT returned duplicate error
+🔍 Database connection test - found 4 users: OK
+🎲 Attempting video creation despite verification failure...
+❌ Final video creation attempt failed: {
+  code: '23503',
+  details: 'Key (user_id)=(f2713417-97bd-4250-806e-54f4820e1138) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(f2713417-97bd-4250-806e-54f4820e1138) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(f2713417-97bd-4250-806e-54f4820e1138) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 8415ms
+🔄 Internal storage call for user: ce502627-76da-4e77-9675-e3b68adcfbb6
+🎬 Starting internal video storage for user: ce502627-76da-4e77-9675-e3b68adcfbb6 {
+  wavespeedRequestId: 'ws_test_1758524226683',
+  originalUrl: 'https://example.com/test-video.mp4...',
+  settings: {
+    model: 'test-model',
+    duration: 5,
+    resolution: '720p',
+    aspectRatio: '16:9',
+    style: 'realistic',
+    prompt: '测试视频：外键约束修复验证'
+  }
+}
+🎬 Starting video storage for user: ce502627-76da-4e77-9675-e3b68adcfbb6
+🔄 Using force method to create user and video: ce502627-76da-4e77-9675-e3b68adcfbb6
+🔄 Force creating user and video with delays: ce502627-76da-4e77-9675-e3b68adcfbb6
+🔧 Attempting to create user: ce502627-76da-4e77-9675-e3b68adcfbb6
+✅ User created successfully: [
+  {
+    uuid: 'ce502627-76da-4e77-9675-e3b68adcfbb6',
+    email: 'test-1758524226683@vidfab.ai',
+    nickname: 'test-1758524226683',
+    avatar_url: '',
+    signin_type: 'oauth',
+    signin_provider: 'google',
+    signin_openid: null,
+    created_at: '2025-09-22T06:57:07.825+00:00',
+    updated_at: '2025-09-22T06:57:07.825+00:00',
+    signin_ip: null,
+    email_verified: true,
+    last_login: null,
+    is_active: true,
+    subscription_status: 'inactive',
+    subscription_plan: 'basic',
+    subscription_stripe_id: null,
+    credits_remaining: 10,
+    total_videos_processed: 0,
+    storage_used_mb: 0,
+    max_storage_mb: 1024
+  }
+]
+🔍 Starting user verification for: ce502627-76da-4e77-9675-e3b68adcfbb6
+🔍 Verification attempt 1/5 for user: ce502627-76da-4e77-9675-e3b68adcfbb6
+✅ User verified exists on attempt 1: {
+  uuid: 'ce502627-76da-4e77-9675-e3b68adcfbb6',
+  email: 'test-1758524226683@vidfab.ai',
+  created_at: '2025-09-22T06:57:07.825+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: 'ce502627-76da-4e77-9675-e3b68adcfbb6',
+  email: 'test-1758524226683@vidfab.ai',
+  created_at: '2025-09-22T06:57:07.825+00:00',
+  is_active: true
+}
+❌ Final video creation attempt failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ce502627-76da-4e77-9675-e3b68adcfbb6) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+UserVideosDB.createVideo exception: {
+  code: '23503',
+  details: 'Key (user_id)=(ce502627-76da-4e77-9675-e3b68adcfbb6) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+❌ Video storage failed: {
+  code: '23503',
+  details: 'Key (user_id)=(ce502627-76da-4e77-9675-e3b68adcfbb6) is not present in table "users".',
+  hint: null,
+  message: 'insert or update on table "user_videos" violates foreign key constraint "user_videos_user_id_fkey"'
+}
+ POST /api/video/store 500 in 3054ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 534ms (552 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1193ms
+[?25h

@@ -1,0 +1,47 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1601ms
+ ✓ Compiled /middleware in 330ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 3.3s (1705 modules)
+ GET / 200 in 3685ms
+ ✓ Compiled in 449ms (811 modules)
+ GET / 200 in 29ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1337ms (1898 modules)
+ GET /create?tool=image-to-video 200 in 1596ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1072ms (2102 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1607ms
+ GET /create?tool=discover 200 in 41ms
+ GET / 200 in 20ms
+ GET /api/auth/csrf 200 in 21ms
+👋 User signed out: ithermocraft@hotmail.com
+ POST /api/auth/signout 200 in 9ms
+ GET / 200 in 197ms
+ GET /api/auth/session 200 in 18ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 539ms (2127 modules)
+ GET /login 200 in 601ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 531ms (2189 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 805823 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 805823
+🔍 Testing SMTP connection...
+❌ SMTP connection failed: Connection closed
+❌ Failed to send verification email to ithermocraft@hotmail.com: SMTP connection failed: Connection closed
+ POST /api/auth/send-verification-code 500 in 9548ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 690ms (2193 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 797ms

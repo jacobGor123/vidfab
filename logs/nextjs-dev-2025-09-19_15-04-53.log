@@ -1,0 +1,78 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1624ms
+ ✓ Compiled /middleware in 95ms
+ ✓ Compiled (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.4s (1215 modules)
+ ✓ Compiled in 537ms (593 modules)
+ GET /create?tool=video-effects 200 in 3948ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 729ms (1404 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1495ms
+ GET /create?tool=image-to-video 200 in 51ms
+ GET /create?tool=video-effects 200 in 15ms
+ GET /api/auth/session 200 in 22ms
+ GET /api/auth/session 200 in 19ms
+ GET /api/auth/session 200 in 19ms
+ ✓ Compiled in 893ms (1418 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 131ms
+ GET /create?tool=video-effects 200 in 62ms
+ ✓ Compiled in 479ms (1418 modules)
+ GET /create?tool=video-effects 200 in 92ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 110ms
+ GET /create?tool=image-to-video 200 in 24ms
+ GET /create?tool=text-to-video 200 in 15ms
+ GET /create?tool=image-to-video 200 in 15ms
+ GET /create?tool=video-effects 200 in 16ms
+ ✓ Compiled in 871ms (1216 modules)
+ GET /create?tool=video-effects 200 in 98ms
+ ✓ Compiled in 609ms (1216 modules)
+ GET /create?tool=video-effects 200 in 86ms
+ ✓ Compiled /api/auth/[...nextauth] in 349ms (824 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 987ms
+ GET /create?tool=my-assets 200 in 73ms
+ GET /create?tool=video-effects 200 in 17ms
+ ○ Compiling /api/images/upload ...
+ ✓ Compiled /api/images/upload in 891ms (1406 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // 验证用户身份
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: '未授权访问' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 2946ms
+ GET /create?tool=image-to-video 200 in 93ms
+ GET /create?tool=video-effects 200 in 18ms
+ ✓ Compiled in 2.7s (1216 modules)
+ GET /create?tool=video-effects 200 in 128ms
+ ✓ Compiled in 850ms (1216 modules)
+ GET /create?tool=video-effects 200 in 118ms
+ ✓ Compiled in 544ms (1216 modules)
+ GET /create?tool=video-effects 200 in 76ms

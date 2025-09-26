@@ -1,0 +1,111 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1520ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /middleware in 276ms (174 modules)
+ ○ Compiling / ...
+ ⨯ ./components/video-hero/video-hero-container.tsx
+Error: 
+  [31mx[0m Expected ';', '}' or <eof>
+    ,-[[36;1;4m/Users/jacob/Desktop/vidfab/components/video-hero/video-hero-container.tsx[0m:42:1]
+ [2m42[0m |       })
+ [2m43[0m |     
+ [2m44[0m |       const handleVideoEnd = () => {
+ [2m45[0m | [31;1m,[0m[31;1m-[0m[31;1m>[0m       isAutoPlaying: state.isAutoPlaying,
+ [2m46[0m | [31;1m|[0m[31;1m-[0m[31;1m>[0m       isPaused: state.isPaused,
+    : [31;1m`[0m[31;1m---[0m[33;1m              ^[0m
+    : [31;1m`[0m[31;1m---[0m[31;1m-[0m [31;1mThis is the expression part of an expression statement[0m
+ [2m47[0m |           itemsLength: HERO_VIDEO_ITEMS.length
+ [2m48[0m |         })
+ [2m49[0m |         
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/video-hero/video-hero-container.tsx
+./components/hero.tsx
+./app/(main)/page.tsx
+ ⨯ ./components/video-hero/video-hero-container.tsx
+Error: 
+  [31mx[0m Expected ';', '}' or <eof>
+    ,-[[36;1;4m/Users/jacob/Desktop/vidfab/components/video-hero/video-hero-container.tsx[0m:42:1]
+ [2m42[0m |       })
+ [2m43[0m |     
+ [2m44[0m |       const handleVideoEnd = () => {
+ [2m45[0m | [31;1m,[0m[31;1m-[0m[31;1m>[0m       isAutoPlaying: state.isAutoPlaying,
+ [2m46[0m | [31;1m|[0m[31;1m-[0m[31;1m>[0m       isPaused: state.isPaused,
+    : [31;1m`[0m[31;1m---[0m[33;1m              ^[0m
+    : [31;1m`[0m[31;1m---[0m[31;1m-[0m [31;1mThis is the expression part of an expression statement[0m
+ [2m47[0m |           itemsLength: HERO_VIDEO_ITEMS.length
+ [2m48[0m |         })
+ [2m49[0m |         
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/video-hero/video-hero-container.tsx
+./components/hero.tsx
+./app/(main)/page.tsx
+ ⨯ ./components/video-hero/video-hero-container.tsx
+Error: 
+  [31mx[0m Expected ';', '}' or <eof>
+    ,-[[36;1;4m/Users/jacob/Desktop/vidfab/components/video-hero/video-hero-container.tsx[0m:42:1]
+ [2m42[0m |       })
+ [2m43[0m |     
+ [2m44[0m |       const handleVideoEnd = () => {
+ [2m45[0m | [31;1m,[0m[31;1m-[0m[31;1m>[0m       isAutoPlaying: state.isAutoPlaying,
+ [2m46[0m | [31;1m|[0m[31;1m-[0m[31;1m>[0m       isPaused: state.isPaused,
+    : [31;1m`[0m[31;1m---[0m[33;1m              ^[0m
+    : [31;1m`[0m[31;1m---[0m[31;1m-[0m [31;1mThis is the expression part of an expression statement[0m
+ [2m47[0m |           itemsLength: HERO_VIDEO_ITEMS.length
+ [2m48[0m |         })
+ [2m49[0m |         
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/video-hero/video-hero-container.tsx
+./components/hero.tsx
+./app/(main)/page.tsx
+ GET / 500 in 6980ms
+ GET / 500 in 12ms
+ ✓ Compiled /_error in 995ms (1093 modules)
+ ✓ Compiled /_not-found in 188ms (1419 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /_next/static/webpack/493a227ab3010d09.webpack.hot-update.json 404 in 391ms
+ ○ Compiling / ...
+ ✓ Compiled / in 673ms (900 modules)
+ GET / 200 in 864ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 618ms (1224 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1150ms
+ GET /api/auth/session 200 in 18ms

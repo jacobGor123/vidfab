@@ -1,0 +1,921 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1923ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 580ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 3.5s (1778 modules)
+ GET / 200 in 4143ms
+ ✓ Compiled in 681ms (875 modules)
+ GET / 200 in 95ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1138ms (1967 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1929ms
+ ○ Compiling /create ...
+ ✓ Compiled /create in 1652ms (2236 modules)
+ GET /create 200 in 1789ms
+ GET /create?tool=discover 200 in 32ms
+ GET /create?tool=discover 200 in 15ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1006ms (2243 modules)
+ GET /login 200 in 1080ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 615ms (2305 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 180707 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 180707
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<48234d68-fd3e-de13-b424-14db87ad5b7d@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 180707'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<48234d68-fd3e-de13-b424-14db87ad5b7d@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 13710ms
+ ○ Compiling /api/auth/verify-code-login ...
+ ✓ Compiled /api/auth/verify-code-login in 894ms (2307 modules)
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 3402ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/error 200 in 59ms
+ GET /login 200 in 349ms
+ GET /api/auth/session 200 in 25ms
+ GET / 200 in 95ms
+ GET /api/auth/session 200 in 28ms
+ GET /login 200 in 35ms
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 334372 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 334372
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<73b111a1-ff12-8412-5cfc-096d228637b7@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 334372'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<73b111a1-ff12-8412-5cfc-096d228637b7@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 11516ms
+✅ Verification code verified for ithermocraft@hotmail.com
+ POST /api/auth/verify-code-login 200 in 1859ms
+ GET /api/auth/providers 200 in 7ms
+ GET /api/auth/csrf 200 in 5ms
+✅ User saved: ithermocraft@hotmail.com (98afed66-a09c-413b-852c-2e5de143af30)
+✅ User signed in: ithermocraft@hotmail.com via verification-code
+ POST /api/auth/callback/verification-code? 200 in 582ms
+ GET /api/auth/session 200 in 16ms
+ GET / 200 in 14ms
+ GET /create 200 in 33ms
+ GET /create?tool=discover 200 in 19ms
+ GET /create?tool=discover 200 in 21ms
+ GET /create?tool=text-to-video 200 in 13ms
+ ○ Compiling /api/video/generate ...
+ ✓ Compiled /api/video/generate in 1131ms (2311 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创作一个雪人...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创作一个雪人',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+✅ Video generation submitted successfully. Request ID: 35e6ad7511c54f62b478961256921377
+ POST /api/video/generate 200 in 5302ms
+ ✓ Compiled /api/video/status/[requestId] in 380ms (2313 modules)
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 974ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 177ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 179ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 179ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 179ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 180ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 178ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 177ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 179ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 175ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 177ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 174ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 173ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 180ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 178ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 180ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 179ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 179ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 175ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 177ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 175ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 175ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 177ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 182ms
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创作一个火人...',
+  model: 'vidu-q1',
+  resolution: '480p',
+  duration: 5
+}
+🚀 Submitting video generation request to seedance-v1-pro-t2v-480p: {
+  prompt: '创作一个火人',
+  aspect_ratio: '16:9',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1
+}
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+✅ Video generation submitted successfully. Request ID: 70ca09d40a154f369045b2db378d1ceb
+ POST /api/video/generate 200 in 338ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'created', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'created',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 188ms
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 756ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 177ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 174ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 178ms
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 184ms
+🔍 Checking status for request 35e6ad7511c54f62b478961256921377
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 35e6ad7511c54f62b478961256921377: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 35e6ad7511c54f62b478961256921377: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/35e6ad7511c54f62b478961256921377/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/35e6ad7511c54f62b478961256921377 200 in 179ms
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 186ms
+ ○ Compiling /api/video/simple-store ...
+ ✓ Compiled /api/video/simple-store in 698ms (2251 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 721ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 885ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 176ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 176ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 175ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 187ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 176ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 175ms
+🔍 Checking status for request 70ca09d40a154f369045b2db378d1ceb
+📊 Status check for 70ca09d40a154f369045b2db378d1ceb: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 70ca09d40a154f369045b2db378d1ceb: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/70ca09d40a154f369045b2db378d1ceb/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/70ca09d40a154f369045b2db378d1ceb 200 in 177ms
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 9ms
+ GET /create?tool=image-to-video 200 in 53ms
+ GET /create?tool=text-to-video 200 in 18ms
+ GET /create?tool=image-to-video 200 in 14ms
+ GET /create?tool=text-to-video 200 in 11ms
+ GET /create?tool=discover 200 in 12ms
+ GET /create?tool=text-to-video 200 in 14ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 44ms
+ GET /create?tool=image-to-video 200 in 36ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/auth/session 200 in 26ms
+ GET /api/auth/session 200 in 32ms
+ GET /api/auth/session 200 in 64ms
+ GET /api/auth/session 200 in 10ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/auth/session 200 in 57ms
+ ✓ Compiled in 821ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 25ms
+ ✓ Compiled in 443ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 19ms
+ ✓ Compiled in 806ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 98ms
+ ✓ Compiled in 374ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 21ms
+ ✓ Compiled in 482ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 160ms
+ ✓ Compiled in 286ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 25ms
+ ✓ Compiled in 454ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 44ms
+ ✓ Compiled in 225ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 23ms
+ ✓ Compiled in 314ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 43ms
+ ✓ Compiled in 832ms (2057 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=image-to-video 200 in 76ms
+ GET /create?tool=image-to-video 200 in 235ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1206ms (1248 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1404ms
+ ✓ Compiled in 617ms (2257 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=image-to-video 200 in 76ms
+ GET /create?tool=image-to-video 200 in 192ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 51ms
+ ✓ Compiled in 372ms (2257 modules)
+ GET /create?tool=image-to-video 200 in 53ms
+ ✓ Compiled in 278ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 23ms
+ ✓ Compiled in 881ms (2257 modules)
+ GET /create?tool=image-to-video 200 in 69ms
+ ✓ Compiled in 844ms (2257 modules)
+ GET /create?tool=image-to-video 200 in 91ms
+ ✓ Compiled in 425ms (2257 modules)
+ GET /create?tool=image-to-video 200 in 39ms
+ ✓ Compiled in 847ms (2257 modules)
+ GET /create?tool=image-to-video 200 in 60ms
+ ✓ Compiled in 467ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 248ms
+ ✓ Compiled in 739ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 92ms
+ ✓ Compiled in 711ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 33ms
+ ✓ Compiled in 301ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 21ms
+ ✓ Compiled in 201ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 19ms
+ ✓ Compiled in 438ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 59ms
+ ✓ Compiled in 773ms (2376 modules)
+ GET /create?tool=image-to-video 200 in 589ms
+ GET /create?tool=image-to-video 200 in 60ms
+ ✓ Compiled in 313ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 60ms
+ ✓ Compiled in 263ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 22ms
+ ✓ Compiled in 696ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 84ms
+ ✓ Compiled in 204ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 15ms
+ ✓ Compiled in 457ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 46ms
+ ✓ Compiled in 689ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 36ms
+ ✓ Compiled in 728ms (2057 modules)
+ GET /create?tool=image-to-video 200 in 64ms
+ ✓ Compiled in 670ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 23ms
+ ✓ Compiled in 668ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 27ms
+ ✓ Compiled in 305ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 23ms
+ ✓ Compiled in 212ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 28ms
+ ✓ Compiled in 754ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 50ms
+ ✓ Compiled in 295ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 20ms
+ ✓ Compiled in 560ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 31ms
+ ✓ Compiled in 493ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 17ms
+ ✓ Compiled in 1687ms (2376 modules)
+ GET /create?tool=image-to-video 200 in 1123ms
+ GET /create?tool=image-to-video 200 in 25ms
+ ✓ Compiled in 237ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 21ms
+ ✓ Compiled in 648ms (2376 modules)
+ GET /create?tool=image-to-video 200 in 525ms
+ GET /create?tool=image-to-video 200 in 55ms
+ ✓ Compiled in 622ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 56ms
+ ✓ Compiled in 242ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 30ms
+ ✓ Compiled in 261ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 33ms
+ ✓ Compiled in 417ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 52ms
+ ✓ Compiled in 1181ms (2376 modules)
+ GET /create?tool=image-to-video 200 in 938ms
+ GET /create?tool=image-to-video 200 in 22ms
+ ✓ Compiled in 473ms (1009 modules)
+ GET /create?tool=image-to-video 200 in 20ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⨯ [Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.] {
+  digest: '3233105805'
+}
+ GET /create?tool=image-to-video 500 in 875ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⨯ [Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.] {
+  digest: '3233105805'
+}
+ GET /create?tool=image-to-video 500 in 1658ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⨯ [Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.] {
+  digest: '3233105805'
+}
+ GET /create?tool=image-to-video 500 in 1921ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⨯ [Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.] {
+  digest: '3233105805'
+}
+ GET /create?tool=image-to-video 500 in 1208ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⨯ [Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.] {
+  digest: '3233105805'
+}
+ GET /create?tool=image-to-video 500 in 493ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⨯ [Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.] {
+  digest: '3233105805'
+}
+ GET /create?tool=image-to-video 500 in 1140ms
+ ⚠ ./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+
+./components/create/create-content.tsx
+Attempted import error: 'ImageToVideoPanel' is not exported from './image-to-video-panel' (imported as 'ImageToVideoPanel').
+
+Import trace for requested module:
+./components/create/create-content.tsx
+./app/(main)/create/page.tsx
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ [Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.] {
+  digest: '3233105805'
+}
+ GET /create?tool=image-to-video 500 in 358ms

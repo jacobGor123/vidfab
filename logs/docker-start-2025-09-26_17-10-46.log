@@ -1,0 +1,6 @@
+ Container vidfab-redis  Running
+ Container vidfab-app  Creating
+ Container vidfab-app  Error response from daemon: Conflict. The container name "/vidfab-app" is already in use by container "5c0c7f549b5994ab638b494b1ed6e09b50e9166a90dfd16fb730fbfdb5f4d91b". You have to remove (or rename) that container to be able to reuse that name.
+Error response from daemon: Conflict. The container name "/vidfab-app" is already in use by container "5c0c7f549b5994ab638b494b1ed6e09b50e9166a90dfd16fb730fbfdb5f4d91b". You have to remove (or rename) that container to be able to reuse that name.
+NAME           IMAGE            COMMAND                   SERVICE   CREATED          STATUS                    PORTS
+vidfab-redis   redis:7-alpine   "docker-entrypoint.s…"   redis     39 minutes ago   Up 39 minutes (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp

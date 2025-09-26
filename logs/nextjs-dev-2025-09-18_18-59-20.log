@@ -1,0 +1,422 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.1s (552 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 3357ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 529ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 5.5s (1442 modules)
+ GET /create?tool=image-to-video 200 in 6286ms
+ GET /create?tool=text-to-video 200 in 3955ms
+ GET /create?tool=discover 200 in 3603ms
+ ✓ Compiled in 821ms (606 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 87ms
+ GET /create?tool=image-to-video 200 in 23ms
+ ✓ Compiled in 882ms (1442 modules)
+ GET /create?tool=image-to-video 200 in 77ms
+ ✓ Compiled in 599ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 108ms
+ ✓ Compiled in 813ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 63ms
+ ✓ Compiled /api/auth/[...nextauth] in 195ms (836 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 380ms
+ ✓ Compiled in 697ms (1442 modules)
+ GET /create?tool=image-to-video 200 in 115ms
+ ✓ Compiled in 1012ms (1442 modules)
+ GET /create?tool=image-to-video 200 in 104ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 113ms
+ GET /create?tool=image-to-video 200 in 206ms
+ GET /api/auth/session 200 in 15ms
+ GET /create?tool=discover 200 in 19ms
+ GET /create?tool=image-to-video 200 in 29ms
+ ○ Compiling /api/video/generate ...
+ ✓ Compiled /api/video/generate in 978ms (1432 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Video generation request body: {
+  prompt: '"animate the image..."',
+  promptLength: 17,
+  model: 'vidfab-pro',
+  resolution: '720p',
+  duration: 8,
+  aspectRatio: '9:16',
+  hasImage: true,
+  imageType: 'provided'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: 'animate the image...',
+  model: 'vidfab-pro',
+  resolution: '720p',
+  duration: 8,
+  generationType: 'image-to-video',
+  hasImage: true
+}
+🚀 Submitting image-to-video request to veo3 (veo3-fast-i2v): {
+  endpoint: '/google/veo3-fast/image-to-video',
+  prompt: 'animate the image',
+  aspect_ratio: '9:16',
+  duration: 8,
+  resolution: '720p',
+  generate_audio: true,
+  image: '[IMAGE_URL: https://static.vidfab.ai/user-image/vidfab-2910ad4...]'
+}
+🔥 API Request Failed: {
+  status: 400,
+  statusText: 'Bad Request',
+  url: 'https://api.wavespeed.ai/api/v3/google/veo3-fast/image-to-video',
+  errorData: {
+    code: 400,
+    message: 'invalid request body, Error at "/aspect_ratio": value is not one of the allowed values ["16:9"]'
+  },
+  rawErrorText: '{"code":400,"message":"invalid request body, Error at \\"/aspect_ratio\\": value is not one of the allowed values [\\"16:9\\"]"}',
+  requestMethod: 'POST'
+}
+❌ Video generation request failed: Error [WavespeedAPIError]: HTTP 400: Bad Request
+    at makeAPIRequest (lib/services/wavespeed-api.ts:123:10)
+    at async eval (lib/services/wavespeed-api.ts:229:21)
+    at async retryWithBackoff (lib/services/wavespeed-api.ts:48:13)
+    at async POST (app/api/video/generate/route.ts:76:19)
+  121 |     })
+  122 |
+> 123 |     throw new WavespeedAPIError(
+      |          ^
+  124 |       errorMessage,
+  125 |       response.status,
+  126 |       errorData?.code {
+  status: 400,
+  code: 400
+}
+ POST /api/video/generate 400 in 3237ms
+ ✓ Compiled in 466ms (606 modules)
+ GET /create?tool=image-to-video 200 in 74ms
+ ✓ Compiled in 826ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 114ms
+ ✓ Compiled in 642ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 69ms
+ ✓ Compiled in 510ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 98ms
+ ✓ Compiled in 497ms (1240 modules)
+ GET /create?tool=image-to-video 200 in 57ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 731ms (836 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 976ms
+ GET /create?tool=image-to-video 200 in 217ms
+ GET /api/auth/session 200 in 13ms
+ GET /create?tool=text-to-video 200 in 12ms
+ ✓ Compiled /api/video/generate in 467ms (840 modules)
+Error: Route "/api/video/generate" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+Error: Route "/api/video/generate" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/generate/route.ts:18:30)
+  16 |   try {
+  17 |     // 验证用户登录状态
+> 18 |     const session = await auth()
+     |                              ^
+  19 |
+  20 |     if (!session?.user) {
+  21 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔍 Video generation request body: {
+  prompt: '"创作一个比卡丘在跟喷火龙打架的场面..."',
+  promptLength: 17,
+  model: 'vidfab-pro',
+  resolution: '720p',
+  duration: 8,
+  aspectRatio: '9:16',
+  hasImage: false,
+  imageType: 'MISSING'
+}
+🎬 User ithermocraft@hotmail.com requesting video generation: {
+  prompt: '创作一个比卡丘在跟喷火龙打架的场面...',
+  model: 'vidfab-pro',
+  resolution: '720p',
+  duration: 8,
+  generationType: 'text-to-video',
+  hasImage: false
+}
+🚀 Submitting text-to-video request to veo3 (veo3-fast-t2v): {
+  endpoint: '/google/veo3-fast',
+  prompt: '创作一个比卡丘在跟喷火龙打架的场面',
+  aspect_ratio: '9:16',
+  duration: 8,
+  resolution: '720p',
+  generate_audio: true,
+  image: undefined
+}
+ GET /create?tool=text-to-video 200 in 71ms
+✅ text-to-video generation submitted successfully. Request ID: efb630c650954a42b807b741dccf55a7
+ POST /api/video/generate 200 in 3121ms
+ ✓ Compiled /api/video/status/[requestId] in 273ms (1434 modules)
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 1087ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 361ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 358ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 365ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 355ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 356ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 351ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 350ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 353ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 355ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 362ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 359ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 368ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 356ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 356ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 352ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 351ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 354ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 350ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 349ms
+🔍 Checking status for request efb630c650954a42b807b741dccf55a7
+📊 Status check for efb630c650954a42b807b741dccf55a7: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for efb630c650954a42b807b741dccf55a7: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/efb630c650954a42b807b741dccf55a7/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/efb630c650954a42b807b741dccf55a7 200 in 382ms
+ ○ Compiling /api/video/simple-store ...
+ ✓ Compiled /api/video/simple-store in 943ms (1248 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 1028ms
+ ✓ Compiled /api/auth/[...nextauth] in 338ms (836 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 487ms
+ ✓ Compiled in 922ms (1240 modules)
+ GET /create?tool=text-to-video 200 in 127ms
+ ✓ Compiled in 503ms (1240 modules)
+ GET /create?tool=text-to-video 200 in 65ms
+ ✓ Compiled /api/auth/[...nextauth] in 253ms (836 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 417ms
+ ✓ Compiled in 746ms (1442 modules)
+ GET /create?tool=text-to-video 200 in 79ms
+ ✓ Compiled in 410ms (1442 modules)
+ GET /create?tool=text-to-video 200 in 59ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 485ms
+ GET /create?tool=image-to-video 200 in 21ms

@@ -1,0 +1,67 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverComponentsExternalPackages' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ `experimental.serverComponentsExternalPackages` has been moved to `serverExternalPackages`. Please update your next.config.mjs file accordingly.
+ ✓ Ready in 1449ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 514ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling / ...
+ ✓ Compiled / in 5.2s (1659 modules)
+ GET / 200 in 5692ms
+ ✓ Compiled in 612ms (788 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1977ms (1849 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2676ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 807ms (1890 modules)
+ GET /login 200 in 928ms
+ GET /login 200 in 16ms
+ ✓ Compiled /signup in 335ms (1701 modules)
+ GET /signup 200 in 442ms
+ GET /login 200 in 17ms
+ GET /signup 200 in 10ms
+ GET /login 200 in 9ms
+ GET / 200 in 176ms
+ ✓ Compiled /api/auth/[...nextauth] in 222ms (1105 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 396ms
+ GET /signup 200 in 59ms
+ GET /login 200 in 14ms
+ GET /login 200 in 16ms
+ GET /login 200 in 147ms
+ GET /api/auth/session 200 in 15ms
+ GET / 200 in 21ms
+ GET /signup 200 in 18ms
+ GET /login 200 in 16ms
+ ✓ Compiled in 468ms (811 modules)
+ GET /login 200 in 26ms
+ ✓ Compiled in 595ms (1697 modules)
+ GET /login 200 in 95ms
+ ✓ Compiled in 789ms (2018 modules)
+ GET /login 200 in 462ms
+ GET /login 200 in 14ms
+ ✓ Compiled in 417ms (1138 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /login 200 in 17ms
+ ✓ Compiled in 238ms (1138 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /login 200 in 43ms
+ ✓ Compiled in 167ms (805 modules)
+ GET /login 200 in 18ms
+ ✓ Compiled in 602ms (1699 modules)
+ GET /login 200 in 63ms
+ ✓ Compiled in 493ms (1138 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /login 200 in 17ms

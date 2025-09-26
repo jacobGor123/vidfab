@@ -1,0 +1,379 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1561ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1364ms (552 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2239ms
+ ✓ Compiled /middleware in 472ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.6s (1210 modules)
+ GET /create?tool=video-effects 200 in 3407ms
+ GET /create?tool=text-to-video 200 in 3890ms
+ ✓ Compiled in 348ms (591 modules)
+ GET /create?tool=image-to-video 200 in 15ms
+ GET /create?tool=video-effects 200 in 15ms
+ GET /create?tool=image-to-video 200 in 13ms
+ GET /create?tool=video-effects 200 in 14ms
+ GET /create?tool=image-to-video 200 in 14ms
+ GET /create?tool=video-effects 200 in 26ms
+ GET /create?tool=image-to-video 200 in 13ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 896ms (1200 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1313ms
+ ✓ Compiled /api/auth/[...nextauth] in 1394ms (1416 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 540ms
+ GET /create?tool=video-effects 200 in 64ms
+ ✓ Compiled in 666ms (1416 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 83ms
+ ✓ Compiled in 442ms (591 modules)
+ ✓ Compiled /api/auth/[...nextauth] in 258ms (276 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 381ms
+ ✓ Compiled /create in 224ms (821 modules)
+ GET /create?tool=image-to-video 200 in 343ms
+ GET /create?tool=video-effects 200 in 10ms
+ ✓ Compiled /api/images/upload in 363ms (1402 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // Verify user authentication - Next.js 15 compatible
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // Verify user authentication - Next.js 15 compatible
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 2593ms
+ GET /api/auth/session 200 in 44ms
+ GET /create?tool=video-effects 200 in 161ms
+ GET /api/auth/session 200 in 9ms
+ ✓ Compiled in 338ms (1416 modules)
+ GET /create?tool=video-effects 200 in 329ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 134ms
+ ✓ Compiled in 719ms (1416 modules)
+ ✓ Compiled in 0ms (825 modules)
+ ✓ Compiled in 0ms (825 modules)
+ ✓ Compiled in 0ms (825 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 752ms
+ GET /create?tool=video-effects 200 in 745ms
+ GET /create?tool=video-effects 200 in 141ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 33ms
+ ✓ Compiled in 427ms (1416 modules)
+ GET /create?tool=video-effects 200 in 46ms
+ ✓ Compiled in 702ms (1416 modules)
+ ✓ Compiled in 1ms (825 modules)
+ ✓ Compiled in 0ms (825 modules)
+ ✓ Compiled in 0ms (825 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 670ms
+ GET /create?tool=video-effects 200 in 840ms
+ ✓ Compiled in 395ms (1416 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 58ms
+ GET /create?tool=video-effects 200 in 235ms
+ GET /api/auth/session 200 in 118ms
+ ✓ Compiled in 941ms (1416 modules)
+ GET /create?tool=video-effects 200 in 88ms
+ GET /create?tool=image-to-video 200 in 16ms
+ GET /create?tool=video-effects 200 in 18ms
+ ✓ Compiled in 608ms (1416 modules)
+ ✓ Compiled in 0ms (825 modules)
+ ✓ Compiled in 0ms (825 modules)
+ ✓ Compiled in 0ms (825 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 616ms
+ GET /create?tool=video-effects 200 in 698ms
+ GET /create?tool=image-to-video 200 in 12ms
+ GET /create?tool=image-to-video 200 in 19ms
+ GET /create?tool=video-effects 200 in 18ms
+ GET /create?tool=image-to-video 200 in 17ms
+ GET /create?tool=video-effects 200 in 30ms
+ GET /create?tool=image-to-video 200 in 22ms
+ GET /create?tool=video-effects 200 in 13ms
+ GET /create?tool=text-to-video 200 in 21ms
+ GET /create?tool=image-to-video 200 in 18ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 79ms
+ GET /create?tool=video-effects 200 in 18ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // Verify user authentication - Next.js 15 compatible
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // Verify user authentication - Next.js 15 compatible
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: 'Unauthorized access' },
+ POST /api/images/upload 200 in 1775ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/images/upload/route.ts:80:30)
+  78 |   try {
+  79 |     // Verify user authentication - Next.js 15 compatible
+> 80 |     const session = await auth()
+     |                              ^
+  81 |     if (!session?.user?.uuid) {
+  82 |       return NextResponse.json(
+  83 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/images/upload/route.ts:80:30)
+  78 |   try {
+  79 |     // Verify user authentication - Next.js 15 compatible
+> 80 |     const session = await auth()
+     |                              ^
+  81 |     if (!session?.user?.uuid) {
+  82 |       return NextResponse.json(
+  83 |         { error: 'Unauthorized access' },
+ DELETE /api/images/upload?imageId=8ccb8123-e92e-4160-bfb0-b40b572917bc 200 in 883ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // Verify user authentication - Next.js 15 compatible
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:13:30)
+  11 |   try {
+  12 |     // Verify user authentication - Next.js 15 compatible
+> 13 |     const session = await auth()
+     |                              ^
+  14 |     if (!session?.user?.uuid) {
+  15 |       return NextResponse.json(
+  16 |         { error: 'Unauthorized access' },
+ POST /api/images/upload 200 in 1383ms
+ ✓ Compiled /api/video/effects in 328ms (1404 modules)
+Error: Route "/api/video/effects" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:28:30)
+  26 |   try {
+  27 |     // Verify user authentication status
+> 28 |     const session = await auth()
+     |                              ^
+  29 |
+  30 |     if (!session?.user) {
+  31 |       return NextResponse.json(
+Error: Route "/api/video/effects" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:28:30)
+  26 |   try {
+  27 |     // Verify user authentication status
+> 28 |     const session = await auth()
+     |                              ^
+  29 |
+  30 |     if (!session?.user) {
+  31 |       return NextResponse.json(
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🎬 Video effects generation request: {
+  effectId: 'muscling',
+  effectName: 'Muscling',
+  hasImage: true,
+  userId: '22392e66-c25b-428b-b443-727f8ce406f7'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/muscling',
+  effectId: 'muscling',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: 'a7cd9cc11952484f84eecac4fc4d2bc5',
+  error: undefined
+}
+✅ Video effects generation submitted: {
+  requestId: 'a7cd9cc11952484f84eecac4fc4d2bc5',
+  effectId: 'muscling',
+  userId: '22392e66-c25b-428b-b443-727f8ce406f7'
+}
+ POST /api/video/effects 200 in 1467ms
+ ✓ Compiled /api/video/status/[requestId] in 362ms (1408 modules)
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 1244ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 195ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 193ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 197ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 197ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 196ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 191ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 193ms
+🔍 Checking status for request a7cd9cc11952484f84eecac4fc4d2bc5
+📊 Status check for a7cd9cc11952484f84eecac4fc4d2bc5: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for a7cd9cc11952484f84eecac4fc4d2bc5: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/a7cd9cc11952484f84eecac4fc4d2bc5/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/a7cd9cc11952484f84eecac4fc4d2bc5 200 in 190ms
+ ✓ Compiled /api/video/simple-store in 222ms (1410 modules)
+💾 Simple store called for: ithermocraft@hotmail.com
+ POST /api/video/simple-store 200 in 240ms
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/images/upload/route.ts:80:30)
+  78 |   try {
+  79 |     // Verify user authentication - Next.js 15 compatible
+> 80 |     const session = await auth()
+     |                              ^
+  81 |     if (!session?.user?.uuid) {
+  82 |       return NextResponse.json(
+  83 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/images/upload/route.ts:80:30)
+  78 |   try {
+  79 |     // Verify user authentication - Next.js 15 compatible
+> 80 |     const session = await auth()
+     |                              ^
+  81 |     if (!session?.user?.uuid) {
+  82 |       return NextResponse.json(
+  83 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ DELETE /api/images/upload?imageId=b4945349-7a0b-4ac0-b134-fc7ed26592da 200 in 1003ms
+ GET /create?tool=my-assets 200 in 43ms
+ GET /create?tool=my-assets 200 in 160ms
+ GET /api/auth/session 200 in 13ms
+ GET /create?tool=video-effects 200 in 22ms
+ GET /create?tool=my-assets 200 in 18ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1212ms (1406 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1516ms
+ GET /create?tool=my-assets 200 in 158ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 37ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 63ms
+ GET /create?tool=my-assets 200 in 66ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 38ms
+ GET /api/auth/session 200 in 30ms
+ ✓ Compiled in 1696ms (1210 modules)
+ GET /create?tool=my-assets 200 in 126ms
+ ✓ Compiled in 494ms (1210 modules)
+ GET /create?tool=my-assets 200 in 143ms
+ ✓ Compiled in 395ms (1210 modules)
+ GET /create?tool=my-assets 200 in 131ms
+ ✓ Compiled in 503ms (1210 modules)
+ GET /create?tool=my-assets 200 in 59ms
+ ✓ Compiled in 620ms (1210 modules)
+ GET /create?tool=my-assets 200 in 45ms
+ ✓ Compiled in 573ms (1210 modules)
+ GET /create?tool=my-assets 200 in 70ms
+ ✓ Compiled in 568ms (1210 modules)
+ GET /create?tool=my-assets 200 in 99ms
+ ✓ Compiled in 779ms (1210 modules)
+ GET /create?tool=my-assets 200 in 50ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1711ms (821 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 2192ms
+ GET /create?tool=my-assets 200 in 414ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 604ms (1402 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 898ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 72ms
+[?25h

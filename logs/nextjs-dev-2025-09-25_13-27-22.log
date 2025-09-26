@@ -1,0 +1,65 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ✓ Ready in 1685ms
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled /middleware in 210ms (174 modules)
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.6s (1117 modules)
+ GET /create?tool=text-to-video 200 in 4026ms
+ ✓ Compiled in 463ms (559 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /api/auth/[...nextauth] in 676ms (1106 modules)
+ ✓ Compiled (1430 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1534ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 1254ms
+ GET /api/auth/session 200 in 1259ms
+ ✓ Compiled /api/user/videos in 376ms (911 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 1128ms
+ GET /api/auth/session 200 in 15ms
+ GET /create?tool=text-to-video 200 in 166ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 63ms
+ GET /api/auth/session 200 in 15ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc 200 in 908ms
+ ✓ Compiled /api/video/generate in 328ms (915 modules)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🚀 Submitting text-to-video request to bytedance (seedance-v1-pro-t2v-480p): {
+  endpoint: '/bytedance/seedance-v1-pro-t2v-480p',
+  prompt: '生成一个大西瓜',
+  duration: 5,
+  camera_fixed: false,
+  seed: -1,
+  aspect_ratio: '16:9',
+  image: undefined
+}
+✅ text-to-video generation submitted successfully. Request ID: 42576ced25334955b53523d2bf2b8b99
+ POST /api/video/generate 200 in 1331ms
+ ✓ Compiled /api/video/status/[requestId] in 140ms (917 modules)
+📊 Status check for 42576ced25334955b53523d2bf2b8b99: { status: 'processing', progress: undefined, hasOutputs: false }
+ GET /api/video/status/42576ced25334955b53523d2bf2b8b99 200 in 621ms

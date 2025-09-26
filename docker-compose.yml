@@ -1,0 +1,89 @@
+services:
+  # VidFab AI Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Pass build-time environment variables with explicit values
+        - NODE_ENV=production
+        - NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true
+        - NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED=true
+        - NEXT_PUBLIC_AUTH_GOOGLE_ID=827684711935-so1rhvk9iu5a86f9ko0bik020v8v9jgn.apps.googleusercontent.com
+        - NEXT_PUBLIC_APP_URL=http://localhost:3000
+        - NEXT_PUBLIC_SUPABASE_URL=https://ycahbhhuzgixfrljtqmi.supabase.co
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljYWhiaGh1emdpeGZybGp0cW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NzI2OTMsImV4cCI6MjA3MzI0ODY5M30.OFKNQCgBkUaxcV8WjMZWPr27d1Mcf6ox6-iHoSABZbc
+    container_name: vidfab-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    environment:
+      - PORT=${PORT:-3000}
+      - HOST=${HOST:-0.0.0.0}
+      # Remove NODE_ENV conflict - let .env.local control this
+      - DOCKER_ENVIRONMENT=true
+      - TRUST_PROXY=${TRUST_PROXY:-true}
+      # Override Redis configuration for Docker network
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env.local
+    depends_on:
+      - redis
+    networks:
+      - vidfab-network
+    volumes:
+      - ./logs:/app/logs  # Mount logs directory
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis service for queue management
+  redis:
+    image: redis:7-alpine
+    container_name: vidfab-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - vidfab-network
+
+  # Redis Commander (optional, for Redis GUI management)
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    container_name: vidfab-redis-commander
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=admin123
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - vidfab-network
+    profiles:
+      - debug  # Only start with --profile debug
+
+# Named volumes for data persistence
+volumes:
+  redis_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  vidfab-network:
+    driver: bridge

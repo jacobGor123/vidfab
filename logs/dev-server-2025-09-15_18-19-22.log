@@ -1,0 +1,51 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.10.24:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1606ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.2s (683 modules)
+ GET /_next/static/media/e4af272ccee01ff0-s.p.woff2 404 in 2558ms
+ GET /_next/static/media/8a1d8947e5852e30-s.p.woff2 404 in 2560ms
+ GET /_next/static/media/8a1d8947e5852e30-s.p.woff2 404 in 2569ms
+ ✓ Compiled in 476ms (327 modules)
+ ✓ Compiled /middleware in 312ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /login ...
+ ✓ Compiled /login in 574ms (794 modules)
+ GET /login 200 in 720ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 45ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 865ms (995 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1584ms
+ ○ Compiling /api/auth/send-verification-code ...
+ ✓ Compiled /api/auth/send-verification-code in 755ms (1057 modules)
+✅ Verification code generated for ithermocraft@hotmail.com
+📧 Sending verification code 778708 to ithermocraft@hotmail.com
+🔐 Development Mode - Verification code for ithermocraft@hotmail.com: 778708
+🔍 Testing SMTP connection...
+✅ SMTP connection verified
+📧 Sending email to ithermocraft@hotmail.com...
+✅ Email sent successfully: {
+  messageId: '<a38c3ccb-405f-040c-8a58-bc5766a94abb@vidfab.ai>',
+  to: 'ithermocraft@hotmail.com',
+  subject: 'VidFab - Your Verification Code: 778708'
+}
+✅ Verification email sent successfully to ithermocraft@hotmail.com { messageId: '<a38c3ccb-405f-040c-8a58-bc5766a94abb@vidfab.ai>' }
+ POST /api/auth/send-verification-code 200 in 9081ms
+ GET /login 200 in 138ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 35ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 47ms
+ ✓ Compiled in 448ms (362 modules)
+ GET /login 200 in 70ms
+ ✓ Compiled in 295ms (362 modules)
+ GET /login 200 in 26ms

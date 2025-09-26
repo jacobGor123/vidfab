@@ -1,0 +1,31 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1952ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.6s (552 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 3450ms
+ GET /api/auth/session 200 in 77ms
+ GET /api/auth/session 200 in 32ms
+ GET /api/auth/session 200 in 55ms
+ GET /api/auth/session 200 in 37ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /middleware in 7.4s (1310 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ○ Compiling /create ...
+ ✓ Compiled /create in 4.5s (1406 modules)
+ GET /create?tool=image-to-video 200 in 4605ms
+ GET /create?tool=video-effects 200 in 4611ms
+ GET /api/auth/session 404 in 12649ms
+ GET /create?tool=video-effects 200 in 4628ms
+ GET /_next/static/chunks/main-app.js?v=1758272381832 404 in 58ms
+[?25h

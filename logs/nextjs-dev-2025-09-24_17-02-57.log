@@ -1,0 +1,55 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+  ▲ Next.js 14.2.17
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ✓ Ready in 1593ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 828ms (386 modules)
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'custom')
+    at <unknown> (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115:12)
+    at (middleware)/./node_modules/openid-client/lib/device_flow_handle.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2172:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/client.js:32:26)
+    at (middleware)/./node_modules/openid-client/lib/client.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2162:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/issuer.js:5:19)
+    at (middleware)/./node_modules/openid-client/lib/issuer.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2402:1)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 608ms (254 modules)
+ GET / 404 in 3ms
+ ○ Compiling /_not-found ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled /_not-found in 6s (941 modules)
+ ⨯ Error [ERR_HTTP_HEADERS_SENT]: Cannot append headers after they are sent to the client
+    at ServerResponse.appendHeader (node:_http_outgoing:711:11)
+    at AsyncLocalStorage.run (node:async_hooks:346:14)
+digest: "2221684407"
+ ✓ Compiled in 320ms (536 modules)
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'custom')
+    at <unknown> (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/device_flow_handle.js:115:12)
+    at (middleware)/./node_modules/openid-client/lib/device_flow_handle.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2172:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/client.js:32:26)
+    at (middleware)/./node_modules/openid-client/lib/client.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2162:1)
+    at __webpack_require__ (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:37:33)
+    at fn (file:///Users/jacob/Desktop/vidfab/.next/server/edge-runtime-webpack.js:315:21)
+    at eval (webpack-internal:///(middleware)/./node_modules/openid-client/lib/issuer.js:5:19)
+    at (middleware)/./node_modules/openid-client/lib/issuer.js (file:///Users/jacob/Desktop/vidfab/.next/server/middleware.js:2402:1)
+ GET /create?tool=video-effects 404 in 2ms
+ ⨯ Error [ERR_HTTP_HEADERS_SENT]: Cannot append headers after they are sent to the client
+    at ServerResponse.appendHeader (node:_http_outgoing:711:11)
+    at AsyncLocalStorage.run (node:async_hooks:346:14)
+digest: "2221684407"

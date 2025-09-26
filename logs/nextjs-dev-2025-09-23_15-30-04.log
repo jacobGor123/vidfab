@@ -1,0 +1,265 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.50.96:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+ ✓ Compiled /middleware in 420ms (333 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+ ✓ Compiled /create in 3.3s (1201 modules)
+ GET /create?tool=video-effects 200 in 3829ms
+ ✓ Compiled in 526ms (586 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1362ms (1390 modules)
+ GET /create?tool=text-to-video 200 in 53ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 1892ms
+ GET /create?tool=image-to-video 200 in 14ms
+ GET /create?tool=discover 200 in 17ms
+ GET /create?tool=video-effects 200 in 15ms
+ GET /create?tool=discover 200 in 11ms
+ GET /create?tool=video-effects 200 in 16ms
+ ○ Compiling /api/images/upload ...
+ ✓ Compiled /api/images/upload in 627ms (1394 modules)
+Error: Route "/api/images/upload" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+Error: Route "/api/images/upload" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/images/upload/route.ts:17:30)
+  15 |
+  16 |     // Verify user authentication - Next.js 15 compatible
+> 17 |     const session = await auth()
+     |                              ^
+  18 |     if (!session?.user?.uuid) {
+  19 |       return NextResponse.json(
+  20 |         { error: 'Unauthorized access' },
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ POST /api/images/upload 200 in 2810ms
+ ✓ Compiled /api/video/effects in 421ms (1396 modules)
+Error: Route "/api/video/effects" used `headers().get('x-forwarded-proto')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+Error: Route "/api/video/effects" used `headers().get('cookie')`. `headers()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at POST (app/api/video/effects/route.ts:32:30)
+  30 |
+  31 |     // Verify user authentication status
+> 32 |     const session = await auth()
+     |                              ^
+  33 |
+  34 |     console.log('🔐 Auth check for video effects:', {
+  35 |       hasSession: !!session,
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+🔐 Auth check for video effects: {
+  hasSession: true,
+  hasUser: true,
+  userUuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  userEmail: 'jsdasww593@gmail.com',
+  sessionKeys: [ 'user', 'expires' ],
+  userKeys: [ 'name', 'email', 'uuid', 'nickname', 'avatar_url', 'created_at' ]
+}
+🎬 Video effects generation request: {
+  effectId: 'cartoon-doll',
+  effectName: 'Cartoon Doll',
+  hasImage: true,
+  userId: '66f306c4-bac8-4f29-a3cf-554ffe871e86'
+}
+🌊 Calling Wavespeed Video Effects API: {
+  url: 'https://api.wavespeed.ai/api/v3/video-effects/cartoon-doll',
+  effectId: 'cartoon-doll',
+  hasImage: true
+}
+🌊 Wavespeed Video Effects API response: {
+  status: 200,
+  hasRequestId: true,
+  requestId: '2a2c38f989584175bc44248ff50c6e30',
+  error: undefined,
+  effectId: 'cartoon-doll'
+}
+✅ Video effects generation submitted: {
+  requestId: '2a2c38f989584175bc44248ff50c6e30',
+  effectId: 'cartoon-doll',
+  userId: '66f306c4-bac8-4f29-a3cf-554ffe871e86'
+}
+ POST /api/video/effects 200 in 2904ms
+ ✓ Compiled /api/video/status/[requestId] in 500ms (1400 modules)
+🔍 Checking status for request 2a2c38f989584175bc44248ff50c6e30
+📊 Status check for 2a2c38f989584175bc44248ff50c6e30: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2a2c38f989584175bc44248ff50c6e30: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2a2c38f989584175bc44248ff50c6e30 200 in 1311ms
+🔍 Checking status for request 2a2c38f989584175bc44248ff50c6e30
+📊 Status check for 2a2c38f989584175bc44248ff50c6e30: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2a2c38f989584175bc44248ff50c6e30: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2a2c38f989584175bc44248ff50c6e30 200 in 274ms
+🔍 Checking status for request 2a2c38f989584175bc44248ff50c6e30
+📊 Status check for 2a2c38f989584175bc44248ff50c6e30: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2a2c38f989584175bc44248ff50c6e30: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2a2c38f989584175bc44248ff50c6e30 200 in 472ms
+🔍 Checking status for request 2a2c38f989584175bc44248ff50c6e30
+📊 Status check for 2a2c38f989584175bc44248ff50c6e30: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2a2c38f989584175bc44248ff50c6e30: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2a2c38f989584175bc44248ff50c6e30 200 in 332ms
+🔍 Checking status for request 2a2c38f989584175bc44248ff50c6e30
+📊 Status check for 2a2c38f989584175bc44248ff50c6e30: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2a2c38f989584175bc44248ff50c6e30: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2a2c38f989584175bc44248ff50c6e30 200 in 489ms
+🔍 Checking status for request 2a2c38f989584175bc44248ff50c6e30
+📊 Status check for 2a2c38f989584175bc44248ff50c6e30: { status: 'processing', progress: undefined, hasOutputs: false }
+📊 Status result for 2a2c38f989584175bc44248ff50c6e30: {
+  status: 'processing',
+  progress: 0,
+  hasResult: false,
+  outputs: [],
+  outputsLength: 0
+}
+ GET /api/video/status/2a2c38f989584175bc44248ff50c6e30 200 in 272ms
+🔍 Checking status for request 2a2c38f989584175bc44248ff50c6e30
+📊 Status check for 2a2c38f989584175bc44248ff50c6e30: { status: 'completed', progress: undefined, hasOutputs: true }
+📊 Status result for 2a2c38f989584175bc44248ff50c6e30: {
+  status: 'completed',
+  progress: 0,
+  hasResult: true,
+  outputs: [
+    'https://d1q70pf5vjeyhc.cloudfront.net/predictions/2a2c38f989584175bc44248ff50c6e30/1.mp4'
+  ],
+  outputsLength: 1
+}
+ GET /api/video/status/2a2c38f989584175bc44248ff50c6e30 200 in 589ms
+ ✓ Compiled /api/video/store in 340ms (1404 modules)
+🔄 Internal storage call for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🎬 Starting internal video storage for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86 {
+  wavespeedRequestId: '2a2c38f989584175bc44248ff50c6e30',
+  originalUrl: 'https://d1q70pf5vjeyhc.cloudfront.net/predictions/2a2c38f989584175bc44248ff50c6e30/1.mp4...',
+  settings: {
+    generationType: 'video-effects',
+    image: 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/66f306c4-bac8-4f29-a3cf-554ffe871e86/5380829c-a374-48a2-b448-d62b8f142e69.webp',
+    effectId: 'cartoon-doll',
+    effectName: 'Cartoon Doll',
+    prompt: 'Cartoon Doll Effect'
+  }
+}
+🎬 Starting video storage for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔄 Using force method to create user and video: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔄 Force creating user and video with delays: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔧 Attempting to create user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 User creation error details: {
+  code: '23505',
+  message: 'duplicate key value violates unique constraint "users_pkey"',
+  details: 'Key (uuid)=(66f306c4-bac8-4f29-a3cf-554ffe871e86) already exists.',
+  hint: null
+}
+✅ User already exists (expected): 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 Starting user verification for: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+🔍 Verification attempt 1/5 for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+✅ User verified exists on attempt 1: {
+  uuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  email: 'jsdasww593@gmail.com',
+  created_at: '2025-09-23T05:47:25.934+00:00',
+  is_active: true
+}
+✅ User verified exists on attempt 1: {
+  uuid: '66f306c4-bac8-4f29-a3cf-554ffe871e86',
+  email: 'jsdasww593@gmail.com',
+  created_at: '2025-09-23T05:47:25.934+00:00',
+  is_active: true
+}
+🎯 Using raw SQL to bypass foreign key constraints...
+⚠️ Database function not available, using direct insert...
+💡 Creating temporary video record for frontend...
+✅ Temporary video record created: 00000000-0000-4000-8000-758612659276
+✨ Created video record: 00000000-0000-4000-8000-758612659276
+⚠️ Skipping database update for temporary video record
+✅ Video storage completed for user: 66f306c4-bac8-4f29-a3cf-554ffe871e86
+ POST /api/video/store 200 in 6506ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 92ms
+ GET /create?tool=my-assets 200 in 70ms
+ GET /create?tool=my-assets 200 in 25ms
+ GET /create?tool=my-assets 200 in 249ms
+ GET /create?tool=my-assets 200 in 94ms
+ GET /api/auth/session 200 in 14ms
+ GET /create?tool=video-effects 200 in 57ms
+ GET /api/auth/session 200 in 65ms
+ ✓ Compiled in 1804ms (1202 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=video-effects 200 in 132ms
+ GET /create?tool=video-effects 200 in 201ms
+ ✓ Compiled /api/auth/[...nextauth] in 152ms (817 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 455ms
+ ✓ Compiled in 1331ms (1404 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=video-effects 200 in 225ms
+ GET /create?tool=video-effects 200 in 304ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 94ms
+ ✓ Compiled in 810ms (1404 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=video-effects 200 in 97ms
+ GET /create?tool=video-effects 200 in 490ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 106ms
+ GET /api/auth/session 200 in 89ms
+ GET /api/auth/session 200 in 18ms
+ ✓ Compiled in 1632ms (1404 modules)
+ GET /create?tool=video-effects 200 in 72ms
+ ✓ Compiled in 591ms (1404 modules)
+ GET /create?tool=video-effects 200 in 48ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /create?tool=video-effects 200 in 166ms
+ ✓ Compiled /_not-found in 423ms (1394 modules)
+ GET /_next/static/css/app/layout.css?v=1758612993262 404 in 541ms
+ GET /_next/static/chunks/main-app.js?v=1758612993262 404 in 568ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 62ms
+ GET /_next/static/chunks/app/(main)/layout.js 404 in 60ms
+ GET /_next/static/chunks/app/(main)/create/layout.js 404 in 39ms
+ GET /_next/static/chunks/app/(main)/create/page.js 404 in 34ms
+ ✓ Compiled in 788ms (1206 modules)
+ ✓ Compiled in 216ms (590 modules)

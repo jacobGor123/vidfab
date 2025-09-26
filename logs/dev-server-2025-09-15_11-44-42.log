@@ -1,0 +1,32 @@
+
+> my-v0-project@0.1.0 dev /Users/jacob/Desktop/vidfab
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.24:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverComponentsExternalPackages' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ⚠ `experimental.serverComponentsExternalPackages` has been moved to `serverExternalPackages`. Please update your next.config.mjs file accordingly.
+ ✓ Ready in 1562ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 2.6s (885 modules)
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ ○ Compiling /create ...
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 3867ms
+ ✓ Compiled /create in 5.2s (1243 modules)
+ ✓ Compiled in 692ms (477 modules)
+ GET /create?tool=discover 200 in 5988ms
+[33m[auth][warn][debug-enabled][0m Read more: https://warnings.authjs.dev#debug-enabled
+ GET /api/auth/session 200 in 107ms
+ GET /create?tool=discover 200 in 213ms
+ GET /api/auth/session 200 in 20ms
+ ✓ Compiled in 714ms (1040 modules)
+ GET /create?tool=discover 200 in 136ms
+ ✓ Compiled in 380ms (1040 modules)
+ GET /create?tool=discover 200 in 77ms
