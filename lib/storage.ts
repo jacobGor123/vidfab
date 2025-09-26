@@ -236,7 +236,7 @@ export class VideoStorageManager {
     const path = STORAGE_CONFIG.paths.getVideoPath(userId, videoId)
 
     // Validate file size
-    const fileSize = file instanceof File ? file.size : file.length
+    const fileSize = (typeof File !== 'undefined' && file instanceof File) ? file.size : file.length
     if (fileSize > STORAGE_CONFIG.limits.maxVideoSize) {
       throw new Error(`Video file too large. Maximum size: ${STORAGE_CONFIG.limits.maxVideoSize / (1024 * 1024)}MB`)
     }
@@ -277,7 +277,7 @@ export class VideoStorageManager {
     const path = STORAGE_CONFIG.paths.getThumbnailPath(userId, videoId)
 
     // Validate file size
-    const fileSize = file instanceof File ? file.size : file.length
+    const fileSize = (typeof File !== 'undefined' && file instanceof File) ? file.size : file.length
     if (fileSize > STORAGE_CONFIG.limits.maxThumbnailSize) {
       throw new Error(`Thumbnail too large. Maximum size: ${STORAGE_CONFIG.limits.maxThumbnailSize / (1024 * 1024)}MB`)
     }
@@ -321,7 +321,7 @@ export class VideoStorageManager {
       if (contentType.includes('png')) extension = 'png'
       else if (contentType.includes('webp')) extension = 'webp'
       else if (contentType.includes('jpeg') || contentType.includes('jpg')) extension = 'jpg'
-    } else if (file instanceof File) {
+    } else if (typeof File !== 'undefined' && file instanceof File) {
       const fileName = file.name.toLowerCase()
       if (fileName.endsWith('.png')) extension = 'png'
       else if (fileName.endsWith('.webp')) extension = 'webp'
@@ -332,7 +332,7 @@ export class VideoStorageManager {
     const path = STORAGE_CONFIG.paths.getImagePath(userId, imageId, extension)
 
     // Validate file size
-    const fileSize = file instanceof File ? file.size : file.length
+    const fileSize = (typeof File !== 'undefined' && file instanceof File) ? file.size : file.length
     if (fileSize > STORAGE_CONFIG.limits.maxImageSize) {
       throw new Error(`Image too large. Maximum size: ${STORAGE_CONFIG.limits.maxImageSize / (1024 * 1024)}MB`)
     }

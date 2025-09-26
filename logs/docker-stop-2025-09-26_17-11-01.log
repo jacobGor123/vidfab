@@ -1,0 +1,6 @@
+ Container vidfab-redis  Stopping
+ Container vidfab-redis  Stopped
+ Container vidfab-redis  Removing
+ Container vidfab-redis  Removed
+ Network vidfab_vidfab-network  Removing
+ Network vidfab_vidfab-network  Resource is still in use

@@ -1,0 +1,198 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 347B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.80kB done
+#2 DONE 0.0s
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/node:18-alpine
+#4 DONE 2.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 820B done
+#5 DONE 0.0s
+
+#6 [base 1/1] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#6 DONE 0.0s
+
+#7 [runner 2/8] RUN addgroup --system --gid 1001 nodejs
+#7 CACHED
+
+#8 [builder 1/7] WORKDIR /app
+#8 CACHED
+
+#9 [runner 3/8] RUN adduser --system --uid 1001 nextjs
+#9 CACHED
+
+#10 [internal] load build context
+#10 transferring context: 16.13kB 0.0s done
+#10 DONE 0.0s
+
+#11 [deps 2/4] WORKDIR /app
+#11 CACHED
+
+#12 [deps 1/4] RUN apk add --no-cache libc6-compat
+#12 CACHED
+
+#13 [deps 3/4] COPY package*.json ./
+#13 CACHED
+
+#14 [deps 4/4] RUN npm ci
+#14 5.666 npm warn deprecated @types/ioredis@5.0.0: This is a stub types definition. ioredis provides its own type definitions, so you do not need this installed.
+#14 6.426 npm warn deprecated @types/bcryptjs@3.0.0: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
+#14 15.46 
+#14 15.46 added 530 packages, and audited 531 packages in 15s
+#14 15.46 
+#14 15.46 73 packages are looking for funding
+#14 15.46   run `npm fund` for details
+#14 15.51 
+#14 15.51 3 vulnerabilities (2 low, 1 critical)
+#14 15.51 
+#14 15.51 To address all issues, run:
+#14 15.51   npm audit fix --force
+#14 15.51 
+#14 15.51 Run `npm audit` for details.
+#14 15.51 npm notice
+#14 15.51 npm notice New major version of npm available! 10.8.2 -> 11.6.1
+#14 15.51 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+#14 15.51 npm notice To update run: npm install -g npm@11.6.1
+#14 15.51 npm notice
+#14 DONE 16.2s
+
+#8 [builder 1/7] WORKDIR /app
+#8 CACHED
+
+#15 [builder 2/7] COPY --from=deps /app/node_modules ./node_modules
+#15 DONE 2.3s
+
+#16 [builder 3/7] COPY . .
+#16 DONE 0.0s
+
+#17 [builder 4/7] RUN ls -la components/create/ || echo "create components not found"
+#17 0.082 total 220
+#17 0.082 drwxr-xr-x    2 root     root          4096 Sep 26 02:55 .
+#17 0.082 drwxrwxr-x   10 root     root          4096 Sep 24 13:22 ..
+#17 0.082 -rw-r--r--    1 root     root          1227 Sep 24 13:22 create-content.tsx
+#17 0.082 -rw-r--r--    1 root     root          1955 Sep 26 02:55 create-page-client.tsx
+#17 0.082 -rw-r--r--    1 root     root          6365 Sep 24 13:22 create-sidebar.tsx
+#17 0.082 -rw-r--r--    1 root     root          2010 Sep 24 13:22 create-tabs.tsx
+#17 0.082 -rw-r--r--    1 root     root          3727 Sep 24 13:22 effect-grid-item.tsx
+#17 0.082 -rw-r--r--    1 root     root          3179 Sep 24 13:22 effect-selector.tsx
+#17 0.082 -rw-r--r--    1 root     root          5732 Sep 24 13:22 effects-selector-modal.tsx
+#17 0.082 -rw-r--r--    1 root     root          4882 Sep 24 13:22 empty-state.tsx
+#17 0.082 -rw-r--r--    1 root     root         34310 Sep 25 08:47 image-to-video-panel.tsx
+#17 0.082 -rw-r--r--    1 root     root         22097 Sep 25 10:58 my-assets.tsx
+#17 0.082 -rw-r--r--    1 root     root         11388 Sep 24 13:22 template-gallery.tsx
+#17 0.082 -rw-r--r--    1 root     root         19659 Sep 25 08:50 text-to-video-panel-new.tsx
+#17 0.082 -rw-r--r--    1 root     root         32311 Sep 25 08:51 video-effects-panel.tsx
+#17 0.082 -rw-r--r--    1 root     root          1091 Sep 24 13:22 video-limit-dialog.tsx
+#17 0.082 -rw-r--r--    1 root     root         12657 Sep 24 13:22 video-result-enhanced.tsx
+#17 0.082 -rw-r--r--    1 root     root          6824 Sep 24 13:22 video-result.tsx
+#17 0.082 -rw-r--r--    1 root     root         16164 Sep 24 13:22 video-task-grid-item.tsx
+#17 DONE 0.1s
+
+#18 [builder 5/7] RUN ls -la hooks/ || echo "hooks not found"
+#18 0.579 total 132
+#18 0.579 drwxrwxr-x    2 root     root          4096 Sep 25 07:52 .
+#18 0.579 drwxr-xr-x    1 root     root          4096 Sep 26 03:06 ..
+#18 0.579 -rw-r--r--    1 root     root          4275 Sep 24 13:22 use-auth-modal.ts
+#18 0.579 -rw-r--r--    1 root     root           756 Sep 24 13:22 use-auth.ts
+#18 0.579 -rw-rw-r--    1 root     root          3010 Sep 24 13:22 use-knowledge-graph.ts
+#18 0.579 -rw-rw-r--    1 root     root           565 Sep 24 13:22 use-mobile.tsx
+#18 0.579 -rw-r--r--    1 root     root          2675 Sep 24 13:22 use-remix.ts
+#18 0.579 -rw-rw-r--    1 root     root          3945 Sep 24 13:22 use-toast.ts
+#18 0.579 -rw-rw-r--    1 root     root          3576 Sep 24 13:22 use-typing-animation.ts
+#18 0.579 -rw-r--r--    1 root     root         14043 Sep 25 07:52 use-video-generation.tsx
+#18 0.579 -rw-r--r--    1 root     root         20238 Sep 25 03:14 use-video-polling.ts
+#18 0.579 -rw-r--r--    1 root     root         15055 Sep 24 13:22 use-video-preloader.ts
+#18 0.579 -rw-r--r--    1 root     root          8564 Sep 24 13:22 useHoverVideo.ts
+#18 0.579 -rw-r--r--    1 root     root          6741 Sep 24 13:22 useIntersectionObserver.ts
+#18 0.579 -rw-r--r--    1 root     root         11145 Sep 24 13:22 useVideoCache.ts
+#18 0.579 -rw-r--r--    1 root     root          6532 Sep 24 13:22 useVideoLazyLoad.ts
+#18 DONE 0.6s
+
+#19 [builder 6/7] RUN ls -la components/navbar.tsx || echo "navbar not found"
+#19 0.101 -rw-rw-r--    1 root     root         10971 Sep 24 13:22 components/navbar.tsx
+#19 DONE 0.1s
+
+#20 [builder 7/7] RUN npm run build
+#20 0.315 
+#20 0.315 > my-v0-project@0.1.0 build
+#20 0.315 > next build
+#20 0.315 
+#20 0.738   ▲ Next.js 14.2.17
+#20 0.739 
+#20 0.752    Creating an optimized production build ...
+#20 0.769  ⚠ Found lockfile missing swc dependencies, patching...
+#20 0.990    Downloading swc package @next/swc-linux-arm64-gnu...
+#20 1.820  ⚠ Lockfile was successfully patched, please run "npm install" to ensure @next/swc dependencies are downloaded
+#20 6.193    Downloading swc package @next/swc-linux-arm64-musl...
+#20 29.99  ✓ Compiled successfully
+#20 29.99    Skipping validation of types
+#20 29.99    Skipping linting
+#20 30.19    Collecting page data ...
+#20 30.57 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#20 30.57 Error: Missing Supabase environment variables
+#20 30.57     at 85662 (/app/.next/server/app/api/images/upload/route.js:1:18725)
+#20 30.57     at t (/app/.next/server/webpack-runtime.js:1:128)
+#20 30.57     at 70777 (/app/.next/server/app/api/images/upload/route.js:1:1284)
+#20 30.57     at t (/app/.next/server/webpack-runtime.js:1:128)
+#20 30.57     at r (/app/.next/server/app/api/images/upload/route.js:1:19636)
+#20 30.57     at /app/.next/server/app/api/images/upload/route.js:1:19679
+#20 30.57     at t.X (/app/.next/server/webpack-runtime.js:1:1206)
+#20 30.57     at /app/.next/server/app/api/images/upload/route.js:1:19649
+#20 30.57     at Object.<anonymous> (/app/.next/server/app/api/images/upload/route.js:1:19707)
+#20 30.57     at Module._compile (node:internal/modules/cjs/loader:1364:14)
+#20 30.58 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#20 30.58 
+#20 30.58 > Build error occurred
+#20 30.58 Error: Failed to collect page data for /api/images/upload
+#20 30.58     at /app/node_modules/next/dist/build/utils.js:1268:15
+#20 30.58     at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+#20 30.58   type: 'Error'
+#20 30.58 }
+#20 30.65 npm notice
+#20 30.65 npm notice New major version of npm available! 10.8.2 -> 11.6.1
+#20 30.65 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+#20 30.65 npm notice To update run: npm install -g npm@11.6.1
+#20 30.65 npm notice
+#20 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [builder 7/7] RUN npm run build:
+30.58 Error: Failed to collect page data for /api/images/upload
+30.58     at /app/node_modules/next/dist/build/utils.js:1268:15
+30.58     at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+30.58   type: 'Error'
+30.58 }
+30.65 npm notice
+30.65 npm notice New major version of npm available! 10.8.2 -> 11.6.1
+30.65 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+30.65 npm notice To update run: npm install -g npm@11.6.1
+30.65 npm notice
+------
+Dockerfile:29
+
+--------------------
+
+  27 |     ENV NEXT_TELEMETRY_DISABLED 1
+
+  28 |     
+
+  29 | >>> RUN npm run build
+
+  30 |     
+
+  31 |     # Production image, copy all the files and run next
+
+--------------------
+
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
+
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/myz7lbyqgznambciq1vt32s7d
+

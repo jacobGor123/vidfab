@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { CreateTabs } from "./create-tabs"
 import { CreateContent } from "./create-content"
@@ -8,7 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 
 type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | null
 
-export function CreatePageClient() {
+function CreatePageClientInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const isMobile = useIsMobile()
@@ -53,5 +53,17 @@ export function CreatePageClient() {
         initialPrompt={initialPrompt}
       />
     </div>
+  )
+}
+
+export function CreatePageClient() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-gray-400">Loading...</div>
+      </div>
+    }>
+      <CreatePageClientInner />
+    </Suspense>
   )
 }

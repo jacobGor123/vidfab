@@ -469,15 +469,15 @@ export const videoTemplatesData: VideoData[] = rawVideoEntries.map((entry, index
     title: entry.prompt.slice(0, 50) + (entry.prompt.length > 50 ? '...' : ''),
     description: entry.prompt,
     prompt: entry.prompt, // Store original prompt for Remix functionality
-    duration: Math.floor(Math.random() * 8) + 7, // 7-15 seconds
-    aspectRatio: Math.random() > 0.7 ? '9:16' : '16:9',
+    duration: (index % 8) + 7, // 7-15 seconds, deterministic based on index
+    aspectRatio: (index % 10) > 7 ? '9:16' : '16:9', // deterministic based on index
     category: category,
     user: {
       id: randomUsername.toLowerCase().replace(/[^a-z0-9]/g, ''),
       name: randomUsername,
       avatar: "/placeholder-user.jpg"
     },
-    createdAt: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)), // Random date within last 30 days
+    createdAt: new Date(Date.now() - ((index * 2 + 1) * 24 * 60 * 60 * 1000)), // Deterministic date based on index
     urls: {
       thumbnail: {
         webp: entry.imageUrl.replace('.png', '.webp'),
@@ -494,15 +494,15 @@ export const videoTemplatesData: VideoData[] = rawVideoEntries.map((entry, index
     },
     metadata: {
       fileSize: {
-        low: Math.floor(Math.random() * 5 + 2) * 1024 * 1024,
-        medium: Math.floor(Math.random() * 10 + 8) * 1024 * 1024,
-        high: Math.floor(Math.random() * 20 + 15) * 1024 * 1024
+        low: (index % 5 + 2) * 1024 * 1024, // Deterministic file size
+        medium: (index % 10 + 8) * 1024 * 1024,
+        high: (index % 20 + 15) * 1024 * 1024
       },
       resolution: {
-        width: Math.random() > 0.7 ? 720 : 1280,
-        height: Math.random() > 0.7 ? 1280 : 720
+        width: (index % 10) > 7 ? 720 : 1280, // Deterministic resolution
+        height: (index % 10) > 7 ? 1280 : 720
       },
-      bitrate: Math.floor(Math.random() * 3000 + 2000),
+      bitrate: (index % 3000) + 2000, // Deterministic bitrate
       codec: 'h264'
     },
     loadState: 'idle',

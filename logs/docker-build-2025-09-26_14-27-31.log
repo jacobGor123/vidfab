@@ -1,0 +1,36 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 347B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 2.64kB done
+#2 DONE 0.0s
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/node:18-alpine
+#4 ERROR: failed to authorize: DeadlineExceeded: failed to fetch oauth token: Post "https://auth.docker.io/token": dial tcp [2a03:2880:f130:83:face:b00c:0:25de]:443: i/o timeout
+------
+ > [internal] load metadata for docker.io/library/node:18-alpine:
+------
+Dockerfile:2
+
+--------------------
+
+   1 |     # Multi-stage build for Next.js application
+
+   2 | >>> FROM node:18-alpine AS base
+
+   3 |     
+
+   4 |     # Install dependencies only when needed
+
+--------------------
+
+failed to solve: DeadlineExceeded: failed to fetch oauth token: Post "https://auth.docker.io/token": dial tcp [2a03:2880:f130:83:face:b00c:0:25de]:443: i/o timeout
+
+
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/xf6pqx7eewslipyhoasan9u81
+

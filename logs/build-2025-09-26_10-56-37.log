@@ -1,0 +1,46 @@
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.17
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ⚠ Found lockfile missing swc dependencies, patching...
+warning ../../package.json: No license field
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: EACCES: permission denied, open '/Users/jacob/Desktop/vidfab/package-lock.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.writeFile (node:internal/fs/promises:1216:14)
+    at async patchIncorrectLockfile (/Users/jacob/Desktop/vidfab/node_modules/next/dist/lib/patch-incorrect-lockfile.js:173:9) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/jacob/Desktop/vidfab/package-lock.json'
+}
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/22) ...
+   Generating static pages (5/22) 
+   Generating static pages (10/22) 
+   Generating static pages (16/22) 
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/create". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at r (/Users/jacob/Desktop/vidfab/.next/server/chunks/962.js:21:117793)
+    at o (/Users/jacob/Desktop/vidfab/.next/server/chunks/962.js:21:128776)
+    at g (/Users/jacob/Desktop/vidfab/.next/server/app/(main)/create/page.js:1:3697)
+    at nj (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nN (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+    at nB (/Users/jacob/Desktop/vidfab/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+
+Error occurred prerendering page "/create". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ✓ Generating static pages (22/22)
+
+> Export encountered errors on following paths:
+	/(main)/create/page: /create

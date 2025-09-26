@@ -1,0 +1,9 @@
+/* Local variable font definitions for VidFab */
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fonts/open-sans-variable.woff2') format('woff2');
+}

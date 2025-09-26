@@ -149,15 +149,44 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  trustHost: true, // Required for NextAuth v5
+  trustHost: true, // Required for Docker and production environments
   debug: process.env.NODE_ENV === 'development',
+  // Added for Docker environment compatibility
+  useSecureCookies: process.env.NODE_ENV === 'production' && !process.env.DOCKER_ENVIRONMENT,
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === 'production' && !process.env.DOCKER_ENVIRONMENT,
+        domain: process.env.DOCKER_ENVIRONMENT ? undefined : undefined
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        // Allow all sign-ins for now - user creation handled in jwt callback
+        console.log('🔐 SignIn callback triggered:', {
+          provider: account?.provider,
+          type: account?.type,
+          email: user?.email,
+          dockerEnv: !!process.env.DOCKER_ENVIRONMENT
+        });
+
+        // Additional validation for Google providers
+        if (account?.provider === 'google' || account?.provider === 'google-one-tap') {
+          if (!user?.email) {
+            console.error('❌ Google sign-in missing email');
+            return false;
+          }
+          console.log('✅ Google sign-in validated');
+        }
+
         return true;
       } catch (error) {
-        console.error("SignIn callback error:", error);
+        console.error("❌ SignIn callback error:", error);
         return false;
       }
     },
@@ -165,6 +194,12 @@ export const authConfig: NextAuthConfig = {
     async redirect({ url, baseUrl }) {
       // Handle redirects after authentication
       try {
+        // In Docker environment, handle localhost URLs
+        if (process.env.DOCKER_ENVIRONMENT && url.includes('localhost')) {
+          // Replace container internal URLs with accessible URLs
+          url = url.replace('http://localhost:', `http://localhost:`);
+        }
+
         // Allow relative callback URLs
         if (url.startsWith("/")) {
           return `${baseUrl}${url}`;
@@ -175,6 +210,14 @@ export const authConfig: NextAuthConfig = {
         const baseUrlObj = new URL(baseUrl);
         if (urlObj.origin === baseUrlObj.origin) {
           return url;
+        }
+
+        // Special handling for Docker environment
+        if (process.env.DOCKER_ENVIRONMENT) {
+          const dockerBaseUrl = process.env.NEXTAUTH_URL || baseUrl;
+          if (url.startsWith("/")) {
+            return `${dockerBaseUrl}${url}`;
+          }
         }
       } catch (error) {
         console.error('❌ Invalid URL in redirect:', { url, baseUrl, error });

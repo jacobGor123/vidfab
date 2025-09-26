@@ -23,7 +23,7 @@ rm -rf .next
 
 # Build project with logging
 echo "🔨 Running production build..."
-pnpm build 2>&1 | tee "$LOG_FILE"
+npm run build 2>&1 | tee "$LOG_FILE"
 
 echo "✅ Build completed successfully!"
 echo "📋 Build log saved to: $LOG_FILE"

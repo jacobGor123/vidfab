@@ -5,8 +5,37 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { VideoStorageManager } from '@/lib/storage'
-import { ImageProcessor } from '@/lib/image-processor'
+// 移除对浏览器API图片处理器的依赖
 import { v4 as uuidv4 } from 'uuid'
+
+/**
+ * 服务器端图片文件验证函数 - 兼容Node.js环境
+ */
+function validateImageFile(file: {
+  type: string;
+  size: number;
+  name: string;
+}): { valid: boolean; error?: string } {
+  // 检查文件类型
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    return {
+      valid: false,
+      error: `Unsupported image format: ${file.type}. Supported formats: JPG, PNG, WebP`
+    }
+  }
+
+  // 检查文件大小 (10MB)
+  const maxSize = 10 * 1024 * 1024
+  if (file.size > maxSize) {
+    return {
+      valid: false,
+      error: `Image file too large. Maximum: ${maxSize / (1024 * 1024)}MB, Current: ${(file.size / (1024 * 1024)).toFixed(2)}MB`
+    }
+  }
+
+  return { valid: true }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,18 +53,25 @@ export async function POST(request: NextRequest) {
 
     // Parse form data
     const formData = await request.formData()
-    const file = formData.get('file') as File
+    const fileEntry = formData.get('file')
     const quality = formData.get('quality') as string || 'STANDARD'
 
-    if (!file) {
+    if (!fileEntry || typeof fileEntry === 'string') {
       return NextResponse.json(
         { error: 'No file uploaded' },
         { status: 400 }
       )
     }
 
-    // Validate file type and size
-    const validation = ImageProcessor.validateImage(file)
+    // In Node.js environment, this will be a File-like object
+    const file = fileEntry as File
+
+    // 服务器端验证文件类型和大小
+    const validation = validateImageFile({
+      type: file.type,
+      size: file.size,
+      name: file.name
+    })
     if (!validation.valid) {
       return NextResponse.json(
         { error: validation.error },

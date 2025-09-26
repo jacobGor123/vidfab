@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SessionProvider } from "@/components/auth/session-provider"
 import { VideoProvider } from "@/lib/contexts/video-context"
 import { cn } from "@/lib/utils"
-import { inter, syne } from "@/lib/fonts"
+import { openSans } from "@/lib/fonts"
 import { Toaster } from "react-hot-toast"
 import "./globals.css"
 
@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable, syne.variable)}>
+      <body className={cn("min-h-screen bg-background font-sans antialiased", openSans.variable)}>
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <VideoProvider>

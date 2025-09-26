@@ -36,35 +36,75 @@ export function GoogleLoginButton({
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      
+
+      console.log('🔐 Starting Google OAuth sign-in...');
 
       const result = await signIn("google", {
         callbackUrl,
         redirect: false,
       });
 
+      console.log('🔐 Google sign-in result:', {
+        ok: result?.ok,
+        error: result?.error,
+        url: result?.url,
+        dockerEnv: !!process.env.DOCKER_ENVIRONMENT
+      });
+
       if (result?.error) {
-        throw new Error(result.error);
+        let errorMessage = "Google sign-in failed. Please try again.";
+
+        // Provide specific error messages
+        switch (result.error) {
+          case 'OAuthSignInError':
+            errorMessage = "Google OAuth configuration error. Please check your settings.";
+            break;
+          case 'OAuthCallback':
+            errorMessage = "OAuth callback error. Please verify your redirect URLs.";
+            break;
+          case 'AccessDenied':
+            errorMessage = "Access denied. Please grant necessary permissions.";
+            break;
+          case 'Verification':
+            errorMessage = "Email verification failed. Please try again.";
+            break;
+          default:
+            if (result.error.includes('fetch')) {
+              errorMessage = "Network error. Please check your connection and try again.";
+            }
+            break;
+        }
+
+        throw new Error(errorMessage);
       }
 
       if (result?.ok) {
+        console.log('✅ Google sign-in successful');
         onSuccess?.();
-        
-        // Redirect to callback URL
-        if (result.url) {
-          router.push(result.url);
+
+        // Handle redirect with better Docker support
+        const redirectUrl = result.url || callbackUrl;
+        console.log('🔄 Redirecting to:', redirectUrl);
+
+        // Use window.location for more reliable redirects in Docker
+        if (process.env.DOCKER_ENVIRONMENT && typeof window !== 'undefined') {
+          window.location.href = redirectUrl;
         } else {
-          router.push(callbackUrl);
+          router.push(redirectUrl);
         }
       }
     } catch (error: any) {
-      console.error("Google sign-in error:", error);
+      console.error("❌ Google sign-in error:", error);
       onError?.(error);
-      
+
       // Show user-friendly error message
       const errorMessage = error?.message || "Google sign-in failed. Please try again.";
-      // You can replace this with a toast notification
-      alert(errorMessage);
+
+      // Better error display - you can replace with toast
+      if (typeof window !== 'undefined') {
+        // You can replace this with your toast notification system
+        alert(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }

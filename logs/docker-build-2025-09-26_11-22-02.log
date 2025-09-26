@@ -1,0 +1,84 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 347B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 2.11kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:18-alpine
+#3 DONE 0.9s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 820B done
+#4 DONE 0.0s
+
+#5 [base 1/1] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#5 DONE 0.0s
+
+#6 [builder 1/4] WORKDIR /app
+#6 CACHED
+
+#7 [runner  2/10] RUN addgroup --system --gid 1001 nodejs
+#7 CACHED
+
+#8 [runner  3/10] RUN adduser --system --uid 1001 nextjs
+#8 CACHED
+
+#9 [internal] load build context
+#9 transferring context: 16.13kB 0.0s done
+#9 DONE 0.0s
+
+#10 [builder 2/4] COPY --from=deps /app/node_modules ./node_modules
+#10 CACHED
+
+#11 [deps 2/4] WORKDIR /app
+#11 CACHED
+
+#12 [deps 3/4] COPY package*.json ./
+#12 CACHED
+
+#13 [deps 4/4] RUN npm ci
+#13 CACHED
+
+#14 [builder 3/4] COPY . .
+#14 CACHED
+
+#15 [deps 1/4] RUN apk add --no-cache libc6-compat
+#15 CACHED
+
+#16 [builder 4/4] RUN npm run build; EXIT_CODE=$?; if [ $EXIT_CODE -eq 0 ]; then echo "Build successful"; else echo "Build completed with prerender warnings - continuing deployment"; fi
+#16 CACHED
+
+#17 [runner  4/10] COPY --from=builder /app/public ./public
+#17 DONE 0.0s
+
+#18 [runner  5/10] RUN mkdir .next
+#18 DONE 0.2s
+
+#19 [runner  6/10] RUN chown nextjs:nodejs .next
+#19 DONE 0.1s
+
+#20 [runner  7/10] RUN echo "Checking available .next outputs..."
+#20 0.105 Checking available .next outputs...
+#20 DONE 0.1s
+
+#21 [runner  8/10] COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+#21 DONE 0.3s
+
+#22 [runner  9/10] COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+#22 DONE 3.5s
+
+#23 [runner 10/10] COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+#23 DONE 0.0s
+
+#24 exporting to image
+#24 exporting layers
+#24 exporting layers 2.5s done
+#24 writing image sha256:b90a5ef4670a0e3c43348242554583116305409703dfe1cc355f571872bdd6d9 done
+#24 naming to docker.io/library/vidfab-app done
+#24 DONE 2.5s
+
+#25 resolving provenance for metadata file
+#25 DONE 0.0s
+ app  Built

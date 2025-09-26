@@ -1,14 +1,12 @@
-import { Inter, Syne } from "next/font/google"
+// Local fonts configuration for VidFab
+// Font files are stored in public/fonts/ and defined in styles/fonts.css
 
-export const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-})
+export const openSans = {
+  variable: "font-open-sans-var",
+  className: "font-open-sans",
+  style: { fontFamily: 'Open Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }
+}
 
-export const syne = Syne({
-  subsets: ["latin"],
-  variable: "--font-syne",
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-})
+// Aliases to maintain compatibility with existing code
+export const inter = openSans
+export const syne = openSans
