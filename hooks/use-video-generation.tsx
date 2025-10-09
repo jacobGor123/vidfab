@@ -114,7 +114,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         prompt,
         settings: {
           generationType: 'text-to-video',
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -137,7 +137,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         },
         body: JSON.stringify({
           prompt,
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -209,7 +209,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         settings: {
           generationType: 'image-to-video',
           imageUrl,
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'
@@ -231,7 +231,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         body: JSON.stringify({
           image: imageUrl,
           prompt: prompt || 'Convert image to video',
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'

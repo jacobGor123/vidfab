@@ -6,7 +6,7 @@ import { CreateTabs } from "./create-tabs"
 import { CreateContent } from "./create-content"
 import { useIsMobile } from "@/hooks/use-mobile"
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | null
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | "my-profile" | null
 
 function CreatePageClientInner() {
   const searchParams = useSearchParams()

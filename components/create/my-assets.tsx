@@ -346,10 +346,12 @@ export function MyAssets() {
   }
 
   return (
-    <div className="h-screen flex flex-col p-6">
+    <div className="h-full overflow-hidden flex flex-col">
+      {/* 使用 calc 计算实际可用高度，减去 padding */}
+      <div className="h-[calc(100vh-4rem)] max-w-7xl mx-auto w-full p-6 flex flex-col gap-4">
 
-      {/* Storage Rules Notice */}
-      <div className="flex-none mb-4">
+        {/* Storage Rules Notice */}
+        <div className="flex-shrink-0">
         <div className="bg-blue-950/30 border border-blue-800/50 rounded-lg p-4">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0 mt-0.5">
@@ -369,10 +371,10 @@ export function MyAssets() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
 
-      {/* Fixed Header: Stats */}
-      <div className="flex-none mb-6">
+        {/* Stats - 自动高度 */}
+        <div className="flex-shrink-0">
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
           <div className="text-2xl font-bold text-white">{stats.total}</div>
@@ -463,7 +465,7 @@ export function MyAssets() {
           </div>
         </div>
 
-        {/* Storage Warning Banner */}
+      {/* Storage Warning Banner */}
       {!videoContext.quotaLoading && videoContext.quotaInfo && videoContext.quotaInfo.storage_percentage > 80 && (
         <div className={`rounded-lg p-4 border ${
           videoContext.quotaInfo.storage_percentage > 95
@@ -513,10 +515,11 @@ export function MyAssets() {
           </div>
         </div>
       )}
-      </div>
+        </div>
 
-      {/* Scrollable Content: Assets List */}
-      <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2 pb-10">
+        {/* 资产列表 - 占据剩余空间 */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="h-full overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 pr-2">
         {filteredVideos.map((video) => {
           // 🔥 Determine URL and thumbnail for permanent storage video
           const videoUrl = video.storage_path
@@ -742,10 +745,11 @@ export function MyAssets() {
           </Button>
         </div>
       )}
-      </div>
+          </div>
+        </div>
 
-      {/* Fixed Footer: Pagination */}
-      <div className="flex-none pt-4">
+        {/* Pagination - 固定在底部 */}
+        <div className="flex-shrink-0">
         {videoContext.hasMore && filteredVideos.length > 0 && (
           <div className="flex justify-center">
             <Button
@@ -757,6 +761,7 @@ export function MyAssets() {
             </Button>
           </div>
         )}
+        </div>
       </div>
 
       {/* Delete Video Confirmation Dialog */}

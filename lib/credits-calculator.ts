@@ -3,11 +3,11 @@
  * 使用当前项目的真实积分配置，与pricing-config.ts保持一致
  */
 
-export type VideoModel = "vidu-q1" | "vidfab-pro" | "video-effects" | "seedance-v1-pro-t2v" | "veo3-fast"
+export type VideoModel = "vidfab-q1" | "vidfab-pro" | "video-effects" | "seedance-v1-pro-t2v" | "veo3-fast"
 
 // 积分消耗配置 - 与 pricing-config.ts 保持一致
 const CREDITS_CONSUMPTION = {
-  // Seedance模型消耗 (对应前端的vidu-q1)
+  // Seedance模型消耗 (对应前端的vidfab-q1)
   'seedance-v1-pro-t2v': {
     '480p-5s': 10,
     '480p-10s': 20,
@@ -49,7 +49,7 @@ export function calculateRequiredCredits(
   // 映射前端模型名称到积分配置名称
   let mappedModel: keyof typeof CREDITS_CONSUMPTION
 
-  if (model === "vidu-q1" || model === "seedance-v1-pro-t2v") {
+  if (model === "vidfab-q1" || model === "seedance-v1-pro-t2v") {
     mappedModel = "seedance-v1-pro-t2v"
   } else if (model === "vidfab-pro" || model === "veo3-fast") {
     mappedModel = "veo3-fast"

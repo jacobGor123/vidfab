@@ -88,10 +88,10 @@ export async function POST(request: NextRequest) {
     const duration = body.duration ? (typeof body.duration === 'number' ? `${body.duration}s` : body.duration) : '5s'
 
     // 映射前端模型名称到积分计算名称
-    const modelForCredits = originalModel === 'vidu-q1' ? 'vidu-q1' :
+    const modelForCredits = originalModel === 'vidfab-q1' ? 'vidfab-q1' :
                            originalModel === 'vidfab-pro' ? 'vidfab-pro' :
                            originalModel === 'video-effects' ? 'video-effects' :
-                           'vidu-q1'
+                           'vidfab-q1'
 
     // 检查用户积分
     const creditsCheck = await checkUserCredits(

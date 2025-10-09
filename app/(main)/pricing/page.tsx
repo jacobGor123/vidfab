@@ -56,13 +56,12 @@ export default function PricingPage() {
         const data = await response.json()
 
         if (data.success && data.subscription?.plan_id) {
-          console.log('🔧 [PRICING] 当前订阅状态:', data.subscription.plan_id)
           setCurrentPlan(data.subscription.plan_id.toLowerCase())
         } else {
           setCurrentPlan('free')
         }
       } catch (error) {
-        console.error('获取订阅状态失败:', error)
+        console.error('Failed to fetch subscription status:', error)
         setCurrentPlan('free')
       } finally {
         setPlanLoading(false)
@@ -91,19 +90,69 @@ export default function PricingPage() {
       const data = await response.json()
 
       if (data.success) {
-        // 刷新订阅状态
-        setCurrentPlan('free')
-        toast.success('Subscription cancelled successfully. You are now on the Free plan.', {
-          duration: 5000,
+        // 🔥 区分清理完成和正常取消
+        if (data.cleaned) {
+          // ✅ 数据已清理，直接刷新页面
+          console.log('✅ Orphaned subscription data cleaned up, refreshing page...')
+          toast.success('Your account has been updated. Refreshing...', {
+            duration: 2000,
+          })
+          setTimeout(() => {
+            window.location.reload()
+          }, 2000)
+          return
+        }
+
+        // ✅ 正常取消：等待 webhook 处理完成后再刷新状态
+        toast.success('Subscription cancellation in progress...', {
+          duration: 3000,
         })
+
+        // 🔥 轮询检查订阅状态，等待 webhook 更新
+        let attempts = 0
+        const maxAttempts = 10 // 最多等待 10 秒
+        const checkInterval = setInterval(async () => {
+          attempts++
+
+          try {
+            const statusResponse = await fetch('/api/subscription/status')
+            const statusData = await statusResponse.json()
+
+            if (statusData.success && statusData.subscription?.plan_id === 'free') {
+              // ✅ 状态已更新为 free
+              clearInterval(checkInterval)
+              setCurrentPlan('free')
+              toast.success('Subscription cancelled successfully. You are now on the Free plan.', {
+                duration: 5000,
+              })
+              setCancelling(false)
+            } else if (attempts >= maxAttempts) {
+              // ⏱️ 超时，强制刷新页面
+              clearInterval(checkInterval)
+              toast.success('Subscription cancelled. Refreshing page...', {
+                duration: 2000,
+              })
+              setTimeout(() => {
+                window.location.reload()
+              }, 2000)
+            }
+          } catch (error) {
+            console.error('Error checking subscription status:', error)
+            if (attempts >= maxAttempts) {
+              clearInterval(checkInterval)
+              setCancelling(false)
+            }
+          }
+        }, 1000) // 每秒检查一次
+
       } else {
         console.error('Failed to cancel subscription:', data.error)
-        toast.error('Failed to cancel subscription. Please try again.')
+        toast.error(`Failed to cancel subscription: ${data.error}`)
+        setCancelling(false)
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error)
       toast.error('Failed to cancel subscription. Please try again.')
-    } finally {
       setCancelling(false)
     }
   }

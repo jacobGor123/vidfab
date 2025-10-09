@@ -428,20 +428,13 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     const initializeData = async () => {
 
       try {
-        console.log('🔥 VideoContext - Starting initialization...')
-        console.log('🔥 VideoContext - sessionStatus:', sessionStatus)
-        console.log('🔥 VideoContext - session:', session)
-        console.log('🔥 VideoContext - session.user.uuid:', session?.user?.uuid)
-
         dispatch({ type: "SET_LOADING", payload: true })
 
         // Clear any existing data first to prevent flicker
         dispatch({ type: "RESTORE_STATE", payload: { activeJobs: [], failedJobs: [] } })
 
         // Only load data if user is logged in
-
         if (session?.user?.uuid) {
-          console.log('🔥 VideoContext - User authenticated, proceeding with data loading...')
           // Restore active jobs from localStorage (temporary state) and filter immediately
           const allActiveJobs = loadFromStorage(STORAGE_KEYS.ACTIVE_JOBS, [])
           const allFailedJobs = loadFromStorage(STORAGE_KEYS.FAILED_JOBS, [])
@@ -524,12 +517,10 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
           // Load quota information
           try {
-            console.log('🔥 About to fetch quota for user:', session.user.uuid)
             const quotaInfo = await fetchUserQuota(session.user.uuid)
-            console.log('🔥 Successfully received quota:', quotaInfo)
             dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
           } catch (quotaError) {
-            console.error('🔥 Error fetching quota:', quotaError)
+            console.error('Error fetching quota:', quotaError)
             dispatch({ type: "SET_QUOTA_INFO", payload: null })
           }
 
@@ -544,15 +535,12 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           })
 
         } else {
-          console.log('🔥 VideoContext - No authenticated user, skipping data loading')
-          console.log('🔥 VideoContext - session?.user?.uuid:', session?.user?.uuid)
           dispatch({ type: "SET_QUOTA_INFO", payload: null })
         }
       } catch (error) {
-        console.error('🔥 Failed to initialize video context:', error)
+        console.error('Failed to initialize video context:', error)
         dispatch({ type: "SET_ERROR", payload: "Failed to load video data" })
       } finally {
-        console.log('🔥 VideoContext - Initialization complete')
         dispatch({ type: "SET_LOADING", payload: false })
         isInitializedRef.current = true
       }

@@ -88,7 +88,7 @@ export function useSubscription(): UseSubscriptionReturn {
 
     try {
       // 映射前端模型名称到后端识别的名称
-      const modelForCredits = model === 'vidu-q1' ? 'seedance-v1-pro-t2v' :
+      const modelForCredits = model === 'vidfab-q1' ? 'seedance-v1-pro-t2v' :
                              model === 'vidfab-pro' ? 'veo3-fast' :
                              model
 
@@ -155,7 +155,7 @@ export function useSubscription(): UseSubscriptionReturn {
 
     try {
       // 映射前端模型名称到后端识别的名称
-      const modelForCredits = model === 'vidu-q1' ? 'seedance-v1-pro-t2v' :
+      const modelForCredits = model === 'vidfab-q1' ? 'seedance-v1-pro-t2v' :
                              model === 'vidfab-pro' ? 'veo3-fast' :
                              model
 

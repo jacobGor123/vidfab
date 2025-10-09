@@ -344,7 +344,9 @@ export function VideoResult({
             </div>
             <div className="flex flex-wrap gap-2 text-sm text-gray-400">
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.model}</span>
-              <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.duration}</span>
+              <span className="px-2 py-1 bg-gray-800 rounded text-xs">
+                {typeof settings.duration === 'number' ? `${settings.duration}s` : settings.duration}
+              </span>
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.resolution}</span>
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.aspectRatio}</span>
               {settings.style && (

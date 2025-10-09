@@ -20,41 +20,57 @@ const PLAN_CREDITS: Record<string, number> = {
  */
 export async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<void> {
   try {
-    console.log('🔔 Processing checkout.session.completed:', session.id);
-
     // 检查支付状态
     if (session.payment_status !== 'paid') {
-      console.log('❌ Payment not completed:', session.payment_status);
       return;
     }
 
-    // 从metadata获取用户信息
-    const userUuid = session.metadata?.user_uuid;
-    const planId = session.metadata?.plan_id;
-    const billingCycle = session.metadata?.billing_cycle;
+    // 从 subscription mode 获取 metadata
+    let userUuid: string | undefined;
+    let planId: string | undefined;
+    let billingCycle: string | undefined;
+
+    // 先尝试从 session.metadata 获取
+    if (session.metadata && Object.keys(session.metadata).length > 0) {
+      userUuid = session.metadata.user_uuid;
+      planId = session.metadata.plan_id;
+      billingCycle = session.metadata.billing_cycle;
+    }
+
+    // 如果 session.metadata 为空，从 subscription 获取
+    if (!userUuid && session.subscription) {
+      const Stripe = (await import('stripe')).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: '2024-09-30.acacia',
+        typescript: true,
+      });
+
+      const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+      userUuid = subscription.metadata?.user_uuid;
+      planId = subscription.metadata?.plan_id;
+      billingCycle = subscription.metadata?.billing_cycle;
+    }
 
     if (!userUuid || !planId) {
-      console.error('❌ Missing metadata:', { userUuid, planId, billingCycle });
+      console.error('[CHECKOUT] Missing required metadata');
       return;
     }
-
-    console.log('📝 Processing payment for user:', { userUuid, planId, billingCycle });
 
     // 获取用户信息
     const user = await getUserByUuid(userUuid);
     if (!user) {
-      console.error('❌ User not found:', userUuid);
+      console.error('[CHECKOUT] User not found:', userUuid);
       return;
     }
 
     // 计算要增加的积分
     const creditsToAdd = PLAN_CREDITS[planId] || 0;
     if (creditsToAdd === 0) {
-      console.error('❌ Unknown plan:', planId);
+      console.error('[CHECKOUT] Unknown plan:', planId);
       return;
     }
 
-    // 🔥 简化版：直接更新用户表，参考iMedio模式
+    // 更新用户表
     const currentCredits = user.credits_remaining || 0;
     const newCreditsBalance = currentCredits + creditsToAdd;
 
@@ -67,17 +83,8 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
 
     await updateUser(userUuid, updateData);
 
-    console.log('✅ Checkout processed successfully:', {
-      userUuid,
-      planId,
-      previousCredits: currentCredits,
-      addedCredits: creditsToAdd,
-      newCreditsBalance,
-      sessionId: session.id
-    });
-
   } catch (error: any) {
-    console.error('❌ Error handling checkout session:', error);
+    console.error('[CHECKOUT] Error handling checkout session:', error);
     throw error;
   }
 }

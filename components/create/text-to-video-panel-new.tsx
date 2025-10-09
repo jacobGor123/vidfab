@@ -22,6 +22,7 @@ import { useVideoPolling } from "@/hooks/use-video-polling"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useSimpleSubscription } from "@/hooks/use-subscription-simple"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoTaskGridItem } from "./video-task-grid-item"
@@ -55,9 +56,10 @@ interface TextToVideoPanelEnhancedProps {
 }
 
 export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnhancedProps = {}) {
+  const isMobile = useIsMobile()
   const [params, setParams] = useState<VideoGenerationParams>({
     prompt: "",
-    model: "vidu-q1",
+    model: "vidfab-q1",
     duration: "5s",
     resolution: "480p",
     aspectRatio: "16:9",
@@ -173,7 +175,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         // If user doesn't have Pro subscription, fallback to vidu-q1
         setParams(prev => ({
           ...prev,
-          model: "vidu-q1"
+          model: "vidfab-q1"
         }))
         return
       }
@@ -319,7 +321,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Calculate credits required for current settings
   const getCreditsRequired = () => {
-    const modelForCredits = params.model === 'vidu-q1' ? 'seedance-v1-pro-t2v' :
+    const modelForCredits = params.model === 'vidfab-q1' ? 'seedance-v1-pro-t2v' :
                            params.model === 'vidfab-pro' ? 'veo3-fast' : params.model
     return calculateCreditsRequired(modelForCredits, params.resolution, params.duration)
   }
@@ -328,9 +330,9 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   return (
     <>
-      <div className="h-screen flex">
+      <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
         {/* 左侧控制面板 */}
-        <div className="w-1/2 h-full">
+        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
           <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3">
             <div className="space-y-6 min-h-[800px]">
 
@@ -392,7 +394,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-gray-700">
-                          <SelectItem value="vidu-q1" className="transition-all duration-200">Vidfab Q1 ⭐</SelectItem>
+                          <SelectItem value="vidfab-q1" className="transition-all duration-200">Vidfab Q1 ⭐</SelectItem>
                           <SelectItem
                             value="vidfab-pro"
                             disabled={!subscription?.is_pro}
@@ -549,7 +551,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         </div>
 
         {/* Right preview area - Multi-task Grid Layout */}
-        <div className="w-1/2 h-full overflow-hidden">
+        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
           <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
             {/* 显示所有用户的任务（进行中+已完成） */}
             {(allUserItems.length > 0 || userVideos.length > 0) ? (

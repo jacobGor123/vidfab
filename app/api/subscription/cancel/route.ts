@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth/config';
+import { authConfig } from '@/auth/config';
 import { SubscriptionService } from '@/lib/subscription/subscription-service';
 import { z } from 'zod';
 
@@ -17,7 +17,7 @@ const subscriptionService = new SubscriptionService();
 export async function POST(req: NextRequest) {
   try {
     // 验证用户身份
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
     if (!session?.user?.uuid) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -40,6 +40,15 @@ export async function POST(req: NextRequest) {
         { success: false, error: result.error },
         { status: 400 }
       );
+    }
+
+    // 🔥 区分正常取消和清理完成
+    if (result.cleaned) {
+      return NextResponse.json({
+        success: true,
+        cleaned: true,
+        message: result.error || 'Subscription data has been cleaned up. You are now on the free plan.',
+      });
     }
 
     return NextResponse.json({

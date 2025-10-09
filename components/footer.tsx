@@ -46,7 +46,7 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">Company</h3>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/about" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     About
                   </a>
                 </li>
@@ -56,17 +56,17 @@ export function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/contact" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Contact
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Privacy Policy
                   </a>
                 </li>

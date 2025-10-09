@@ -194,7 +194,7 @@ export function CreditsBudgetHint({
         )}
 
         {/* Free用户的模型限制提示 */}
-        {userPlan === 'free' && (model !== 'vidu-q1' || resolution === '1080p') && (
+        {userPlan === 'free' && (model !== 'vidfab-q1' || resolution === '1080p') && (
           <Alert className="border-blue-500/30 bg-blue-500/10">
             <AlertTriangle className="h-4 w-4 text-blue-400" />
             <AlertDescription className="text-blue-300 text-xs">

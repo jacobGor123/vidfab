@@ -169,7 +169,15 @@ export function Navbar({ scrolled }: NavbarProps) {
                     <div className="grid w-[120px] gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
                       <NavigationMenuLink asChild>
                         <Link
-                          href="#"
+                          href="/about"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                        >
+                          <div className="text-sm font-medium leading-none text-white">About</div>
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href="/contact"
                           className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                         >
                           <div className="text-sm font-medium leading-none text-white">Contact</div>
@@ -272,7 +280,14 @@ export function Navbar({ scrolled }: NavbarProps) {
               <div className="py-2 text-base font-heading text-white font-medium">Support</div>
               <div className="ml-4 space-y-2">
                 <Link
-                  href="#"
+                  href="/about"
+                  className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  href="/contact"
                   className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >

@@ -12,16 +12,18 @@ import {
   FolderOpen,
   Type,
   ImageIcon,
-  Sparkles
+  Sparkles,
+  User
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface CreateSidebarProps {
   isOpen: boolean
   onToggle: () => void
 }
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets"
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | "my-profile"
 
 // Discover 单独菜单项
 const discoverItem = {
@@ -66,12 +68,24 @@ const menuCategories = [
         description: "Manage your video creations"
       }
     ]
+  },
+  {
+    category: "Account",
+    items: [
+      {
+        id: "my-profile" as ToolType,
+        label: "My Profile",
+        icon: User,
+        description: "View subscription and account details"
+      }
+    ]
   }
 ]
 
 export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const isMobile = useIsMobile()
   // 默认为 "discover"，与页面逻辑保持一致
   const activeTool = (searchParams.get("tool") as ToolType) || "discover"
 
@@ -79,6 +93,11 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
     const params = new URLSearchParams(searchParams.toString())
     params.set("tool", toolId)
     router.push(`/create?${params.toString()}`)
+  }
+
+  // 在移动端隐藏侧边栏
+  if (isMobile) {
+    return null
   }
 
   return (

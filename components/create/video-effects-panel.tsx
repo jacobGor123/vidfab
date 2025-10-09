@@ -22,6 +22,7 @@ import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useRemix } from "@/hooks/use-remix"
 import { useSimpleSubscription } from "@/hooks/use-subscription-simple"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoTaskGridItem } from "./video-task-grid-item"
@@ -108,6 +109,7 @@ interface VideoEffectsParams {
 }
 
 export function VideoEffectsPanel() {
+  const isMobile = useIsMobile()
   const [params, setParams] = useState<VideoEffectsParams>({
     image: "",
     imageFile: null,
@@ -567,9 +569,9 @@ export function VideoEffectsPanel() {
   }
 
   return (
-    <div className="h-screen flex">
+    <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
       {/* Left control panel - 50% width */}
-      <div className="w-1/2 h-full min-h-[1180px]">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full min-h-[1180px]`}>
         <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
 
           {/* Image upload section */}
@@ -810,7 +812,7 @@ export function VideoEffectsPanel() {
       </div>
 
       {/* Right preview area - Multi-task Grid Layout */}
-      <div className="w-1/2 h-full overflow-hidden">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
         <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
           {/* Display all user tasks (in progress + completed) */}
           {(allUserItems.length > 0 || userVideos.length > 0) ? (

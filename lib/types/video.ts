@@ -137,7 +137,7 @@ export function getModelKey(model: string, resolution: string, generationType?: 
   }
 
   const modelMap: Record<string, string> = {
-    "vidu-q1": "vidfab-q1",
+    "vidfab-q1": "vidfab-q1",
     "vidfab-pro": "vidfab-pro"  // 添加 Vidfab Pro 映射
   }
 

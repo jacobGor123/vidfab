@@ -97,12 +97,12 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
                       <td className="p-3">480p</td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '480p', '5')} Credits
+                          {getCreditsForConfig('vidfab-q1', '480p', '5')} Credits
                         </Badge>
                       </td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '480p', '10')} Credits
+                          {getCreditsForConfig('vidfab-q1', '480p', '10')} Credits
                         </Badge>
                       </td>
                     </tr>
@@ -110,12 +110,12 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
                       <td className="p-3">720p HD</td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '720p', '5')} Credits
+                          {getCreditsForConfig('vidfab-q1', '720p', '5')} Credits
                         </Badge>
                       </td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '720p', '10')} Credits
+                          {getCreditsForConfig('vidfab-q1', '720p', '10')} Credits
                         </Badge>
                       </td>
                     </tr>
@@ -123,12 +123,12 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
                       <td className="p-3">1080p Full HD</td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '1080p', '5')} Credits
+                          {getCreditsForConfig('vidfab-q1', '1080p', '5')} Credits
                         </Badge>
                       </td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '1080p', '10')} Credits
+                          {getCreditsForConfig('vidfab-q1', '1080p', '10')} Credits
                         </Badge>
                       </td>
                     </tr>
