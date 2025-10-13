@@ -16,7 +16,7 @@ services:
     container_name: vidfab-app
     restart: unless-stopped
     ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+      - "${HOST_PORT:-3000}:${PORT:-3000}"
     environment:
       - PORT=${PORT:-3000}
       - HOST=${HOST:-0.0.0.0}
@@ -24,16 +24,14 @@ services:
       - DOCKER_ENVIRONMENT=true
       - TRUST_PROXY=${TRUST_PROXY:-true}
       # Redis configuration - use env vars with defaults
-      # Docker环境默认使用容器名'redis'，本地开发默认使用'localhost'
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - REDIS_HOST=${REDIS_HOST:-redis}
+      # Docker环境默认使用独立容器名'vidfab-redis-standalone'，本地开发默认使用'localhost'
+      - REDIS_URL=${REDIS_URL:-redis://vidfab-redis-standalone:6379}
+      - REDIS_HOST=${REDIS_HOST:-vidfab-redis-standalone}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - REDIS_DB=${REDIS_DB:-0}
     env_file:
       - .env  # 优先使用 .env，如果没有会从 .env.local 自动生成
-    depends_on:
-      - redis
     networks:
       - vidfab-network
     volumes:
@@ -44,47 +42,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  # Redis service for queue management
-  redis:
-    image: redis:7-alpine
-    container_name: vidfab-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-    networks:
-      - vidfab-network
-
-  # Redis Commander (optional, for Redis GUI management)
-  redis-commander:
-    image: ghcr.io/joeferner/redis-commander:latest
-    container_name: vidfab-redis-commander
-    restart: unless-stopped
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-      - HTTP_USER=admin
-      - HTTP_PASSWORD=admin123
-    ports:
-      - "8081:8081"
-    depends_on:
-      - redis
-    networks:
-      - vidfab-network
-    profiles:
-      - debug  # Only start with --profile debug
-
-# Named volumes for data persistence
-volumes:
-  redis_data:
-    driver: local
 
 # Custom network for service communication
 networks:

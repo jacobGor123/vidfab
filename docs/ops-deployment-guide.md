@@ -47,16 +47,22 @@
 └────────┬────────┘
          │
 ┌────────▼────────┐
-│  Next.js App    │  ← 主应用服务
+│  Next.js App    │  ← 主应用服务 (docker-compose.yml)
 │  (Port 3000)    │
 └────────┬────────┘
          │
-    ┌────┴────┐
-    │         │
-┌───▼──┐  ┌──▼────┐
-│ Redis│  │Supabase│  ← 外部服务
-└──────┘  └────────┘
+    ┌────┴────────┐
+    │             │
+┌───▼──────┐  ┌──▼────┐
+│ Redis    │  │Supabase│  ← 外部服务
+│(独立容器)│  │ (云服务)│
+└──────────┘  └────────┘
 ```
+
+**说明**：
+- Next.js App 通过 `vidfab-network` 连接到独立的 Redis 容器
+- Redis 服务独立管理（docker-compose-redis.yml）
+- Supabase 使用云服务
 
 ### 1.3 端口占用
 
@@ -245,6 +251,89 @@ NODE_ENV=production
 NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
+### 4.2.5 配置 Redis（独立服务）
+
+**重要**：从 v1.1.0 开始，Redis 已从主应用的 docker-compose.yml 中分离，作为独立服务运行。
+
+#### 选项 A：使用独立 Docker Redis（推荐开发环境）
+
+```bash
+# 1. 启动独立 Redis 服务
+./scripts/redis-start.sh
+
+# 2. 配置 .env.local 中的 Redis 连接
+# Docker 环境使用独立容器名
+REDIS_HOST=vidfab-redis-standalone
+REDIS_PORT=6379
+
+# 或使用 REDIS_URL（二选一）
+REDIS_URL=redis://vidfab-redis-standalone:6379
+```
+
+**脚本功能**：
+- ✅ 自动创建 Docker 网络 `vidfab-network`
+- ✅ 启动 Redis 7-alpine 容器
+- ✅ 配置数据持久化（AOF）
+- ✅ 执行健康检查
+- ✅ 输出详细日志到 `logs/redis-start-*.log`
+
+**Redis 管理命令**：
+```bash
+# 启动 Redis
+./scripts/redis-start.sh
+
+# 停止 Redis
+./scripts/redis-stop.sh
+
+# 查看 Redis 日志
+docker logs vidfab-redis-standalone
+
+# 连接 Redis CLI
+docker exec -it vidfab-redis-standalone redis-cli
+
+# 启动 Redis Commander（可选，调试用）
+docker compose -f docker-compose-redis.yml --profile debug up -d
+# 访问: http://localhost:8081 (admin/admin123)
+```
+
+#### 选项 B：使用外部 Redis 服务（推荐生产环境）
+
+如果你有独立的 Redis 服务器或使用云 Redis 服务：
+
+```bash
+# 配置 .env.local
+REDIS_HOST=your-redis-server.com
+REDIS_PORT=6379
+REDIS_PASSWORD=your-secure-password
+REDIS_DB=0
+
+# 或使用 REDIS_URL
+REDIS_URL=redis://:password@your-redis-server.com:6379/0
+```
+
+#### 本地开发（不使用 Docker）
+
+如果在本地运行应用（非 Docker），Redis 默认配置即可：
+
+```bash
+# .env.local 默认值
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+确保本地安装了 Redis：
+```bash
+# macOS
+brew install redis
+brew services start redis
+
+# Ubuntu/Debian
+sudo apt-get install redis-server
+sudo systemctl start redis
+```
+
+---
+
 ### 4.3 使用部署脚本启动（推荐）
 
 项目提供了自动化部署脚本，会执行环境检查、镜像构建和服务启动：
@@ -262,7 +351,8 @@ chmod +x scripts/docker-logs.sh
 **脚本功能**：
 - ✅ 自动检查环境变量配置
 - ✅ 验证必需的环境变量
-- ✅ 从 `.env.local` 提取构建变量到 `.env`
+- ✅ 检查 Redis 服务是否运行（如未运行会提示先启动）
+- ✅ 从 `.env.local` 复制到 `.env`（如需要）
 - ✅ 启动所有 Docker 服务
 - ✅ 输出详细日志到 `logs/docker-start-*.log`
 - ✅ 执行健康检查
@@ -271,32 +361,47 @@ chmod +x scripts/docker-logs.sh
 
 ```bash
 # 1. 创建 .env 文件（Docker 构建需要）
-grep "^NEXT_PUBLIC_" .env.local > .env
-grep "^NODE_ENV" .env.local >> .env
+cp .env.local .env
 
-# 2. 构建镜像
+# 2. 启动独立 Redis 服务
+docker compose -f docker-compose-redis.yml up -d
+
+# 3. 验证 Redis 运行
+docker ps | grep vidfab-redis-standalone
+
+# 4. 构建应用镜像
 docker compose build --no-cache
 
-# 3. 启动服务
+# 5. 启动应用服务
 docker compose up -d
 
-# 4. 查看容器状态
+# 6. 查看容器状态
 docker compose ps
 
-# 5. 查看日志
+# 7. 查看日志
 docker compose logs -f app
 ```
 
 ### 4.5 验证部署
 
 ```bash
-# 检查容器状态
+# 检查 Redis 容器状态（独立服务）
+docker compose -f docker-compose-redis.yml ps
+
+# 期望输出：
+# NAME                        IMAGE              STATUS
+# vidfab-redis-standalone     redis:7-alpine     Up (healthy)
+
+# 检查应用容器状态
 docker compose ps
 
 # 期望输出：
 # NAME            IMAGE         STATUS         PORTS
 # vidfab-app      vidfab-app    Up (healthy)   0.0.0.0:3000->3000/tcp
-# vidfab-redis    redis:7-alpine Up (healthy)  0.0.0.0:6379->6379/tcp
+
+# 测试 Redis 连接
+docker exec vidfab-redis-standalone redis-cli ping
+# 期望响应: PONG
 
 # 测试应用健康检查端点
 curl http://localhost:3000/api/health

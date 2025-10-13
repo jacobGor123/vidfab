@@ -8,6 +8,25 @@ set -e
 
 echo "🐳 Starting VidFab Docker Environment..."
 
+# Check if Docker daemon is running
+echo "🔍 检查 Docker 服务..."
+if ! docker info >/dev/null 2>&1; then
+    echo ""
+    echo "❌ 错误: Docker daemon 未运行"
+    echo ""
+    echo "请先启动 Docker Desktop:"
+    echo "  1. 打开 Docker Desktop 应用"
+    echo "  2. 等待 Docker 完全启动（菜单栏图标显示运行状态）"
+    echo "  3. 重新运行此脚本"
+    echo ""
+    echo "验证 Docker 是否运行:"
+    echo "  docker ps"
+    echo ""
+    exit 1
+fi
+echo "✅ Docker 服务正在运行"
+echo ""
+
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
@@ -83,6 +102,35 @@ if [ ! -z "$MISSING_VARS" ]; then
 fi
 
 echo "✅ 环境配置检查通过"
+echo ""
+
+# Check if Redis is running
+echo "🔍 检查 Redis 服务..."
+if docker ps --format '{{.Names}}' | grep -q "vidfab-redis-standalone"; then
+    echo "✅ Redis 服务正在运行"
+
+    # Test Redis connection
+    if docker exec vidfab-redis-standalone redis-cli ping 2>/dev/null | grep -q "PONG"; then
+        echo "✅ Redis 连接测试成功"
+    else
+        echo "⚠️  警告: Redis 服务运行中但无法连接"
+    fi
+else
+    echo ""
+    echo "⚠️  警告: 未检测到 Redis 服务运行"
+    echo ""
+    echo "应用需要 Redis 服务才能正常运行队列系统。"
+    echo ""
+    echo "请先启动 Redis 服务："
+    echo "  ./scripts/redis-start.sh"
+    echo ""
+    read -p "是否继续启动应用? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
+
 echo ""
 
 # Start all services in detached mode
