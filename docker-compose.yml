@@ -5,14 +5,14 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Pass build-time environment variables with explicit values
-        - NODE_ENV=production
-        - NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true
-        - NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED=true
-        - NEXT_PUBLIC_AUTH_GOOGLE_ID=827684711935-so1rhvk9iu5a86f9ko0bik020v8v9jgn.apps.googleusercontent.com
-        - NEXT_PUBLIC_APP_URL=http://localhost:3000
-        - NEXT_PUBLIC_SUPABASE_URL=https://ycahbhhuzgixfrljtqmi.supabase.co
-        - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljYWhiaGh1emdpeGZybGp0cW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NzI2OTMsImV4cCI6MjA3MzI0ODY5M30.OFKNQCgBkUaxcV8WjMZWPr27d1Mcf6ox6-iHoSABZbc
+        # Pass build-time environment variables from .env.local
+        - NODE_ENV=${NODE_ENV:-production}
+        - NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=${NEXT_PUBLIC_AUTH_GOOGLE_ENABLED:-true}
+        - NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED=${NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED:-true}
+        - NEXT_PUBLIC_AUTH_GOOGLE_ID=${NEXT_PUBLIC_AUTH_GOOGLE_ID}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     container_name: vidfab-app
     restart: unless-stopped
     ports:
