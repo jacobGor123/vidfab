@@ -23,10 +23,13 @@ services:
       # Remove NODE_ENV conflict - let .env.local control this
       - DOCKER_ENVIRONMENT=true
       - TRUST_PROXY=${TRUST_PROXY:-true}
-      # Override Redis configuration for Docker network
-      - REDIS_URL=redis://redis:6379
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      # Redis configuration - use env vars with defaults
+      # Docker环境默认使用容器名'redis'，本地开发默认使用'localhost'
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DB=${REDIS_DB:-0}
     env_file:
       - .env.local
     depends_on:

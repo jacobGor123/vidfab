@@ -521,6 +521,68 @@ pm2 monit          # 监控面板
 
 ## 6. 环境变量配置详解
 
+### 🎯 配置管理理念
+
+本项目采用**智能默认值 + 环境变量覆盖**的配置管理策略，遵循以下原则：
+
+#### 核心优势
+
+1. **零配置启动** 🚀
+   - 本地开发：克隆代码后直接 `npm run dev`，无需配置 Redis
+   - Docker 环境：`docker compose up` 即可，自动使用容器服务
+
+2. **环境自适应** 🔄
+   - 本地开发：默认连接 `localhost:6379`
+   - Docker 容器：默认连接容器名 `redis:6379`
+   - 生产环境：通过 `.env.local` 覆盖配置
+
+3. **配置分离** 🔒
+   - 敏感配置（密码、密钥）：通过 `.env.local` 管理，不提交到 Git
+   - 通用配置（端口、主机）：在 `docker-compose.yml` 设置默认值
+   - 应用代码：从环境变量读取，支持默认值 fallback
+
+4. **易于调试** 🐛
+   - 开发时不需要配置一堆环境变量
+   - 生产环境只需关注必需的配置项
+   - 减少"在我机器上能跑"的问题
+
+#### 配置优先级（从高到低）
+
+```
+1. .env.local 中的配置（最高优先级，不提交到 Git）
+   ↓
+2. docker-compose.yml 中的环境变量（Docker 环境）
+   ↓
+3. 应用代码中的默认值（兜底保障）
+```
+
+#### 示例：Redis 配置的三层架构
+
+```javascript
+// lib/redis.ts - 应用代码层（第 3 层：默认值）
+const redisConfig = {
+  host: process.env.REDIS_HOST || 'localhost',  // 兜底默认值
+  port: parseInt(process.env.REDIS_PORT || '6379'),
+  // ...
+}
+```
+
+```yaml
+# docker-compose.yml - Docker 编排层（第 2 层）
+environment:
+  - REDIS_HOST=${REDIS_HOST:-redis}  # Docker 环境默认值
+  - REDIS_PORT=${REDIS_PORT:-6379}
+```
+
+```bash
+# .env.local - 环境特定层（第 1 层：最高优先级）
+REDIS_HOST=redis.production.com  # 覆盖所有默认值
+REDIS_PORT=6380
+REDIS_PASSWORD=secure_password
+```
+
+---
+
 ### 6.1 必需的环境变量
 
 | 变量名 | 说明 | 示例 | 获取方式 |
@@ -565,18 +627,52 @@ AWS_SES_REPLY_TO_EMAIL=support@yourdomain.com
 
 #### Redis 配置
 
-```bash
-# Docker 环境（自动配置，无需修改）
-REDIS_URL=redis://redis:6379
-REDIS_HOST=redis
-REDIS_PORT=6379
+**重要说明**：Redis 配置采用**环境变量 + 默认值**的方式，无需在每个环境单独配置。
 
-# 源码部署
-REDIS_URL=redis://localhost:6379
-REDIS_HOST=localhost
+```bash
+# 方式 1: 使用 REDIS_URL（推荐）
+REDIS_URL=redis://localhost:6379        # 本地开发
+REDIS_URL=redis://redis:6379            # Docker 环境
+REDIS_URL=redis://:password@host:6379/0 # 生产环境（带密码）
+
+# 方式 2: 使用独立参数（更灵活）
+REDIS_HOST=localhost                    # Redis 主机地址
+REDIS_PORT=6379                         # Redis 端口
+REDIS_PASSWORD=                         # Redis 密码（可选）
+REDIS_DB=0                              # Redis 数据库编号
+```
+
+**默认值说明**：
+- ✅ **本地开发**：不配置环境变量时，默认使用 `localhost:6379`
+- ✅ **Docker 环境**：不配置环境变量时，默认使用 `redis:6379`（容器名）
+- ✅ **生产环境**：通过 `.env.local` 文件覆盖默认值
+
+**配置优先级**：
+1. 如果设置了 `REDIS_URL`，将优先使用 `REDIS_URL`
+2. 否则使用 `REDIS_HOST`、`REDIS_PORT`、`REDIS_PASSWORD`、`REDIS_DB`
+3. 如果都未设置，使用默认值（localhost:6379, 无密码, db=0）
+
+**示例场景**：
+
+```bash
+# 场景 1: 本地开发（不配置任何 Redis 变量）
+# 系统自动使用 localhost:6379
+# 无需任何配置！
+
+# 场景 2: Docker 环境（不配置任何 Redis 变量）
+# docker-compose.yml 自动配置为 redis:6379
+# 无需任何配置！
+
+# 场景 3: 生产环境（使用外部 Redis）
+# 在 .env.local 中配置：
+REDIS_URL=redis://:my_secure_password@redis.production.com:6379/0
+
+# 场景 4: 本地开发连接远程 Redis
+# 在 .env.local 中配置：
+REDIS_HOST=dev.redis.company.com
 REDIS_PORT=6379
-REDIS_PASSWORD=  # 如果有密码
-REDIS_DB=0
+REDIS_PASSWORD=dev_password
+REDIS_DB=1
 ```
 
 #### 队列配置
