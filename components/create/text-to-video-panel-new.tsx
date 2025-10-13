@@ -14,17 +14,21 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle } from "lucide-react"
+import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Zap, Lock } from "lucide-react"
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
 import { useVideoPolling } from "@/hooks/use-video-polling"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
+import { useSimpleSubscription } from "@/hooks/use-subscription-simple"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoTaskGridItem } from "./video-task-grid-item"
 import { VideoLimitDialog } from "./video-limit-dialog"
+import { calculateCreditsRequired } from "@/lib/subscription/pricing-config"
+import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 
 // Types
 import { VideoGenerationRequest, DURATION_MAP } from "@/lib/types/video"
@@ -52,9 +56,10 @@ interface TextToVideoPanelEnhancedProps {
 }
 
 export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnhancedProps = {}) {
+  const isMobile = useIsMobile()
   const [params, setParams] = useState<VideoGenerationParams>({
     prompt: "",
-    model: "vidu-q1",
+    model: "vidfab-q1",
     duration: "5s",
     resolution: "480p",
     aspectRatio: "16:9",
@@ -63,6 +68,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [showLimitDialog, setShowLimitDialog] = useState(false)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   // 设置初始 prompt
   useEffect(() => {
@@ -77,6 +83,23 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
   // Context and hooks
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
+  const {
+    creditsInfo: subscription,
+    creditsRemaining,
+    canAccessModel,
+    checkCreditsAvailability,
+    isLoading: subscriptionLoading,
+    hasEnoughCreditsForVideo,
+    refreshCredits
+  } = useSimpleSubscription()
+
+  // 🔥 Debug subscription status
+  console.log('🔍 Subscription Debug:', {
+    subscription,
+    isPro: subscription?.is_pro,
+    planType: subscription?.plan_type,
+    credits: subscription?.credits
+  })
 
   // Video generation
   // Video polling
@@ -144,7 +167,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Note: Polling is now handled automatically by useVideoGeneration hook
 
-  // Handle Vidfab Pro model selection
+  // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
     if (params.model === "vidfab-pro") {
       // 自动设置为8秒和720p（如果当前不是支持的选项）
@@ -190,10 +213,30 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Generate video
   const handleGenerate = useCallback(async () => {
-    // Check if user has reached the limit
+    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      setShowLimitDialog(true)
-      return
+      // 找到所有已完成的视频（不包括处理中、失败等状态）
+      const completedItems = allUserItems.filter(item =>
+        item.status === 'completed' && item.resultUrl
+      )
+
+      if (completedItems.length > 0) {
+        // 按创建时间排序，找到最旧的
+        const sortedCompleted = completedItems.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeA - timeB // 升序，最旧的在前
+        })
+
+        const oldestItem = sortedCompleted[0]
+        // 只从前端预览移除，不删除数据库记录
+        videoContext.removeCompletedVideo(oldestItem.id)
+        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
+      } else {
+        // 如果没有已完成的视频可清理，显示限制提示
+        setShowLimitDialog(true)
+        return
+      }
     }
 
     // Form validation
@@ -201,6 +244,34 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     if (errors.length > 0) {
       setValidationErrors(errors)
       return
+    }
+
+    // 权限和Credits检查
+    if (session?.user?.uuid) {
+      try {
+        const [modelAccess, budgetInfo] = await Promise.all([
+          canAccessModel(params.model, params.resolution),
+          checkCreditsAvailability(params.model, params.resolution, params.duration)
+        ])
+
+        // 检查模型访问权限
+        if (!modelAccess.can_access) {
+          // 🔥 不显示技术性错误信息，直接引导用户升级
+          setShowUpgradeDialog(true)
+          return
+        }
+
+        // 检查Credits是否足够
+        if (!budgetInfo.can_afford) {
+          setShowUpgradeDialog(true)
+          return
+        }
+      } catch (error) {
+        console.error('权限检查失败:', error)
+        // 🔥 权限检查失败时不显示错误信息，直接引导用户升级
+        setShowUpgradeDialog(true)
+        return
+      }
     }
 
     setValidationErrors([])
@@ -234,7 +305,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
       // 用户未登录，不执行任何操作
       return
     }
-  }, [params, validateForm, authModal, videoGeneration, userJobs.length])
+  }, [params, validateForm, authModal, videoGeneration, userJobs.length, allUserItems, videoContext])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof VideoGenerationParams, value: string) => {
@@ -250,13 +321,20 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
   const processingJobs = userJobs.filter(job => job.status === "processing")
   const hasActiveJobs = activeJobs.length > 0
 
+  // Calculate credits required for current settings
+  const getCreditsRequired = () => {
+    const modelForCredits = params.model === 'vidfab-q1' ? 'seedance-v1-pro-t2v' :
+                           params.model === 'vidfab-pro' ? 'veo3-fast' : params.model
+    return calculateCreditsRequired(modelForCredits, params.resolution, params.duration)
+  }
+
 
 
   return (
     <>
-      <div className="h-screen flex">
+      <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
         {/* 左侧控制面板 */}
-        <div className="w-1/2 h-full">
+        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
           <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3">
             <div className="space-y-6 min-h-[800px]">
 
@@ -304,19 +382,27 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                   {/* Model selection */}
                   <div className="space-y-2">
                     <Label className="text-gray-300">Model</Label>
-                    <Select
-                      value={params.model}
-                      onValueChange={(value) => updateParam("model", value)}
-                      disabled={videoGeneration.isGenerating}
-                    >
-                      <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-900 border-gray-700">
-                        <SelectItem value="vidu-q1">Vidfab Q1 ⭐</SelectItem>
-                        <SelectItem value="vidfab-pro">Vidfab Pro 🚀</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {subscriptionLoading ? (
+                      <div className="bg-gray-900 border border-gray-700 rounded-md h-10 flex items-center px-3 animate-pulse">
+                        <div className="h-4 bg-gray-700 rounded w-24"></div>
+                      </div>
+                    ) : (
+                      <Select
+                        value={params.model}
+                        onValueChange={(value) => updateParam("model", value)}
+                        disabled={videoGeneration.isGenerating}
+                      >
+                        <SelectTrigger className="bg-gray-900 border-gray-700 text-white transition-all duration-300">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-900 border-gray-700">
+                          <SelectItem value="vidfab-q1" className="transition-all duration-200">Vidfab Q1 ⭐</SelectItem>
+                          <SelectItem value="vidfab-pro" className="transition-all duration-200">
+                            Vidfab Pro 🚀
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   {/* Duration and resolution */}
@@ -346,29 +432,35 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
                     <div className="space-y-2">
                       <Label className="text-gray-300">Resolution</Label>
-                      <Select
-                        value={params.resolution}
-                        onValueChange={(value) => updateParam("resolution", value)}
-                        disabled={videoGeneration.isGenerating}
-                      >
-                        <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-900 border-gray-700">
-                          {params.model === "vidfab-pro" ? (
-                            <>
-                              <SelectItem value="720p">720p HD</SelectItem>
-                              <SelectItem value="1080p">1080p Full HD</SelectItem>
-                            </>
-                          ) : (
-                            <>
-                              <SelectItem value="480p">480p</SelectItem>
-                              <SelectItem value="720p">720p HD</SelectItem>
-                              <SelectItem value="1080p">1080p Full HD</SelectItem>
-                            </>
-                          )}
-                        </SelectContent>
-                      </Select>
+                      {subscriptionLoading ? (
+                        <div className="bg-gray-900 border border-gray-700 rounded-md h-10 flex items-center px-3 animate-pulse">
+                          <div className="h-4 bg-gray-700 rounded w-20"></div>
+                        </div>
+                      ) : (
+                        <Select
+                          value={params.resolution}
+                          onValueChange={(value) => updateParam("resolution", value)}
+                          disabled={videoGeneration.isGenerating}
+                        >
+                          <SelectTrigger className="bg-gray-900 border-gray-700 text-white transition-all duration-300">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-900 border-gray-700">
+                            {params.model === "vidfab-pro" ? (
+                              <>
+                                <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
+                              </>
+                            ) : (
+                              <>
+                                <SelectItem value="480p" className="transition-all duration-200">480p</SelectItem>
+                                <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                   </div>
 
@@ -400,11 +492,12 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                 </CardContent>
               </Card>
 
+
               {/* Generate button */}
               <Button
                 onClick={handleGenerate}
                 disabled={!params.prompt.trim() || videoGeneration.isGenerating || authModal.isLoading || processingJobs.length >= 4}
-                className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-6 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 {videoGeneration.isGenerating ? (
                   <>
@@ -418,7 +511,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                   </>
                 ) : !authModal.isAuthenticated ? (
                   <>
-                    <Play className="w-5 h-5 mr-2" />
                     Sign In & Generate Video
                   </>
                 ) : processingJobs.length >= 4 ? (
@@ -427,9 +519,13 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                     Maximum 4 Videos at Once
                   </>
                 ) : (
-                  <>
-                    Generate Video {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}
-                  </>
+                  <div className="gap-[20px] w-full flex justify-center items-center">
+                    <span>Generate Video {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}</span>
+                    <span className="flex items-center text-sm opacity-90">
+                      <Zap className="w-3 h-3 mr-1" />
+                      {getCreditsRequired()}
+                    </span>
+                  </div>
                 )}
               </Button>
             </div>
@@ -437,7 +533,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         </div>
 
         {/* Right preview area - Multi-task Grid Layout */}
-        <div className="w-1/2 h-full overflow-hidden">
+        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
           <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
             {/* 显示所有用户的任务（进行中+已完成） */}
             {(allUserItems.length > 0 || userVideos.length > 0) ? (
@@ -470,16 +566,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                       key={job.id}
                       job={job}
                       completedVideo={completedVideo as any}
-                      onRegenerateClick={() => {
-                        setParams({
-                          prompt: job.prompt,
-                          model: job.settings.model,
-                          duration: job.settings.duration,
-                          resolution: job.settings.resolution,
-                          aspectRatio: job.settings.aspectRatio,
-                          style: job.settings.style || "realistic"
-                        })
-                      }}
                     />
                   )
                 })}
@@ -513,6 +599,14 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
       {/* Video limit dialog */}
       <VideoLimitDialog open={showLimitDialog} onOpenChange={setShowLimitDialog} />
+
+      {/* Upgrade dialog */}
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        recommendedPlan="pro"
+        context="Unlock advanced models and get more credits for video generation"
+      />
     </>
   )
 }

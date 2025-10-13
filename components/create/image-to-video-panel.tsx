@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIcon } from "lucide-react"
+import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIcon, Zap, Lock } from "lucide-react"
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
@@ -22,10 +22,14 @@ import { useVideoPolling } from "@/hooks/use-video-polling"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useRemix } from "@/hooks/use-remix"
+import { useSimpleSubscription } from "@/hooks/use-subscription-simple"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoTaskGridItem } from "./video-task-grid-item"
 import { VideoLimitDialog } from "./video-limit-dialog"
+import { calculateCreditsRequired } from "@/lib/subscription/pricing-config"
+import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 
 // Types
 import { VideoGenerationRequest, DURATION_MAP } from "@/lib/types/video"
@@ -44,12 +48,13 @@ interface ImageToVideoParams {
 }
 
 export function ImageToVideoPanelEnhanced() {
+  const isMobile = useIsMobile()
   const [params, setParams] = useState<ImageToVideoParams>({
     image: "",
     imageFile: null,
     uploadMode: 'local',
     prompt: "",
-    model: "vidu-q1",
+    model: "vidfab-q1",
     duration: "5s",
     resolution: "480p",
     aspectRatio: "16:9",
@@ -58,6 +63,7 @@ export function ImageToVideoPanelEnhanced() {
 
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [showLimitDialog, setShowLimitDialog] = useState(false)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageUploadProgress, setImageUploadProgress] = useState(0)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
@@ -68,11 +74,22 @@ export function ImageToVideoPanelEnhanced() {
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
   const { getRemixData, clearRemixData } = useRemix()
+  const {
+    creditsInfo: subscription,
+    creditsRemaining,
+    canAccessModel,
+    checkCreditsAvailability,
+    isLoading: subscriptionLoading,
+    hasEnoughCreditsForVideo,
+    refreshCredits
+  } = useSimpleSubscription()
 
   // Video polling
   const videoPolling = useVideoPolling({
     onCompleted: (job, resultUrl) => {
       console.log('Image-to-video generation completed:', job.id)
+      // 🔥 刷新积分显示，确保前端显示的积分数是最新的
+      refreshCredits()
     },
     onFailed: (job, error) => {
       console.error(`Image-to-video generation failed: ${job.id}`, error)
@@ -139,14 +156,96 @@ export function ImageToVideoPanelEnhanced() {
   useEffect(() => {
     const remixData = getRemixData()
     if (remixData) {
+      // 🔥 Download image from URL, convert to File, and upload to Supabase
+      const loadAndUploadRemixImage = async () => {
+        try {
+          setIsUploadingImage(true)
+          setImageUploadProgress(5)
 
-      setParams(prev => ({
-        ...prev,
-        prompt: remixData.prompt,
-        image: remixData.imageUrl, // URL已在存储时转换为webp格式
-        uploadMode: 'url' // Use URL mode for remix images
-      }))
-      setImagePreview(remixData.imageUrl)
+          // Fetch the image through proxy to avoid CORS issues
+          const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(remixData.imageUrl)}`
+          const response = await fetch(proxyUrl)
+          setImageUploadProgress(15)
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch image')
+          }
+
+          const blob = await response.blob()
+          setImageUploadProgress(25)
+
+          // Create File object from blob
+          const fileName = remixData.imageUrl.split('/').pop() || 'remixed-image.webp'
+          const file = new File([blob], fileName, { type: blob.type })
+
+          // Set preview immediately
+          const previewUrl = URL.createObjectURL(blob)
+          setImagePreview(previewUrl)
+          setImageUploadProgress(35)
+
+          // Set prompt
+          setParams(prev => ({
+            ...prev,
+            prompt: remixData.prompt,
+            uploadMode: 'local' // 🔥 Use local mode for remix images
+          }))
+
+          // Process and upload to Supabase
+          setImageUploadProgress(45)
+          const processedResult = await ImageProcessor.processImageSmart(file)
+          setImageUploadProgress(60)
+
+          // Upload to Supabase
+          const formData = new FormData()
+          formData.append('file', processedResult.file)
+          formData.append('autoOptimized', 'true')
+
+          const uploadResponse = await fetch('/api/images/upload', {
+            method: 'POST',
+            body: formData
+          })
+
+          const result = await uploadResponse.json()
+
+          if (!uploadResponse.ok) {
+            throw new Error(result.error || 'Upload failed')
+          }
+
+          setImageUploadProgress(90)
+
+          // Set final Supabase URL
+          setParams(prev => ({
+            ...prev,
+            imageFile: null,
+            image: result.data.url
+          }))
+
+          // Add to upload history
+          setUploadHistory(prev => [{
+            id: result.data.id,
+            name: file.name,
+            size: `${(result.data.size / 1024).toFixed(1)}KB`,
+            timestamp: new Date()
+          }, ...prev.slice(0, 4)])
+
+          setImageUploadProgress(100)
+          setIsUploadingImage(false)
+
+        } catch (error) {
+          console.error('Failed to load remix image:', error)
+          setIsUploadingImage(false)
+          setImageUploadProgress(0)
+          setImagePreview(null)
+
+          // Fallback: just set the prompt
+          setParams(prev => ({
+            ...prev,
+            prompt: remixData.prompt
+          }))
+        }
+      }
+
+      loadAndUploadRemixImage()
 
       // Clear remix data after loading to prevent re-triggering
       clearRemixData()
@@ -154,7 +253,7 @@ export function ImageToVideoPanelEnhanced() {
     }
   }, [getRemixData, clearRemixData])
 
-  // Handle Vidfab Pro model selection
+  // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
     if (params.model === "vidfab-pro") {
       // 自动设置为8秒、720p 和 16:9（Image-to-Video 的 Vidfab Pro 只支持 16:9）
@@ -352,10 +451,30 @@ export function ImageToVideoPanelEnhanced() {
 
   // Generate video
   const handleGenerate = useCallback(async () => {
-    // Check if user has reached the limit
+    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      setShowLimitDialog(true)
-      return
+      // 找到所有已完成的视频（不包括处理中、失败等状态）
+      const completedItems = allUserItems.filter(item =>
+        item.status === 'completed' && item.resultUrl
+      )
+
+      if (completedItems.length > 0) {
+        // 按创建时间排序，找到最旧的
+        const sortedCompleted = completedItems.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeA - timeB // 升序，最旧的在前
+        })
+
+        const oldestItem = sortedCompleted[0]
+        // 只从前端预览移除，不删除数据库记录
+        videoContext.removeCompletedVideo(oldestItem.id)
+        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
+      } else {
+        // 如果没有已完成的视频可清理，显示限制提示
+        setShowLimitDialog(true)
+        return
+      }
     }
 
     // Form validation
@@ -363,6 +482,34 @@ export function ImageToVideoPanelEnhanced() {
     if (errors.length > 0) {
       setValidationErrors(errors)
       return
+    }
+
+    // 权限和Credits检查
+    if (session?.user?.uuid) {
+      try {
+        const [modelAccess, budgetInfo] = await Promise.all([
+          canAccessModel(params.model, params.resolution),
+          checkCreditsAvailability(params.model, params.resolution, params.duration)
+        ])
+
+        // 检查模型访问权限
+        if (!modelAccess.can_access) {
+          // 🔥 不显示技术性错误信息，直接引导用户升级
+          setShowUpgradeDialog(true)
+          return
+        }
+
+        // 检查Credits是否足够
+        if (!budgetInfo.can_afford) {
+          setShowUpgradeDialog(true)
+          return
+        }
+      } catch (error) {
+        console.error('权限检查失败:', error)
+        // 🔥 权限检查失败时不显示技术性错误信息，直接引导用户升级
+        setShowUpgradeDialog(true)
+        return
+      }
     }
 
     setValidationErrors([])
@@ -383,7 +530,8 @@ export function ImageToVideoPanelEnhanced() {
 
         // Additional URL validation
         if (!imageUrl.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i)) {
-          }
+          throw new Error("Please provide a valid image URL with supported format (JPG, PNG, WebP)")
+        }
       } catch {
         throw new Error("Please provide a valid image URL")
       }
@@ -411,7 +559,7 @@ export function ImageToVideoPanelEnhanced() {
     } catch (error) {
       setValidationErrors([error instanceof Error ? error.message : 'Generation failed'])
     }
-  }, [params, validateForm, authModal, videoGeneration, userJobs.length])
+  }, [params, validateForm, authModal, videoGeneration, userJobs.length, allUserItems, videoContext])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof ImageToVideoParams, value: string) => {
@@ -426,14 +574,21 @@ export function ImageToVideoPanelEnhanced() {
   const activeJobs = userJobs.filter(job => job.status === "processing" || job.status === "queued")
   const processingJobs = userJobs.filter(job => job.status === "processing")
 
+  // Calculate credits required for current settings
+  const getCreditsRequired = () => {
+    const modelForCredits = params.model === 'vidfab-q1' ? 'seedance-v1-pro-t2v' :
+                           params.model === 'vidfab-pro' ? 'veo3-fast' : params.model
+    return calculateCreditsRequired(modelForCredits, params.resolution, params.duration)
+  }
+
 
 
 
   return (
     <>
-      <div className="h-screen flex">
+      <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
         {/* 左侧控制面板 */}
-        <div className="w-1/2 h-full">
+        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
           <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3">
             <div className="space-y-6 min-h-[1180px]">
 
@@ -643,20 +798,28 @@ export function ImageToVideoPanelEnhanced() {
                   {/* Model selection */}
                   <div className="space-y-2">
                     <Label className="text-gray-300">Model</Label>
-                    <Select
-                      value={params.model}
-                      defaultValue="vidu-q1"
-                      onValueChange={(value) => updateParam("model", value)}
-                      disabled={videoGeneration.isGenerating}
-                    >
-                      <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                        <SelectValue placeholder="Select model" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-900 border-gray-700">
-                        <SelectItem value="vidu-q1">Vidfab Q1 ⭐</SelectItem>
-                        <SelectItem value="vidfab-pro">Vidfab Pro 🚀</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {subscriptionLoading ? (
+                      <div className="bg-gray-900 border border-gray-700 rounded-md h-10 flex items-center px-3 animate-pulse">
+                        <div className="h-4 bg-gray-700 rounded w-24"></div>
+                      </div>
+                    ) : (
+                      <Select
+                        value={params.model}
+                        defaultValue="vidfab-q1"
+                        onValueChange={(value) => updateParam("model", value)}
+                        disabled={videoGeneration.isGenerating}
+                      >
+                        <SelectTrigger className="bg-gray-900 border-gray-700 text-white transition-all duration-300">
+                          <SelectValue placeholder="Select model" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-900 border-gray-700">
+                          <SelectItem value="vidfab-q1" className="transition-all duration-200">Vidfab Q1 ⭐</SelectItem>
+                          <SelectItem value="vidfab-pro" className="transition-all duration-200">
+                            Vidfab Pro 🚀
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   {/* Duration and resolution */}
@@ -687,30 +850,36 @@ export function ImageToVideoPanelEnhanced() {
 
                     <div className="space-y-2">
                       <Label className="text-gray-300">Resolution</Label>
-                      <Select
-                        value={params.resolution}
-                        defaultValue="480p"
-                        onValueChange={(value) => updateParam("resolution", value)}
-                        disabled={videoGeneration.isGenerating}
-                      >
-                        <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                          <SelectValue placeholder="Select resolution" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-900 border-gray-700">
-                          {params.model === "vidfab-pro" ? (
-                            <>
-                              <SelectItem value="720p">720p HD</SelectItem>
-                              <SelectItem value="1080p">1080p Full HD</SelectItem>
-                            </>
-                          ) : (
-                            <>
-                              <SelectItem value="480p">480p</SelectItem>
-                              <SelectItem value="720p">720p HD</SelectItem>
-                              <SelectItem value="1080p">1080p Full HD</SelectItem>
-                            </>
-                          )}
-                        </SelectContent>
-                      </Select>
+                      {subscriptionLoading ? (
+                        <div className="bg-gray-900 border border-gray-700 rounded-md h-10 flex items-center px-3 animate-pulse">
+                          <div className="h-4 bg-gray-700 rounded w-20"></div>
+                        </div>
+                      ) : (
+                        <Select
+                          value={params.resolution}
+                          defaultValue="480p"
+                          onValueChange={(value) => updateParam("resolution", value)}
+                          disabled={videoGeneration.isGenerating}
+                        >
+                          <SelectTrigger className="bg-gray-900 border-gray-700 text-white transition-all duration-300">
+                            <SelectValue placeholder="Select resolution" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-900 border-gray-700">
+                            {params.model === "vidfab-pro" ? (
+                              <>
+                                <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
+                              </>
+                            ) : (
+                              <>
+                                <SelectItem value="480p" className="transition-all duration-200">480p</SelectItem>
+                                <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                   </div>
 
@@ -742,11 +911,12 @@ export function ImageToVideoPanelEnhanced() {
                 </CardContent>
               </Card>
 
+
               {/* Generate button */}
               <Button
                 onClick={handleGenerate}
                 disabled={!params.prompt.trim() || !params.image || videoGeneration.isGenerating || authModal.isLoading || processingJobs.length >= 4 || isUploadingImage}
-                className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-6 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 {videoGeneration.isGenerating ? (
                   <>
@@ -773,9 +943,13 @@ export function ImageToVideoPanelEnhanced() {
                     Maximum 4 Videos at Once
                   </>
                 ) : (
-                  <>
-                    Generate Video {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}
-                  </>
+                  <div className="gap-[20px] w-full flex justify-center items-center">
+                    <span>Generate Video</span>
+                    <span className="flex items-center text-sm opacity-90">
+                      <Zap className="w-3 h-3 mr-1" />
+                      {getCreditsRequired()}
+                    </span>
+                  </div>
                 )}
               </Button>
             </div>
@@ -783,7 +957,7 @@ export function ImageToVideoPanelEnhanced() {
         </div>
 
         {/* Right preview area - Multi-task Grid Layout */}
-        <div className="w-1/2 h-full overflow-hidden">
+        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
           <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
             {/* 显示所有用户的任务（进行中+已完成） */}
             {(allUserItems.length > 0 || userVideos.length > 0) ? (
@@ -814,17 +988,6 @@ export function ImageToVideoPanelEnhanced() {
                       key={job.id}
                       job={job}
                       completedVideo={completedVideo as any}
-                      onRegenerateClick={() => {
-                        setParams({
-                          ...params,
-                          prompt: job.prompt,
-                          model: job.settings.model,
-                          duration: job.settings.duration,
-                          resolution: job.settings.resolution,
-                          aspectRatio: job.settings.aspectRatio,
-                          style: job.settings.style || "realistic"
-                        })
-                      }}
                     />
                   )
                 })}
@@ -858,6 +1021,14 @@ export function ImageToVideoPanelEnhanced() {
 
       {/* Video limit dialog */}
       <VideoLimitDialog open={showLimitDialog} onOpenChange={setShowLimitDialog} />
+
+      {/* Upgrade dialog */}
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        recommendedPlan="pro"
+        context="Unlock advanced models and get more credits for image-to-video generation"
+      />
     </>
   )
 }

@@ -9,7 +9,7 @@ const rawVideoEntries = [
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-2910ad47-9d15-4ab4-8a59-aea9cf2500d8.mp4"
   },
   {
-    prompt: "一位金髮女子站在微暗水中，周圍漂浮著多朵紅玫瑰，她緩慢地將手深入水中，拾起一朵漂浮的紅玫瑰，水波隨著手的動作溫柔晃動。背景為柔和的光線，映照出鮮豔玫瑰的色彩。鏡頭從正面微下方角度拍攝，聚焦於動作和水波細節。",
+    prompt: "A blonde woman stands in dim water, surrounded by multiple floating red roses. She slowly reaches her hand into the water, picking up a floating red rose, with water ripples gently swaying with her hand movements. The background features soft lighting, illuminating the vibrant colors of the roses. The camera captures the scene from a slightly downward frontal angle, focusing on the action and water ripple details.",
     imageUrl: "https://static.vidfab.ai/user-image/vidfab-cc5fedd1-507a-4415-bef7-7bfe1d3e8c49.png",
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-cc5fedd1-507a-4415-bef7-7bfe1d3e8c49.mp4"
   },
@@ -59,7 +59,7 @@ const rawVideoEntries = [
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-f12daa09-d38c-41e9-9f0e-36758e5c0d0b.mp4"
   },
   {
-    prompt: "金吉拉猫低头，看着锅里的土豆丝，一手拿着锅铲一手扶着锅柄，拿着锅铲在锅里翻炒土豆丝，左右翻炒，拿着锅柄的手颠着锅，变化，过程顺滑，严格按照提示词执行",
+    prompt: "A Chinchilla cat looks down at the shredded potatoes in the pan, holding a spatula in one hand and supporting the pan handle with the other. The cat stir-fries the shredded potatoes in the pan, flipping them left and right, while the hand holding the pan handle tosses the pan up and down. The movements are smooth and natural, creating a realistic cooking scene.",
     imageUrl: "https://static.vidfab.ai/user-image/vidfab-a6b26e8b-fcf6-4dab-9814-3fcfe5d93b45.png",
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-a6b26e8b-fcf6-4dab-9814-3fcfe5d93b45.mp4"
   },
@@ -139,7 +139,7 @@ const rawVideoEntries = [
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-fb4a22f6-0253-43ac-a675-d427264d2fe2.mp4"
   },
   {
-    prompt: "大雪中，俄罗斯美女抚摸着白狮子的鬃毛，狮子伸出舌头舔了一下俄罗斯美女的脸，4k，高清，精致",
+    prompt: "In heavy snow, a Russian woman gently strokes the mane of a white lion. The lion extends its tongue and licks the woman's face affectionately. Shot in 4K, high definition, with exquisite detail and cinematography.",
     imageUrl: "https://static.vidfab.ai/user-image/vidfab-30bcb9f4-1b7b-4541-bd52-ed7d1831bf2c.png",
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-30bcb9f4-1b7b-4541-bd52-ed7d1831bf2c.mp4"
   },
@@ -184,7 +184,7 @@ const rawVideoEntries = [
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-68682289-6924-43fd-9306-ad33bfe92b05.mp4"
   },
   {
-    prompt: "大家微笑，互相拥抱",
+    prompt: "People smile warmly and hug each other affectionately, creating a heartwarming scene filled with joy and connection.",
     imageUrl: "https://static.vidfab.ai/user-image/vidfab-b2c098c3-8cf8-4380-9642-d9bed8c0e523.png",
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-b2c098c3-8cf8-4380-9642-d9bed8c0e523.mp4"
   },
@@ -299,7 +299,7 @@ const rawVideoEntries = [
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-a39bd67e-8d57-4701-bc0c-335435dd5efa.mp4"
   },
   {
-    prompt: "石像上的星球转动，石像缓慢闭上石像的眼睛，下方的小人后退几步，水因为小人后退产生水波纹，水波纹细节。摄像头平视慢慢渐渐聚焦到小人",
+    prompt: "The planet on top of the stone statue rotates slowly, while the stone statue gradually closes its eyes. Below, a small figure takes a few steps backward, causing ripples to spread across the water surface with detailed wave patterns. The camera maintains a level perspective and slowly focuses in on the small figure, capturing the subtle movements and water details.",
     imageUrl: "https://static.vidfab.ai/user-image/vidfab-fe4d8875-7ab6-4b91-96b3-547b2f3eae6d.png",
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-fe4d8875-7ab6-4b91-96b3-547b2f3eae6d.mp4"
   },
@@ -399,7 +399,7 @@ const rawVideoEntries = [
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-c986eae9-6828-49f9-8e7b-50328794f19d.mp4"
   },
   {
-    prompt: "无",
+    prompt: "Animate the image with natural motion",
     imageUrl: "https://static.vidfab.ai/user-image/vidfab-4ebaf8a3-36df-4eb8-bb29-8a9a1e50c817.png",
     videoUrl: "https://static.vidfab.ai/user-video/vidfab-4ebaf8a3-36df-4eb8-bb29-8a9a1e50c817.mp4"
   },

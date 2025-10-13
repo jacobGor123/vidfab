@@ -118,15 +118,36 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
     }, userEmail) // 🔥 传递userEmail参数
 
 
-    // 🔥 只更新真实数据库记录，跳过临时记录
+    // 🔥 只更新真实数据库记录，跳过临时记录，并获取文件大小
     if (!newVideo.id.startsWith('temp-') && !newVideo.id.startsWith('00000000-0000-4000-8000-')) {
-      // 立即标记为完成
+      // 获取文件大小
+      let fileSize = null
+      try {
+        console.log(`📏 获取文件大小: ${originalUrl}`)
+        const response = await fetch(originalUrl, { method: 'HEAD' })
+
+        if (response.ok) {
+          const contentLength = response.headers.get('content-length')
+          if (contentLength) {
+            fileSize = parseInt(contentLength, 10)
+            console.log(`✅ 获取到文件大小: ${(fileSize / 1024 / 1024).toFixed(2)}MB`)
+          }
+        }
+      } catch (sizeError) {
+        console.warn(`⚠️ 无法获取文件大小: ${sizeError.message}`)
+        // 使用估算值
+        fileSize = 10 * 1024 * 1024 // 默认 10MB
+        console.log(`📐 使用估算文件大小: ${(fileSize / 1024 / 1024).toFixed(2)}MB`)
+      }
+
+      // 立即标记为完成并设置文件大小
       try {
         await UserVideosDB.updateVideoStatus(newVideo.id, {
           status: 'completed',
-          downloadProgress: 100
+          downloadProgress: 100,
+          fileSize: fileSize
         })
-        console.log(`✅ Video status updated to completed: ${newVideo.id}`)
+        console.log(`✅ Video status updated to completed with file size: ${newVideo.id}, ${fileSize ? (fileSize / 1024 / 1024).toFixed(2) + 'MB' : 'unknown'}`)
       } catch (updateError) {
         console.error(`❌ Failed to update video status:`, updateError)
         // 不抛出错误，允许继续执行

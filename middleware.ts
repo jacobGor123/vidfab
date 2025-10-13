@@ -15,8 +15,14 @@ const publicRoutes = [
   '/pricing',
   '/features',
   '/how-it-works',
+  '/text-to-video',
+  '/image-to-video',
+  '/ai-video-effects',
+  '/about',
+  '/contact',
   '/privacy',
   '/terms',
+  '/terms-of-service',
   '/support',
 ]
 

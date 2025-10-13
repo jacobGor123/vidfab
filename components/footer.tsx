@@ -24,17 +24,17 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">AI Video</h3>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a href="/create?tool=text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Text to Video
                   </a>
                 </li>
                 <li>
-                  <a href="/create?tool=image-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/image-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Image to Video
                   </a>
                 </li>
                 <li>
-                  <a href="/create?tool=video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/ai-video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     AI Video Effects
                   </a>
                 </li>
@@ -46,7 +46,7 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">Company</h3>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/about" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     About
                   </a>
                 </li>
@@ -56,17 +56,17 @@ export function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/contact" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Contact
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Privacy Policy
                   </a>
                 </li>

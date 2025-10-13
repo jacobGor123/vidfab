@@ -32,6 +32,12 @@ export const DURATION_MAP: Record<string, number> = {
 
 // 辅助函数：判断生成类型
 export function getGenerationType(request: VideoGenerationRequest): VideoGenerationType {
+  // 🔥 首先检查是否是视频特效
+  if (request.effectId || request.generationType === 'video-effects') {
+    return "video-effects"
+  }
+
+  // 然后检查是否是图片转视频
   return request.image ? "image-to-video" : "text-to-video"
 }
 
@@ -72,6 +78,8 @@ export interface VideoJob {
   // Video-effects 特有字段
   effectId?: string    // 特效ID
   effectName?: string  // 特效名称
+  // 🔥 积分管理字段
+  reservationId?: string  // 积分预扣ID，用于确认消费
 }
 
 export interface VideoGenerationSettings {
@@ -115,14 +123,21 @@ export const MODEL_API_MAP: Record<string, string> = {
   "vidfab-pro-1080p": "veo3-fast-t2v",
   // Vidfab Pro (veo3) models - Image-to-Video
   "vidfab-pro-i2v-720p": "veo3-fast-i2v",
-  "vidfab-pro-i2v-1080p": "veo3-fast-i2v"
+  "vidfab-pro-i2v-1080p": "veo3-fast-i2v",
+  // Video Effects models - 视频特效不依赖分辨率，使用固定映射
+  "video-effects": "video-effects-api"
 }
 
 
 // Generate model key from settings
 export function getModelKey(model: string, resolution: string, generationType?: VideoGenerationType): string {
+  // 🔥 视频特效使用固定的键，不依赖模型或分辨率
+  if (generationType === "video-effects") {
+    return "video-effects"
+  }
+
   const modelMap: Record<string, string> = {
-    "vidu-q1": "vidfab-q1",
+    "vidfab-q1": "vidfab-q1",
     "vidfab-pro": "vidfab-pro"  // 添加 Vidfab Pro 映射
   }
 

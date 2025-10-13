@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { checkUserCredits, deductUserCredits } from "@/lib/simple-credits-check"
+import { submitVideoEffectsGeneration } from "@/lib/services/wavespeed-api"
 
 interface VideoEffectsRequest {
   image: string
@@ -71,11 +73,77 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 🔥 简化积分检查 - 检查用户积分是否足够
+    // 检查用户积分（视频特效固定消耗积分，时长5s）
+    const creditsCheck = await checkUserCredits(
+      session.user.uuid,
+      'video-effects' as any,
+      'standard', // 视频特效没有分辨率概念，使用标准值
+      '5'
+    )
+
+    if (!creditsCheck.success) {
+      console.error('❌ Video Effects 积分检查失败:', creditsCheck.error)
+      return NextResponse.json(
+        {
+          error: "Credits verification failed",
+          code: "CREDITS_ERROR",
+          message: "Unable to verify credits. Please try again later."
+        },
+        { status: 500 }
+      )
+    }
+
+    if (!creditsCheck.canAfford) {
+      console.log(`❌ Video Effects 积分不足: 需要 ${creditsCheck.requiredCredits}, 用户有 ${creditsCheck.userCredits}`)
+      return NextResponse.json(
+        {
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
+          message: `You need ${creditsCheck.requiredCredits} credits but only have ${creditsCheck.userCredits}. Please upgrade your plan.`,
+          requiredCredits: creditsCheck.requiredCredits,
+          userCredits: creditsCheck.userCredits
+        },
+        { status: 402 }
+      )
+    }
+
+    // 立即扣除积分
+    const deductResult = await deductUserCredits(session.user.uuid, creditsCheck.requiredCredits)
+    if (!deductResult.success) {
+      console.error('❌ Video Effects 积分扣除失败:', deductResult.error)
+      return NextResponse.json(
+        {
+          error: "Credits deduction failed",
+          code: "CREDITS_ERROR",
+          message: "Failed to deduct credits. Please try again later."
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log(`✅ Video Effects 积分扣除成功: ${creditsCheck.requiredCredits} 积分，剩余: ${deductResult.newBalance}`)
+
     // Call Wavespeed Video Effects API
-    const wavespeedResponse = await submitVideoEffectsGeneration({
-      image: body.image,
-      effectId: body.effectId
-    })
+    let wavespeedResponse
+    try {
+      wavespeedResponse = await submitVideoEffectsGeneration({
+        image: body.image,
+        effectId: body.effectId
+      })
+    } catch (videoError) {
+      // 🔥 视频生成失败时恢复积分
+      console.log('❌ Video Effects API 调用失败，恢复积分...')
+      const restoreResult = await deductUserCredits(session.user.uuid, -creditsCheck.requiredCredits)
+      if (restoreResult.success) {
+        console.log(`✅ 积分已恢复: +${creditsCheck.requiredCredits}, 新余额: ${restoreResult.newBalance}`)
+      } else {
+        console.error('❌ 积分恢复失败:', restoreResult.error)
+      }
+
+      // 重新抛出视频生成错误
+      throw videoError
+    }
 
     // Check if we got a valid request ID
     if (!wavespeedResponse.data?.id) {
@@ -87,7 +155,8 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         requestId: wavespeedResponse.data.id,
-        estimatedTime: 120 // Default 2 minutes for video effects
+        estimatedTime: 120, // Default 2 minutes for video effects
+        creditsDeducted: creditsCheck.requiredCredits // 🔥 记录已扣除的积分数量
       }
     })
 
@@ -125,70 +194,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Call Wavespeed Video Effects API
- */
-async function submitVideoEffectsGeneration({
-  image,
-  effectId
-}: {
-  image: string
-  effectId: string
-}): Promise<WavespeedVideoEffectsResponse> {
-  // Use the same API key as image-to-video
-  const WAVESPEED_API_KEY = "a329907377c20848f126692adb8cd0594e1a1ebef19140b7369b79a69c800929"
-
-  const url = `https://api.wavespeed.ai/api/v3/video-effects/${effectId}`
-
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${WAVESPEED_API_KEY}`
-      },
-      body: JSON.stringify({
-        image,
-        // blueprint-supreme特效需要bgm参数（布尔值）
-        ...(effectId === 'blueprint-supreme' && { bgm: true })
-      })
-    })
-
-    const data = await response.json()
-
-
-    if (!response.ok) {
-      // Handle specific API errors
-      if (response.status === 400) {
-        if (data.error?.includes('image')) {
-          throw new Error('invalid image')
-        }
-        if (data.error?.includes('effect')) {
-          throw new Error('effect not found')
-        }
-        if (data.message?.includes('bgm')) {
-          console.error(`❌ BGM parameter issue for effect ${effectId}:`, data.message)
-          throw new Error('special effect configuration error')
-        }
-      }
-
-      if (response.status === 429) {
-        throw new Error('rate limit exceeded')
-      }
-
-      throw new Error(data.error || `Wavespeed API error: ${response.status}`)
-    }
-
-    return data
-
-  } catch (error) {
-    console.error('🌊 Wavespeed Video Effects API error:', error)
-
-    if (error instanceof Error) {
-      throw error
-    }
-
-    throw new Error('Failed to call Wavespeed Video Effects API')
-  }
-}

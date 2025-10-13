@@ -99,7 +99,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     options?: GenerationOptions
   ): Promise<string> => {
     if (!session?.user?.uuid) {
-      throw new Error('User not authenticated')
+      throw new Error('Please sign in to access this feature')
     }
 
 
@@ -114,7 +114,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         prompt,
         settings: {
           generationType: 'text-to-video',
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -137,7 +137,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         },
         body: JSON.stringify({
           prompt,
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -153,9 +153,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
-      // 🔥 更新job的requestId
+      // 🔥 更新job的requestId和reservationId
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
+        reservationId: data.data.reservationId, // 🔥 保存积分预扣ID
         status: 'processing'
       })
 
@@ -194,7 +195,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     options?: GenerationOptions
   ): Promise<string> => {
     if (!session?.user?.uuid) {
-      throw new Error('User not authenticated')
+      throw new Error('Please sign in to access this feature')
     }
 
     // 🔥 设置正在生成状态
@@ -208,7 +209,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         settings: {
           generationType: 'image-to-video',
           imageUrl,
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'
@@ -230,7 +231,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         body: JSON.stringify({
           image: imageUrl,
           prompt: prompt || 'Convert image to video',
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'
@@ -245,9 +246,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
-      // 🔥 更新job的requestId
+      // 🔥 更新job的requestId和reservationId
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
+        reservationId: data.data.reservationId, // 🔥 保存积分预扣ID
         status: 'processing'
       })
 
@@ -280,7 +282,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     options?: GenerationOptions
   ): Promise<string> => {
     if (!session?.user?.uuid) {
-      const authError = 'User not authenticated'
+      const authError = 'Please sign in to access this feature'
 
       // 🔥 Call onAuthRequired callback
       hookOptionsRef.current?.onAuthRequired?.()
@@ -361,6 +363,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       // 3. 更新任务状态为processing，这会自动触发轮询
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
+        reservationId: data.data.reservationId, // 🔥 保存积分预扣ID
         status: 'processing'
       })
 

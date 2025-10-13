@@ -1,0 +1,75 @@
+{
+  "homepage": {
+    "hero": {
+      "title": "VidFab AI Video Generator",
+      "subtitle": "Make Video Creation Easier",
+      "searchPlaceholder": "Describe the video you want to create...",
+      "cta": {
+        "primary": "Generate Video",
+        "secondary": "Watch Demo"
+      }
+    },
+    "features": {
+      "textToVideo": {
+        "title": "Generate Video with Text Prompts",
+        "subtitle": "Begin by describing what you want to create, then complete the main settings. VidFab will take care of the remaining steps for you.",
+        "imageAlt": "Text to video generation interface"
+      },
+      "imageToVideo": {
+        "title": "Start a Video Creation with Image",
+        "subtitle": "Upload your images and describe your ideas, and VidFab will bring them to life before your eyes.",
+        "imageAlt": "Image to video generation interface"
+      },
+      "popularEffects": {
+        "title": "Pick a Popular Effect in One Click",
+        "subtitle": "Try the most popular effects to make your own videos in one step.",
+        "imageAlt": "Popular video effects showcase"
+      }
+    },
+    "amazingFeatures": {
+      "title": "Amazing Features of VidFab AI Video Generator",
+      "items": [
+        {
+          "number": "1",
+          "title": "User-Friendly Interface for All",
+          "description": "Intuitive design that makes video creation accessible to everyone"
+        },
+        {
+          "number": "2",
+          "title": "High-Quality Video Generation: Up to 1080p",
+          "description": "Create stunning videos with crystal-clear resolution"
+        },
+        {
+          "number": "3",
+          "title": "Up to an 80% reduction in creation time",
+          "description": "Save time with our efficient AI-powered workflow"
+        },
+        {
+          "number": "4",
+          "title": "Diverse Videos Templates Shared within the community",
+          "description": "Access a rich library of templates from our creative community"
+        },
+        {
+          "number": "5",
+          "title": "Integration of Several Powerful AI Models such as Veo3, Kling, Seedance, etc",
+          "description": "Leverage the best AI models for superior video generation"
+        },
+        {
+          "number": "6",
+          "title": "Data Security Guarantee",
+          "description": "Your content and data are protected with enterprise-level security"
+        }
+      ]
+    },
+    "community": {
+      "title": "Find More Inspirations in VidFab Community",
+      "subtitle": "Find your inspiration in a sea of creativity",
+      "description": "Explore unlimited inspiration alongside other VidFab users. Let creativity be inspired by shared excitement and collaborative genius.",
+      "cta": "Discover Now",
+      "getInspiredButton": "Get Inspired",
+      "images": {
+        "alt": "Community creation showcase"
+      }
+    }
+  }
+}

@@ -5,9 +5,10 @@ import { ImageToVideoPanelEnhanced } from "./image-to-video-panel"
 import { VideoEffectsPanel } from "./video-effects-panel"
 import { TemplateGallery } from "./template-gallery"
 import { MyAssets } from "./my-assets"
+import { MyProfilePanel } from "./my-profile-panel"
 import { EmptyState } from "./empty-state"
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | null
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | "my-profile" | null
 
 interface CreateContentProps {
   activeTool: ToolType
@@ -28,13 +29,15 @@ export function CreateContent({ activeTool, onToolChange, initialPrompt }: Creat
         return <VideoEffectsPanel />
       case "my-assets":
         return <MyAssets />
+      case "my-profile":
+        return <MyProfilePanel />
       default:
         return <TemplateGallery />
     }
   }
 
   return (
-    <div className="flex-1 bg-black">
+    <div className="flex-1 bg-black h-full overflow-hidden">
       {renderContent()}
     </div>
   )

@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIcon } from "lucide-react"
+import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIcon, Zap } from "lucide-react"
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
@@ -21,10 +21,14 @@ import { useVideoPolling } from "@/hooks/use-video-polling"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useRemix } from "@/hooks/use-remix"
+import { useSimpleSubscription } from "@/hooks/use-subscription-simple"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoTaskGridItem } from "./video-task-grid-item"
 import { VideoLimitDialog } from "./video-limit-dialog"
+import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
+import { CREDITS_CONSUMPTION } from "@/lib/subscription/pricing-config"
 
 // Video Effects Components
 import { EffectSelector } from "./effect-selector"
@@ -105,6 +109,7 @@ interface VideoEffectsParams {
 }
 
 export function VideoEffectsPanel() {
+  const isMobile = useIsMobile()
   const [params, setParams] = useState<VideoEffectsParams>({
     image: "",
     imageFile: null,
@@ -115,6 +120,7 @@ export function VideoEffectsPanel() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [showLimitDialog, setShowLimitDialog] = useState(false)
   const [showEffectsModal, setShowEffectsModal] = useState(false)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageUploadProgress, setImageUploadProgress] = useState(0)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
@@ -124,6 +130,14 @@ export function VideoEffectsPanel() {
   // Context and hooks
   const videoContext = useVideoContext()
   const { getRemixData, clearRemixData } = useRemix()
+  const {
+    creditsRemaining,
+    canAccessModel,
+    checkCreditsAvailability,
+    isLoading: subscriptionLoading,
+    hasEnoughCreditsForVideo,
+    refreshCredits
+  } = useSimpleSubscription()
 
   // Video generation
   const videoGeneration = useVideoGeneration({
@@ -141,6 +155,9 @@ export function VideoEffectsPanel() {
   // Video polling
   const videoPolling = useVideoPolling({
     onCompleted: (job, resultUrl) => {
+      console.log('Video effects generation completed:', job.id)
+      // 🔥 刷新积分显示，确保前端显示的积分数是最新的
+      refreshCredits()
     },
     onFailed: (job, error) => {
       console.error(`Video effects generation failed: ${job.id}`, error)
@@ -451,10 +468,30 @@ export function VideoEffectsPanel() {
 
   // Generate video effects
   const handleGenerate = useCallback(async () => {
-    // Check if user has reached the limit
+    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      setShowLimitDialog(true)
-      return
+      // 找到所有已完成的视频（不包括处理中、失败等状态）
+      const completedItems = allUserItems.filter(item =>
+        item.status === 'completed' && item.resultUrl
+      )
+
+      if (completedItems.length > 0) {
+        // 按创建时间排序，找到最旧的
+        const sortedCompleted = completedItems.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeA - timeB // 升序，最旧的在前
+        })
+
+        const oldestItem = sortedCompleted[0]
+        // 只从前端预览移除，不删除数据库记录
+        videoContext.removeCompletedVideo(oldestItem.id)
+        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
+      } else {
+        // 如果没有已完成的视频可清理，显示限制提示
+        setShowLimitDialog(true)
+        return
+      }
     }
 
     // Form validation
@@ -466,32 +503,71 @@ export function VideoEffectsPanel() {
 
     setValidationErrors([])
 
-    // Prepare image URL
-    let imageUrl = params.image
+    // 积分检查
+    try {
+      // 检查模型访问权限和积分可用性
+      const [modelAccess, budgetInfo] = await Promise.all([
+        canAccessModel('video-effects', 'standard'), // 视频特效没有分辨率概念
+        checkCreditsAvailability('video-effects', 'standard', '4') // (model, resolution, duration)
+      ])
 
-    // For local upload mode, we should already have a Supabase URL
-    if (params.uploadMode === 'local' && !imageUrl) {
-      throw new Error("Please upload an image first")
+      // 处理模型访问权限问题
+      if (!modelAccess.can_access) {
+        setShowUpgradeDialog(true)
+        return
+      }
+
+      // 处理积分不足问题
+      if (!budgetInfo.can_afford) {
+        setShowUpgradeDialog(true)
+        return
+      }
+
+    } catch (error) {
+      console.error('积分检查失败:', error)
+      // 🔥 积分检查失败时不显示技术性错误信息，直接引导用户升级
+      setShowUpgradeDialog(true)
+      return
     }
 
-    // For URL mode, validate the URL
-    if (params.uploadMode === 'url' && imageUrl) {
-      try {
-        new URL(imageUrl) // Validate URL format
-        if (!imageUrl.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i)) {
+    // 🔥 包装视频生成调用以确保错误处理
+    try {
+      // Prepare image URL
+      let imageUrl = params.image
+
+      // For local upload mode, we should already have a Supabase URL
+      if (params.uploadMode === 'local' && !imageUrl) {
+        throw new Error("Please upload an image first")
+      }
+
+      // For URL mode, validate the URL
+      if (params.uploadMode === 'url' && imageUrl) {
+        try {
+          new URL(imageUrl) // Validate URL format
+          if (!imageUrl.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i)) {
+            throw new Error("Please provide a valid image URL with jpg, jpeg, png, or webp extension")
           }
-      } catch {
-        throw new Error("Please provide a valid image URL")
+        } catch {
+          throw new Error("Please provide a valid image URL")
+        }
+      }
+
+      // Call the video effects generation
+      await videoGeneration.generateVideoEffects({
+        image: imageUrl,
+        effectId: params.selectedEffect?.id || '',
+        effectName: params.selectedEffect?.name
+      })
+    } catch (error) {
+      console.error('视频特效生成失败:', error)
+      // 🔥 视频生成失败时不显示技术性错误信息，直接引导用户升级或重试
+      if (error instanceof Error && error.message.includes('insufficient') || error.message.includes('credits')) {
+        setShowUpgradeDialog(true)
+      } else {
+        setValidationErrors(['视频生成失败，请稍后重试'])
       }
     }
-
-    // Call the video effects generation
-    await videoGeneration.generateVideoEffects({
-      image: imageUrl,
-      effectId: params.selectedEffect?.id || '',
-      effectName: params.selectedEffect?.name
-    })
-  }, [params, validateForm, videoGeneration, userJobs.length])
+  }, [params, validateForm, videoGeneration, userJobs.length, canAccessModel, checkCreditsAvailability, allUserItems, videoContext])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof VideoEffectsParams, value: any) => {
@@ -513,9 +589,9 @@ export function VideoEffectsPanel() {
   }
 
   return (
-    <div className="h-screen flex">
+    <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
       {/* Left control panel - 50% width */}
-      <div className="w-1/2 h-full min-h-[1180px]">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full min-h-[1180px]`}>
         <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
 
           {/* Image upload section */}
@@ -716,7 +792,7 @@ export function VideoEffectsPanel() {
           <Button
             onClick={handleGenerate}
             disabled={!params.image || !params.selectedEffect || videoGeneration.isGenerating || isSessionLoading || processingJobs.length >= 4 || isUploadingImage}
-            className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-6 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             {videoGeneration.isGenerating ? (
               <>
@@ -743,16 +819,20 @@ export function VideoEffectsPanel() {
                 Maximum 4 Videos at Once
               </>
             ) : (
-              <>
-                Generate Video Effects {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}
-              </>
+              <div className="gap-[20px] w-full flex justify-center items-center">
+                <span>Generate Video Effects {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}</span>
+                <span className="flex items-center text-sm opacity-90">
+                  <Zap className="w-3 h-3 mr-1" />
+                  {CREDITS_CONSUMPTION['video-effects']['4s']}
+                </span>
+              </div>
             )}
           </Button>
         </div>
       </div>
 
       {/* Right preview area - Multi-task Grid Layout */}
-      <div className="w-1/2 h-full overflow-hidden">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
         <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
           {/* Display all user tasks (in progress + completed) */}
           {(allUserItems.length > 0 || userVideos.length > 0) ? (
@@ -783,18 +863,6 @@ export function VideoEffectsPanel() {
                     key={job.id}
                     job={job}
                     completedVideo={completedVideo}
-                    onRegenerateClick={() => {
-                      // One-click reuse settings
-                      if (job.sourceImage) {
-                        setParams(prev => ({
-                          ...prev,
-                          image: job.sourceImage!,
-                          selectedEffect: job.effectId
-                            ? { id: job.effectId, name: job.effectName || 'Unknown Effect', posterUrl: '', videoUrl: '', apiEndpoint: job.effectId }
-                            : DEFAULT_EFFECT
-                        }))
-                      }
-                    }}
                   />
                 )
               })}
@@ -835,6 +903,13 @@ export function VideoEffectsPanel() {
           <UnifiedAuthModal className="min-h-0 p-0" />
         </DialogContent>
       </Dialog>
+
+      {/* Upgrade dialog */}
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        trigger="video_effects_generation"
+      />
 
     </div>
   )

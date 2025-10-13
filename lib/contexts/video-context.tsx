@@ -18,6 +18,25 @@ import { VideoJob, VideoResult, VideoGenerationSettings, VideoGenerationType } f
 import { UserVideo, UserQuotaInfo } from "@/lib/supabase"
 import { UserVideosDB } from "@/lib/database/user-videos"
 
+// 🔥 新增：API客户端函数
+async function fetchUserQuota(userId: string): Promise<UserQuotaInfo> {
+  const response = await fetch('/api/user/quota', {
+    method: 'GET',
+    credentials: 'include', // 包含session cookies
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch quota: ${response.status}`)
+  }
+
+  const result = await response.json()
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to fetch quota')
+  }
+
+  return result.data
+}
+
 // Storage keys
 const STORAGE_KEYS = {
   ACTIVE_JOBS: "vidfab_active_video_jobs",
@@ -38,6 +57,7 @@ interface VideoState {
   isLoading: boolean
   error: string | null
   quotaInfo: UserQuotaInfo | null
+  quotaLoading: boolean         // 🔥 新增：存储配额加载状态
   totalVideos: number
   hasMore: boolean
   currentPage: number
@@ -68,6 +88,7 @@ type VideoAction =
   | { type: "UPDATE_COMPLETED_VIDEO"; payload: { id: string; updates: Partial<UserVideo> } }
   | { type: "REMOVE_COMPLETED_VIDEO"; payload: string }
   | { type: "SET_QUOTA_INFO"; payload: UserQuotaInfo | null }
+  | { type: "SET_QUOTA_LOADING"; payload: boolean }
 
 // Context interface
 interface VideoContextType extends VideoState {
@@ -119,6 +140,7 @@ const initialState: VideoState = {
   isLoading: false,
   error: null,
   quotaInfo: null,
+  quotaLoading: false,      // 🔥 新增：存储配额加载状态
   totalVideos: 0,
   hasMore: false,
   currentPage: 1
@@ -259,6 +281,12 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
       return {
         ...state,
         quotaInfo: action.payload
+      }
+
+    case "SET_QUOTA_LOADING":
+      return {
+        ...state,
+        quotaLoading: action.payload
       }
 
     case "RESTORE_STATE":
@@ -406,7 +434,6 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "RESTORE_STATE", payload: { activeJobs: [], failedJobs: [] } })
 
         // Only load data if user is logged in
-
         if (session?.user?.uuid) {
           // Restore active jobs from localStorage (temporary state) and filter immediately
           const allActiveJobs = loadFromStorage(STORAGE_KEYS.ACTIVE_JOBS, [])
@@ -489,8 +516,13 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Load quota information
-          const quotaInfo = await UserVideosDB.getUserQuota(session.user.uuid)
-          dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
+          try {
+            const quotaInfo = await fetchUserQuota(session.user.uuid)
+            dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
+          } catch (quotaError) {
+            console.error('Error fetching quota:', quotaError)
+            dispatch({ type: "SET_QUOTA_INFO", payload: null })
+          }
 
           // Restore filtered user data only
 
@@ -502,6 +534,8 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
             }
           })
 
+        } else {
+          dispatch({ type: "SET_QUOTA_INFO", payload: null })
         }
       } catch (error) {
         console.error('Failed to initialize video context:', error)
@@ -690,10 +724,16 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     lastQuotaRefreshRef.current = now
 
     try {
-      const quotaInfo = await UserVideosDB.getUserQuota(session.user.uuid)
+      // 🔥 开始加载，设置 loading 状态
+      dispatch({ type: "SET_QUOTA_LOADING", payload: true })
+
+      const quotaInfo = await fetchUserQuota(session.user.uuid)
       dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
     } catch (error) {
       console.error('Failed to refresh quota info:', error)
+    } finally {
+      // 🔥 加载完成，清除 loading 状态
+      dispatch({ type: "SET_QUOTA_LOADING", payload: false })
     }
   }, [session?.user?.uuid])
 

@@ -12,16 +12,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+// 🔥 使用单例模式避免开发环境中的重复实例警告
+declare const globalThis: {
+  supabaseGlobalInstance?: ReturnType<typeof createClient>
+  supabaseAdminGlobalInstance?: ReturnType<typeof createClient>
+} & typeof global
+
 // Public client (for client-side operations)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = globalThis.supabaseGlobalInstance ?? createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
   },
 });
 
+if (process.env.NODE_ENV === 'development') {
+  globalThis.supabaseGlobalInstance = supabase
+}
+
 // Admin client (for server-side operations with elevated permissions)
-export const supabaseAdmin = createClient(
+export const supabaseAdmin = globalThis.supabaseAdminGlobalInstance ?? createClient(
   supabaseUrl,
   supabaseServiceKey || supabaseAnonKey,
   {
@@ -29,8 +39,20 @@ export const supabaseAdmin = createClient(
       autoRefreshToken: false,
       persistSession: false,
     },
+    db: {
+      schema: 'public',
+    },
+    global: {
+      headers: {
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+      },
+    },
   }
 );
+
+if (process.env.NODE_ENV === 'development') {
+  globalThis.supabaseAdminGlobalInstance = supabaseAdmin
+}
 
 // Database table types (these should match your Supabase schema)
 export interface DatabaseUser {
@@ -49,7 +71,7 @@ export interface DatabaseUser {
   is_active: boolean;
   // AI Video Platform specific fields
   subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due';
-  subscription_plan?: 'basic' | 'pro' | 'enterprise';
+  subscription_plan?: 'free' | 'lite' | 'pro' | 'premium';
   subscription_stripe_id?: string;
   credits_remaining?: number;
   total_videos_processed?: number;

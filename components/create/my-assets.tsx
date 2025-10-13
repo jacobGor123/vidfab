@@ -4,6 +4,16 @@ import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { FolderOpen, Download, Trash2, Play, Loader2, AlertTriangle, Sparkles } from "lucide-react"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { UserVideosDB } from "@/lib/database/user-videos"
@@ -11,21 +21,55 @@ import { UserVideo } from "@/lib/supabase"
 import { VideoResult } from "@/lib/types/video"
 import { StorageUtils } from "@/lib/utils/storage-helpers"
 import { toast } from "sonner"
+import { VideoSkeleton, EmptyVideosSkeleton } from "./video-skeleton"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 export function MyAssets() {
   const videoContext = useVideoContext()
   const { data: session, status: sessionStatus } = useSession()
   const [videos, setVideos] = useState<UserVideo[]>([])
-  const [stats, setStats] = useState({
-    total: 0,
-    completed: 0,
-    processing: 0,
-    storageUsed: 0
-  })
-  const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalVideos, setTotalVideos] = useState(0)
   const [isCleaningUp, setIsCleaningUp] = useState(false)
+  const [isPageChanging, setIsPageChanging] = useState(false)
+  const ITEMS_PER_PAGE = 10
+
+  // Enhanced loading states
+  const [loadingState, setLoadingState] = useState<{
+    isInitialLoading: boolean
+    isDataLoaded: boolean
+    hasError: boolean
+  }>({
+    isInitialLoading: true,
+    isDataLoaded: false,
+    hasError: false
+  })
+
+  // Alert dialog states
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; videoId: string | null }>({
+    open: false,
+    videoId: null
+  })
+  const [cleanupDialog, setCleanupDialog] = useState(false)
+
+  // Track videos being deleted for loading states
+  const [deletingVideoIds, setDeletingVideoIds] = useState<Set<string>>(new Set())
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -51,25 +95,29 @@ export function MyAssets() {
 
   const loadUserData = useCallback(async () => {
     try {
-      setLoading(true)
-
       if (sessionStatus === 'loading') {
         return
       }
 
       if (sessionStatus === 'unauthenticated' || !session?.user?.uuid) {
         toast.error('Please log in to view your videos')
-        setStats({ total: 0, completed: 0, processing: 0, storageUsed: 0 })
         setVideos([])
+        setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: false })
         return
       }
 
       const userId = session.user.uuid
 
       try {
-        // 🔥 新架构：首先从API获取数据库中的永久视频
+        // Show loading for page changes
+        if (currentPage > 1) {
+          setIsPageChanging(true)
+        } else {
+          setLoadingState(prev => ({ ...prev, isInitialLoading: true, hasError: false }))
+        }
 
-        const response = await fetch(`/api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc`)
+        // 🔥 New architecture: First get permanent videos from database via API
+        const response = await fetch(`/api/user/videos?page=${currentPage}&limit=${ITEMS_PER_PAGE}&orderBy=created_at&orderDirection=desc`)
 
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -82,8 +130,15 @@ export function MyAssets() {
         }
 
         const permanentVideos = apiData.data.videos || []
+        const pagination = apiData.data.pagination
 
-        // 🔥 My Assets只显示永久存储的数据，不包含临时数据
+        console.log(`📡 API returned ${permanentVideos.length} videos for page ${currentPage}:`, permanentVideos.map(v => ({
+          id: v.id,
+          status: v.status,
+          prompt: v.prompt?.substring(0, 30) + '...'
+        })))
+
+        // 🔥 My Assets only shows permanent storage data, no temporary data
         const allVideos = permanentVideos.map(video => ({
           ...video,
           _isTemporary: false
@@ -91,71 +146,67 @@ export function MyAssets() {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
 
+        console.log(`📊 Final processed videos: ${allVideos.length}`)
         setVideos(allVideos)
-
-        const videoStats = {
-          total: allVideos.length,
-          completed: allVideos.filter(v => v.status === 'completed').length,
-          processing: allVideos.filter(v => ['processing', 'generating', 'downloading'].includes(v.status)).length,
-          storageUsed: allVideos
-            .filter(v => v.status === 'completed' && v.file_size)
-            .reduce((total, v) => total + (v.file_size || 0), 0) / (1024 * 1024) // Convert to MB
-        }
-
-        setStats(videoStats)
+        setTotalVideos(pagination.total)
+        setTotalPages(Math.ceil(pagination.total / ITEMS_PER_PAGE))
+        setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: false })
+        setIsPageChanging(false)
 
 
       } catch (dbError) {
         console.error('❌ API/Database query failed:', dbError)
         toast.error('Failed to load videos from database')
 
-        // 🔥 My Assets只显示永久数据，数据库不可用时显示空状态
+        // 🔥 My Assets only shows permanent data, show empty state when database unavailable
         setVideos([])
-        setStats({ total: 0, completed: 0, processing: 0, storageUsed: 0 })
+        setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: true })
+        setIsPageChanging(false)
       }
 
 
     } catch (error) {
       console.error('Failed to load user data:', error)
       toast.error('Failed to load your videos')
-    } finally {
-      setLoading(false)
+      setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: true })
+      setIsPageChanging(false)
     }
-  }, [session?.user?.uuid, sessionStatus])
+  }, [session?.user?.uuid, sessionStatus, currentPage, ITEMS_PER_PAGE])
 
   useEffect(() => {
     loadUserData()
   }, [loadUserData])
 
+  // 🔥 Refresh storage quota when switching to my-assets page
+  useEffect(() => {
+    console.log(`📊 MyAssets component mounted, refreshing storage quota...`)
+    if (sessionStatus === 'authenticated' && session?.user?.uuid) {
+      videoContext.refreshQuotaInfo()
+        .then(() => console.log(`✅ Storage quota refreshed on page switch`))
+        .catch(error => console.error(`❌ Failed to refresh storage quota:`, error))
+    }
+  }, [sessionStatus, session?.user?.uuid, videoContext])
+
   // Use all videos without filtering
   const filteredVideos = videos
 
-  const loadMoreVideos = async () => {
-    if (!session?.user?.uuid) {
-      toast.error('Please log in to load videos')
-      return
-    }
-
-    try {
-      const moreVideos = await UserVideosDB.getUserVideos(session.user.uuid, {
-        page: currentPage + 1,
-        limit: 50,
-        orderBy: 'created_at',
-        orderDirection: 'desc'
-      })
-
-      setCurrentPage(prev => prev + 1)
-      setVideos(prev => [...prev, ...moreVideos.videos])
-    } catch (error) {
-      console.error('Failed to load more videos:', error)
-      toast.error('Failed to load more videos')
-    }
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return
+    setCurrentPage(newPage)
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDeleteVideo = async (videoId: string) => {
-    if (!confirm("Are you sure you want to delete this video? This action cannot be undone.")) {
-      return
-    }
+  const openDeleteDialog = (videoId: string) => {
+    setDeleteDialog({ open: true, videoId })
+  }
+
+  const confirmDeleteVideo = async () => {
+    const videoId = deleteDialog.videoId
+    if (!videoId) return
+
+    // Close dialog first
+    setDeleteDialog({ open: false, videoId: null })
 
     if (!session?.user?.uuid) {
       toast.error('Please log in to delete videos')
@@ -163,22 +214,96 @@ export function MyAssets() {
     }
 
     try {
-      await UserVideosDB.deleteVideo(videoId, session.user.uuid)
-      setVideos(prev => prev.filter(v => v.id !== videoId))
+      console.log(`🗑️ Starting video deletion: ${videoId}`)
+      console.log(`🔍 User UUID: ${session.user.uuid}`)
+
+      // Add to deleting state for loading effect
+      setDeletingVideoIds(prev => new Set([...prev, videoId]))
+
+      // Call enhanced delete API with detailed logging
+      console.log(`📡 Calling enhanced delete API...`)
+      const deleteResponse = await fetch(`/api/user/videos/delete?videoId=${encodeURIComponent(videoId)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const deleteResult = await deleteResponse.json()
+      console.log(`📡 Delete API response:`, deleteResult)
+
+      if (!deleteResponse.ok || !deleteResult.success) {
+        throw new Error(deleteResult.error || `Delete API failed with status: ${deleteResponse.status}`)
+      }
+
+      console.log(`✅ Delete API completed successfully:`, deleteResult.data)
+
+      console.log(`✅ Video deletion verified successfully: ${videoId}`)
+
+      // Remove from deleting state
+      setDeletingVideoIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(videoId)
+        return newSet
+      })
+
       toast.success("Video deleted successfully")
-      // Refresh stats after deletion
-      await loadUserData()
+
+      // 🔥 Force reload data from server to verify deletion
+      console.log(`🔄 Reloading data to verify deletion...`)
+      // Don't show skeleton during deletion reload since it's a background refresh
+      const currentLoadingState = loadingState
+
+      // If current page becomes empty after deletion, go to previous page
+      if (filteredVideos.length === 1 && currentPage > 1) {
+        setCurrentPage(prev => prev - 1)
+      } else {
+        await loadUserData()
+        // Restore loading state to prevent skeleton flash
+        setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
+      }
+
+      // 🔥 Refresh storage quota info after deletion
+      console.log(`📊 Refreshing storage quota after deletion...`)
+      await videoContext.refreshQuotaInfo()
+      console.log(`✅ Storage quota refreshed`)
+
     } catch (error) {
-      console.error('Failed to delete video:', error)
-      toast.error('Failed to delete video')
+      console.error('❌ Video deletion failed:', error)
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        videoId,
+        userId: session.user.uuid
+      })
+
+      // Remove from deleting state on failure
+      setDeletingVideoIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(videoId)
+        return newSet
+      })
+
+      // Show detailed error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      toast.error(`Delete failed: ${errorMessage}`)
+
+      // 🔥 Reload data to restore correct state
+      console.log(`🔄 Reloading data after deletion failure...`)
+      // Don't show skeleton during error recovery reload
+      await loadUserData()
+      setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
     }
   }
 
 
-  const handleCleanupStorage = async () => {
-    if (!confirm("This will automatically delete your oldest non-favorite videos to free up storage space. Are you sure?")) {
-      return
-    }
+  const openCleanupDialog = () => {
+    setCleanupDialog(true)
+  }
+
+  const confirmCleanupStorage = async () => {
+    // Close dialog first
+    setCleanupDialog(false)
 
     if (!session?.user?.uuid) {
       toast.error('Please log in to cleanup storage')
@@ -191,7 +316,16 @@ export function MyAssets() {
 
       if (result.deletedVideos > 0) {
         toast.success(`Cleaned up ${result.deletedVideos} videos, freed ${result.freedSizeMB.toFixed(1)}MB`)
+
+        // Reset to first page after cleanup
+        setCurrentPage(1)
         await loadUserData() // Refresh data
+        setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
+
+        // 🔥 Refresh storage quota info after cleanup
+        console.log(`📊 Refreshing storage quota after cleanup...`)
+        await videoContext.refreshQuotaInfo()
+        console.log(`✅ Storage quota refreshed`)
       } else {
         toast.info("No cleanup needed - storage is within limits")
       }
@@ -203,63 +337,124 @@ export function MyAssets() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-3">
-          <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
-          <span className="text-gray-400">Loading your videos...</span>
-        </div>
-      </div>
-    )
+  // Show skeleton during initial loading
+  if (loadingState.isInitialLoading) {
+    // If we don't know if there will be data yet, show content skeleton
+    return <VideoSkeleton count={5} />
+  }
+
+  // Show empty skeleton if we know there's no data
+  if (loadingState.isDataLoaded && videos.length === 0 && !loadingState.hasError) {
+    // We could show EmptyVideosSkeleton briefly, but let's go directly to the real empty state
+    // This prevents the flash you mentioned
   }
 
   return (
-    <div className="h-screen overflow-y-auto p-6 space-y-6 custom-scrollbar">
+    <div className="h-full overflow-hidden flex flex-col">
+      {/* 使用 calc 计算实际可用高度，减去 padding */}
+      <div className="h-[calc(100vh-4rem)] max-w-7xl mx-auto w-full p-6 flex flex-col gap-4">
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-white">{stats.total}</div>
-          <div className="text-sm text-gray-400">Total Videos</div>
-        </div>
-        <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
-          <div className="text-sm text-gray-400">Completed</div>
-        </div>
-        <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-yellow-400">{stats.processing}</div>
-          <div className="text-sm text-gray-400">Processing</div>
-        </div>
-        <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-2xl font-bold text-brand-cyan-DEFAULT">
-                {StorageUtils.formatStorageSize(StorageUtils.mbToBytes(stats.storageUsed))}
+        {/* Storage Info - 新布局 */}
+        <div className="flex-shrink-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Storage Rules */}
+          <div className="bg-blue-950/30 border border-blue-800/50 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
               </div>
-              <div className="text-sm text-gray-400">Storage Used</div>
-              {videoContext.quotaInfo && (
-                <div className="text-xs text-gray-500 mt-1">
-                  {videoContext.quotaInfo.storage_percentage.toFixed(1)}% used
-                  {videoContext.quotaInfo.is_subscribed ? ' (Pro)' : ' (Free)'}
+              <div className="text-sm text-blue-200">
+                <strong className="text-blue-100">Storage Rules:</strong>
+                <ul className="block mt-1 space-y-1">
+                  <li>• All users: 1GB maximum storage limit</li>
+                  <li>• {videoContext.quotaInfo?.is_subscribed ? (
+                    <span>Pro users: Videos stored permanently during subscription</span>
+                  ) : (
+                    <span>Free users: Videos auto-deleted 24 hours after completion</span>
+                  )}</li>
+                  <li>• When storage exceeds 1GB: Oldest videos deleted automatically</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Storage Used */}
+          <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                {/* 🔥 存储配额数据显示 - 支持 loading 状态 */}
+                {videoContext.quotaLoading ? (
+                  // Loading 状态显示
+                  <div className="animate-pulse">
+                    <div className="h-8 bg-gray-700 rounded w-24 mb-1"></div>
+                    <div className="h-4 bg-gray-700 rounded w-20 mb-3"></div>
+                    <div className="mt-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-1 bg-gray-800 rounded-full h-2">
+                          <div className="h-2 bg-gray-600 rounded-full w-1/3 animate-pulse"></div>
+                        </div>
+                        <div className="h-3 bg-gray-700 rounded w-8"></div>
+                      </div>
+                      <div className="h-3 bg-gray-700 rounded w-24 mt-1"></div>
+                    </div>
+                  </div>
+                ) : (
+                  // 实际数据显示
+                  <>
+                    <div className="text-2xl font-bold text-brand-cyan-DEFAULT transition-all duration-300">
+                      {videoContext.quotaInfo ?
+                        `${videoContext.quotaInfo.current_size_mb.toFixed(0)}MB` :
+                        '0MB'}
+                    </div>
+                    <div className="text-sm text-gray-400">Storage Used</div>
+                    {videoContext.quotaInfo && (
+                      <div className="mt-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 bg-gray-800 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full transition-all duration-500 ${
+                                videoContext.quotaInfo.storage_percentage > 90
+                                  ? 'bg-red-500'
+                                  : videoContext.quotaInfo.storage_percentage > 70
+                                  ? 'bg-yellow-500'
+                                  : 'bg-green-500'
+                              }`}
+                              style={{ width: `${Math.min(videoContext.quotaInfo.storage_percentage, 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs text-gray-500 min-w-0 transition-all duration-300">
+                            {videoContext.quotaInfo.storage_percentage.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 transition-all duration-300">
+                          {videoContext.quotaInfo.current_size_mb.toFixed(1)}MB / 1GB
+                          {videoContext.quotaInfo.is_subscribed ? ' (Pro)' : ' (Free)'}
+                        </div>
+                        {!videoContext.quotaInfo.is_subscribed && videoContext.quotaInfo.current_videos > 0 && (
+                          <div className="text-xs text-orange-400 mt-1">
+                            Videos expire 24h after completion
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              {!videoContext.quotaLoading && videoContext.quotaInfo && videoContext.quotaInfo.storage_percentage > 80 && (
+                <div className="flex items-center ml-3 transition-opacity duration-300">
+                  <AlertTriangle
+                    className={`w-5 h-5 ${
+                      videoContext.quotaInfo.storage_percentage > 95 ? 'text-red-400' : 'text-yellow-400'
+                    }`}
+                  />
                 </div>
               )}
             </div>
-            {videoContext.quotaInfo && videoContext.quotaInfo.storage_percentage > 80 && (
-              <div className="flex items-center">
-                <AlertTriangle
-                  className={`w-5 h-5 ml-2 ${
-                    videoContext.quotaInfo.storage_percentage > 95 ? 'text-red-400' : 'text-yellow-400'
-                  }`}
-                />
-              </div>
-            )}
           </div>
         </div>
-      </div>
 
       {/* Storage Warning Banner */}
-      {videoContext.quotaInfo && videoContext.quotaInfo.storage_percentage > 80 && (
+      {!videoContext.quotaLoading && videoContext.quotaInfo && videoContext.quotaInfo.storage_percentage > 80 && (
         <div className={`rounded-lg p-4 border ${
           videoContext.quotaInfo.storage_percentage > 95
             ? 'bg-red-900/20 border-red-800 text-red-300'
@@ -271,12 +466,12 @@ export function MyAssets() {
               <div>
                 <div className="font-medium">
                   {videoContext.quotaInfo.storage_percentage > 95
-                    ? '存储空间即将用尽'
-                    : '存储空间使用量较高'}
+                    ? 'Storage space almost full'
+                    : 'Storage usage is high'}
                 </div>
                 <div className="text-sm opacity-80">
-                  已使用 {videoContext.quotaInfo.current_size_mb.toFixed(1)}MB / {videoContext.quotaInfo.max_size_mb.toFixed(0)}MB
-                  {!videoContext.quotaInfo.is_subscribed && ' (免费账户限制)'}
+                  Used {videoContext.quotaInfo.current_size_mb.toFixed(1)}MB / {videoContext.quotaInfo.max_size_mb.toFixed(0)}MB
+                  {!videoContext.quotaInfo.is_subscribed && ' (Free account limit)'}
                 </div>
               </div>
             </div>
@@ -287,13 +482,13 @@ export function MyAssets() {
                   className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-cyan-DEFAULT hover:from-brand-purple-600 hover:to-brand-cyan-600"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  升级到Pro
+                  Upgrade to Pro
                 </Button>
               )}
               <Button
                 size="sm"
                 variant="outline"
-                onClick={handleCleanupStorage}
+                onClick={openCleanupDialog}
                 disabled={isCleaningUp}
                 className="border-current text-current hover:bg-current/10"
               >
@@ -302,33 +497,55 @@ export function MyAssets() {
                 ) : (
                   <Trash2 className="w-4 h-4 mr-2" />
                 )}
-                {isCleaningUp ? '清理中...' : '自动清理'}
+                {isCleaningUp ? 'Cleaning...' : 'Auto Cleanup'}
               </Button>
             </div>
           </div>
         </div>
       )}
+        </div>
 
+        {/* 资产列表 - 占据剩余空间 */}
+        <div className="flex-1 min-h-0 overflow-hidden relative">
+          {/* Page changing loading overlay */}
+          {isPageChanging && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="flex flex-col items-center space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-cyan-DEFAULT" />
+                <span className="text-sm text-gray-300">Loading page {currentPage}...</span>
+              </div>
+            </div>
+          )}
 
-      {/* Assets List */}
-      <div className="space-y-4">
+          <div className={`h-full overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 pr-2 transition-opacity duration-200 ${isPageChanging ? 'opacity-30' : 'opacity-100'}`}>
         {filteredVideos.map((video) => {
-          // 🔥 确定永久存储视频的URL和缩略图
+          // 🔥 Determine URL and thumbnail for permanent storage video
           const videoUrl = video.storage_path
-            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.storage_path}` // 优先使用本地存储
-            : video.original_url // 回退：如果没有本地存储，使用原始URL
+            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.storage_path}` // Prefer local storage
+            : video.original_url // Fallback: use original URL if no local storage
 
-          // 缩略图逻辑：只处理永久存储视频的缩略图
+          // Thumbnail logic: only handle thumbnails for permanent storage videos
           const thumbnailUrl = video.thumbnail_path
-            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.thumbnail_path}` // Supabase存储的缩略图
-            : null // 没有缩略图
+            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.thumbnail_path}` // Supabase stored thumbnail
+            : null // No thumbnail
 
-          // 🔥 如果没有缩略图但有视频URL，使用视频作为预览源
+          // 🔥 If no thumbnail but has video URL, use video as preview source
           const shouldUseVideoPreview = !thumbnailUrl && videoUrl
 
+          // Check if this video is being deleted
+          const isDeleting = deletingVideoIds.has(video.id)
 
           return (
-            <Card key={video.id} className="bg-gray-950 border-gray-800">
+            <Card key={video.id} className="bg-gray-950 border-gray-800 relative">
+              {/* Deleting Overlay */}
+              {isDeleting && (
+                <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center z-10">
+                  <div className="flex items-center space-x-3 text-white">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-sm font-medium">Deleting video...</span>
+                  </div>
+                </div>
+              )}
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -349,7 +566,7 @@ export function MyAssets() {
                           preload="metadata"
                           poster=""
                           onError={(e) => {
-                            // 如果视频加载失败，隐藏video元素，显示播放图标
+                            // If video loading fails, hide video element and show play icon
                             e.currentTarget.style.display = 'none'
                             const playIcon = e.currentTarget.nextElementSibling as HTMLElement
                             if (playIcon) playIcon.style.display = 'flex'
@@ -357,7 +574,7 @@ export function MyAssets() {
                         />
                       ) : null}
 
-                      {/* 🔥 回退播放图标 - 当没有缩略图且视频预览失败时显示 */}
+                      {/* 🔥 Fallback play icon - shown when no thumbnail and video preview fails */}
                       {!thumbnailUrl && (
                         <div
                           className={`absolute inset-0 flex items-center justify-center ${shouldUseVideoPreview ? 'hidden' : 'flex'}`}
@@ -366,12 +583,12 @@ export function MyAssets() {
                         </div>
                       )}
 
-                      {/* 🔥 预览按钮覆盖层 */}
+                      {/* 🔥 Preview button overlay */}
                       {videoUrl && (
                         <div
                           className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
                           onClick={() => {
-                            // 在模态框中播放视频
+                            // Play video in modal
                             const modal = document.createElement('div')
                             modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50'
                             modal.innerHTML = `
@@ -394,7 +611,7 @@ export function MyAssets() {
                             `
                             document.body.appendChild(modal)
 
-                            // 点击背景关闭
+                            // Click background to close
                             modal.addEventListener('click', (e) => {
                               if (e.target === modal) {
                                 modal.remove()
@@ -408,16 +625,38 @@ export function MyAssets() {
                     </div>
 
                     {/* Video Info */}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-1 line-clamp-1">
-                        {video.prompt && video.prompt.trim() ? video.prompt : 'AI Generated Video'}
-                      </h3>
+                    <div className="flex-1 min-w-0">
+                      {(() => {
+                        const fullPrompt = video.prompt && video.prompt.trim() ? video.prompt : 'AI Generated Video'
+                        const maxLength = 60 // 最大60个字符,约为原来的1/3
+                        const truncatedPrompt = fullPrompt.length > maxLength
+                          ? fullPrompt.substring(0, maxLength) + '...'
+                          : fullPrompt
+                        const needsTooltip = fullPrompt.length > maxLength
+
+                        return needsTooltip ? (
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <h3 className="font-semibold text-white mb-1 cursor-help truncate">
+                                  {truncatedPrompt}
+                                </h3>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                className="max-w-md bg-gray-900 border border-gray-700 text-gray-200 p-3"
+                              >
+                                <p className="text-sm leading-relaxed">{fullPrompt}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <h3 className="font-semibold text-white mb-1 truncate">
+                            {truncatedPrompt}
+                          </h3>
+                        )
+                      })()}
                       <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span>
-                          {video.settings?.model === 'image-to-video' ? 'Image to Video' : 'Text to Video'}
-                        </span>
-                        <span>{video.settings?.duration || '5s'}</span>
-                        <span>{video.settings?.resolution || '1280x720'}</span>
                         <span>
                           {video.created_at && !isNaN(new Date(video.created_at).getTime())
                             ? new Date(video.created_at).toLocaleDateString()
@@ -429,10 +668,6 @@ export function MyAssets() {
                       </div>
                     </div>
 
-                    {/* Status */}
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(video.status || 'unknown')}`}>
-                      {(video.status || 'unknown').charAt(0).toUpperCase() + (video.status || 'unknown').slice(1)}
-                    </div>
                   </div>
 
                   {/* Actions */}
@@ -443,12 +678,17 @@ export function MyAssets() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="text-gray-400 hover:text-white hover:bg-gray-800"
+                        disabled={isDeleting}
+                        className={`${
+                          isDeleting
+                            ? 'text-gray-600 cursor-not-allowed'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        }`}
                         onClick={async () => {
                           try {
-                            // 🔥 优化下载逻辑，处理CORS问题
+                            // 🔥 Optimize download logic, handle CORS issues
                             if (video.storage_path) {
-                              // 本地存储的视频，直接下载
+                              // Local storage video, download directly
                               const link = document.createElement('a')
                               link.href = videoUrl
                               link.download = `vidfab-video-${video.id}.mp4`
@@ -456,31 +696,31 @@ export function MyAssets() {
                               link.click()
                               document.body.removeChild(link)
                             } else {
-                              // 外部URL，尝试通过fetch下载（避免CORS问题）
-                              toast.info('开始下载视频...')
+                              // External URL, try downloading via fetch (avoid CORS issues)
+                              toast.info('Starting video download...')
 
                               const response = await fetch(videoUrl, {
-                                mode: 'no-cors' // 尝试避免CORS限制
+                                mode: 'no-cors' // Try to avoid CORS restrictions
                               })
 
                               if (response.ok || response.type === 'opaque') {
                                 const link = document.createElement('a')
                                 link.href = videoUrl
                                 link.download = `vidfab-video-${video.id}.mp4`
-                                link.target = '_blank' // 在新标签页打开，让用户手动下载
+                                link.target = '_blank' // Open in new tab for manual download
                                 document.body.appendChild(link)
                                 link.click()
                                 document.body.removeChild(link)
-                                toast.success('视频下载已开始')
+                                toast.success('Video download started')
                               } else {
-                                throw new Error('视频下载失败')
+                                throw new Error('Video download failed')
                               }
                             }
                           } catch (error) {
-                            console.error('下载视频失败:', error)
-                            // 🔥 如果下载失败，在新标签页打开视频
+                            console.error('Video download failed:', error)
+                            // 🔥 If download fails, open video in new tab
                             window.open(videoUrl, '_blank')
-                            toast.info('已在新标签页打开视频，可右键保存')
+                            toast.info('Video opened in new tab, right-click to save')
                           }
                         }}
                       >
@@ -492,10 +732,19 @@ export function MyAssets() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="text-gray-400 hover:text-red-400 hover:bg-red-400/10"
-                      onClick={() => handleDeleteVideo(video.id)}
+                      disabled={isDeleting}
+                      className={`${
+                        isDeleting
+                          ? 'text-gray-600 cursor-not-allowed'
+                          : 'text-gray-400 hover:text-red-400 hover:bg-red-400/10'
+                      }`}
+                      onClick={() => !isDeleting && openDeleteDialog(video.id)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {isDeleting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -503,9 +752,8 @@ export function MyAssets() {
             </Card>
           )
         })}
-      </div>
 
-      {/* Empty State - shown when no assets */}
+        {/* Empty State - shown when no assets */}
       {filteredVideos.length === 0 && (
         <div className="text-center py-12">
           <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-6">
@@ -518,19 +766,156 @@ export function MyAssets() {
           </Button>
         </div>
       )}
-
-      {/* Pagination */}
-      {videoContext.hasMore && filteredVideos.length > 0 && (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            className="border-gray-700 text-gray-300 hover:bg-gray-800"
-            onClick={loadMoreVideos}
-          >
-            Load More Videos
-          </Button>
+          </div>
         </div>
-      )}
+
+        {/* Pagination - 固定在底部 */}
+        <div className="flex-shrink-0">
+        {filteredVideos.length > 0 && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-400">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalVideos)} of {totalVideos} videos
+            </div>
+            {totalPages > 1 && (
+              <Pagination>
+                <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50 text-gray-600' : 'text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {/* First page */}
+              {currentPage > 2 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => handlePageChange(1)}
+                      className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  {currentPage > 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis className="text-gray-600" />
+                    </PaginationItem>
+                  )}
+                </>
+              )}
+
+              {/* Current page and neighbors */}
+              {currentPage > 1 && (
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                  >
+                    {currentPage - 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+
+              <PaginationItem>
+                <PaginationLink
+                  isActive
+                  className="bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-purple-600 cursor-default"
+                >
+                  {currentPage}
+                </PaginationLink>
+              </PaginationItem>
+
+              {currentPage < totalPages && (
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                  >
+                    {currentPage + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+
+              {/* Last page */}
+              {currentPage < totalPages - 1 && (
+                <>
+                  {currentPage < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis className="text-gray-600" />
+                    </PaginationItem>
+                  )}
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => handlePageChange(totalPages)}
+                      className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                    >
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50 text-gray-600' : 'text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+            )}
+          </div>
+        )}
+        </div>
+      </div>
+
+      {/* Delete Video Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, videoId: null })}>
+        <AlertDialogContent className="bg-gray-950 border border-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Video</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Are you sure you want to delete this video? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-gray-700 text-gray-300 hover:bg-gray-800">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteVideo}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cleanup Storage Confirmation Dialog */}
+      <AlertDialog open={cleanupDialog} onOpenChange={setCleanupDialog}>
+        <AlertDialogContent className="bg-gray-950 border border-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Cleanup Storage</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              This will automatically delete your oldest videos to free up storage space and enforce the 1GB limit.
+              Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-gray-700 text-gray-300 hover:bg-gray-800">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCleanupStorage}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              Cleanup
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

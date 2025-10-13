@@ -6,12 +6,13 @@
 import { supabase, supabaseAdmin, TABLES, handleSupabaseError } from '../supabase'
 import type { UserVideo, UserStorageQuota, UserQuotaInfo } from '../supabase'
 import { resilientDbOperation, ErrorReporter } from '@/lib/utils/error-handling'
+import { UnifiedStorageManager } from '../storage/unified-storage-manager'
 
 export class UserVideosDB {
 
   // Cache quota info to prevent excessive database calls
   private static quotaCache = new Map<string, { data: UserQuotaInfo; timestamp: number }>()
-  private static readonly QUOTA_CACHE_TTL = 30000 // 30 seconds cache
+  private static readonly QUOTA_CACHE_TTL = 5000 // 5 seconds cache (reduced for debugging)
 
   /**
    * Create a new video record
@@ -226,7 +227,6 @@ export class UserVideosDB {
               file_size: null,
               duration_seconds: null,
               view_count: 0,
-              is_favorite: false,
               last_viewed_at: null,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
@@ -263,7 +263,6 @@ export class UserVideosDB {
         file_size: null,
         duration_seconds: null,
         view_count: 0,
-        is_favorite: false,
         last_viewed_at: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -305,7 +304,6 @@ export class UserVideosDB {
         file_size: updates.fileSize || null,
         duration_seconds: updates.durationSeconds || null,
         view_count: 0,
-        is_favorite: false,
         last_viewed_at: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -321,8 +319,8 @@ export class UserVideosDB {
         if (updates.errorMessage) updateData.error_message = updates.errorMessage
         if (updates.storagePath) updateData.storage_path = updates.storagePath
         if (updates.thumbnailPath) updateData.thumbnail_path = updates.thumbnailPath
-        if (updates.fileSize) updateData.file_size = updates.fileSize
-        if (updates.durationSeconds) updateData.duration_seconds = updates.durationSeconds
+        if (updates.fileSize !== undefined) updateData.file_size = updates.fileSize
+        if (updates.durationSeconds !== undefined) updateData.duration_seconds = updates.durationSeconds
 
         const { data: video, error } = await supabaseAdmin
           .from(TABLES.USER_VIDEOS)
@@ -577,36 +575,7 @@ export class UserVideosDB {
     }
   }
 
-  /**
-   * Toggle video favorite status
-   */
-  static async toggleVideoFavorite(videoId: string, userId: string): Promise<boolean> {
-    return resilientDbOperation(
-      async () => {
-        // First get current status
-        const video = await this.getVideoById(videoId, userId)
-        if (!video) {
-          throw new Error('Video not found')
-        }
-
-        const newFavoriteStatus = !video.is_favorite
-
-        const { error } = await supabaseAdmin
-          .from(TABLES.USER_VIDEOS)
-          .update({ is_favorite: newFavoriteStatus })
-          .eq('id', videoId)
-          .eq('user_id', userId)
-
-        if (error) {
-          ErrorReporter.getInstance().reportError(error, 'UserVideosDB.toggleVideoFavorite')
-          handleSupabaseError(error)
-        }
-
-        return newFavoriteStatus
-      },
-      `Toggle video favorite (${videoId})`
-    )
-  }
+  // Favorite functionality removed - no longer needed with unified storage rules
 
   /**
    * Soft delete a video
@@ -632,6 +601,7 @@ export class UserVideosDB {
 
   /**
    * Get user's storage quota information
+   * 🔥 New unified 1GB storage system for all users
    */
   static async getUserQuota(userId: string): Promise<UserQuotaInfo> {
     try {
@@ -641,58 +611,58 @@ export class UserVideosDB {
         return cached.data
       }
 
-      // 尝试调用数据库函数
-      const { data: quota, error } = await supabaseAdmin
-        .rpc('get_user_quota', { user_uuid: userId })
+      // Get user subscription status
+      const { data: user, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('subscription_plan, subscription_status')
+        .eq('uuid', userId)
         .single()
 
-      const defaultQuota: UserQuotaInfo = {
-        current_videos: 0,
-        max_videos: 50,
-        current_size_bytes: 0,
-        max_size_bytes: 104857600, // 100MB
-        current_size_mb: 0,
-        max_size_mb: 100,
-        videos_percentage: 0,
-        storage_percentage: 0,
-        can_upload: true,
-        is_subscribed: false
+      let isSubscribed = false
+      if (!userError && user) {
+        const plan = user.subscription_plan || 'free'
+        const status = user.subscription_status || 'inactive'
+        isSubscribed = plan !== 'free' && status === 'active'
       }
 
-      if (error) {
-        // Don't log warnings for common 401/403 errors to prevent spam
-        if (!error.message.includes('401') && !error.message.includes('Unauthorized') && !error.message.includes('403')) {
-          console.warn('Database quota function not available, using fallback:', error.message)
-        }
-        // Cache the default quota to prevent repeated calls
-        this.quotaCache.set(userId, { data: defaultQuota, timestamp: Date.now() })
-        return defaultQuota
+      // Get unified storage status
+      const storageStatus = await UnifiedStorageManager.getStorageStatus(userId, isSubscribed)
+
+      // Perform automatic cleanup
+      await UnifiedStorageManager.performStorageCleanup(userId, isSubscribed)
+
+      // Convert to legacy format for compatibility
+      const quotaData: UserQuotaInfo = {
+        current_videos: storageStatus.totalVideos,
+        max_videos: 999999, // No video count limit in new system
+        current_size_bytes: storageStatus.currentSizeBytes,
+        max_size_bytes: storageStatus.maxSizeBytes,
+        current_size_mb: storageStatus.currentSizeMB,
+        max_size_mb: storageStatus.maxSizeMB,
+        videos_percentage: 0, // Not relevant in new system
+        storage_percentage: storageStatus.storagePercentage,
+        can_upload: storageStatus.canUpload,
+        is_subscribed: isSubscribed
       }
 
-      const quotaData = quota as UserQuotaInfo
-      // Cache the successful result
+      // Cache the result
       this.quotaCache.set(userId, { data: quotaData, timestamp: Date.now() })
       return quotaData
+
     } catch (error) {
+      console.error('Error getting user quota:', error)
+      // Default quota (1GB universal limit)
       const defaultQuota: UserQuotaInfo = {
         current_videos: 0,
-        max_videos: 50,
+        max_videos: 999999,
         current_size_bytes: 0,
-        max_size_bytes: 104857600, // 100MB
+        max_size_bytes: 1073741824, // 1GB
         current_size_mb: 0,
-        max_size_mb: 100,
+        max_size_mb: 1024,
         videos_percentage: 0,
         storage_percentage: 0,
         can_upload: true,
         is_subscribed: false
-      }
-
-      // Don't log errors for common auth failures to prevent spam
-      if (error && typeof error === 'object' && 'message' in error) {
-        const errorMessage = (error as any).message
-        if (!errorMessage.includes('401') && !errorMessage.includes('Unauthorized') && !errorMessage.includes('403')) {
-          console.warn('getUserQuota fallback mode:', error)
-        }
       }
 
       // Cache the default quota to prevent repeated calls
@@ -702,7 +672,7 @@ export class UserVideosDB {
   }
 
   /**
-   * Manual cleanup of user storage space
+   * Manual cleanup of user storage space - now uses unified storage manager
    */
   static async cleanupUserStorage(userId: string, targetSizeMB?: number): Promise<{
     deletedVideos: number
@@ -710,81 +680,38 @@ export class UserVideosDB {
     remainingSizeMB: number
   }> {
     try {
-      // 尝试调用数据库函数
-      const { data: result, error } = await supabaseAdmin
-        .rpc('manual_cleanup_user_storage', {
-          user_uuid: userId,
-          target_size_mb: targetSizeMB
-        })
+      // Get user subscription status
+      const { data: user } = await supabaseAdmin
+        .from('users')
+        .select('subscription_plan, subscription_status')
+        .eq('uuid', userId)
         .single()
 
-      if (error) {
-        console.warn('Database cleanup function not available, using basic fallback:', error.message)
-        // 基础清理：删除最旧的非收藏视频
-        return await this.basicCleanupFallback(userId, targetSizeMB)
+      let isSubscribed = false
+      if (user) {
+        const plan = user.subscription_plan || 'free'
+        const status = user.subscription_status || 'inactive'
+        isSubscribed = plan !== 'free' && status === 'active'
       }
+
+      // Use unified storage manager for cleanup
+      const cleanupResult = await UnifiedStorageManager.performStorageCleanup(userId, isSubscribed)
+
+      const totalDeleted = cleanupResult.expiredDeleted + cleanupResult.limitDeleted + cleanupResult.failedDeleted
+      const currentStatus = await UnifiedStorageManager.getStorageStatus(userId, isSubscribed)
 
       return {
-        deletedVideos: result.deleted_videos,
-        freedSizeMB: result.freed_size_mb,
-        remainingSizeMB: result.remaining_size_mb
+        deletedVideos: totalDeleted,
+        freedSizeMB: cleanupResult.totalFreedMB,
+        remainingSizeMB: currentStatus.currentSizeMB
       }
     } catch (error) {
-      console.warn('cleanupUserStorage fallback mode:', error)
-      return await this.basicCleanupFallback(userId, targetSizeMB)
-    }
-  }
-
-  /**
-   * Basic cleanup fallback when database functions are not available
-   */
-  private static async basicCleanupFallback(userId: string, targetSizeMB?: number): Promise<{
-    deletedVideos: number
-    freedSizeMB: number
-    remainingSizeMB: number
-  }> {
-    try {
-      // 获取用户的旧视频（非收藏）
-      const { data: videos, error } = await supabaseAdmin
-        .from(TABLES.USER_VIDEOS)
-        .select('id, file_size')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
-        .eq('is_favorite', false)
-        .order('created_at', { ascending: true })
-        .limit(5) // 最多删除5个视频
-
-      if (error) {
-        console.error('Error in basic cleanup:', error)
-        return { deletedVideos: 0, freedSizeMB: 0, remainingSizeMB: 0 }
-      }
-
-      let deletedCount = 0
-      let freedBytes = 0
-
-      // 删除最旧的几个视频
-      for (const video of videos || []) {
-        const { error: deleteError } = await supabaseAdmin
-          .from(TABLES.USER_VIDEOS)
-          .update({ status: 'deleted' })
-          .eq('id', video.id)
-
-        if (!deleteError) {
-          deletedCount++
-          freedBytes += video.file_size || 0
-        }
-      }
-
-      return {
-        deletedVideos: deletedCount,
-        freedSizeMB: Math.round(freedBytes / (1024 * 1024) * 100) / 100,
-        remainingSizeMB: 0 // 无法计算准确值
-      }
-    } catch (error) {
-      console.error('Basic cleanup fallback failed:', error)
+      console.error('Error in unified cleanup:', error)
       return { deletedVideos: 0, freedSizeMB: 0, remainingSizeMB: 0 }
     }
   }
+
+  // Basic cleanup fallback removed - now using unified storage manager
 
   /**
    * Check if user has exceeded storage quota

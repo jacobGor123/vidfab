@@ -284,25 +284,43 @@ export const authConfig: NextAuthConfig = {
         // 🔥 确保每次登录都验证用户在数据库中的存在性
         if (token.user && token.user.uuid && token.user.email) {
           try {
-            const { getUserByUuid, saveUser } = await import("@/services/user");
-            const existingUser = await getUserByUuid(token.user.uuid);
+            const { getUserByUuid, getUserByEmail, saveUser } = await import("@/services/user");
+            let existingUser = await getUserByUuid(token.user.uuid);
 
+            // 🔥 如果UUID不匹配，先检查是否有使用该邮箱的用户记录
             if (!existingUser) {
-              console.log(`🔧 用户不存在于数据库，重新创建: ${token.user.uuid}`);
-              // 用户不存在，重新创建
-              const userData = {
-                email: token.user.email,
-                nickname: token.user.nickname || token.user.email.split('@')[0],
-                avatar_url: token.user.avatar_url || "",
-                signin_type: 'credentials' as const,
-                signin_provider: 'verification-code',
-                signin_openid: token.user.uuid,
-                email_verified: true,
-                signin_ip: await getClientIp(),
-              };
+              console.log(`🔧 UUID ${token.user.uuid} 不存在，检查邮箱 ${token.user.email}`);
 
-              await saveUser(userData);
-              console.log(`✅ 用户重新创建成功: ${token.user.uuid}`);
+              const userByEmail = await getUserByEmail(token.user.email);
+              if (userByEmail) {
+                console.log(`✅ 找到邮箱对应的用户，使用数据库UUID: ${userByEmail.uuid}`);
+                // 更新token使用数据库中的实际UUID
+                token.user = {
+                  ...token.user,
+                  uuid: userByEmail.uuid,
+                  nickname: userByEmail.nickname || token.user.nickname,
+                  avatar_url: userByEmail.avatar_url || token.user.avatar_url,
+                  created_at: userByEmail.created_at
+                };
+                existingUser = userByEmail;
+              } else {
+                console.log(`🔧 邮箱 ${token.user.email} 也不存在，重新创建用户`);
+                // 用户完全不存在，重新创建
+                const userData = {
+                  email: token.user.email,
+                  nickname: token.user.nickname || token.user.email.split('@')[0],
+                  avatar_url: token.user.avatar_url || "",
+                  signin_type: 'credentials' as const,
+                  signin_provider: 'verification-code',
+                  signin_openid: token.user.uuid,
+                  email_verified: true,
+                  signin_ip: await getClientIp(),
+                };
+
+                const newUser = await saveUser(userData);
+                token.user.uuid = newUser.uuid; // 使用数据库生成的UUID
+                console.log(`✅ 用户重新创建成功: ${newUser.uuid}`);
+              }
             }
           } catch (error) {
             console.error("JWT用户验证失败:", error);

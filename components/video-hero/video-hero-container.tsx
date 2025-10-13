@@ -12,7 +12,7 @@ import { HERO_VIDEO_ITEMS } from './config/video-hero.config'
 import { cn } from '@/lib/utils'
 
 interface VideoHeroContainerProps {
-  onQuerySubmit: (query: string) => void
+  onQuerySubmit?: (query: string) => void
   className?: string
 }
 

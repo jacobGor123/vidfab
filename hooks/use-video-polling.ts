@@ -111,7 +111,7 @@ export function useVideoPolling(
   // Get current polling jobs - include all statuses that might need polling
   const pollingJobs = videoContext.activeJobs.filter(job =>
     pollingJobIds.has(job.id) &&
-    (job.status === "processing" || job.status === "queued")
+    (job.status === "processing" || job.status === "queued" || job.status === "created")
   )
 
   const isPolling = pollingJobIds.size > 0
@@ -176,7 +176,18 @@ export function useVideoPolling(
         case "completed":
           if (resultUrl) {
 
-            // 🔥 关键修复：先更新状态，再停止轮询
+            // 🔥 1. 简化积分处理 - 直接触发积分刷新（因为我们使用即时扣除模式）
+            console.log('✅ 视频生成完成，触发积分刷新')
+
+            // 触发前端积分刷新（通过广播事件）
+            window.dispatchEvent(new CustomEvent('credits-updated', {
+              detail: {
+                videoCompleted: true,
+                jobId: job.id
+              }
+            }))
+
+            // 🔥 2. 关键修复：先更新状态，再停止轮询
             const updateData = {
               status: 'completed' as const,
               progress: 100,
@@ -184,10 +195,10 @@ export function useVideoPolling(
             }
             videoContext.updateJob(job.id, updateData)
 
-            // 2. 触发完成回调，确保前端更新
+            // 3. 触发完成回调，确保前端更新
             onCompleted?.(job, resultUrl)
 
-            // 3. 然后停止轮询
+            // 4. 然后停止轮询
             stoppedJobIdsRef.current.add(job.id)
             setPollingJobIds(prev => {
               const newSet = new Set(prev)
@@ -195,7 +206,7 @@ export function useVideoPolling(
               return newSet
             })
 
-            // 3. 🔥 立即将视频添加到completedVideos供用户预览，标记为临时存储
+            // 5. 🔥 立即将视频添加到completedVideos供用户预览，标记为临时存储
             videoContext.completeJob(job.id, {
               videoUrl: resultUrl,
               prompt: job.prompt,
@@ -205,7 +216,7 @@ export function useVideoPolling(
               isStored: false // 初始标记为未存储，等待数据库存储完成
             })
 
-            // 4. 🔥 改进的数据库保存流程，包含重试机制
+            // 6. 🔥 改进的数据库保存流程，包含重试机制
             saveVideoToDatabase(job, resultUrl)
           } else {
             // 完成但没有结果URL，标记为失败
@@ -216,7 +227,39 @@ export function useVideoPolling(
           break
 
         case "failed":
-          // 任务失败
+          // 🔥 1. 先释放预扣的积分
+          if (job.reservationId) {
+            try {
+              const releaseResponse = await fetch('/api/subscription/credits/release', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  reservation_id: job.reservationId
+                })
+              })
+
+              if (releaseResponse.ok) {
+                const releaseData = await releaseResponse.json()
+                console.log(`✅ 积分释放成功 - 用户: ${job.userId}, 释放积分: ${releaseData.credits_released}`)
+
+                // 🔥 触发前端积分刷新
+                window.dispatchEvent(new CustomEvent('credits-updated', {
+                  detail: {
+                    creditsRemaining: releaseData.credits_remaining,
+                    creditsReleased: releaseData.credits_released
+                  }
+                }))
+              } else {
+                console.error('❌ 积分释放失败:', await releaseResponse.text())
+              }
+            } catch (releaseError) {
+              console.error('❌ 积分释放API调用失败:', releaseError)
+            }
+          } else {
+            console.warn('⚠️ 视频失败但缺少 reservationId，无法释放积分')
+          }
+
+          // 🔥 2. 任务失败处理
           const failureReason = error || "Video generation failed"
           videoContext.failJob(job.id, failureReason)
           onFailed?.(job, failureReason)
@@ -234,6 +277,7 @@ export function useVideoPolling(
 
         case "processing":
         case "queued":
+        case "created":
           // 更新进度
           if (progress !== undefined && progress !== job.progress) {
             videoContext.updateJob(job.id, { progress })
@@ -509,7 +553,7 @@ export function useVideoPolling(
 
     // 找到所有需要轮询的任务
     const jobsToRestart = videoContext.activeJobs
-      .filter(job => job.status === "processing" && job.requestId)
+      .filter(job => (job.status === "processing" || job.status === "queued" || job.status === "created") && job.requestId)
       .map(job => job.id)
 
     setPollingJobIds(new Set(jobsToRestart))
@@ -582,7 +626,7 @@ export function useVideoPolling(
 
       const jobsNeedingPolling = activeJobs.filter(job => {
         const needsPolling = job.requestId &&
-          (job.status === "processing" || job.status === "queued") &&
+          (job.status === "processing" || job.status === "queued" || job.status === "created") &&
           !pollingJobIds.has(job.id)
 
 
