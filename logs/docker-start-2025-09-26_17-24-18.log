@@ -1,8 +1,0 @@
- Container vidfab-redis  Running
- Container vidfab-app  Recreate
- Container vidfab-app  Recreated
- Container vidfab-app  Starting
- Container vidfab-app  Started
-NAME           IMAGE            COMMAND                   SERVICE   CREATED          STATUS                            PORTS
-vidfab-app     vidfab-app       "docker-entrypoint.s…"   app       5 seconds ago    Up 5 seconds (health: starting)   0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
-vidfab-redis   redis:7-alpine   "docker-entrypoint.s…"   redis     10 minutes ago   Up 10 minutes (healthy)           0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
