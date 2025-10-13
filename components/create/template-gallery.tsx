@@ -317,12 +317,6 @@ export function TemplateGallery() {
         <div className="text-gray-400 text-sm mb-4">
           <div>Showing {filteredVideos.length} / {currentData.length} videos</div>
         </div>
-        <Button
-          variant="outline"
-          className="border-gray-700 text-gray-300 hover:bg-gray-800 px-8"
-        >
-          Load More
-        </Button>
       </div>
       </div>
     </>

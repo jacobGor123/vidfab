@@ -74,9 +74,9 @@ const menuCategories = [
     items: [
       {
         id: "my-profile" as ToolType,
-        label: "My Profile",
+        label: "Plans & Billing",
         icon: User,
-        description: "View subscription and account details"
+        description: "Manage subscription and billing"
       }
     ]
   }

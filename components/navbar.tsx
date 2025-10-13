@@ -70,8 +70,8 @@ export function Navbar({ scrolled }: NavbarProps) {
     }
   }, [session?.user?.uuid, status])
 
-  // 判断是否显示 Start for free 按钮
-  // 规则：只有非订阅用户在非create页面时才显示
+  // 判断是否显示按钮
+  // 规则：非create页面时都显示，登录/订阅用户显示"My Studio"，其他显示"Start for free"
   const isCreatePage = pathname?.startsWith('/create') || false
   const isSubscribed = subscriptionPlan !== 'free'
 
@@ -80,9 +80,11 @@ export function Navbar({ scrolled }: NavbarProps) {
     isInitialized &&
     status !== 'loading' &&
     !isCreatePage &&
-    !isSubscribed &&
     pathname // 确保pathname已经加载
   )
+
+  // 根据登录和订阅状态确定按钮文案
+  const buttonText = (session?.user || isSubscribed) ? 'My Studio' : 'Start for free'
 
   return (
     <header
@@ -107,87 +109,91 @@ export function Navbar({ scrolled }: NavbarProps) {
           </div>
 
           <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
-            >
-              Home
-            </Link>
+            {!isCreatePage && (
+              <>
+                <Link
+                  href="/"
+                  className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
+                >
+                  Home
+                </Link>
 
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                    AI Video
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="grid w-[200px] gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/create?tool=text-to-video"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                        >
-                          <div className="text-sm font-medium leading-none text-white">Text to Video</div>
-                        </Link>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/create?tool=image-to-video"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                        >
-                          <div className="text-sm font-medium leading-none text-white">Image to Video</div>
-                        </Link>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/create?tool=video-effects"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                        >
-                          <div className="text-sm font-medium leading-none text-white">AI Video Effects</div>
-                        </Link>
-                      </NavigationMenuLink>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
+                        AI Video
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <div className="grid w-[200px] gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/text-to-video"
+                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">Text to Video</div>
+                            </Link>
+                          </NavigationMenuLink>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/image-to-video"
+                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">Image to Video</div>
+                            </Link>
+                          </NavigationMenuLink>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/ai-video-effects"
+                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">AI Video Effects</div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </div>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
-            <Link
-              href="/pricing"
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
-            >
-              Pricing
-            </Link>
+                <Link
+                  href="/pricing"
+                  className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
+                >
+                  Pricing
+                </Link>
 
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                    Support
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="grid w-[120px] gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/about"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                        >
-                          <div className="text-sm font-medium leading-none text-white">About</div>
-                        </Link>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/contact"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                        >
-                          <div className="text-sm font-medium leading-none text-white">Contact</div>
-                        </Link>
-                      </NavigationMenuLink>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
+                        Support
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <div className="grid w-[120px] gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/about"
+                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">About</div>
+                            </Link>
+                          </NavigationMenuLink>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/contact"
+                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">Contact</div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </div>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+              </>
+            )}
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
@@ -200,13 +206,13 @@ export function Navbar({ scrolled }: NavbarProps) {
               </div>
             ) : session?.user ? (
               <>
-                {shouldShowStartButton && <GetStartedButton key="start-btn-auth" />}
+                {shouldShowStartButton && <GetStartedButton key="start-btn-auth" text={buttonText} />}
                 <CreditsDisplaySimple />
                 <UserMenu />
               </>
             ) : (
               <>
-                {shouldShowStartButton && <GetStartedButton key="start-btn-unauth" />}
+                {shouldShowStartButton && <GetStartedButton key="start-btn-unauth" text={buttonText} />}
                 <Button
                   variant="outline"
                   className="hover:border-brand-purple-DEFAULT hover:text-brand-purple-DEFAULT transition-all duration-300 ease-apple hover:shadow-apple-soft group"
@@ -231,70 +237,74 @@ export function Navbar({ scrolled }: NavbarProps) {
       {mobileMenuOpen && (
         <div className="md:hidden bg-black/95 backdrop-blur-lg">
           <div className="container mx-auto px-4 py-4 space-y-4">
-            <Link
-              href="/"
-              className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Home
-            </Link>
+            {!isCreatePage && (
+              <>
+                <Link
+                  href="/"
+                  className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
 
-            {/* AI Video Section */}
-            <div className="space-y-2">
-              <div className="py-2 text-base font-heading text-white font-medium">AI Video</div>
-              <div className="ml-4 space-y-2">
-                <Link
-                  href="/create?tool=text-to-video"
-                  className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Text to Video
-                </Link>
-                <Link
-                  href="/create?tool=image-to-video"
-                  className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Image to Video
-                </Link>
-                <Link
-                  href="/create?tool=video-effects"
-                  className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  AI Video Effects
-                </Link>
-              </div>
-            </div>
+                {/* AI Video Section */}
+                <div className="space-y-2">
+                  <div className="py-2 text-base font-heading text-white font-medium">AI Video</div>
+                  <div className="ml-4 space-y-2">
+                    <Link
+                      href="/text-to-video"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Text to Video
+                    </Link>
+                    <Link
+                      href="/image-to-video"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Image to Video
+                    </Link>
+                    <Link
+                      href="/ai-video-effects"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      AI Video Effects
+                    </Link>
+                  </div>
+                </div>
 
-            <Link
-              href="/pricing"
-              className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Pricing
-            </Link>
+                <Link
+                  href="/pricing"
+                  className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
 
-            {/* Support Section */}
-            <div className="space-y-2">
-              <div className="py-2 text-base font-heading text-white font-medium">Support</div>
-              <div className="ml-4 space-y-2">
-                <Link
-                  href="/about"
-                  className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  About
-                </Link>
-                <Link
-                  href="/contact"
-                  className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Contact
-                </Link>
-              </div>
-            </div>
+                {/* Support Section */}
+                <div className="space-y-2">
+                  <div className="py-2 text-base font-heading text-white font-medium">Support</div>
+                  <div className="ml-4 space-y-2">
+                    <Link
+                      href="/about"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      About
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Contact
+                    </Link>
+                  </div>
+                </div>
+              </>
+            )}
             <div className="pt-4 flex flex-col space-y-4">
               {/* 移动端也需要稳定的加载布局 */}
               {status === "loading" ? (
@@ -304,7 +314,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                 </div>
               ) : session?.user ? (
                 <>
-                  {shouldShowStartButton && <GetStartedButton key="start-btn-mobile-auth" />}
+                  {shouldShowStartButton && <GetStartedButton key="start-btn-mobile-auth" text={buttonText} />}
                   <CreditsDisplaySimple />
                   <div className="flex items-center space-x-3 p-2">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-cyan-400 flex items-center justify-center text-white font-medium">
@@ -318,7 +328,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                 </>
               ) : (
                 <>
-                  {shouldShowStartButton && <GetStartedButton key="start-btn-mobile-unauth" />}
+                  {shouldShowStartButton && <GetStartedButton key="start-btn-mobile-unauth" text={buttonText} />}
                   <Button
                     variant="ghost"
                     className="text-gray-200 justify-start group font-heading hover:text-brand-purple-DEFAULT transition-colors duration-300"

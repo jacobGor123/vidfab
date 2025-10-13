@@ -77,11 +77,11 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
               )}
             </div>
 
-            {/* Vidu Q1 模型消耗表 */}
+            {/* VidFab Q1 模型消耗表 */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-white flex items-center">
                 <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                Vidu Q1 (Standard Model)
+                VidFab Q1 (Standard Model)
               </h3>
               <div className="bg-gray-900 rounded-lg overflow-hidden">
                 <table className="w-full">
@@ -120,7 +120,16 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
                       </td>
                     </tr>
                     <tr className="border-t border-gray-700">
-                      <td className="p-3">1080p Full HD</td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <span>1080p Full HD</span>
+                          {!creditsInfo?.is_pro && (
+                            <Badge variant="outline" className="bg-purple-400/20 text-purple-300 border-purple-600 text-xs">
+                              Pro Only
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
                           {getCreditsForConfig('vidfab-q1', '1080p', '5')} Credits
@@ -137,11 +146,11 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
               </div>
             </div>
 
-            {/* Vidfab Pro 模型消耗表 */}
+            {/* VidFab Pro 模型消耗表 */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-white flex items-center">
                 <span className="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
-                Vidfab Pro (Advanced Model)
+                VidFab Pro (Advanced Model)
                 {!creditsInfo?.is_pro && (
                   <Badge variant="outline" className="ml-2 bg-purple-400/20 text-purple-300 border-purple-600 text-xs">
                     Pro Only

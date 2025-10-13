@@ -43,9 +43,9 @@ const tabs = [
   },
   {
     id: "my-profile" as ToolType,
-    label: "My Profile",
+    label: "Plans & Billing",
     icon: User,
-    shortLabel: "Profile"
+    shortLabel: "Billing"
   }
 ]
 

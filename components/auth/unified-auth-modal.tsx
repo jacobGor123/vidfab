@@ -308,14 +308,14 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
 
   return (
     <div className={cn("flex items-center justify-center min-h-screen p-4", className)} {...props}>
-      <Card className="w-full max-w-md bg-brand-gray-800 border-brand-gray-700 shadow-apple-strong">
+      <Card className="w-full max-w-md bg-gradient-to-br from-slate-900/95 via-gray-900/95 to-slate-900/95 backdrop-blur-xl border-white/20 shadow-apple-strong">
         <CardHeader className="items-center text-center">
           <Link href="/" aria-label="Go to homepage">
              <img src="/logo/vidfab-not-text.png" width={80} height={80} alt="logo" />
           </Link>
           <div>
             <CardTitle className="text-3xl font-heading text-gradient-brand">
-              {authStep === "options" && "Welcome Back"}
+              {authStep === "options" && "Welcome to VidFab !"}
               {authStep === "email" && "Sign in with Email"}
               {authStep === "code" && "Enter Verification Code"}
               {authStep === "verifying" && "Verifying..."}
@@ -338,7 +338,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
                 onSuccess={handleAuthSuccess}
                 onError={handleAuthError}
                 callbackUrl="/create"
-                className="w-full"
+                className="w-full font-heading py-3 text-base bg-white/5 border-white/20 text-white hover:bg-blue-500/10 hover:border-blue-400/30 transition-all duration-300"
               />
 
               <div className="relative">
@@ -346,14 +346,15 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
                   <Separator className="w-full bg-white/10" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-brand-gray-800 px-2 text-gray-400">Or continue with</span>
+                  <span className="bg-gradient-to-br from-slate-900/95 via-gray-900/95 to-slate-900/95 px-2 text-gray-400">Or continue with</span>
                 </div>
               </div>
 
               {/* Email Login */}
               <Button
+                variant="outline"
                 onClick={() => setAuthStep("email")}
-                className="w-full font-heading py-3 text-base bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white transition-all duration-300 ease-apple hover:shadow-apple-medium"
+                className="w-full font-heading py-3 text-base bg-white/5 border-white/20 text-white hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-cyan-400/10 hover:border-purple-400/30 transition-all duration-300"
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Continue with Email
@@ -376,14 +377,15 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
                   placeholder="you@example.com"
                   required
                   disabled={isLoading}
-                  className="bg-brand-gray-700 border-brand-gray-700 text-white focus:border-brand-purple-DEFAULT focus:ring-brand-purple-DEFAULT"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400/20"
                 />
               </div>
 
               <Button
                 type="submit"
+                variant="outline"
                 disabled={isLoading || !email.trim()}
-                className="w-full font-heading py-3 text-base bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white transition-all duration-300 ease-apple hover:shadow-apple-medium"
+                className="w-full font-heading py-3 text-base bg-white/5 border-white/20 text-white hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-cyan-400/10 hover:border-purple-400/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -449,7 +451,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
                     clearCode()
                   }}
                   disabled={authStep === "verifying"}
-                  className="border-brand-gray-700 text-gray-300 hover:text-white hover:border-brand-purple-DEFAULT"
+                  className="border-white/20 text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-cyan-400/10 hover:border-purple-400/30"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Change Email

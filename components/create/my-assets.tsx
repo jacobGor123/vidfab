@@ -22,20 +22,33 @@ import { VideoResult } from "@/lib/types/video"
 import { StorageUtils } from "@/lib/utils/storage-helpers"
 import { toast } from "sonner"
 import { VideoSkeleton, EmptyVideosSkeleton } from "./video-skeleton"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 export function MyAssets() {
   const videoContext = useVideoContext()
   const { data: session, status: sessionStatus } = useSession()
   const [videos, setVideos] = useState<UserVideo[]>([])
-  const [stats, setStats] = useState({
-    total: 0,
-    completed: 0,
-    processing: 0,
-    storageUsed: 0
-  })
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalVideos, setTotalVideos] = useState(0)
   const [isCleaningUp, setIsCleaningUp] = useState(false)
+  const [isPageChanging, setIsPageChanging] = useState(false)
+  const ITEMS_PER_PAGE = 10
 
   // Enhanced loading states
   const [loadingState, setLoadingState] = useState<{
@@ -82,18 +95,12 @@ export function MyAssets() {
 
   const loadUserData = useCallback(async () => {
     try {
-      // Only show initial loading on first load
-      if (!loadingState.isDataLoaded) {
-        setLoadingState(prev => ({ ...prev, isInitialLoading: true, hasError: false }))
-      }
-
       if (sessionStatus === 'loading') {
         return
       }
 
       if (sessionStatus === 'unauthenticated' || !session?.user?.uuid) {
         toast.error('Please log in to view your videos')
-        setStats({ total: 0, completed: 0, processing: 0, storageUsed: 0 })
         setVideos([])
         setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: false })
         return
@@ -102,9 +109,15 @@ export function MyAssets() {
       const userId = session.user.uuid
 
       try {
-        // 🔥 New architecture: First get permanent videos from database via API
+        // Show loading for page changes
+        if (currentPage > 1) {
+          setIsPageChanging(true)
+        } else {
+          setLoadingState(prev => ({ ...prev, isInitialLoading: true, hasError: false }))
+        }
 
-        const response = await fetch(`/api/user/videos?page=1&limit=50&orderBy=created_at&orderDirection=desc`)
+        // 🔥 New architecture: First get permanent videos from database via API
+        const response = await fetch(`/api/user/videos?page=${currentPage}&limit=${ITEMS_PER_PAGE}&orderBy=created_at&orderDirection=desc`)
 
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -117,7 +130,9 @@ export function MyAssets() {
         }
 
         const permanentVideos = apiData.data.videos || []
-        console.log(`📡 API returned ${permanentVideos.length} videos:`, permanentVideos.map(v => ({
+        const pagination = apiData.data.pagination
+
+        console.log(`📡 API returned ${permanentVideos.length} videos for page ${currentPage}:`, permanentVideos.map(v => ({
           id: v.id,
           status: v.status,
           prompt: v.prompt?.substring(0, 30) + '...'
@@ -133,16 +148,10 @@ export function MyAssets() {
 
         console.log(`📊 Final processed videos: ${allVideos.length}`)
         setVideos(allVideos)
-
-        const videoStats = {
-          total: allVideos.length,
-          completed: allVideos.filter(v => v.status === 'completed').length,
-          processing: allVideos.filter(v => ['processing', 'generating', 'downloading'].includes(v.status)).length,
-          storageUsed: 0 // Now using videoContext.quotaInfo for storage data
-        }
-
-        setStats(videoStats)
+        setTotalVideos(pagination.total)
+        setTotalPages(Math.ceil(pagination.total / ITEMS_PER_PAGE))
         setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: false })
+        setIsPageChanging(false)
 
 
       } catch (dbError) {
@@ -151,8 +160,8 @@ export function MyAssets() {
 
         // 🔥 My Assets only shows permanent data, show empty state when database unavailable
         setVideos([])
-        setStats({ total: 0, completed: 0, processing: 0, storageUsed: 0 })
         setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: true })
+        setIsPageChanging(false)
       }
 
 
@@ -160,8 +169,9 @@ export function MyAssets() {
       console.error('Failed to load user data:', error)
       toast.error('Failed to load your videos')
       setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: true })
+      setIsPageChanging(false)
     }
-  }, [session?.user?.uuid, sessionStatus, loadingState.isDataLoaded])
+  }, [session?.user?.uuid, sessionStatus, currentPage, ITEMS_PER_PAGE])
 
   useEffect(() => {
     loadUserData()
@@ -180,26 +190,11 @@ export function MyAssets() {
   // Use all videos without filtering
   const filteredVideos = videos
 
-  const loadMoreVideos = async () => {
-    if (!session?.user?.uuid) {
-      toast.error('Please log in to load videos')
-      return
-    }
-
-    try {
-      const moreVideos = await UserVideosDB.getUserVideos(session.user.uuid, {
-        page: currentPage + 1,
-        limit: 50,
-        orderBy: 'created_at',
-        orderDirection: 'desc'
-      })
-
-      setCurrentPage(prev => prev + 1)
-      setVideos(prev => [...prev, ...moreVideos.videos])
-    } catch (error) {
-      console.error('Failed to load more videos:', error)
-      toast.error('Failed to load more videos')
-    }
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return
+    setCurrentPage(newPage)
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const openDeleteDialog = (videoId: string) => {
@@ -258,9 +253,15 @@ export function MyAssets() {
       console.log(`🔄 Reloading data to verify deletion...`)
       // Don't show skeleton during deletion reload since it's a background refresh
       const currentLoadingState = loadingState
-      await loadUserData()
-      // Restore loading state to prevent skeleton flash
-      setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
+
+      // If current page becomes empty after deletion, go to previous page
+      if (filteredVideos.length === 1 && currentPage > 1) {
+        setCurrentPage(prev => prev - 1)
+      } else {
+        await loadUserData()
+        // Restore loading state to prevent skeleton flash
+        setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
+      }
 
       // 🔥 Refresh storage quota info after deletion
       console.log(`📊 Refreshing storage quota after deletion...`)
@@ -315,6 +316,9 @@ export function MyAssets() {
 
       if (result.deletedVideos > 0) {
         toast.success(`Cleaned up ${result.deletedVideos} videos, freed ${result.freedSizeMB.toFixed(1)}MB`)
+
+        // Reset to first page after cleanup
+        setCurrentPage(1)
         await loadUserData() // Refresh data
         setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
 
@@ -350,44 +354,31 @@ export function MyAssets() {
       {/* 使用 calc 计算实际可用高度，减去 padding */}
       <div className="h-[calc(100vh-4rem)] max-w-7xl mx-auto w-full p-6 flex flex-col gap-4">
 
-        {/* Storage Rules Notice */}
+        {/* Storage Info - 新布局 */}
         <div className="flex-shrink-0">
-        <div className="bg-blue-950/30 border border-blue-800/50 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0 mt-0.5">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-            </div>
-            <div className="text-sm text-blue-200">
-              <strong className="text-blue-100">Storage Rules:</strong>
-              <ul className="block mt-1">
-                 <li>All users: 1GB maximum storage limit</li>
-                 <li>{videoContext.quotaInfo?.is_subscribed ? (
-                  <span> Pro users: Videos stored permanently during subscription</span>
-                ) : (
-                  <span> Free users: Videos auto-deleted 24 hours after completion</span>
-                )}</li>
-                <li> When storage exceeds 1GB: Oldest videos deleted automatically</li>
-              </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Storage Rules */}
+          <div className="bg-blue-950/30 border border-blue-800/50 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              </div>
+              <div className="text-sm text-blue-200">
+                <strong className="text-blue-100">Storage Rules:</strong>
+                <ul className="block mt-1 space-y-1">
+                  <li>• All users: 1GB maximum storage limit</li>
+                  <li>• {videoContext.quotaInfo?.is_subscribed ? (
+                    <span>Pro users: Videos stored permanently during subscription</span>
+                  ) : (
+                    <span>Free users: Videos auto-deleted 24 hours after completion</span>
+                  )}</li>
+                  <li>• When storage exceeds 1GB: Oldest videos deleted automatically</li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
-        </div>
 
-        {/* Stats - 自动高度 */}
-        <div className="flex-shrink-0">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-white">{stats.total}</div>
-          <div className="text-sm text-gray-400">Total Videos</div>
-          </div>
-          <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-            <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
-            <div className="text-sm text-gray-400">Completed</div>
-          </div>
-          <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-            <div className="text-2xl font-bold text-yellow-400">{stats.processing}</div>
-            <div className="text-sm text-gray-400">Processing</div>
-          </div>
+          {/* Storage Used */}
           <div className="bg-gray-950 border border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -413,12 +404,9 @@ export function MyAssets() {
                     <div className="text-2xl font-bold text-brand-cyan-DEFAULT transition-all duration-300">
                       {videoContext.quotaInfo ?
                         `${videoContext.quotaInfo.current_size_mb.toFixed(0)}MB` :
-                        '0B'}
+                        '0MB'}
                     </div>
                     <div className="text-sm text-gray-400">Storage Used</div>
-                    {/* 🔥 临时调试 */}
-                    {console.log('🔥 quotaInfo debug:', videoContext.quotaInfo)}
-                    {console.log('🔥 current_size_mb:', videoContext.quotaInfo?.current_size_mb)}
                     {videoContext.quotaInfo && (
                       <div className="mt-2">
                         <div className="flex items-center space-x-2">
@@ -518,8 +506,18 @@ export function MyAssets() {
         </div>
 
         {/* 资产列表 - 占据剩余空间 */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <div className="h-full overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 pr-2">
+        <div className="flex-1 min-h-0 overflow-hidden relative">
+          {/* Page changing loading overlay */}
+          {isPageChanging && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="flex flex-col items-center space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-cyan-DEFAULT" />
+                <span className="text-sm text-gray-300">Loading page {currentPage}...</span>
+              </div>
+            </div>
+          )}
+
+          <div className={`h-full overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 pr-2 transition-opacity duration-200 ${isPageChanging ? 'opacity-30' : 'opacity-100'}`}>
         {filteredVideos.map((video) => {
           // 🔥 Determine URL and thumbnail for permanent storage video
           const videoUrl = video.storage_path
@@ -627,10 +625,37 @@ export function MyAssets() {
                     </div>
 
                     {/* Video Info */}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-1 line-clamp-1">
-                        {video.prompt && video.prompt.trim() ? video.prompt : 'AI Generated Video'}
-                      </h3>
+                    <div className="flex-1 min-w-0">
+                      {(() => {
+                        const fullPrompt = video.prompt && video.prompt.trim() ? video.prompt : 'AI Generated Video'
+                        const maxLength = 60 // 最大60个字符,约为原来的1/3
+                        const truncatedPrompt = fullPrompt.length > maxLength
+                          ? fullPrompt.substring(0, maxLength) + '...'
+                          : fullPrompt
+                        const needsTooltip = fullPrompt.length > maxLength
+
+                        return needsTooltip ? (
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <h3 className="font-semibold text-white mb-1 cursor-help truncate">
+                                  {truncatedPrompt}
+                                </h3>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                className="max-w-md bg-gray-900 border border-gray-700 text-gray-200 p-3"
+                              >
+                                <p className="text-sm leading-relaxed">{fullPrompt}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <h3 className="font-semibold text-white mb-1 truncate">
+                            {truncatedPrompt}
+                          </h3>
+                        )
+                      })()}
                       <div className="flex items-center space-x-4 text-sm text-gray-400">
                         <span>
                           {video.created_at && !isNaN(new Date(video.created_at).getTime())
@@ -643,10 +668,6 @@ export function MyAssets() {
                       </div>
                     </div>
 
-                    {/* Status */}
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(video.status || 'unknown')}`}>
-                      {(video.status || 'unknown').charAt(0).toUpperCase() + (video.status || 'unknown').slice(1)}
-                    </div>
                   </div>
 
                   {/* Actions */}
@@ -750,15 +771,100 @@ export function MyAssets() {
 
         {/* Pagination - 固定在底部 */}
         <div className="flex-shrink-0">
-        {videoContext.hasMore && filteredVideos.length > 0 && (
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              className="border-gray-700 text-gray-300 hover:bg-gray-800"
-              onClick={loadMoreVideos}
-            >
-              Load More Videos
-            </Button>
+        {filteredVideos.length > 0 && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-400">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalVideos)} of {totalVideos} videos
+            </div>
+            {totalPages > 1 && (
+              <Pagination>
+                <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50 text-gray-600' : 'text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {/* First page */}
+              {currentPage > 2 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => handlePageChange(1)}
+                      className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  {currentPage > 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis className="text-gray-600" />
+                    </PaginationItem>
+                  )}
+                </>
+              )}
+
+              {/* Current page and neighbors */}
+              {currentPage > 1 && (
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                  >
+                    {currentPage - 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+
+              <PaginationItem>
+                <PaginationLink
+                  isActive
+                  className="bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-purple-600 cursor-default"
+                >
+                  {currentPage}
+                </PaginationLink>
+              </PaginationItem>
+
+              {currentPage < totalPages && (
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                  >
+                    {currentPage + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+
+              {/* Last page */}
+              {currentPage < totalPages - 1 && (
+                <>
+                  {currentPage < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis className="text-gray-600" />
+                    </PaginationItem>
+                  )}
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => handlePageChange(totalPages)}
+                      className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+                    >
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50 text-gray-600' : 'text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+            )}
           </div>
         )}
         </div>

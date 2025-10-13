@@ -156,14 +156,96 @@ export function ImageToVideoPanelEnhanced() {
   useEffect(() => {
     const remixData = getRemixData()
     if (remixData) {
+      // 🔥 Download image from URL, convert to File, and upload to Supabase
+      const loadAndUploadRemixImage = async () => {
+        try {
+          setIsUploadingImage(true)
+          setImageUploadProgress(5)
 
-      setParams(prev => ({
-        ...prev,
-        prompt: remixData.prompt,
-        image: remixData.imageUrl, // URL已在存储时转换为webp格式
-        uploadMode: 'url' // Use URL mode for remix images
-      }))
-      setImagePreview(remixData.imageUrl)
+          // Fetch the image through proxy to avoid CORS issues
+          const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(remixData.imageUrl)}`
+          const response = await fetch(proxyUrl)
+          setImageUploadProgress(15)
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch image')
+          }
+
+          const blob = await response.blob()
+          setImageUploadProgress(25)
+
+          // Create File object from blob
+          const fileName = remixData.imageUrl.split('/').pop() || 'remixed-image.webp'
+          const file = new File([blob], fileName, { type: blob.type })
+
+          // Set preview immediately
+          const previewUrl = URL.createObjectURL(blob)
+          setImagePreview(previewUrl)
+          setImageUploadProgress(35)
+
+          // Set prompt
+          setParams(prev => ({
+            ...prev,
+            prompt: remixData.prompt,
+            uploadMode: 'local' // 🔥 Use local mode for remix images
+          }))
+
+          // Process and upload to Supabase
+          setImageUploadProgress(45)
+          const processedResult = await ImageProcessor.processImageSmart(file)
+          setImageUploadProgress(60)
+
+          // Upload to Supabase
+          const formData = new FormData()
+          formData.append('file', processedResult.file)
+          formData.append('autoOptimized', 'true')
+
+          const uploadResponse = await fetch('/api/images/upload', {
+            method: 'POST',
+            body: formData
+          })
+
+          const result = await uploadResponse.json()
+
+          if (!uploadResponse.ok) {
+            throw new Error(result.error || 'Upload failed')
+          }
+
+          setImageUploadProgress(90)
+
+          // Set final Supabase URL
+          setParams(prev => ({
+            ...prev,
+            imageFile: null,
+            image: result.data.url
+          }))
+
+          // Add to upload history
+          setUploadHistory(prev => [{
+            id: result.data.id,
+            name: file.name,
+            size: `${(result.data.size / 1024).toFixed(1)}KB`,
+            timestamp: new Date()
+          }, ...prev.slice(0, 4)])
+
+          setImageUploadProgress(100)
+          setIsUploadingImage(false)
+
+        } catch (error) {
+          console.error('Failed to load remix image:', error)
+          setIsUploadingImage(false)
+          setImageUploadProgress(0)
+          setImagePreview(null)
+
+          // Fallback: just set the prompt
+          setParams(prev => ({
+            ...prev,
+            prompt: remixData.prompt
+          }))
+        }
+      }
+
+      loadAndUploadRemixImage()
 
       // Clear remix data after loading to prevent re-triggering
       clearRemixData()
@@ -171,19 +253,9 @@ export function ImageToVideoPanelEnhanced() {
     }
   }, [getRemixData, clearRemixData])
 
-  // Handle Vidfab Pro model selection and subscription changes
+  // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
     if (params.model === "vidfab-pro") {
-      // Check if user has access to vidfab-pro
-      if (!subscription?.is_pro) {
-        // If user doesn't have Pro subscription, fallback to vidu-q1
-        setParams(prev => ({
-          ...prev,
-          model: "vidfab-q1"
-        }))
-        return
-      }
-
       // 自动设置为8秒、720p 和 16:9（Image-to-Video 的 Vidfab Pro 只支持 16:9）
       setParams(prev => ({
         ...prev,
@@ -192,15 +264,7 @@ export function ImageToVideoPanelEnhanced() {
         aspectRatio: "16:9"  // Image-to-Video 的 veo3 只支持 16:9
       }))
     }
-
-    // Check resolution access for non-Pro users
-    if (!subscription?.is_pro && params.resolution === "1080p" && params.model !== "vidfab-pro") {
-      setParams(prev => ({
-        ...prev,
-        resolution: "720p"  // Fallback to highest available resolution for free users
-      }))
-    }
-  }, [params.model, params.resolution, subscription?.is_pro])
+  }, [params.model])
 
   // Form validation
   const validateForm = useCallback((): string[] => {
@@ -387,10 +451,30 @@ export function ImageToVideoPanelEnhanced() {
 
   // Generate video
   const handleGenerate = useCallback(async () => {
-    // Check if user has reached the limit
+    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      setShowLimitDialog(true)
-      return
+      // 找到所有已完成的视频（不包括处理中、失败等状态）
+      const completedItems = allUserItems.filter(item =>
+        item.status === 'completed' && item.resultUrl
+      )
+
+      if (completedItems.length > 0) {
+        // 按创建时间排序，找到最旧的
+        const sortedCompleted = completedItems.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeA - timeB // 升序，最旧的在前
+        })
+
+        const oldestItem = sortedCompleted[0]
+        // 只从前端预览移除，不删除数据库记录
+        videoContext.removeCompletedVideo(oldestItem.id)
+        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
+      } else {
+        // 如果没有已完成的视频可清理，显示限制提示
+        setShowLimitDialog(true)
+        return
+      }
     }
 
     // Form validation
@@ -475,7 +559,7 @@ export function ImageToVideoPanelEnhanced() {
     } catch (error) {
       setValidationErrors([error instanceof Error ? error.message : 'Generation failed'])
     }
-  }, [params, validateForm, authModal, videoGeneration, userJobs.length])
+  }, [params, validateForm, authModal, videoGeneration, userJobs.length, allUserItems, videoContext])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof ImageToVideoParams, value: string) => {
@@ -730,17 +814,8 @@ export function ImageToVideoPanelEnhanced() {
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-gray-700">
                           <SelectItem value="vidfab-q1" className="transition-all duration-200">Vidfab Q1 ⭐</SelectItem>
-                          <SelectItem
-                            value="vidfab-pro"
-                            disabled={!subscription?.is_pro}
-                            className={`transition-all duration-300 ${!subscription?.is_pro ? "opacity-50 cursor-not-allowed" : ""}`}
-                          >
-                            <div className="flex items-center transition-all duration-200">
-                              <span>Vidfab Pro 🚀</span>
-                              <Lock className={`w-3 h-3 ml-2 transition-all duration-300 ${
-                                !subscription?.is_pro ? "text-gray-400 opacity-100" : "text-gray-400 opacity-0"
-                              }`} />
-                            </div>
+                          <SelectItem value="vidfab-pro" className="transition-all duration-200">
+                            Vidfab Pro 🚀
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -799,18 +874,7 @@ export function ImageToVideoPanelEnhanced() {
                               <>
                                 <SelectItem value="480p" className="transition-all duration-200">480p</SelectItem>
                                 <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
-                                <SelectItem
-                                  value="1080p"
-                                  disabled={!subscription?.is_pro}
-                                  className={`transition-all duration-300 ${!subscription?.is_pro ? "opacity-50 cursor-not-allowed" : ""}`}
-                                >
-                                  <div className="flex items-center transition-all duration-200">
-                                    <span>1080p Full HD</span>
-                                    <Lock className={`w-3 h-3 ml-2 transition-all duration-300 ${
-                                      !subscription?.is_pro ? "text-gray-400 opacity-100" : "text-gray-400 opacity-0"
-                                    }`} />
-                                  </div>
-                                </SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
                               </>
                             )}
                           </SelectContent>
@@ -880,7 +944,7 @@ export function ImageToVideoPanelEnhanced() {
                   </>
                 ) : (
                   <div className="gap-[20px] w-full flex justify-center items-center">
-                    <span>Generate Video {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}</span>
+                    <span>Generate Video</span>
                     <span className="flex items-center text-sm opacity-90">
                       <Zap className="w-3 h-3 mr-1" />
                       {getCreditsRequired()}
@@ -924,17 +988,6 @@ export function ImageToVideoPanelEnhanced() {
                       key={job.id}
                       job={job}
                       completedVideo={completedVideo as any}
-                      onRegenerateClick={() => {
-                        setParams({
-                          ...params,
-                          prompt: job.prompt,
-                          model: job.settings.model,
-                          duration: job.settings.duration,
-                          resolution: job.settings.resolution,
-                          aspectRatio: job.settings.aspectRatio,
-                          style: job.settings.style || "realistic"
-                        })
-                      }}
                     />
                   )
                 })}

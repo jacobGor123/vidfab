@@ -24,17 +24,17 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">AI Video</h3>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a href="/create?tool=text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Text to Video
                   </a>
                 </li>
                 <li>
-                  <a href="/create?tool=image-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/image-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Image to Video
                   </a>
                 </li>
                 <li>
-                  <a href="/create?tool=video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <a href="/ai-video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     AI Video Effects
                   </a>
                 </li>

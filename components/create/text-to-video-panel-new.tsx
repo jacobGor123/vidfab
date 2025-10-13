@@ -167,19 +167,9 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Note: Polling is now handled automatically by useVideoGeneration hook
 
-  // Handle Vidfab Pro model selection and subscription changes
+  // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
     if (params.model === "vidfab-pro") {
-      // Check if user has access to vidfab-pro
-      if (!subscription?.is_pro) {
-        // If user doesn't have Pro subscription, fallback to vidu-q1
-        setParams(prev => ({
-          ...prev,
-          model: "vidfab-q1"
-        }))
-        return
-      }
-
       // 自动设置为8秒和720p（如果当前不是支持的选项）
       setParams(prev => ({
         ...prev,
@@ -188,15 +178,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         // 移除强制设置 aspectRatio，保持用户选择
       }))
     }
-
-    // Check resolution access for non-Pro users
-    if (!subscription?.is_pro && params.resolution === "1080p" && params.model !== "vidfab-pro") {
-      setParams(prev => ({
-        ...prev,
-        resolution: "720p"  // Fallback to highest available resolution for free users
-      }))
-    }
-  }, [params.model, params.resolution, subscription?.is_pro])
+  }, [params.model])
 
   // Form validation
   const validateForm = useCallback((): string[] => {
@@ -231,10 +213,30 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Generate video
   const handleGenerate = useCallback(async () => {
-    // Check if user has reached the limit
+    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      setShowLimitDialog(true)
-      return
+      // 找到所有已完成的视频（不包括处理中、失败等状态）
+      const completedItems = allUserItems.filter(item =>
+        item.status === 'completed' && item.resultUrl
+      )
+
+      if (completedItems.length > 0) {
+        // 按创建时间排序，找到最旧的
+        const sortedCompleted = completedItems.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeA - timeB // 升序，最旧的在前
+        })
+
+        const oldestItem = sortedCompleted[0]
+        // 只从前端预览移除，不删除数据库记录
+        videoContext.removeCompletedVideo(oldestItem.id)
+        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
+      } else {
+        // 如果没有已完成的视频可清理，显示限制提示
+        setShowLimitDialog(true)
+        return
+      }
     }
 
     // Form validation
@@ -303,7 +305,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
       // 用户未登录，不执行任何操作
       return
     }
-  }, [params, validateForm, authModal, videoGeneration, userJobs.length])
+  }, [params, validateForm, authModal, videoGeneration, userJobs.length, allUserItems, videoContext])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof VideoGenerationParams, value: string) => {
@@ -395,17 +397,8 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-gray-700">
                           <SelectItem value="vidfab-q1" className="transition-all duration-200">Vidfab Q1 ⭐</SelectItem>
-                          <SelectItem
-                            value="vidfab-pro"
-                            disabled={!subscription?.is_pro}
-                            className={`transition-all duration-300 ${!subscription?.is_pro ? "opacity-50 cursor-not-allowed" : ""}`}
-                          >
-                            <div className="flex items-center transition-all duration-200">
-                              <span>Vidfab Pro 🚀</span>
-                              <Lock className={`w-3 h-3 ml-2 transition-all duration-300 ${
-                                !subscription?.is_pro ? "text-gray-400 opacity-100" : "text-gray-400 opacity-0"
-                              }`} />
-                            </div>
+                          <SelectItem value="vidfab-pro" className="transition-all duration-200">
+                            Vidfab Pro 🚀
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -462,18 +455,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                               <>
                                 <SelectItem value="480p" className="transition-all duration-200">480p</SelectItem>
                                 <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
-                                <SelectItem
-                                  value="1080p"
-                                  disabled={!subscription?.is_pro}
-                                  className={`transition-all duration-300 ${!subscription?.is_pro ? "opacity-50 cursor-not-allowed" : ""}`}
-                                >
-                                  <div className="flex items-center transition-all duration-200">
-                                    <span>1080p Full HD</span>
-                                    <Lock className={`w-3 h-3 ml-2 transition-all duration-300 ${
-                                      !subscription?.is_pro ? "text-gray-400 opacity-100" : "text-gray-400 opacity-0"
-                                    }`} />
-                                  </div>
-                                </SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
                               </>
                             )}
                           </SelectContent>
@@ -584,16 +566,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                       key={job.id}
                       job={job}
                       completedVideo={completedVideo as any}
-                      onRegenerateClick={() => {
-                        setParams({
-                          prompt: job.prompt,
-                          model: job.settings.model,
-                          duration: job.settings.duration,
-                          resolution: job.settings.resolution,
-                          aspectRatio: job.settings.aspectRatio,
-                          style: job.settings.style || "realistic"
-                        })
-                      }}
                     />
                   )
                 })}

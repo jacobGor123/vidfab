@@ -86,10 +86,10 @@ fi
 echo -e "${GREEN}✅ 缓存清理完成${NC}"
 
 # ============================================
-# 清理占用的端口 (3000-3009)
+# 清理占用的端口 (5170-5179)
 # ============================================
 echo ""
-echo -e "${CYAN}🔍 检查并清理端口 3000-3009...${NC}"
+echo -e "${CYAN}🔍 检查并清理端口 5170-5179...${NC}"
 
 # 函数：清理指定端口
 kill_port() {
@@ -122,9 +122,9 @@ kill_port() {
     fi
 }
 
-# 清理 3000-3009 端口
+# 清理 5170-5179 端口
 PORTS_CLEARED=0
-for PORT in {3000..3009}; do
+for PORT in {5170..5179}; do
     if lsof -ti:$PORT > /dev/null 2>&1; then
         kill_port $PORT
         ((PORTS_CLEARED++))
@@ -132,7 +132,7 @@ for PORT in {3000..3009}; do
 done
 
 if [ $PORTS_CLEARED -eq 0 ]; then
-    echo -e "${GREEN}✅ 所有端口 (3000-3009) 都可用${NC}"
+    echo -e "${GREEN}✅ 所有端口 (5170-5179) 都可用${NC}"
 else
     echo -e "${GREEN}✅ 已清理 $PORTS_CLEARED 个占用的端口${NC}"
 fi

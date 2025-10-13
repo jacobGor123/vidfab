@@ -156,8 +156,8 @@ function SubscriptionSuccessPageInner() {
                 Jump into the video creation studio and start making amazing AI-powered videos with your new credits.
               </p>
               <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                <Link href="/create">
-                  Create Video
+                <Link href="/create?tool=my-profile">
+                  View My Profile
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>

@@ -468,10 +468,30 @@ export function VideoEffectsPanel() {
 
   // Generate video effects
   const handleGenerate = useCallback(async () => {
-    // Check if user has reached the limit
+    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      setShowLimitDialog(true)
-      return
+      // 找到所有已完成的视频（不包括处理中、失败等状态）
+      const completedItems = allUserItems.filter(item =>
+        item.status === 'completed' && item.resultUrl
+      )
+
+      if (completedItems.length > 0) {
+        // 按创建时间排序，找到最旧的
+        const sortedCompleted = completedItems.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeA - timeB // 升序，最旧的在前
+        })
+
+        const oldestItem = sortedCompleted[0]
+        // 只从前端预览移除，不删除数据库记录
+        videoContext.removeCompletedVideo(oldestItem.id)
+        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
+      } else {
+        // 如果没有已完成的视频可清理，显示限制提示
+        setShowLimitDialog(true)
+        return
+      }
     }
 
     // Form validation
@@ -547,7 +567,7 @@ export function VideoEffectsPanel() {
         setValidationErrors(['视频生成失败，请稍后重试'])
       }
     }
-  }, [params, validateForm, videoGeneration, userJobs.length, canAccessModel, checkCreditsAvailability])
+  }, [params, validateForm, videoGeneration, userJobs.length, canAccessModel, checkCreditsAvailability, allUserItems, videoContext])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof VideoEffectsParams, value: any) => {
@@ -843,18 +863,6 @@ export function VideoEffectsPanel() {
                     key={job.id}
                     job={job}
                     completedVideo={completedVideo}
-                    onRegenerateClick={() => {
-                      // One-click reuse settings
-                      if (job.sourceImage) {
-                        setParams(prev => ({
-                          ...prev,
-                          image: job.sourceImage!,
-                          selectedEffect: job.effectId
-                            ? { id: job.effectId, name: job.effectName || 'Unknown Effect', posterUrl: '', videoUrl: '', apiEndpoint: job.effectId }
-                            : DEFAULT_EFFECT
-                        }))
-                      }
-                    }}
                   />
                 )
               })}

@@ -13,12 +13,12 @@ import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware
 import { HERO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { usePageTranslation } from "@/lib/i18n"
 import Link from "next/link"
-import { Upload, MousePointerClick, Sparkles, Download } from "lucide-react"
+import { Layers, Upload, Sparkles, Download } from "lucide-react"
 
-function ImageToVideoHero() {
+function AIVideoEffectsHero() {
   const { isDesktop } = useMobileDetection()
   const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
-  const { translations } = usePageTranslation('image-to-video')
+  const { translations } = usePageTranslation('ai-video-effects')
 
   const { getVideo, isVideoReady } = useVideoPool(HERO_VIDEO_ITEMS, false)
 
@@ -54,19 +54,19 @@ function ImageToVideoHero() {
       <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center">
         <div className="max-w-6xl mx-auto w-full">
           <h1 className="text-5xl md:text-7xl font-heading font-extrabold mb-8 text-gradient-brand leading-tight">
-            {translations?.hero?.title || "From Still to Motion: Transform Images Into Videos Instantly"}
+            {translations?.hero?.title || "Enhance Your Videos With Stunning AI-Powered Video Effects"}
           </h1>
 
           <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            {translations?.hero?.subtitle || "Upload a single image and let our AI transform it into a smooth, cinematic video."}
+            {translations?.hero?.subtitle || "Transform ordinary clips into eye-catching videos with AI-driven effects."}
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="/create?tool=image-to-video"
+              href="/create?tool=video-effects"
               className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-brand-purple to-brand-pink rounded-full hover:opacity-90 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
             >
-              {translations?.hero?.cta || "Generate Your First Video for Free"}
+              {translations?.hero?.cta || "Try AI Video Effects for Free"}
               <svg
                 className="ml-2 w-5 h-5"
                 fill="none"
@@ -88,8 +88,8 @@ function ImageToVideoHero() {
   )
 }
 
-export default function ImageToVideoPage() {
-  const { translations } = usePageTranslation('image-to-video')
+export default function AIVideoEffectsPage() {
+  const { translations } = usePageTranslation('ai-video-effects')
 
   // Build steps from translations
   const steps: Step[] = translations?.howItWorks?.steps?.map((step: any, index: number) => ({
@@ -97,16 +97,16 @@ export default function ImageToVideoPage() {
     number: step.number,
     title: step.title,
     description: step.description,
-    image: `/placeholder/image-to-video-step-${index + 1}.jpg`,
-    icon: [Upload, MousePointerClick, Sparkles, Download][index]
+    image: `/placeholder/ai-video-effects-step-${index + 1}.jpg`,
+    icon: [Layers, Upload, Sparkles, Download][index]
   })) || []
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      <Suspense fallback={<LoadingState message="Loading Image-to-Video..." />}>
+      <Suspense fallback={<LoadingState message="Loading AI Video Effects..." />}>
         <main>
           {/* Hero Section - Full Screen with Video Background */}
-          <ImageToVideoHero />
+          <AIVideoEffectsHero />
 
           {/* Content Sections */}
           <div className="relative z-10 bg-black">

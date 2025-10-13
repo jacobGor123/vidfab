@@ -83,9 +83,9 @@ export async function POST(req: NextRequest) {
 
         console.log(`🎉 测试支付成功！用户 ${session.user.uuid} 已升级到 ${validatedData.plan_id} 计划，获得 ${creditsToGrant} 积分`);
 
-        // 🔥 修复：跳转到首页而不是success页面
+        // 🔥 修复：跳转到create页面的my-profile工具
         const successUrl = validatedData.success_url ||
-          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/?payment_success=true&session_id=${mockSessionId}&plan=${validatedData.plan_id}`;
+          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/create?tool=my-profile&payment_success=true&session_id=${mockSessionId}&plan=${validatedData.plan_id}`;
 
         return NextResponse.json({
           success: true,
