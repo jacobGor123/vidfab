@@ -31,7 +31,7 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - REDIS_DB=${REDIS_DB:-0}
     env_file:
-      - .env.local
+      - .env  # 优先使用 .env，如果没有会从 .env.local 自动生成
     depends_on:
       - redis
     networks:

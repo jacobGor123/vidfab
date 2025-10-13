@@ -20,39 +20,35 @@ echo "📝 Logging to: $LOG_FILE"
 # Check environment variables configuration
 echo "🔍 Checking environment configuration..."
 
-if [ ! -f .env ] && [ ! -f .env.local ]; then
+# 检查配置文件是否存在
+if [ -f .env ]; then
+    echo "✅ 使用现有的 .env 文件"
+elif [ -f .env.local ]; then
+    echo "📝 未找到 .env，从 .env.local 复制配置..."
+    cp .env.local .env
+    echo "✅ 已从 .env.local 创建 .env 文件"
+else
     echo ""
     echo "❌ 错误: 未找到 .env 或 .env.local 文件"
     echo ""
-    echo "Docker 构建需要环境变量配置。请选择以下方式之一："
+    echo "Docker 需要环境变量配置。请选择以下方式之一："
     echo ""
-    echo "方式 1: 从模板创建（推荐新用户）"
+    echo "方式 1: 从模板创建 .env 文件（推荐生产环境）"
+    echo "  cp .env.example .env"
+    echo "  nano .env  # 编辑并填入实际值"
+    echo ""
+    echo "方式 2: 从模板创建 .env.local 文件（推荐开发环境）"
     echo "  cp .env.example .env.local"
     echo "  nano .env.local  # 编辑并填入实际值"
+    echo "  # 脚本会自动从 .env.local 复制到 .env"
     echo ""
-    echo "方式 2: 使用已有的 .env.local"
-    echo "  如果您已有 .env.local 文件，请确保它在项目根目录"
+    echo "💡 提示："
+    echo "  - .env 文件优先级更高，推荐生产环境使用"
+    echo "  - .env.local 适合开发环境，会自动转换为 .env"
     echo ""
-    echo "详细说明请查看: docs/deployment-guide.md"
+    echo "详细说明: docs/ops-deployment-guide.md"
     echo ""
     exit 1
-fi
-
-# If only .env.local exists, extract Docker-required variables to .env
-if [ ! -f .env ] && [ -f .env.local ]; then
-    echo "📝 从 .env.local 提取 Docker 构建所需变量..."
-    {
-        grep "^NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=" .env.local || echo "NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true"
-        grep "^NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED=" .env.local || echo "NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED=true"
-        grep "^NEXT_PUBLIC_AUTH_GOOGLE_ID=" .env.local || true
-        grep "^NEXT_PUBLIC_SUPABASE_URL=" .env.local || true
-        grep "^NEXT_PUBLIC_SUPABASE_ANON_KEY=" .env.local || true
-        grep "^NEXT_PUBLIC_APP_URL=" .env.local || echo "NEXT_PUBLIC_APP_URL=http://localhost:3000"
-        grep "^NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=" .env.local || true
-        grep "^NODE_ENV=" .env.local || echo "NODE_ENV=production"
-        grep "^SUPABASE_SERVICE_ROLE_KEY=" .env.local || true
-    } > .env 2>/dev/null
-    echo "✅ 已创建 .env 文件"
 fi
 
 # Verify critical environment variables
