@@ -30,8 +30,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-*log
-
-# logs directory
-logs/
+# logs - 所有日志文件
 *.log
+*log
+logs/
+**/*.log
+
+# Docker logs
+docker-*.log
