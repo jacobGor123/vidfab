@@ -15,6 +15,7 @@ import { ArrowLeft, Mail, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { trackSignUp, trackLogin } from "@/lib/analytics/gtm"
 
 // Verification session interface and localStorage helpers
 interface VerificationSession {
@@ -236,7 +237,15 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
       if (signInResult?.ok) {
         // Clear verification session on successful login
         clearVerificationSession();
-        
+
+        // 🔥 GTM 事件跟踪
+        // 判断是注册还是登录 (通过 verifyData 中的 isNewUser 字段)
+        if (verifyData.isNewUser) {
+          trackSignUp('email');
+        } else {
+          trackLogin('email');
+        }
+
         handleAuthSuccess()
       }
 

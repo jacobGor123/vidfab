@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { SUBSCRIPTION_PLANS, getAnnualDiscount } from "@/lib/subscription/pricing-config"
 import toast from "react-hot-toast"
+import { trackBeginCheckout, trackBillingToggle, trackCancelSubscription } from "@/lib/analytics/gtm"
 
 export default function PricingPage() {
   const [loading, setLoading] = useState(true)
@@ -75,6 +76,9 @@ export default function PricingPage() {
     if (!session) return
 
     setCancelling(true)
+
+    // 🔥 GTM 取消订阅事件跟踪
+    trackCancelSubscription(currentPlan);
 
     try {
       const response = await fetch('/api/subscription/cancel', {
@@ -165,6 +169,11 @@ export default function PricingPage() {
     }
 
     setSubscribing(planId)
+
+    // 🔥 GTM 开始结账事件跟踪
+    const plan = SUBSCRIPTION_PLANS[planId]
+    const value = annual ? plan.price.annual / 100 : plan.price.monthly / 100
+    trackBeginCheckout(planId, annual ? 'annual' : 'monthly', value)
 
     try {
       // 使用环境变量控制是否使用测试模式，而不是自动检测开发环境
@@ -269,7 +278,16 @@ export default function PricingPage() {
               <Label htmlFor="billing-toggle" className={annual ? "text-gray-400" : "text-white"}>
                 Monthly
               </Label>
-              <Switch id="billing-toggle" checked={annual} onCheckedChange={setAnnual} className="mx-4" />
+              <Switch
+                id="billing-toggle"
+                checked={annual}
+                onCheckedChange={(checked) => {
+                  setAnnual(checked);
+                  // 🔥 GTM 计费周期切换事件跟踪
+                  trackBillingToggle(checked ? 'annual' : 'monthly');
+                }}
+                className="mx-4"
+              />
               <Label htmlFor="billing-toggle" className={!annual ? "text-gray-400" : "text-white"}>
                 Annual <span className="text-xs text-pink-500">(Save up to 33%)</span>
               </Label>

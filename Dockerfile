@@ -35,7 +35,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Next.js telemetry
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build with error tolerance - continue even if prerendering fails
 RUN npm run build; EXIT_CODE=$?; if [ $EXIT_CODE -eq 0 ]; then echo "Build successful"; else echo "Build completed with prerender warnings - continuing deployment"; fi
@@ -49,7 +49,7 @@ RUN apk add --no-cache curl
 
 # Let .env.local control NODE_ENV - don't force production at runtime
 # Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -74,8 +74,8 @@ RUN if [ ! -f ./.next/BUILD_ID ]; then echo "production-build-$(date +%s)" > ./.
 USER nextjs
 
 # Server configuration - support environment variables
-ENV PORT 3000
-ENV HOST 0.0.0.0
+ENV PORT=3000
+ENV HOST=0.0.0.0
 
 EXPOSE $PORT
 

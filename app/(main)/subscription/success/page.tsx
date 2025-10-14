@@ -9,6 +9,8 @@ import { Check, Zap, Crown, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
+import { trackPurchase } from "@/lib/analytics/gtm"
+import { SUBSCRIPTION_PLANS } from "@/lib/subscription/pricing-config"
 
 function SubscriptionSuccessPageInner() {
   const [scrolled, setScrolled] = useState(false)
@@ -40,6 +42,25 @@ function SubscriptionSuccessPageInner() {
 
         if (data.success) {
           setSubscriptionDetails(data)
+
+          // 🔥 GTM 购买转化事件跟踪
+          const planId = data.subscription?.plan_id
+          const billingCycle = data.subscription?.billing_cycle || 'monthly'
+
+          if (planId && ['lite', 'pro', 'premium'].includes(planId)) {
+            const plan = SUBSCRIPTION_PLANS[planId as 'lite' | 'pro' | 'premium']
+            const value = billingCycle === 'annual'
+              ? plan.price.annual / 100
+              : plan.price.monthly / 100
+
+            // 触发 GA4 purchase 事件
+            trackPurchase(
+              planId,
+              billingCycle as 'monthly' | 'annual',
+              value,
+              sessionId || `sub_${Date.now()}`
+            )
+          }
         }
       } catch (error) {
         console.error('Error fetching subscription status:', error)
@@ -52,7 +73,7 @@ function SubscriptionSuccessPageInner() {
     const timer = setTimeout(fetchSubscriptionStatus, 3000)
 
     return () => clearTimeout(timer)
-  }, [session])
+  }, [session, sessionId])
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
