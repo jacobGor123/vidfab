@@ -6,11 +6,12 @@ import { FAQSection } from "@/components/sections/faq-section"
 import { CommunityCTA } from "@/components/sections/community-cta"
 import { LoadingState } from "@/components/loading-state"
 import { VideoBackground } from "@/components/video-hero/video-background"
+import { VideoNavigation } from "@/components/video-hero/video-navigation"
 import { useVideoPool } from "@/components/video-hero/hooks/use-video-pool"
 import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
 import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
 import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
-import { HERO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
+import { IMAGE_TO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { usePageTranslation } from "@/lib/i18n"
 import Link from "next/link"
 import { Upload, MousePointerClick, Sparkles, Download } from "lucide-react"
@@ -20,16 +21,16 @@ function ImageToVideoHero() {
   const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
   const { translations } = usePageTranslation('image-to-video')
 
-  const { getVideo, isVideoReady } = useVideoPool(HERO_VIDEO_ITEMS, false)
+  const { getVideo, isVideoReady, loadingCount } = useVideoPool(IMAGE_TO_VIDEO_ITEMS, false)
 
   const { state, controls } = useVideoCarousel({
-    items: HERO_VIDEO_ITEMS,
+    items: IMAGE_TO_VIDEO_ITEMS,
     onIndexChange: () => {},
     autoPlay: isDesktop && !isSlowConnection
   })
 
   const handleVideoEnd = () => {
-    if (HERO_VIDEO_ITEMS.length > 1) {
+    if (IMAGE_TO_VIDEO_ITEMS.length > 1) {
       controls.goToNext()
     }
   }
@@ -39,7 +40,7 @@ function ImageToVideoHero() {
       {/* Video Background */}
       {isDesktop && shouldShowVideoBackground ? (
         <VideoBackground
-          items={HERO_VIDEO_ITEMS}
+          items={IMAGE_TO_VIDEO_ITEMS}
           currentIndex={state.currentIndex}
           getVideo={getVideo}
           isVideoReady={isVideoReady}
@@ -84,6 +85,19 @@ function ImageToVideoHero() {
           </div>
         </div>
       </div>
+
+      {/* Navigation Layer - Desktop Only */}
+      {isDesktop && shouldShowVideoBackground && IMAGE_TO_VIDEO_ITEMS.length > 1 && (
+        <VideoNavigation
+          items={IMAGE_TO_VIDEO_ITEMS}
+          currentIndex={state.currentIndex}
+          onItemSelect={(index) => {
+            controls.goToIndex(index)
+          }}
+          isVideoReady={() => true}
+          loadingCount={loadingCount}
+        />
+      )}
     </div>
   )
 }
