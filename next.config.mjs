@@ -18,7 +18,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    unoptimized: false, // 🔥 启用图片优化
     domains: [
       'localhost',
       '0.0.0.0', // Docker container access
@@ -27,11 +27,22 @@ const nextConfig = {
       'accounts.google.com', // Google OAuth
     ],
     formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
   
+  // Compiler optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
   // Enable experimental features for better performance
   experimental: {
     // Add experimental features here if needed
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
 
   // Production build configuration
@@ -70,6 +81,25 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: securityHeaders,
+      },
+      // Cache static assets
+      {
+        source: '/fonts/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
       },
       // Allow Google OAuth domains
       {
