@@ -60,8 +60,8 @@
 ```
 
 **说明**：
-- Next.js App 通过 `vidfab-network` 连接到独立的 Redis 容器
-- Redis 服务独立管理（docker-compose-redis.yml）
+- Next.js App 通过 `host.docker.internal` 连接到独立的 Redis 容器
+- Redis 服务使用 `docker run` 独立运行（类似云 Redis）
 - Supabase 使用云服务
 
 ### 1.3 端口占用
@@ -285,15 +285,14 @@ REDIS_URL=redis://vidfab-redis-standalone:6379
 # 停止 Redis
 ./scripts/redis-stop.sh
 
-# 查看 Redis 日志
-docker logs vidfab-redis-standalone
-
 # 连接 Redis CLI
 docker exec -it vidfab-redis-standalone redis-cli
 
-# 启动 Redis Commander（可选，调试用）
-docker compose -f docker-compose-redis.yml --profile debug up -d
-# 访问: http://localhost:8081 (admin/admin123)
+# 查看 Redis 日志
+docker logs vidfab-redis-standalone
+
+# 查看 Redis 资源使用
+docker stats vidfab-redis-standalone --no-stream
 ```
 
 #### 选项 B：使用外部 Redis 服务（推荐生产环境）
@@ -364,7 +363,12 @@ chmod +x scripts/docker-logs.sh
 cp .env.local .env
 
 # 2. 启动独立 Redis 服务
-docker compose -f docker-compose-redis.yml up -d
+docker run -d \
+  --name vidfab-redis-standalone \
+  --restart unless-stopped \
+  -p 6379:6379 \
+  -v vidfab-redis-data:/data \
+  redis:7-alpine redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
 
 # 3. 验证 Redis 运行
 docker ps | grep vidfab-redis-standalone
@@ -386,11 +390,11 @@ docker compose logs -f app
 
 ```bash
 # 检查 Redis 容器状态（独立服务）
-docker compose -f docker-compose-redis.yml ps
+docker ps --filter name=vidfab-redis-standalone
 
 # 期望输出：
-# NAME                        IMAGE              STATUS
-# vidfab-redis-standalone     redis:7-alpine     Up (healthy)
+# CONTAINER ID   IMAGE            STATUS    PORTS
+# xxxxx          redis:7-alpine   Up        0.0.0.0:6379->6379/tcp
 
 # 检查应用容器状态
 docker compose ps
