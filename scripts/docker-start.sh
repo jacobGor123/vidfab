@@ -124,6 +124,10 @@ else
     echo "请先启动 Redis 服务："
     echo "  ./scripts/redis-start.sh"
     echo ""
+    echo "💡 Redis 将作为独立的外部服务运行（类似云 Redis）"
+    echo "   - 可供多个项目使用"
+    echo "   - 应用通过 host.docker.internal:6379 访问"
+    echo ""
     read -p "是否继续启动应用? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then

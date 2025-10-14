@@ -24,16 +24,14 @@ services:
       - DOCKER_ENVIRONMENT=true
       - TRUST_PROXY=${TRUST_PROXY:-true}
       # Redis configuration - use env vars with defaults
-      # Docker环境默认使用独立容器名'vidfab-redis-standalone'，本地开发默认使用'localhost'
-      - REDIS_URL=${REDIS_URL:-redis://vidfab-redis-standalone:6379}
-      - REDIS_HOST=${REDIS_HOST:-vidfab-redis-standalone}
+      # Docker环境通过宿主机地址访问独立 Redis，模拟云 Redis 服务
+      - REDIS_URL=${REDIS_URL:-redis://host.docker.internal:6379}
+      - REDIS_HOST=${REDIS_HOST:-host.docker.internal}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - REDIS_DB=${REDIS_DB:-0}
     env_file:
       - .env  # 优先使用 .env，如果没有会从 .env.local 自动生成
-    networks:
-      - vidfab-network
     volumes:
       - ./logs:/app/logs  # Mount logs directory
     healthcheck:
@@ -42,9 +40,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-# Custom network for service communication
-networks:
-  vidfab-network:
-    external: true
-    name: vidfab-network

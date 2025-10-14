@@ -17,13 +17,21 @@ LOG_FILE="logs/redis-stop-$TIMESTAMP.log"
 
 echo "📝 Logging to: $LOG_FILE"
 
-# Stop Redis service
-echo "⏹️  Stopping Redis service..."
-docker compose -f docker-compose-redis.yml down 2>&1 | tee "$LOG_FILE"
+# Check if Redis container exists
+if ! docker ps -a --format '{{.Names}}' | grep -q "^vidfab-redis-standalone$"; then
+    echo "⚠️  Redis 容器不存在，无需停止"
+    exit 0
+fi
+
+# Stop Redis container
+echo "⏹️  Stopping Redis container..."
+docker stop vidfab-redis-standalone 2>&1 | tee "$LOG_FILE"
 
 echo ""
 echo "✅ VidFab Standalone Redis Service stopped successfully!"
 echo "📋 Stop log saved to: $LOG_FILE"
 echo ""
-echo "💡 Data is preserved in Docker volume 'redis_data'"
-echo "💡 To start again, run: './scripts/redis-start.sh'"
+echo "💡 Redis 容器已停止但未删除"
+echo "💡 数据保存在 Docker 卷: vidfab-redis-data"
+echo "💡 重新启动: './scripts/redis-start.sh'"
+echo "💡 完全删除: 'docker rm vidfab-redis-standalone'"
