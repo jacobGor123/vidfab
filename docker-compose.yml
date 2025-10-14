@@ -46,4 +46,5 @@ services:
 # Custom network for service communication
 networks:
   vidfab-network:
-    driver: bridge
+    external: true
+    name: vidfab-network
