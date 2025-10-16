@@ -53,7 +53,18 @@ export const useNetworkAware = () => {
   }
 
   const shouldShowVideoBackground = () => {
-    return loadingStrategy.type !== 'poster-only'
+    // 省流量模式下不显示视频背景
+    if (networkInfo.saveData) return false
+    // 慢速连接不显示视频背景
+    if (loadingStrategy.type === 'poster-only') return false
+    // 3G 及以下网络不显示视频背景
+    if (['slow-2g', '2g', '3g'].includes(networkInfo.type || '')) return false
+    return true
+  }
+
+  const isSlowConnection = () => {
+    return networkInfo.saveData ||
+           ['slow-2g', '2g', '3g'].includes(networkInfo.type || '')
   }
 
   return {
@@ -62,6 +73,6 @@ export const useNetworkAware = () => {
     shouldPreloadVideos: shouldPreloadVideos(),
     maxConcurrentLoads: getMaxConcurrentLoads(),
     shouldShowVideoBackground: shouldShowVideoBackground(),
-    isSlowConnection: networkInfo.type === 'slow-2g' || networkInfo.type === '2g'
+    isSlowConnection: isSlowConnection()
   }
 }

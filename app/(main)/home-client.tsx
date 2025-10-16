@@ -1,66 +1,25 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import { Hero } from "@/components/hero"
 import { FeatureShowcase } from "@/components/sections/feature-showcase"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
-import { CommunityCTA } from "@/components/sections/community-cta"
-import { LoadingState } from "@/components/loading-state"
-import { SkeletonLoader } from "@/components/skeleton-loader"
 import { PaymentSuccessHandler } from "@/components/payment-success-handler"
 import { useTranslation } from "@/lib/i18n"
+import { LoadingState } from "@/components/loading-state"
+
+// 动态导入 CommunityCTA - 延迟加载减少首屏 JS
+const CommunityCTA = dynamic(
+  () => import("@/components/sections/community-cta").then(mod => ({ default: mod.CommunityCTA })),
+  {
+    loading: () => <LoadingState message="Loading community videos..." />,
+    ssr: false, // 客户端渲染，因为有大量视频
+  }
+)
 
 export default function HomeClient() {
-  const [loading, setLoading] = useState(true)
   const { t, translations } = useTranslation('en')
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 2000)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [])
-
-  // Debug log
-  console.log('Homepage translations:', translations)
-
-  if (loading) {
-    return (
-      <div className="relative min-h-screen overflow-hidden bg-black text-white">
-        {/* Keep the existing SkeletonLoader structure for the page content */}
-        <div className="container mx-auto px-4 pt-32 pb-20">
-          <div className="max-w-4xl mx-auto text-center">
-            <SkeletonLoader type="title" className="mx-auto mb-6" />
-            <SkeletonLoader type="text" count={3} className="mx-auto mb-12" />
-
-            <div className="max-w-3xl mx-auto relative">
-              <SkeletonLoader type="text" className="h-16 rounded-lg mb-10" />
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-4 mb-20">
-              <SkeletonLoader className="h-10 w-40 rounded-full" />
-              <SkeletonLoader className="h-10 w-40 rounded-full" />
-              <SkeletonLoader className="h-10 w-40 rounded-full" />
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              <SkeletonLoader type="card" />
-              <SkeletonLoader type="card" />
-              <SkeletonLoader type="card" />
-            </div>
-          </div>
-        </div>
-        {/* Updated LoadingState message */}
-        <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-          <LoadingState message="Initializing VidFab Platform..." />
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -84,6 +43,9 @@ export default function HomeClient() {
             videoUrl="https://static.vidfab.ai/public/video/home-step-01.mp4"
             videoAlt={translations?.homepage?.features?.textToVideo?.imageAlt || "Text to video"}
             layout="left-text"
+            categoryText="Text to Video"
+            ctaText="Try it now"
+            ctaLink="/text-to-video"
           />
 
           <FeatureShowcase
@@ -92,6 +54,9 @@ export default function HomeClient() {
             videoUrl="https://static.vidfab.ai/public/video/home-step-02.mp4"
             videoAlt={translations?.homepage?.features?.imageToVideo?.imageAlt || "Image to video"}
             layout="right-text"
+            categoryText="Image to Video"
+            ctaText="Try it now"
+            ctaLink="/image-to-video"
           />
 
           <FeatureShowcase
@@ -100,6 +65,9 @@ export default function HomeClient() {
             videoUrl="https://static.vidfab.ai/public/video/home-step-03.mp4"
             videoAlt={translations?.homepage?.features?.popularEffects?.imageAlt || "Popular effects"}
             layout="left-text"
+            categoryText="AI Video Effects"
+            ctaText="Try it now"
+            ctaLink="/ai-video-effects"
           />
 
           {/* Amazing Features Grid */}
@@ -120,7 +88,7 @@ export default function HomeClient() {
 
           {/* Community CTA */}
           <CommunityCTA
-            title={translations?.homepage?.community?.title || "Find More Inspirations in VidFab Community"}
+            title={translations?.homepage?.community?.title || "Find More Inspirations in VidFab"}
             subtitle={translations?.homepage?.community?.subtitle || "Find your inspiration in a sea of creativity"}
             description={translations?.homepage?.community?.description || "Explore unlimited inspiration alongside other VidFab users. Let creativity be inspired by shared excitement and collaborative genius."}
             ctaText={translations?.homepage?.community?.cta || "Discover Now"}

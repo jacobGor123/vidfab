@@ -83,19 +83,6 @@ export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
         onQuerySubmit={onQuerySubmit}
         className="relative z-10"
       />
-
-      {/* Navigation Layer - Desktop Only */}
-      {isDesktop && shouldShowVideoBackground && videoItems.length > 1 && (
-        <VideoNavigation
-          items={videoItems}
-          currentIndex={state.currentIndex}
-          onItemSelect={(index) => {
-            controls.goToIndex(index)
-          }}
-          isVideoReady={() => true} // 简化，总是显示可点击
-          loadingCount={loadingCount}
-        />
-      )}
     </div>
   )
 }

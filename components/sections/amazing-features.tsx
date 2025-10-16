@@ -51,7 +51,7 @@ export function AmazingFeatures({
               key={index}
               className={cn(
                 "bg-brand-gray-800/70 backdrop-blur-md border border-brand-gray-700",
-                "rounded-xl p-6 shadow-apple-soft transition-all duration-300 ease-apple",
+                "rounded-xl p-4 sm:p-6 shadow-apple-soft transition-all duration-300 ease-apple",
                 "hover:bg-brand-gray-700/90 hover:shadow-apple-medium hover:border-brand-purple-DEFAULT/30",
                 "group",
                 feature.highlighted && "border-brand-purple-DEFAULT/50"

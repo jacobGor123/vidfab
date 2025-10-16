@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SessionProvider } from "@/components/auth/session-provider"
 import { VideoProvider } from "@/lib/contexts/video-context"
+import { WebVitals } from "@/components/web-vitals"
 import { cn } from "@/lib/utils"
 import { openSans } from "@/lib/fonts"
 import { Toaster } from "react-hot-toast"
@@ -123,6 +124,14 @@ export default function RootLayout({
             `
           }}
         />
+        {/* 字体预加载 - 提高 FCP */}
+        <link
+          rel="preload"
+          href="/fonts/open-sans-variable.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <style dangerouslySetInnerHTML={{
           __html: `
             @font-face {
@@ -131,6 +140,7 @@ export default function RootLayout({
               font-weight: 300 800;
               font-display: swap;
               src: url('/fonts/open-sans-variable.woff2') format('woff2');
+              unicode-range: U+0020-007F, U+00A0-00FF;
             }
             :root {
               --font-open-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -144,6 +154,7 @@ export default function RootLayout({
         ]} />
       </head>
       <body className={`min-h-screen bg-background antialiased font-sans ${openSans.variable}`}>
+        <WebVitals />
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <VideoProvider>

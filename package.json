@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev -p 5170",
+    "dev": "next dev -p 3000",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "lighthouse": "lighthouse http://localhost:3000 --view --preset=mobile",
+    "lighthouse:desktop": "lighthouse http://localhost:3000 --view --preset=desktop",
+    "lighthouse:budget": "lighthouse http://localhost:3000 --budget-path=./lighthouse-budget.json --view"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

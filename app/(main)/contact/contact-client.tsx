@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { LoadingState } from "@/components/loading-state"
 import { SkeletonLoader } from "@/components/skeleton-loader"
-import { Mail, Linkedin, Twitter, Instagram, Youtube } from "lucide-react"
+import { Mail, Twitter, Youtube } from "lucide-react"
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(true)
@@ -90,25 +90,11 @@ export default function ContactPage() {
             </p>
 
             <div className="grid md:grid-cols-2 gap-4">
-              {/* LinkedIn */}
-              <a
-                href="#"
-                className="flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl hover:bg-white/10 hover:border-blue-500/30 transition-all duration-300 group"
-              >
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-400 p-3 rounded-xl mr-4">
-                  <Linkedin className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-semibold group-hover:text-blue-400 transition-colors">
-                    LinkedIn
-                  </h3>
-                  <p className="text-gray-400 text-sm">Professional updates</p>
-                </div>
-              </a>
-
               {/* Twitter/X */}
               <a
-                href="#"
+                href="https://x.com/vidfab_ai"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl hover:bg-white/10 hover:border-cyan-400/30 transition-all duration-300 group"
               >
                 <div className="bg-gradient-to-r from-cyan-400 to-blue-400 p-3 rounded-xl mr-4">
@@ -122,25 +108,11 @@ export default function ContactPage() {
                 </div>
               </a>
 
-              {/* Instagram */}
-              <a
-                href="#"
-                className="flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl hover:bg-white/10 hover:border-pink-500/30 transition-all duration-300 group"
-              >
-                <div className="bg-gradient-to-r from-pink-500 to-purple-500 p-3 rounded-xl mr-4">
-                  <Instagram className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-semibold group-hover:text-pink-400 transition-colors">
-                    Instagram
-                  </h3>
-                  <p className="text-gray-400 text-sm">Visual inspiration</p>
-                </div>
-              </a>
-
               {/* YouTube */}
               <a
-                href="#"
+                href="https://www.youtube.com/@vidfab-ai"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl hover:bg-white/10 hover:border-red-500/30 transition-all duration-300 group"
               >
                 <div className="bg-gradient-to-r from-red-500 to-pink-500 p-3 rounded-xl mr-4">
@@ -156,7 +128,9 @@ export default function ContactPage() {
 
               {/* TikTok */}
               <a
-                href="#"
+                href="https://www.tiktok.com/@vidfab"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl hover:bg-white/10 hover:border-purple-500/30 transition-all duration-300 group md:col-span-2"
               >
                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl mr-4">

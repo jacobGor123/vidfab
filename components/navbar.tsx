@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Menu, X, LogIn, ChevronDown } from "lucide-react"
@@ -100,10 +101,13 @@ export function Navbar({ scrolled }: NavbarProps) {
               href="/"
               className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
             >
-              <img
+              <Image
                 src="/logo/brand-logo-transparent.svg"
                 alt="VidFab"
-                className="h-14 w-auto"
+                width={140}
+                height={56}
+                className="h-10 sm:h-12 md:h-14 w-auto"
+                priority
               />
              </Link>
           </div>
@@ -227,7 +231,11 @@ export function Navbar({ scrolled }: NavbarProps) {
             )}
           </div>
 
-          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <button
+            className="md:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
             {mobileMenuOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
           </button>
         </div>

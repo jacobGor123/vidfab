@@ -36,20 +36,30 @@ export function CreditsBalanceCard({
     )
   }
 
-  // 获取套餐配置的月度积分额度
+  // 获取套餐配置的月度积分额度（每月新增的标准配额）
   const monthlyCredits = subscription?.plan_id === 'lite' ? 300 :
                          subscription?.plan_id === 'pro' ? 1000 :
                          subscription?.plan_id === 'premium' ? 2000 :
                          subscription?.plan_id === 'free' ? 50 : 50
 
-  // 如果当前积分超过月度额度，说明有积分累积
-  const hasAccumulated = creditsRemaining > monthlyCredits
+  // 从订阅信息中获取本月总可用积分（包含上月剩余）
+  // 这个字段由后端提供，表示本月开始时的总可用积分
+  const monthlyTotal = subscription?.credits_monthly_total
 
-  // 计算使用百分比（基于月度额度，不能超过100%）
-  const usagePercentage = hasAccumulated ? 100 : (creditsRemaining / monthlyCredits) * 100
+  // 如果后端没有提供 credits_monthly_total，我们无法准确计算本月使用量
+  // 因此显示总积分而不是月度使用情况
+  const hasMonthlyData = monthlyTotal !== undefined && monthlyTotal !== null
 
-  // 计算本月使用量（如果有累积，则显示0）
-  const creditsUsed = hasAccumulated ? 0 : (monthlyCredits - creditsRemaining)
+  // 计算本月使用量（仅当有月度数据时）
+  const creditsUsed = hasMonthlyData ? Math.max(0, monthlyTotal - creditsRemaining) : 0
+
+  // 计算使用百分比
+  // 如果有月度数据，基于月度总额计算；否则基于标准配额计算
+  const totalForPercentage = hasMonthlyData ? monthlyTotal : monthlyCredits
+  const usagePercentage = totalForPercentage > 0 ? (creditsRemaining / totalForPercentage) * 100 : 0
+
+  // 判断是否有积分累积（本月总可用 > 标准月度配额）
+  const hasAccumulated = hasMonthlyData && monthlyTotal > monthlyCredits
 
   // 警告等级判断
   const getWarningLevel = () => {
@@ -99,7 +109,7 @@ export function CreditsBalanceCard({
             {creditsRemaining}
           </span>
           <span className="text-gray-400 text-sm">
-            {hasAccumulated ? ' credits (accumulated)' : ` / ${monthlyCredits} monthly`}
+            {hasMonthlyData ? ` / ${monthlyTotal} monthly` : ' credits available'}
           </span>
         </div>
 
@@ -113,14 +123,10 @@ export function CreditsBalanceCard({
           <div className="flex justify-between items-center text-xs text-gray-400">
             <span className="flex items-center gap-1">
               <TrendIcon className="h-3 w-3" />
-              {hasAccumulated ?
-                `${creditsRemaining} total credits` :
-                `${usagePercentage.toFixed(1)}% remaining`}
+              {`${usagePercentage.toFixed(1)}% remaining`}
             </span>
             <span>
-              {hasAccumulated ?
-                `${monthlyCredits}/month + accumulated` :
-                `${creditsUsed} used this month`}
+              {hasMonthlyData ? `${creditsUsed} used this month` : `${monthlyCredits} credits/month`}
             </span>
           </div>
         </div>

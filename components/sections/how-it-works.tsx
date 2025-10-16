@@ -165,7 +165,7 @@ export function HowItWorks({ steps = defaultSteps, className, autoPlayInterval =
 
           {/* Right: Video */}
           <div className="order-1 lg:order-2">
-            <div className="sticky top-24">
+            <div className="lg:sticky lg:top-24">
               <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-brand-gray-700 bg-brand-gray-900/50 shadow-2xl">
                 <LazyVideo
                   key={activeStepData.id}

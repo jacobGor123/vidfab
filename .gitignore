@@ -38,3 +38,7 @@ logs/
 
 # Docker logs
 docker-*.log
+
+# 临时文件
+tmp/
+queue-worker.js

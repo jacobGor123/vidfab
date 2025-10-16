@@ -289,7 +289,7 @@ export default function PricingPage() {
                 className="mx-4"
               />
               <Label htmlFor="billing-toggle" className={!annual ? "text-gray-400" : "text-white"}>
-                Annual <span className="text-xs text-pink-500">(Save up to 33%)</span>
+                Annual <span className="text-xs text-pink-500">(Save up to 20%)</span>
               </Label>
             </div>
           </div>
@@ -309,23 +309,19 @@ export default function PricingPage() {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">50 credits per month</span>
+                    <span className="text-xs text-gray-300">Initial credits 50</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Basic AI video generation (480p/720p)</span>
+                    <span className="text-xs text-gray-300">Access to HD resolution (up to 720P)</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Video effects library</span>
+                    <span className="text-xs text-gray-300">AI video effects library</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Community support</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Videos deleted after 24 hours</span>
+                    <span className="text-xs text-gray-300">24-hour retention for creations</span>
                   </li>
                 </ul>
                 <Button
@@ -386,19 +382,19 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Remove watermarks</span>
+                    <span className="text-xs text-gray-300">Watermark-free</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Priority processing</span>
+                    <span className="text-xs text-gray-300">Faster generations</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">HD exports (1080p)</span>
+                    <span className="text-xs text-gray-300">Access to HD resolution (up to 1080P)</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">4 concurrent jobs</span>
+                    <span className="text-xs text-gray-300">4 concurrent generation</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
@@ -474,6 +470,10 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">Watermark-free</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
                     <span className="text-xs text-gray-300">Advanced AI models</span>
                   </li>
                   <li className="flex items-start">
@@ -482,11 +482,15 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Batch processing</span>
+                    <span className="text-xs text-gray-300">Faster generations</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Custom branding</span>
+                    <span className="text-xs text-gray-300">Access to HD resolution (up to 1080P)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">4 concurrent generation</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
@@ -557,7 +561,11 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">All AI models included</span>
+                    <span className="text-xs text-gray-300">Watermark-free</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">Advanced AI models</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
@@ -565,11 +573,15 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Full commercial license</span>
+                    <span className="text-xs text-gray-300">Faster generations</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">1 year storage</span>
+                    <span className="text-xs text-gray-300">Access to HD resolution (up to 1080P)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">4 concurrent generation</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
@@ -623,23 +635,34 @@ export default function PricingPage() {
               </div>
 
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-2">What happens if I exceed my monthly credits?</h3>
-                <p className="text-gray-400">
-                  When you use all your credits, you'll be prompted to upgrade to a higher plan. No video generation will be possible until credits are renewed or plan is upgraded.
+                <h3 className="text-lg font-bold mb-2">What occurs if I exceed my allocated monthly credits?</h3>
+                <p className="text-gray-400 mb-4">
+                  If you use up all your monthly credits:
                 </p>
+                <ul className="list-disc list-inside text-gray-400 space-y-2">
+                  <li>You'll be prompted to upgrade to a higher plan.</li>
+                  <li>Video generation will be unavailable until your credits are renewed or your plan is upgraded.</li>
+                </ul>
               </div>
 
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
                 <h3 className="text-lg font-bold mb-2">How do credits work?</h3>
+                <p className="text-gray-400 mb-3">
+                  Credits are used up based on the AI model and video settings you select. For example:
+                </p>
+                <ul className="list-disc list-inside text-gray-400 space-y-2 mb-3">
+                  <li>A 480p 5-second video costs 10 credits.</li>
+                  <li>A 1080p 10-second video costs 80 credits.</li>
+                </ul>
                 <p className="text-gray-400">
-                  Different AI models and video settings consume different amounts of credits. For example, generating a 480p 5-second video costs 10 credits, while 1080p 10-second video costs 80 credits.
+                  Higher resolution or longer videos use more credits. Different AI models may also have varying credit requirements.
                 </p>
               </div>
 
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-2">What payment methods do you accept?</h3>
+                <h3 className="text-lg font-bold mb-2">Which payment methods are available?</h3>
                 <p className="text-gray-400">
-                  We accept all major credit cards through Stripe. Annual plans offer significant savings compared to monthly billing.
+                  We accept all major credit cards through Stripe. Annual plans also provide additional savings compared to monthly billing.
                 </p>
               </div>
             </div>

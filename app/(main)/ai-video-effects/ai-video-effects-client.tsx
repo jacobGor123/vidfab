@@ -1,9 +1,9 @@
 "use client"
 
 import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
-import { CommunityCTA } from "@/components/sections/community-cta"
 import { LoadingState } from "@/components/loading-state"
 import { VideoBackground } from "@/components/video-hero/video-background"
 import { VideoNavigation } from "@/components/video-hero/video-navigation"
@@ -15,6 +15,15 @@ import { AI_VIDEO_EFFECTS_ITEMS } from "@/components/video-hero/config/video-her
 import { usePageTranslation } from "@/lib/i18n"
 import Link from "next/link"
 import { Layers, Upload, Sparkles, Download } from "lucide-react"
+
+// 动态导入 CommunityCTA
+const CommunityCTA = dynamic(
+  () => import("@/components/sections/community-cta").then(mod => ({ default: mod.CommunityCTA })),
+  {
+    loading: () => <LoadingState message="Loading community videos..." />,
+    ssr: false,
+  }
+)
 
 function AIVideoEffectsHero() {
   const { isDesktop } = useMobileDetection()
@@ -54,13 +63,9 @@ function AIVideoEffectsHero() {
       {/* Hero Content */}
       <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center">
         <div className="max-w-6xl mx-auto w-full">
-          <h1 className="text-5xl md:text-7xl font-heading font-extrabold mb-8 text-gradient-brand leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-extrabold mb-8 sm:mb-12 text-gradient-brand leading-tight">
             {translations?.hero?.title || "Enhance Your Videos With Stunning AI-Powered Video Effects"}
           </h1>
-
-          <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            {translations?.hero?.subtitle || "Transform ordinary clips into eye-catching videos with AI-driven effects."}
-          </p>
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
@@ -134,7 +139,7 @@ export default function AIVideoEffectsPage() {
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title={translations?.community?.title || "Find More Inspirations in VidFab Community"}
+              title={translations?.community?.title || "Find More Inspirations in VidFab"}
               subtitle={translations?.community?.subtitle || "Find your inspiration in a sea of creativity"}
               description={translations?.community?.description || "Explore unlimited inspiration alongside other VidFab users."}
               ctaText={translations?.community?.cta || "Discover Now"}

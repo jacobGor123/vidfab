@@ -47,9 +47,32 @@ export function LazyVideo({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(autoPlay)
+  const [preloadValue, setPreloadValue] = useState(preload)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // 检测网络和设备状况，决定是否自动播放
+  useEffect(() => {
+    // @ts-ignore - Navigator connection API
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+    const saveData = connection?.saveData || false
+    const isSlowConnection = connection?.effectiveType === 'slow-2g' ||
+                            connection?.effectiveType === '2g' ||
+                            connection?.effectiveType === '3g'
+
+    const isMobile = /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+    // 省流量模式、慢速连接或移动端时禁用自动播放
+    if (saveData || isSlowConnection || isMobile) {
+      setShouldAutoPlay(false)
+      setPreloadValue('none') // 省流量模式下不预加载
+    } else {
+      setShouldAutoPlay(autoPlay)
+      setPreloadValue(isSlowConnection ? 'none' : preload)
+    }
+  }, [autoPlay, preload])
 
   // Intersection Observer - 监听元素是否进入视口
   useEffect(() => {
@@ -72,8 +95,8 @@ export function LazyVideo({
         })
       },
       {
-        rootMargin: "50px", // 提前 50px 开始加载
-        threshold: 0.1, // 10% 可见时触发
+        rootMargin: "0px", // 不提前加载，进入视口才加载
+        threshold: 0.25, // 25% 可见时触发（提高到 25% 避免过早加载）
       }
     )
 
@@ -99,8 +122,8 @@ export function LazyVideo({
       setHasError(false)
       onLoadedData?.()
 
-      // 自动播放
-      if (autoPlay && isInView) {
+      // 自动播放 - 使用智能检测后的 shouldAutoPlay
+      if (shouldAutoPlay && isInView) {
         const playPromise = video.play()
         if (playPromise !== undefined) {
           playPromise
@@ -139,12 +162,12 @@ export function LazyVideo({
       video.removeEventListener("play", handlePlay)
       video.removeEventListener("pause", handlePause)
     }
-  }, [isInView, autoPlay, src, onLoadStart, onLoadedData, onError])
+  }, [isInView, shouldAutoPlay, src, onLoadStart, onLoadedData, onError])
 
   // 视口可见性变化时恢复播放
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !isInView || !autoPlay || isLoading || hasError) return
+    if (!video || !isInView || !shouldAutoPlay || isLoading || hasError) return
 
     if (video.paused && !isPlaying) {
       const playPromise = video.play()
@@ -154,7 +177,7 @@ export function LazyVideo({
         })
       }
     }
-  }, [isInView, autoPlay, isLoading, hasError, isPlaying])
+  }, [isInView, shouldAutoPlay, isLoading, hasError, isPlaying])
 
   return (
     <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden", className)}>
@@ -211,7 +234,7 @@ export function LazyVideo({
         loop={loop}
         muted={muted}
         playsInline={playsInline}
-        preload={preload}
+        preload={preloadValue}
         poster={poster}
         aria-label={alt}
       >

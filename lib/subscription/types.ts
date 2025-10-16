@@ -38,6 +38,7 @@ export interface UserSubscription {
   billing_cycle: BillingCycle;
   credits_remaining: number;
   credits_total: number;
+  credits_monthly_total?: number; // 本月可用总积分（包含上月剩余）
   period_start: string;
   period_end: string;
   stripe_subscription_id?: string;

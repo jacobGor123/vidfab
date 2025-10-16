@@ -29,8 +29,7 @@ type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects
 const discoverItem = {
   id: "discover" as ToolType,
   label: "Discover",
-  icon: Search,
-  description: "Browse video templates and inspiration"
+  icon: Search
 }
 
 // 其他分类菜单项
@@ -41,20 +40,17 @@ const menuCategories = [
       {
         id: "text-to-video" as ToolType,
         label: "Text to Video",
-        icon: Type,
-        description: "Generate videos from text descriptions"
+        icon: Type
       },
       {
         id: "image-to-video" as ToolType,
         label: "Image to Video",
-        icon: ImageIcon,
-        description: "Convert images to video sequences"
+        icon: ImageIcon
       },
       {
         id: "video-effects" as ToolType,
         label: "Video Effects",
-        icon: Sparkles,
-        description: "Apply stunning effects to your images"
+        icon: Sparkles
       }
     ]
   },
@@ -64,8 +60,7 @@ const menuCategories = [
       {
         id: "my-assets" as ToolType,
         label: "My Assets",
-        icon: FolderOpen,
-        description: "Manage your video creations"
+        icon: FolderOpen
       }
     ]
   },
@@ -75,8 +70,7 @@ const menuCategories = [
       {
         id: "my-profile" as ToolType,
         label: "Plans & Billing",
-        icon: User,
-        description: "Manage subscription and billing"
+        icon: User
       }
     ]
   }
@@ -151,7 +145,6 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                   {isOpen && (
                     <div className="ml-3 flex-1 min-w-0">
                       <div className="font-medium truncate">{discoverItem.label}</div>
-                      <div className="text-xs text-gray-500 truncate">{discoverItem.description}</div>
                     </div>
                   )}
                 </button>
@@ -193,7 +186,6 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                       {isOpen && (
                         <div className="ml-3 flex-1 min-w-0">
                           <div className="font-medium truncate">{item.label}</div>
-                          <div className="text-xs text-gray-500 truncate">{item.description}</div>
                         </div>
                       )}
                     </button>
