@@ -5,24 +5,23 @@ import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
 import { CommunityCTA } from "@/components/sections/community-cta"
 import { LoadingState } from "@/components/loading-state"
+import { usePageTranslation } from "@/lib/i18n"
 import { VideoBackground } from "@/components/video-hero/video-background"
 import { VideoNavigation } from "@/components/video-hero/video-navigation"
-import { useVideoPool } from "@/components/video-hero/hooks/use-video-pool"
-import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
+import { TEXT_TO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
 import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
-import { TEXT_TO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
-import { usePageTranslation } from "@/lib/i18n"
+import { useVideoPool } from "@/components/video-hero/hooks/use-video-pool"
+import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
 import Link from "next/link"
 import { FileText, MousePointerClick, Sparkles, Download } from "lucide-react"
 
 function TextToVideoHero() {
+  const { translations } = usePageTranslation('text-to-video')
   const { isDesktop } = useMobileDetection()
   const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
-  const { translations } = usePageTranslation('text-to-video')
 
   const { getVideo, isVideoReady, loadingCount } = useVideoPool(TEXT_TO_VIDEO_ITEMS, false)
-
   const { state, controls } = useVideoCarousel({
     items: TEXT_TO_VIDEO_ITEMS,
     onIndexChange: () => {},
@@ -45,10 +44,10 @@ function TextToVideoHero() {
           getVideo={getVideo}
           isVideoReady={isVideoReady}
           onVideoEnd={handleVideoEnd}
-          className="absolute inset-0 z-0"
+          onVideoCanPlay={() => {}}
         />
       ) : (
-        <div className="absolute inset-0 z-0 bg-black" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black via-brand-gray-900 to-black" />
       )}
 
       {/* Hero Content */}
@@ -86,14 +85,12 @@ function TextToVideoHero() {
         </div>
       </div>
 
-      {/* Navigation Layer - Desktop Only */}
+      {/* Video Navigation */}
       {isDesktop && shouldShowVideoBackground && TEXT_TO_VIDEO_ITEMS.length > 1 && (
         <VideoNavigation
           items={TEXT_TO_VIDEO_ITEMS}
           currentIndex={state.currentIndex}
-          onItemSelect={(index) => {
-            controls.goToIndex(index)
-          }}
+          onItemSelect={(index) => controls.goToIndex(index)}
           isVideoReady={() => true}
           loadingCount={loadingCount}
         />
@@ -111,7 +108,7 @@ export default function TextToVideoPage() {
     number: step.number,
     title: step.title,
     description: step.description,
-    image: `/placeholder/how-it-works-step-${index + 1}.jpg`,
+    video: `https://static.vidfab.ai/text-to-video/text-to-video-0${index + 1}.mp4`,
     icon: [FileText, MousePointerClick, Sparkles, Download][index]
   })) || []
 

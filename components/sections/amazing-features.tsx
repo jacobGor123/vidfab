@@ -37,7 +37,7 @@ export function AmazingFeatures({
   return (
     <section className={cn("py-20", className)}>
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center mb-16">
+        <div className="mx-auto text-center mb-16">
           <h2
             className="text-4xl md:text-5xl font-heading font-extrabold mb-6 text-white"
           >
@@ -45,7 +45,7 @@ export function AmazingFeatures({
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto">
           {features.map((feature, index) => (
             <div
               key={index}

@@ -62,11 +62,11 @@ export function FAQSection({
   defaultOpenIndex = 0,
 }: FAQSectionProps) {
   return (
-    <section className={cn("py-20 relative overflow-hidden bg-black", className)}>
+    <section className={cn("py-14 relative overflow-hidden bg-black", className)}>
       <div className="container mx-auto px-4">
         {/* Title */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-heading font-extrabold mb-4 text-white">
+          <h2 className="text-4xl  font-heading font-extrabold mb-4 text-white">
             {title}
           </h2>
           {subtitle && (
@@ -75,7 +75,7 @@ export function FAQSection({
         </div>
 
         {/* FAQ Accordion */}
-        <div className="max-w-4xl mx-auto">
+        <div className="mx-auto">
           <Accordion
             type="single"
             collapsible

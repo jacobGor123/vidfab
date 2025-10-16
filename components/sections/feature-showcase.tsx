@@ -1,13 +1,13 @@
 "use client"
 
-import Image from "next/image"
+import { LazyVideo } from "@/components/common/lazy-video"
 import { cn } from "@/lib/utils"
 
 interface FeatureShowcaseProps {
   title: string
   subtitle: string
-  imageUrl: string
-  imageAlt: string
+  videoUrl: string // 改为 videoUrl
+  videoAlt: string // 改为 videoAlt
   layout?: "left-text" | "right-text"
   className?: string
 }
@@ -15,15 +15,15 @@ interface FeatureShowcaseProps {
 export function FeatureShowcase({
   title,
   subtitle,
-  imageUrl,
-  imageAlt,
+  videoUrl,
+  videoAlt,
   layout = "left-text",
   className
 }: FeatureShowcaseProps) {
   const isLeftText = layout === "left-text"
 
   return (
-    <section className={cn("py-20", className)}>
+    <section className={cn("py-12", className)}>
       <div className="container mx-auto px-4">
         <div className={cn(
           "grid gap-12 items-center",
@@ -45,7 +45,7 @@ export function FeatureShowcase({
             </p>
           </div>
 
-          {/* Image */}
+          {/* Video */}
           <div
             className={cn(
               "relative aspect-video overflow-hidden rounded-xl",
@@ -54,23 +54,15 @@ export function FeatureShowcase({
               !isLeftText && "lg:order-1"
             )}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-DEFAULT/10 to-brand-pink-DEFAULT/10" />
-            {imageUrl.startsWith("http") || imageUrl.startsWith("/") ? (
-              <Image
-                src={imageUrl}
-                alt={imageAlt}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center p-8">
-                  <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-brand-purple-DEFAULT to-brand-pink-DEFAULT rounded-2xl animate-pulse" />
-                  <p className="text-gray-500 text-sm">Image placeholder</p>
-                </div>
-              </div>
-            )}
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-DEFAULT/10 to-brand-pink-DEFAULT/10 pointer-events-none z-10" />
+            <LazyVideo
+              src={videoUrl}
+              alt={videoAlt}
+              className="absolute inset-0"
+              autoPlay={true}
+              loop={true}
+              muted={true}
+            />
           </div>
         </div>
       </div>

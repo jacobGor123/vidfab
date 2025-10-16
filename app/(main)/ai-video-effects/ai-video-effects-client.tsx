@@ -6,11 +6,12 @@ import { FAQSection } from "@/components/sections/faq-section"
 import { CommunityCTA } from "@/components/sections/community-cta"
 import { LoadingState } from "@/components/loading-state"
 import { VideoBackground } from "@/components/video-hero/video-background"
+import { VideoNavigation } from "@/components/video-hero/video-navigation"
 import { useVideoPool } from "@/components/video-hero/hooks/use-video-pool"
 import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
 import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
 import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
-import { HERO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
+import { AI_VIDEO_EFFECTS_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { usePageTranslation } from "@/lib/i18n"
 import Link from "next/link"
 import { Layers, Upload, Sparkles, Download } from "lucide-react"
@@ -20,16 +21,16 @@ function AIVideoEffectsHero() {
   const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
   const { translations } = usePageTranslation('ai-video-effects')
 
-  const { getVideo, isVideoReady } = useVideoPool(HERO_VIDEO_ITEMS, false)
+  const { getVideo, isVideoReady, loadingCount } = useVideoPool(AI_VIDEO_EFFECTS_ITEMS, false)
 
   const { state, controls } = useVideoCarousel({
-    items: HERO_VIDEO_ITEMS,
+    items: AI_VIDEO_EFFECTS_ITEMS,
     onIndexChange: () => {},
     autoPlay: isDesktop && !isSlowConnection
   })
 
   const handleVideoEnd = () => {
-    if (HERO_VIDEO_ITEMS.length > 1) {
+    if (AI_VIDEO_EFFECTS_ITEMS.length > 1) {
       controls.goToNext()
     }
   }
@@ -39,15 +40,15 @@ function AIVideoEffectsHero() {
       {/* Video Background */}
       {isDesktop && shouldShowVideoBackground ? (
         <VideoBackground
-          items={HERO_VIDEO_ITEMS}
+          items={AI_VIDEO_EFFECTS_ITEMS}
           currentIndex={state.currentIndex}
           getVideo={getVideo}
           isVideoReady={isVideoReady}
           onVideoEnd={handleVideoEnd}
-          className="absolute inset-0 z-0"
+          onVideoCanPlay={() => {}}
         />
       ) : (
-        <div className="absolute inset-0 z-0 bg-black" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black via-brand-gray-900 to-black" />
       )}
 
       {/* Hero Content */}
@@ -84,6 +85,17 @@ function AIVideoEffectsHero() {
           </div>
         </div>
       </div>
+
+      {/* Video Navigation */}
+      {isDesktop && shouldShowVideoBackground && AI_VIDEO_EFFECTS_ITEMS.length > 1 && (
+        <VideoNavigation
+          items={AI_VIDEO_EFFECTS_ITEMS}
+          currentIndex={state.currentIndex}
+          onItemSelect={(index) => controls.goToIndex(index)}
+          isVideoReady={() => true}
+          loadingCount={loadingCount}
+        />
+      )}
     </div>
   )
 }
@@ -97,7 +109,7 @@ export default function AIVideoEffectsPage() {
     number: step.number,
     title: step.title,
     description: step.description,
-    image: `/placeholder/ai-video-effects-step-${index + 1}.jpg`,
+    video: `https://static.vidfab.ai/video-effects/al-video-effects-0${index + 1}.mp4`,
     icon: [Layers, Upload, Sparkles, Download][index]
   })) || []
 

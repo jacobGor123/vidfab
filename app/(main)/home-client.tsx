@@ -76,29 +76,29 @@ export default function HomeClient() {
         </div>
 
         {/* Content sections */}
-        <div className="relative z-10 bg-black">
+        <div className="relative z-10 bg-black mt-16">
           {/* Feature Showcases - 左右交替布局 */}
           <FeatureShowcase
             title={translations?.homepage?.features?.textToVideo?.title || "Generate Video with Text Prompts"}
             subtitle={translations?.homepage?.features?.textToVideo?.subtitle || "Begin by describing what you want to create, then complete the main settings. VidFab will take care of the remaining steps for you."}
-            imageUrl="/placeholder/text-to-video.jpg"
-            imageAlt={translations?.homepage?.features?.textToVideo?.imageAlt || "Text to video"}
+            videoUrl="https://static.vidfab.ai/public/video/home-step-01.mp4"
+            videoAlt={translations?.homepage?.features?.textToVideo?.imageAlt || "Text to video"}
             layout="left-text"
           />
 
           <FeatureShowcase
             title={translations?.homepage?.features?.imageToVideo?.title || "Start a Video Creation with Image"}
             subtitle={translations?.homepage?.features?.imageToVideo?.subtitle || "Upload your images and describe your ideas, and VidFab will bring them to life before your eyes."}
-            imageUrl="/placeholder/image-to-video.jpg"
-            imageAlt={translations?.homepage?.features?.imageToVideo?.imageAlt || "Image to video"}
+            videoUrl="https://static.vidfab.ai/public/video/home-step-02.mp4"
+            videoAlt={translations?.homepage?.features?.imageToVideo?.imageAlt || "Image to video"}
             layout="right-text"
           />
 
           <FeatureShowcase
             title={translations?.homepage?.features?.popularEffects?.title || "Pick a Popular Effect in One Click"}
             subtitle={translations?.homepage?.features?.popularEffects?.subtitle || "Try the most popular effects to make your own videos in one step."}
-            imageUrl="/placeholder/popular-effects.jpg"
-            imageAlt={translations?.homepage?.features?.popularEffects?.imageAlt || "Popular effects"}
+            videoUrl="https://static.vidfab.ai/public/video/home-step-03.mp4"
+            videoAlt={translations?.homepage?.features?.popularEffects?.imageAlt || "Popular effects"}
             layout="left-text"
           />
 
