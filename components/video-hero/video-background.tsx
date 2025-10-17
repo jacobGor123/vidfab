@@ -187,7 +187,7 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
             preload="metadata"  // 改为 metadata 预加载，减少初始加载
             crossOrigin="anonymous"  // 允许跨域加载
             controls={false}
-            style={{ zIndex: 1 }}
+            style={{ zIndex: 2, opacity: 0 }}  // 初始透明，加载后淡入
             ref={(video) => {
               if (video) {
                 // 强制播放
@@ -198,6 +198,7 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
             }}
             onCanPlay={(e) => {
               const video = e.currentTarget
+              video.style.opacity = '1'  // 视频加载完成后淡入
               video.play().catch(err => console.warn('Play failed:', err))
               onVideoCanPlay?.(currentItem.id)
             }}
@@ -212,6 +213,10 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
             }}
             onLoadedMetadata={(e) => {
               const video = e.currentTarget
+              // 元数据加载完成后也可以显示视频
+              if (video.readyState >= 2) {
+                video.style.opacity = '1'
+              }
             }}
             onEnded={() => {
               // 无论手动还是自动，视频结束都应该轮播（如果有多个视频）
@@ -250,20 +255,21 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
             Your browser does not support the video tag.
           </video>
 
-          {/* 总是显示poster作为fallback */}
+          {/* 总是显示poster作为fallback背景 */}
           <img
             src={currentItem.posterUrl}
             alt={currentItem.title}
             className="absolute inset-0 w-full h-full object-cover"
             crossOrigin="anonymous"
-            style={{ zIndex: 0 }}
+            style={{ zIndex: 1 }}  // poster 在视频下方，作为加载时的背景
+            loading="eager"  // 优先加载
             onError={() => console.error('❌ Poster error:', currentItem.id)}
           />
         </>
       )}
       
       {/* 渐变遮罩 */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" style={{ zIndex: 2 }} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" style={{ zIndex: 3 }} />
     </div>
   )
 }
