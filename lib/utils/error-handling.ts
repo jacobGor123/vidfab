@@ -356,7 +356,6 @@ export class ErrorReporter {
   private async sendToErrorTracking(errorEntry: any) {
     // Implementation for error tracking service (Sentry, etc.)
     // This is a placeholder
-    console.log('Would send to error tracking:', errorEntry)
   }
 
   getRecentErrors(limit: number = 10) {

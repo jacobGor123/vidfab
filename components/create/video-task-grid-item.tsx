@@ -7,11 +7,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoJob, VideoResult as VideoResultType } from "@/lib/contexts/video-context"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { cn } from "@/lib/utils"
-import { X } from "lucide-react"
+import { X, AlertTriangle } from "lucide-react"
 import toast from "react-hot-toast"
 import {
   AlertDialog,
@@ -24,21 +25,82 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+// 🔥 Error message translation function - English version
+function getFriendlyErrorMessage(error: string): string {
+  const errorMessages: Record<string, string> = {
+    'ImageObjectsUndetected': 'No clear objects detected in image. Please try using images with visible people, objects, or buildings',
+    'InputTooLarge': 'File too large. Please use images smaller than 10MB',
+    'InvalidImageFormat': 'Unsupported image format. Please use JPG, PNG, or WebP formats',
+    'ContentPolicyViolation': 'Image content violates usage policy. Please select a different image',
+    'ProcessingTimeout': 'Processing timeout. Please retry or use a smaller resolution image',
+    'InsufficientCredits': 'Insufficient credits. Please top up your account and try again',
+    'ImageTooSmall': 'Image resolution too low. Please use images of at least 512x512 pixels',
+    'ImageTooBlurry': 'Image too blurry. Please use a higher quality, clearer image',
+    'NoFaceDetected': 'No face detected. Please ensure image contains a clear human face',
+    'MultipleFacesDetected': 'Multiple faces detected. Please use an image with only one person',
+    'NetworkError': 'Network connection failed. Please check your connection and retry',
+    'ServerError': 'Server temporarily unavailable. Please try again later',
+    'RateLimitExceeded': 'Too many requests. Please wait a moment and try again',
+    'UnknownError': 'Unknown error occurred. Please retry or contact support'
+  }
+
+  // Exact match
+  if (errorMessages[error]) {
+    return errorMessages[error]
+  }
+
+  // Fuzzy match
+  for (const [key, message] of Object.entries(errorMessages)) {
+    if (error.toLowerCase().includes(key.toLowerCase())) {
+      return message
+    }
+  }
+
+  // Special keyword matching
+  const errorLower = error.toLowerCase()
+  if (errorLower.includes('object') && errorLower.includes('detect')) {
+    return errorMessages['ImageObjectsUndetected']
+  }
+  if (errorLower.includes('face') && errorLower.includes('not')) {
+    return errorMessages['NoFaceDetected']
+  }
+  if (errorLower.includes('multiple') && errorLower.includes('face')) {
+    return errorMessages['MultipleFacesDetected']
+  }
+  if (errorLower.includes('blur') || errorLower.includes('quality')) {
+    return errorMessages['ImageTooBlurry']
+  }
+  if (errorLower.includes('small') || errorLower.includes('resolution')) {
+    return errorMessages['ImageTooSmall']
+  }
+  if (errorLower.includes('network') || errorLower.includes('connection')) {
+    return errorMessages['NetworkError']
+  }
+  if (errorLower.includes('server')) {
+    return errorMessages['ServerError']
+  }
+  if (errorLower.includes('rate') && errorLower.includes('limit')) {
+    return errorMessages['RateLimitExceeded']
+  }
+
+  // Default return
+  return error || 'Unknown error. Please try again with a different image'
+}
+
 interface VideoTaskGridItemProps {
   job?: VideoJob
   completedVideo?: VideoResultType
-  onRegenerateClick?: () => void
 }
 
 export function VideoTaskGridItem({
   job,
-  completedVideo,
-  onRegenerateClick
+  completedVideo
 }: VideoTaskGridItemProps) {
   const [progress, setProgress] = useState(0)
   const [animatedProgress, setAnimatedProgress] = useState(0)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const videoContext = useVideoContext()
+
 
   // 计算预期时长（秒）
   const estimatedDuration = useMemo(() => {
@@ -70,126 +132,41 @@ export function VideoTaskGridItem({
     return () => clearInterval(interval)
   }, [job, estimatedDuration])
 
-  // Delete video task
-  const handleDelete = useCallback(async () => {
-    console.log('🗑️ Delete clicked:', { job, completedVideo })
+  // Cancel processing task
+  const handleCancelTask = useCallback(() => {
+    if (!job?.id) return
 
-    try {
-      let deleted = false
-
-      // Get the ID to delete (either from job or completedVideo)
-      const deleteId = job?.id || completedVideo?.id
-
-      if (!deleteId) {
-        console.error('🗑️ No ID found to delete')
-        toast.error('No video found to delete.')
-        setShowDeleteConfirm(false)
-        return
-      }
-
-      console.log('🗑️ Deleting video with ID:', deleteId)
-
-      // Always try to remove from both places for completed videos
-      if (job?.status === "completed" || completedVideo) {
-        console.log('🗑️ Removing from both activeJobs and completedVideos')
-        // Remove from activeJobs (if it exists there)
-        videoContext.removeJob(deleteId)
-        // Remove from completedVideos (if it exists there)
-        videoContext.removeCompletedVideo(deleteId)
-      }
-      // For processing jobs, only remove from activeJobs
-      else if (job?.status === "processing") {
-        console.log('🗑️ Removing processing job from activeJobs only')
-        videoContext.removeJob(deleteId)
-      }
-      // Fallback: try both just in case
-      else {
-        console.log('🗑️ Unknown state, removing from both locations')
-        videoContext.removeJob(deleteId)
-        videoContext.removeCompletedVideo(deleteId)
-      }
-
-      // Handle database deletion for UUID videos
-      if (completedVideo?.id) {
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(completedVideo.id)
-        if (isUUID) {
-          console.log('🗑️ UUID detected, calling deleteVideo API')
-          await videoContext.deleteVideo(completedVideo.id)
-        }
-      }
-
-      deleted = true
-      console.log('🗑️ Delete operation completed successfully')
-      toast.success('Video deleted successfully!')
-
-    } catch (error) {
-      console.error('🗑️ Failed to delete video:', error)
-      toast.error('Failed to delete video. Please try again.')
-    }
-
+    // Simply remove the job from active jobs list (cancels polling)
+    videoContext.removeJob(job.id)
+    toast.success('Task cancelled successfully')
     setShowDeleteConfirm(false)
-  }, [job, completedVideo, videoContext])
+  }, [job?.id, videoContext])
 
-  // If there's a completed video, show video result
+  // 🔥 关键修复：优先检查job的completed状态，确保轮询更新能立即显示
   if (completedVideo || (job?.status === "completed" && job.resultUrl)) {
-    const showDelete = true // Allow deleting completed videos
     const videoUrl = completedVideo?.videoUrl || job?.resultUrl!
     const prompt = completedVideo?.prompt || job?.prompt!
     const settings = completedVideo?.settings || job?.settings!
 
     return (
-      <div className="relative">
-        {/* Delete button */}
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all"
-          title="Delete video"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <VideoResult
+      <VideoResult
         videoUrl={videoUrl}
         thumbnailUrl={completedVideo?.thumbnailUrl}
         prompt={prompt}
         settings={settings}
-        onRegenerateClick={onRegenerateClick || (() => {})}
         video={completedVideo as any}
         isFromDatabase={!!completedVideo}
         videoId={completedVideo?.id || job?.id}
-        />
-
-        {/* Delete confirmation dialog */}
-        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-          <AlertDialogContent className="bg-gray-900 border-gray-800">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-white">Delete Video</AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-400">
-                This action will permanently delete this video and cannot be undone. Are you sure you want to continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-700">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                Confirm Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      />
     )
   }
 
   // If there's a processing task, show loading state
-  if (job && (job.status === "processing" || job.status === "queued")) {
+  if (job && (job.status === "processing" || job.status === "queued" || job.status === "pending")) {
+
     return (
       <Card className="h-full bg-gray-950 border-gray-800 relative">
-        {/* Delete button */}
+        {/* Cancel button */}
         <button
           onClick={() => setShowDeleteConfirm(true)}
           className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all"
@@ -208,8 +185,16 @@ export function VideoTaskGridItem({
             </div>
 
             {/* Text hints */}
-            <h3 className="text-sm font-semibold text-white mb-1">Creating Your Video</h3>
-            <p className="text-xs text-gray-400 mb-4">This may take a few minutes...</p>
+            <h3 className="text-sm font-semibold text-white mb-1">
+              {job.status === "pending" ? "Preparing..." :
+               job.status === "queued" ? "In Queue" :
+               "Creating Your Video"}
+            </h3>
+            <p className="text-xs text-gray-400 mb-4">
+              {job.status === "pending" ? "Initializing video generation..." :
+               job.status === "queued" ? "Waiting for processing slot..." :
+               "This may take a few minutes..."}
+            </p>
 
             {/* Green progress bar */}
             <div className="w-full max-w-[200px]">
@@ -223,13 +208,13 @@ export function VideoTaskGridItem({
           </div>
         </CardContent>
 
-        {/* Delete confirmation dialog */}
+        {/* Cancel confirmation dialog */}
         <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
           <AlertDialogContent className="bg-gray-900 border-gray-800">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-white">Cancel Task</AlertDialogTitle>
               <AlertDialogDescription className="text-gray-400">
-                This action will cancel the current video generation task. Are you sure you want to continue?
+                This will stop the video generation process. Are you sure you want to cancel?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -237,7 +222,7 @@ export function VideoTaskGridItem({
                 Keep Processing
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleDelete}
+                onClick={handleCancelTask}
                 className="bg-red-600 text-white hover:bg-red-700"
               >
                 Cancel Task
@@ -249,7 +234,68 @@ export function VideoTaskGridItem({
     )
   }
 
-  // 骨架屏动画状态 - 模拟视频加载中的样子
+  // If there's a failed task, show error state
+  if (job && job.status === "failed") {
+
+    return (
+      <Card className="h-full bg-gray-950 border-red-800/30 relative">
+        <CardContent className="h-full flex flex-col items-center justify-center p-6">
+          <div className="flex items-center justify-center flex-col w-full text-center">
+            {/* Error icon */}
+            <div className="relative mb-4">
+              <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-red-400" />
+              </div>
+            </div>
+
+            {/* Error text */}
+            <h3 className="text-sm font-semibold text-red-300 mb-2">Generation Failed</h3>
+            <p className="text-xs text-gray-400 mb-4 max-w-[200px] text-center">
+              {getFriendlyErrorMessage(job.error || "Video generation failed")}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+
+  // 🔥 处理意外状态：如果任务存在但状态异常，当作处理中状态
+  if (job && !['processing', 'queued', 'completed', 'failed', 'pending'].includes(job.status)) {
+    console.warn('⚠️ 检测到异常任务状态，当作处理中处理:', {
+      jobId: job.id,
+      status: job.status
+    })
+
+    return (
+      <Card className="h-full bg-gray-950 border-purple-600/30 relative">
+        <CardContent className="h-full flex flex-col items-center justify-center p-4">
+          <div className="flex items-center justify-center flex-col w-full">
+            {/* Loading animation */}
+            <div className="relative mb-4">
+              <div className="w-16 h-16 border-4 border-primary/30 rounded-full animate-spin">
+                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+              </div>
+            </div>
+
+            {/* Status text */}
+            <h3 className="text-sm font-semibold text-purple-300 mb-2">Video Processing</h3>
+            <p className="text-xs text-gray-400 mb-4 text-center">
+              Initializing video generation...
+            </p>
+
+            {/* Debug info */}
+            <p className="text-xs text-gray-500 text-center">
+              Status: {job.status || 'undefined'}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // 骨架屏动画状态 - 当没有任务信息时显示
+
   return (
     <Card className="h-full bg-gray-950 border-gray-800 overflow-hidden">
       <CardContent className="h-full p-0">

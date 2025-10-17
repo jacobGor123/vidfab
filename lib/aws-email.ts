@@ -260,10 +260,8 @@ export async function sendEmailViaSES(options: {
     
     // 验证SMTP连接（开发环境下）
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Testing SMTP connection...');
       try {
         await transporter.verify();
-        console.log('✅ SMTP connection verified');
       } catch (verifyError: any) {
         console.error('❌ SMTP connection failed:', verifyError.message);
         return {
@@ -276,7 +274,7 @@ export async function sendEmailViaSES(options: {
     // 发送邮件
     const mailOptions = {
       from: {
-        name: 'VidFab AI 智能视频平台',
+        name: 'VidFab Ai',
         address: process.env.AWS_SES_FROM_EMAIL || 'noreply@vidfab.ai'
       },
       to: options.to,
@@ -291,16 +289,9 @@ export async function sendEmailViaSES(options: {
       // 回复地址
       replyTo: process.env.AWS_SES_REPLY_TO_EMAIL || 'support@vidfab.ai',
     };
-
-    console.log(`📧 Sending email to ${options.to}...`);
     
     const result = await transporter.sendMail(mailOptions);
-    
-    console.log('✅ Email sent successfully:', {
-      messageId: result.messageId,
-      to: options.to,
-      subject: options.subject
-    });
+  
 
     return {
       success: true,

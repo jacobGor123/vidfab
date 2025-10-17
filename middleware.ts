@@ -1,21 +1,28 @@
 /**
  * Middleware for VidFab AI Video Platform
- * Handles authentication
+ * Handles authentication - NextAuth 4.x compatible
  */
-import { auth } from "@/auth"
+import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 // Public routes that don't require authentication
 const publicRoutes = [
   '/',
+  '/create',
   '/login',
   '/signup',
   '/pricing',
   '/features',
   '/how-it-works',
+  '/text-to-video',
+  '/image-to-video',
+  '/ai-video-effects',
+  '/about',
+  '/contact',
   '/privacy',
   '/terms',
+  '/terms-of-service',
   '/support',
 ]
 
@@ -58,51 +65,65 @@ function isProtectedPath(pathname: string): boolean {
   )
 }
 
-export default auth((req) => {
-  const { nextUrl } = req
-  const isLoggedIn = !!req.auth
-  
-  // Skip auth checks for API routes and static files
-  if (
-    nextUrl.pathname.startsWith('/api/') ||
-    nextUrl.pathname.startsWith('/_next/') ||
-    nextUrl.pathname.includes('.')
-  ) {
-    return NextResponse.next()
-  }
+export default withAuth(
+  function middleware(req) {
+    const { nextUrl } = req
+    const isLoggedIn = !!req.nextauth?.token
 
-  // Check if it's a public route
-  if (isPublicPath(nextUrl.pathname)) {
-    return NextResponse.next()
-  }
-
-  // Check if it's an auth route
-  if (isAuthPath(nextUrl.pathname)) {
-    if (isLoggedIn) {
-      // Redirect to homepage if already logged in
-      return NextResponse.redirect(new URL('/', nextUrl.origin))
+    // Skip auth checks for API routes and static files
+    if (
+      nextUrl.pathname.startsWith('/api/') ||
+      nextUrl.pathname.startsWith('/_next/') ||
+      nextUrl.pathname.includes('.')
+    ) {
+      return NextResponse.next()
     }
-    return NextResponse.next()
-  }
 
-  // Check if it's a protected route
-  if (isProtectedPath(nextUrl.pathname)) {
-    if (!isLoggedIn) {
-      // Redirect to login with callback URL
-      let callbackUrl = nextUrl.pathname
-      if (nextUrl.search) {
-        callbackUrl += nextUrl.search
+    // Check if it's a public route
+    if (isPublicPath(nextUrl.pathname)) {
+      return NextResponse.next()
+    }
+
+    // Check if it's an auth route
+    if (isAuthPath(nextUrl.pathname)) {
+      if (isLoggedIn) {
+        // Redirect to create page if already logged in
+        return NextResponse.redirect(new URL('/create', nextUrl.origin))
       }
-
-      const loginUrl = new URL('/login', nextUrl.origin)
-      loginUrl.searchParams.set('callbackUrl', encodeURIComponent(callbackUrl))
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.next()
     }
-    return NextResponse.next()
-  }
 
-  return NextResponse.next()
-})
+    // Check if it's a protected route
+    if (isProtectedPath(nextUrl.pathname)) {
+      if (!isLoggedIn) {
+        // Redirect to login with callback URL
+        let callbackUrl = nextUrl.pathname
+        if (nextUrl.search) {
+          callbackUrl += nextUrl.search
+        }
+
+        const loginUrl = new URL('/login', nextUrl.origin)
+        loginUrl.searchParams.set('callbackUrl', encodeURIComponent(callbackUrl))
+        return NextResponse.redirect(loginUrl)
+      }
+      return NextResponse.next()
+    }
+
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        // Allow all public routes
+        if (isPublicPath(req.nextUrl.pathname)) {
+          return true
+        }
+        // Require token for protected routes
+        return !!token
+      }
+    }
+  }
+)
 
 export const config = {
   // Match all routes except API routes and static assets

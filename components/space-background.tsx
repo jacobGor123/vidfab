@@ -1,11 +1,14 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { useClientOnly } from "@/hooks/use-client-only"
 
 export function SpaceBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const isClient = useClientOnly()
 
   useEffect(() => {
+    if (!isClient) return
     const canvas = canvasRef.current
     if (!canvas) return
 

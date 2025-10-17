@@ -40,7 +40,6 @@ export async function GET(
       )
     }
 
-    console.log(`🔍 Checking status for request ${requestId}`)
 
     // 查询 Wavespeed API 状态
     const statusResult = await checkVideoStatus(requestId)
@@ -60,13 +59,6 @@ export async function GET(
       responseData.resultUrl = statusResult.data.outputs[0]
     }
 
-    console.log(`📊 Status result for ${requestId}:`, {
-      status: responseData.status,
-      progress: responseData.progress,
-      hasResult: !!responseData.resultUrl,
-      outputs: statusResult.data.outputs,
-      outputsLength: statusResult.data.outputs?.length
-    })
 
     return NextResponse.json({
       success: true,

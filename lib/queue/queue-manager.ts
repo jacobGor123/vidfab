@@ -67,7 +67,6 @@ export class VideoQueueManager {
         removeOnFail: options?.removeOnFail || QUEUE_CONFIG.defaultJobOptions.removeOnFail,
       })
 
-      console.log(`📋 Job added to queue: ${type} (${job.id})`)
       return job.id || ''
 
     } catch (error) {
@@ -81,7 +80,6 @@ export class VideoQueueManager {
    */
   async startWorker(eventHandlers?: WorkerEventHandlers): Promise<void> {
     if (this.worker) {
-      console.log('⚠️ Worker is already running')
       return
     }
 
@@ -101,7 +99,6 @@ export class VideoQueueManager {
       this.setupWorkerEventListeners(eventHandlers)
 
       this.isRunning = true
-      console.log(`🚀 Video processing worker started with concurrency: ${QUEUE_CONFIG.concurrency}`)
 
     } catch (error) {
       console.error('Error starting worker:', error)
@@ -114,7 +111,6 @@ export class VideoQueueManager {
    */
   async stopWorker(): Promise<void> {
     if (!this.worker) {
-      console.log('⚠️ No worker to stop')
       return
     }
 
@@ -122,7 +118,6 @@ export class VideoQueueManager {
       await this.worker.close()
       this.worker = null
       this.isRunning = false
-      console.log('🛑 Worker stopped')
 
     } catch (error) {
       console.error('Error stopping worker:', error)
@@ -169,7 +164,6 @@ export class VideoQueueManager {
       }
 
       await job.remove()
-      console.log(`❌ Job cancelled: ${jobId}`)
       return true
 
     } catch (error) {
@@ -237,7 +231,6 @@ export class VideoQueueManager {
    */
   private async processJob(job: Job): Promise<JobResult> {
     const startTime = Date.now()
-    console.log(`🔄 Processing job: ${job.name} (${job.id})`)
 
     try {
       let result: any
@@ -268,7 +261,6 @@ export class VideoQueueManager {
       }
 
       const duration = Date.now() - startTime
-      console.log(`✅ Job completed: ${job.name} (${job.id}) in ${duration}ms`)
 
       return {
         success: true,
@@ -300,7 +292,6 @@ export class VideoQueueManager {
     const { UserVideosDB } = await import('../database/user-videos')
     const jobData = job.data as import('./types').DownloadVideoJobData
 
-    console.log(`📥 Starting video download for user ${jobData.userId}: ${jobData.videoId}`)
 
     try {
       // Update video status to downloading
@@ -332,7 +323,6 @@ export class VideoQueueManager {
         }
       )
 
-      console.log(`✅ Video downloaded successfully: ${downloadResult.path}`)
 
       await job.updateProgress({
         percent: 90,
@@ -391,7 +381,6 @@ export class VideoQueueManager {
         createdAt: new Date().toISOString()
       })
 
-      console.log(`📸 Thumbnail generation job scheduled: ${thumbnailJobId}`)
 
       await job.updateProgress({
         percent: 100,
@@ -427,7 +416,6 @@ export class VideoQueueManager {
     const { UserVideosDB } = await import('../database/user-videos')
     const jobData = job.data as import('./types').GenerateThumbnailJobData
 
-    console.log(`📸 Starting thumbnail generation for video ${jobData.videoId}`)
 
     try {
       await job.updateProgress({
@@ -477,7 +465,6 @@ export class VideoQueueManager {
         `image/${jobData.thumbnailSettings.format}`
       )
 
-      console.log(`✅ Thumbnail uploaded successfully: ${thumbnailResult.path}`)
 
       await job.updateProgress({
         percent: 90,
@@ -527,7 +514,6 @@ export class VideoQueueManager {
     // - Google Cloud Video Intelligence
     // - FFmpeg with proper server setup
 
-    console.log('🎬 Generating thumbnail from video (simplified method)')
 
     // For now, we'll create a placeholder that indicates the video exists
     return this.createPlaceholderThumbnail(settings.width, settings.height, 'video')
@@ -570,7 +556,6 @@ export class VideoQueueManager {
   private async processCleanupTemp(job: Job): Promise<any> {
     const jobData = job.data as import('./types').CleanupTempJobData
 
-    console.log(`🧹 Starting cleanup for video ${jobData.videoId}`)
 
     try {
       let cleanedCount = 0
@@ -578,7 +563,6 @@ export class VideoQueueManager {
       // Cleanup temporary URLs that are no longer needed
       for (const tempUrl of jobData.tempUrls) {
         try {
-          console.log(`🗑️ Cleaning up temporary URL: ${tempUrl.substring(0, 50)}...`)
 
           // In a real implementation, you might:
           // 1. Remove temporary files from local storage
@@ -592,7 +576,6 @@ export class VideoQueueManager {
         }
       }
 
-      console.log(`✅ Cleanup completed: ${cleanedCount} items cleaned`)
 
       return {
         cleaned: true,
@@ -613,7 +596,6 @@ export class VideoQueueManager {
     const { UserVideosDB } = await import('../database/user-videos')
     const jobData = job.data as import('./types').UpdateQuotaJobData
 
-    console.log(`📊 Updating quota for user ${jobData.userId}: ${jobData.operation}`)
 
     try {
       let result: any = {}
@@ -622,19 +604,16 @@ export class VideoQueueManager {
         case 'add':
           // This is handled automatically by database triggers
           // But we can perform additional validations here
-          console.log('➕ Quota addition handled by database triggers')
           result = { operation: 'add', auto: true }
           break
 
         case 'remove':
           // This is also handled by database triggers when videos are deleted
-          console.log('➖ Quota removal handled by database triggers')
           result = { operation: 'remove', auto: true }
           break
 
         case 'recalculate':
           // Force recalculation of user quota from actual data
-          console.log('🔄 Recalculating user quota from actual data')
 
           const stats = await UserVideosDB.getUserVideoStats(jobData.userId)
           const quota = await UserVideosDB.getUserQuota(jobData.userId)
@@ -664,7 +643,6 @@ export class VideoQueueManager {
           throw new Error(`Unknown quota operation: ${jobData.operation}`)
       }
 
-      console.log(`✅ Quota update completed for user ${jobData.userId}`)
 
       return {
         updated: true,
@@ -683,7 +661,6 @@ export class VideoQueueManager {
    */
   private setupQueueEventListeners(): void {
     this.queue.on('waiting', (job) => {
-      console.log(`⏳ Job waiting: ${job.name} (${job.id})`)
     })
 
     this.queue.on('error', (error) => {
@@ -698,17 +675,14 @@ export class VideoQueueManager {
     if (!this.worker) return
 
     this.worker.on('active', (job) => {
-      console.log(`🔄 Job active: ${job.name} (${job.id})`)
       eventHandlers?.onActive?.(job.data as VideoJobData)
     })
 
     this.worker.on('progress', (job, progress) => {
-      console.log(`📊 Job progress: ${job.name} (${job.id}) - ${JSON.stringify(progress)}`)
       eventHandlers?.onProgress?.(job.data as VideoJobData, progress as JobProgress)
     })
 
     this.worker.on('completed', (job, result) => {
-      console.log(`✅ Job completed: ${job.name} (${job.id})`)
       eventHandlers?.onCompleted?.(job.data as VideoJobData, result as JobResult)
     })
 
@@ -736,7 +710,6 @@ export class VideoQueueManager {
     try {
       await this.stopWorker()
       await this.queue.close()
-      console.log('🧹 Queue manager cleaned up')
     } catch (error) {
       console.error('Error during cleanup:', error)
     }

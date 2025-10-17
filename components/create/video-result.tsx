@@ -40,7 +40,6 @@ export function VideoResult({
 
   const handleDownload = async () => {
     // TODO: Implement actual download functionality
-    console.log("Downloading video...", videoUrl)
     
     // Simulate download
     const link = document.createElement('a')
@@ -61,7 +60,6 @@ export function VideoResult({
           url: videoUrl,
         })
       } catch (error) {
-        console.log('Error sharing:', error)
         copyToClipboard()
       }
     } else {
@@ -72,12 +70,10 @@ export function VideoResult({
   const copyToClipboard = () => {
     navigator.clipboard.writeText(videoUrl)
     // TODO: Show toast notification
-    console.log("Video URL copied to clipboard")
   }
 
   const handleDelete = () => {
     // TODO: Implement delete functionality with confirmation dialog
-    console.log("Deleting video...", videoUrl)
   }
 
   const togglePlay = () => {

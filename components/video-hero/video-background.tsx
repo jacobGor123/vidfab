@@ -56,19 +56,14 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
   }, [onVideoEnd])
 
   const switchToVideo = useCallback(async (itemId: string) => {
-    console.log('🎬 Switching to video:', itemId)
     
     if (isTransitioningRef.current) {
-      console.log('⚠️ Already transitioning, skipping')
       return
     }
     
     const newVideo = getVideo(itemId)
-    console.log('📹 Got video element:', newVideo ? 'Found' : 'Not found')
-    console.log('✅ Video ready:', isVideoReady(itemId))
     
     if (!newVideo || !isVideoReady(itemId)) {
-      console.log('❌ Video not ready, showing fallback')
       return
     }
 
@@ -78,7 +73,6 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
     if (currentVideoRef.current) {
       pauseVideo(currentVideoRef.current)
       currentVideoRef.current.style.opacity = '0'
-      console.log('⏸️ Paused current video')
     }
 
     // Setup new video
@@ -95,29 +89,24 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
     // Add to container
     if (containerRef.current) {
       containerRef.current.appendChild(newVideo)
-      console.log('➕ Added video to container')
     }
 
     // Start playing and fade in
     const playSuccess = await playVideo(newVideo)
-    console.log('▶️ Play result:', playSuccess)
     
     if (playSuccess) {
       // Fade in new video
       requestAnimationFrame(() => {
         newVideo.style.opacity = '1'
-        console.log('🎭 Fading in new video')
       })
 
       // Clean up old video after transition
       setTimeout(() => {
         if (currentVideoRef.current && currentVideoRef.current.parentNode) {
           currentVideoRef.current.remove()
-          console.log('🗑️ Removed old video')
         }
         currentVideoRef.current = newVideo
         isTransitioningRef.current = false
-        console.log('✅ Transition complete')
       }, VIDEO_HERO_CONFIG.transitionDuration)
 
       // Setup event listeners
@@ -126,7 +115,6 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
       onVideoCanPlay?.(itemId)
     } else {
       // Fallback: show poster
-      console.log('❌ Video play failed, using fallback')
       isTransitioningRef.current = false
     }
   }, [getVideo, isVideoReady, playVideo, pauseVideo, handleVideoEnd, onVideoCanPlay])
@@ -208,71 +196,52 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
               }
             }}
             onCanPlay={(e) => {
-              console.log('🎬 Video can play:', currentItem.id)
               const video = e.currentTarget
               video.play().catch(err => console.warn('Play failed:', err))
               onVideoCanPlay?.(currentItem.id)
             }}
             onError={(e) => {
               console.error('❌ Video error:', currentItem.id, e)
-              console.log('🔄 Video failed, trying next...')
               // 如果当前视频加载失败，立即切换到下一个
               if (items.length > 1) {
-                console.log('⚡ Immediate switch due to error')
                 handleVideoEnd()
               }
             }}
             onLoadStart={() => {
-              console.log('🚀 Video load started:', currentItem.id)
             }}
             onLoadedMetadata={(e) => {
-              console.log('📊 Video metadata loaded:', currentItem.id)
               const video = e.currentTarget
-              console.log('Video duration:', video.duration)
             }}
             onEnded={() => {
-              console.log('🏁 Video ended:', currentItem.id)
-              console.log('🔍 Items length:', items.length)
               // 无论手动还是自动，视频结束都应该轮播（如果有多个视频）
               if (items.length > 1) {
-                console.log('🔄 Auto switching to next video')
                 handleVideoEnd()
               } else {
-                console.log('📺 Single video, will loop automatically')
               }
             }}
             onPlay={() => {
-              console.log('▶️ Video playing:', currentItem.id)
             }}
             onPause={() => {
-              console.log('⏸️ Video paused:', currentItem.id)
             }}
             onStalled={() => {
-              console.log('⏳ Video stalled:', currentItem.id)
               // 如果视频卡住超过5秒，切换到下一个
               if (items.length > 1) {
                 setTimeout(() => {
-                  console.log('⚡ Switch due to stall timeout')
                   handleVideoEnd()
                 }, 5000)
               }
             }}
             onWaiting={() => {
-              console.log('⌛ Video waiting:', currentItem.id)
             }}
             onSuspend={() => {
-              console.log('⏳ Video suspended:', currentItem.id)
             }}
             onAbort={() => {
-              console.log('⚠️ Video aborted:', currentItem.id)
               // 视频被中止，立即切换到下一个
               if (items.length > 1) {
-                console.log('⚡ Switch due to abort')
                 handleVideoEnd()
               }
             }}
             onEmptied={() => {
-              console.log('🗑️ Video emptied:', currentItem.id)
             }}
           >
             <source src={currentItem.videoUrl} type="video/mp4" />
@@ -286,7 +255,6 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
             alt={currentItem.title}
             className="absolute inset-0 w-full h-full object-cover"
             style={{ zIndex: 0 }}
-            onLoad={() => console.log('🖼️ Poster loaded:', currentItem.id)}
             onError={() => console.error('❌ Poster error:', currentItem.id)}
           />
         </>

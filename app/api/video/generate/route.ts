@@ -11,17 +11,58 @@ import {
   WavespeedAPIError
 } from "@/lib/services/wavespeed-api"
 import { VideoGenerationRequest, getGenerationType } from "@/lib/types/video"
+import { checkUserCredits, deductUserCredits } from "@/lib/simple-credits-check"
+import { supabaseAdmin, TABLES } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   try {
-    // 验证用户登录状态
+    // NextAuth 4.x 认证方式
     const session = await auth()
 
     if (!session?.user) {
+      console.error('❌ Video generate: Authentication failed')
       return NextResponse.json(
         { error: "Authentication required", code: "AUTH_REQUIRED" },
         { status: 401 }
       )
+    }
+
+    if (!session.user.uuid) {
+      console.error('❌ Video generate: User UUID missing')
+      return NextResponse.json(
+        { error: "User UUID required", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      )
+    }
+
+    // Session一致性验证 - 确保UUID和email的对应关系正确
+    try {
+      const { data: sessionUser, error: sessionError } = await supabaseAdmin
+        .from(TABLES.USERS)
+        .select('uuid, email')
+        .eq('uuid', session.user.uuid)
+        .single();
+
+      if (sessionError || !sessionUser) {
+        // 尝试通过邮箱查找真实UUID
+        const { data: emailUser, error: emailError } = await supabaseAdmin
+          .from(TABLES.USERS)
+          .select('uuid, email')
+          .eq('email', session.user.email?.toLowerCase().trim())
+          .single();
+
+        if (!emailError && emailUser) {
+          // 更新session中的UUID为数据库真实值
+          session.user.uuid = emailUser.uuid;
+        } else {
+          return NextResponse.json(
+            { error: "User session invalid", code: "INVALID_SESSION" },
+            { status: 401 }
+          );
+        }
+      }
+    } catch (sessionValidationError) {
+      // 继续执行，但会在预扣积分时进行更详细的验证
     }
 
     // 解析请求体
@@ -35,17 +76,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 🔍 添加请求体调试信息
-    console.log('🔍 Video generation request body:', {
-      prompt: body.prompt ? `"${body.prompt.substring(0, 50)}..."` : 'MISSING',
-      promptLength: body.prompt?.length || 0,
-      model: body.model || 'MISSING',
-      resolution: body.resolution || 'MISSING',
-      duration: body.duration || 'MISSING',
-      aspectRatio: body.aspectRatio || 'MISSING',
-      hasImage: !!body.image,
-      imageType: body.image ? 'provided' : 'MISSING'
-    })
 
     // 验证请求参数
     const validationErrors = validateVideoRequest(body)
@@ -63,17 +93,84 @@ export async function POST(request: NextRequest) {
     // 确定生成类型
     const generationType = getGenerationType(body)
 
-    console.log(`🎬 User ${session.user.email} requesting video generation:`, {
-      prompt: body.prompt.substring(0, 50) + "...",
-      model: body.model,
-      resolution: body.resolution,
-      duration: body.duration,
-      generationType,
-      hasImage: !!body.image
-    })
+    // 🔥 简化积分检查 - 检查用户积分是否足够
+    const originalModel = body.model || 'default'
+    const resolution = body.resolution || '720p'
+    const duration = body.duration ? (typeof body.duration === 'number' ? `${body.duration}s` : body.duration) : '5s'
+
+    // 映射前端模型名称到积分计算名称
+    const modelForCredits = originalModel === 'vidfab-q1' ? 'vidfab-q1' :
+                           originalModel === 'vidfab-pro' ? 'vidfab-pro' :
+                           originalModel === 'video-effects' ? 'video-effects' :
+                           'vidfab-q1'
+
+    // 检查用户积分
+    const creditsCheck = await checkUserCredits(
+      session.user.uuid,
+      modelForCredits as any,
+      resolution,
+      duration
+    )
+
+    if (!creditsCheck.success) {
+      console.error('❌ Text-to-Video 积分检查失败:', creditsCheck.error)
+      return NextResponse.json(
+        {
+          error: "Credits verification failed",
+          code: "CREDITS_ERROR",
+          message: "Unable to verify credits. Please try again later."
+        },
+        { status: 500 }
+      )
+    }
+
+    if (!creditsCheck.canAfford) {
+      console.log(`❌ Text-to-Video 积分不足: 需要 ${creditsCheck.requiredCredits}, 用户有 ${creditsCheck.userCredits}`)
+      return NextResponse.json(
+        {
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
+          message: `You need ${creditsCheck.requiredCredits} credits but only have ${creditsCheck.userCredits}. Please upgrade your plan.`,
+          requiredCredits: creditsCheck.requiredCredits,
+          userCredits: creditsCheck.userCredits
+        },
+        { status: 402 }
+      )
+    }
+
+    // 立即扣除积分
+    const deductResult = await deductUserCredits(session.user.uuid, creditsCheck.requiredCredits)
+    if (!deductResult.success) {
+      console.error('❌ Text-to-Video 积分扣除失败:', deductResult.error)
+      return NextResponse.json(
+        {
+          error: "Credits deduction failed",
+          code: "CREDITS_ERROR",
+          message: "Failed to deduct credits. Please try again later."
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log(`✅ Text-to-Video 积分扣除成功: ${creditsCheck.requiredCredits} 积分，剩余: ${deductResult.newBalance}`)
 
     // 调用统一的视频生成API（自动处理text-to-video和image-to-video）
-    const result = await submitVideoGeneration(body)
+    let result
+    try {
+      result = await submitVideoGeneration(body)
+    } catch (videoError) {
+      // 🔥 视频生成失败时恢复积分
+      console.log('❌ Text-to-Video API 调用失败，恢复积分...')
+      const restoreResult = await deductUserCredits(session.user.uuid, -creditsCheck.requiredCredits)
+      if (restoreResult.success) {
+        console.log(`✅ 积分已恢复: +${creditsCheck.requiredCredits}, 新余额: ${restoreResult.newBalance}`)
+      } else {
+        console.error('❌ 积分恢复失败:', restoreResult.error)
+      }
+
+      // 重新抛出视频生成错误
+      throw videoError
+    }
 
     // 返回成功响应
     return NextResponse.json({
@@ -82,7 +179,8 @@ export async function POST(request: NextRequest) {
         requestId: result.data.id,
         localId: `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId: session.user.uuid,
-        estimatedTime: "2-5 minutes" // 可以根据参数动态计算
+        estimatedTime: "2-5 minutes", // 可以根据参数动态计算
+        creditsDeducted: creditsCheck.requiredCredits // 🔥 记录已扣除的积分数量
       }
     })
 

@@ -39,11 +39,9 @@ export const useVideoCarousel = ({
 
   const goToIndex = useCallback((index: number) => {
     if (index === state.currentIndex || index < 0 || index >= items.length) {
-      console.log('🚫 Invalid index or same index:', index)
       return
     }
 
-    console.log('🔄 Switching from', state.currentIndex, 'to', index)
     clearTimeouts()
 
     setState(prev => ({

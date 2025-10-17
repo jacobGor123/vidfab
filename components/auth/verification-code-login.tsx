@@ -44,10 +44,8 @@ const saveVerificationSession = (session: VerificationSession) => {
 
 const getVerificationSession = (): VerificationSession | null => {
   try {
-    console.log("🔍 Trying to get verification session from localStorage");
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) {
-      console.log("❌ No stored session found");
       return null;
     }
     
@@ -56,12 +54,10 @@ const getVerificationSession = (): VerificationSession | null => {
     
     // Check if session is expired (verification codes expire after 5 minutes)
     if (now > session.expiresAt) {
-      console.log("⏰ Session expired, clearing:", session.email);
       clearVerificationSession();
       return null;
     }
     
-    console.log("✅ Valid session found:", session.email);
     return session;
   } catch (error) {
     console.warn("❌ Failed to get verification session:", error);
@@ -81,7 +77,7 @@ const clearVerificationSession = () => {
 export function VerificationCodeLogin({
   onBack,
   onSuccess,
-  callbackUrl = "/dashboard",
+  callbackUrl = "/create",
   className,
 }: VerificationCodeLoginProps) {
   const [step, setStep] = useState<LoginStep>("email");
@@ -106,18 +102,13 @@ export function VerificationCodeLogin({
 
   // Restore verification session on component mount
   useEffect(() => {
-    console.log("🔄 Component mounted, checking for existing session");
-    console.log("📍 Current step:", step);
-    console.log("📧 Current email:", email);
     const existingSession = getVerificationSession();
     if (existingSession) {
-      console.log("✅ Restoring verification session for:", existingSession.email);
       setEmail(existingSession.email);
       setStep("code");
       
       // Restore partial code input if exists
       if (existingSession.inputtedCode) {
-        console.log("🔄 Restoring partial code input:", existingSession.inputtedCode.length + " digits");
         setCode(existingSession.inputtedCode);
       }
       
@@ -141,7 +132,6 @@ export function VerificationCodeLogin({
 
   // Handle verification code input change - save to localStorage
   function handleCodeChange(inputCode: string) {
-    console.log("🔧 handleCodeChange called with:", inputCode);
     const existingSession = getVerificationSession();
     if (existingSession) {
       const updatedSession: VerificationSession = {
@@ -149,9 +139,7 @@ export function VerificationCodeLogin({
         inputtedCode: inputCode
       };
       saveVerificationSession(updatedSession);
-      console.log("💾 Saving partial code input:", inputCode.length + " digits");
     } else {
-      console.log("⚠️ No existing session found for saving code");
     }
   }
 
@@ -176,13 +164,10 @@ export function VerificationCodeLogin({
         throw new Error(data.error || "Failed to send verification code");
       }
 
-      console.log("✅ Verification code sent successfully");
       
-      console.log("🔧 About to save session to localStorage BEFORE state update");
       
       // Save verification session to localStorage BEFORE state update
       const now = Date.now();
-      console.log("⏰ Current timestamp:", now);
       
       const session: VerificationSession = {
         email: email.trim().toLowerCase(),
@@ -191,12 +176,9 @@ export function VerificationCodeLogin({
         cooldownUntil: now + (5 * 60 * 1000) // 5 minutes cooldown
       };
       
-      console.log("📝 Session object created:", session);
       saveVerificationSession(session);
-      console.log("✅ saveVerificationSession called");
       
       // Update UI state AFTER localStorage is saved
-      console.log("🎨 About to update UI state");
       setStep("code");
       
       // Start resend cooldown (5 minutes)
@@ -256,7 +238,6 @@ export function VerificationCodeLogin({
         throw new Error(verifyData.error || "Invalid verification code");
       }
 
-      console.log("✅ Verification code validated");
 
       // Now sign in with NextAuth using the verified token
       const signInResult = await signIn("verification-code", {
@@ -271,7 +252,6 @@ export function VerificationCodeLogin({
       }
 
       if (signInResult?.ok) {
-        console.log("✅ Verification code sign-in successful");
         
         // Clear verification session on successful login
         clearVerificationSession();
@@ -315,7 +295,6 @@ export function VerificationCodeLogin({
         throw new Error(data.error || "Failed to resend verification code");
       }
 
-      console.log("✅ Verification code resent");
       
       // Update verification session in localStorage
       const now = Date.now();

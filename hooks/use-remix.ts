@@ -23,10 +23,13 @@ export function useRemix() {
 
   const remixVideo = useCallback(async (data: RemixData) => {
     try {
+      // 转换图片URL格式：将 .png 替换为 .webp
+      const webpImageUrl = data.imageUrl.replace(/\.png$/i, '.webp')
+
       // Store remix data in sessionStorage for the Image-to-Video page
       const remixPayload = {
         prompt: data.prompt,
-        imageUrl: data.imageUrl,
+        imageUrl: webpImageUrl,
         title: data.title || 'Remixed Video',
         timestamp: Date.now()
       }

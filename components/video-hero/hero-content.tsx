@@ -2,15 +2,17 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Sparkles, BookOpen, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 import type { VideoHeroItem } from './types/video-hero.types'
 
 interface HeroContentProps {
   currentItem: VideoHeroItem | null
-  onQuerySubmit: (query: string) => void
+  onQuerySubmit?: (query: string) => void
   className?: string
 }
 
@@ -24,7 +26,6 @@ const useTypingAnimation = (texts: string[], resetKey?: string) => {
   // 重置动画当resetKey变化时
   useEffect(() => {
     if (resetKey && !isFocused) {
-      console.log('🔄 Resetting typing animation for:', resetKey)
       setCurrentText('')
       setCurrentTextIndex(0)
       setIsDeleting(false)
@@ -89,6 +90,8 @@ export const HeroContent: React.FC<HeroContentProps> = ({
 }) => {
   const [query, setQuery] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
+  const { translations } = useTranslation('en')
 
   const typingTexts = currentItem?.typingTexts || ["Create amazing videos with AI..."]
   
@@ -103,14 +106,17 @@ export const HeroContent: React.FC<HeroContentProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!query.trim()) return
 
     setIsProcessing(true)
-    onQuerySubmit(query)
 
-    setTimeout(() => {
-      setIsProcessing(false)
-    }, 3000)
+    // 跳转到 create 页面，如果有输入则携带 prompt 参数
+    if (query.trim()) {
+      const encodedPrompt = encodeURIComponent(query.trim())
+      router.push(`/create?tool=text-to-video&prompt=${encodedPrompt}`)
+    } else {
+      // 没有输入时直接跳转到 text-to-video 功能
+      router.push('/create?tool=text-to-video')
+    }
   }
 
   const placeholderClasses = cn(
@@ -129,12 +135,11 @@ export const HeroContent: React.FC<HeroContentProps> = ({
     )}>
       <div className="max-w-6xl mx-auto w-full">
         <h1 className="text-5xl md:text-7xl font-heading font-extrabold mb-8 text-gradient-brand leading-tight">
-          Words In, Videos Out | VidFab
+          {translations?.homepage?.hero?.title || "VidFab AI Video Generator"}
         </h1>
 
         <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-        What used to take days now takes minutes. AI video generation that
-        actually works.
+          {translations?.homepage?.hero?.subtitle || "Make Video Creation Easier"}
         </p>
 
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto relative">

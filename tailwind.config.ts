@@ -11,8 +11,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-        heading: ["var(--font-syne)", "sans-serif"],
+        sans: ["var(--font-open-sans)", "sans-serif"],
+        heading: ["var(--font-open-sans)", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))", // Maintained from shadcn

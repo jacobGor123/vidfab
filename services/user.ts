@@ -4,45 +4,82 @@
 import { supabaseAdmin, TABLES, handleSupabaseError, type DatabaseUser } from '@/lib/supabase';
 import { User, CreateUserData, UpdateUserData, UserProfile } from '@/types/user';
 import { getIsoTimestr } from '@/lib/time';
-import { getUuid } from '@/lib/hash';
+import { getUuid, getUserUuidFromEmail } from '@/lib/hash';
 
 /**
  * Save or update a user in the database
+ * ✅ 修复：区分新用户和已存在用户，避免登录时覆盖积分和订阅信息
  */
 export async function saveUser(userData: CreateUserData & { uuid?: string }): Promise<User> {
   try {
     const now = getIsoTimestr();
-    
-    // Prepare user data with defaults
-    const userToSave: Partial<DatabaseUser> = {
-      uuid: userData.uuid || getUuid(),
-      email: userData.email.toLowerCase().trim(),
-      nickname: userData.nickname || userData.email.split('@')[0],
-      avatar_url: userData.avatar_url || '',
-      signin_type: userData.signin_type,
-      signin_provider: userData.signin_provider,
-      signin_openid: userData.signin_openid,
-      signin_ip: userData.signin_ip,
-      email_verified: userData.email_verified ?? false,
-      last_login: now,
-      created_at: now,
-      updated_at: now,
-      is_active: true,
-      // Set default AI Video platform values
-      subscription_status: 'inactive',
-      subscription_plan: 'basic',
-      credits_remaining: 10, // Free credits for new users
-      total_videos_processed: 0,
-      storage_used_mb: 0,
-      max_storage_mb: 1024, // 1GB default
-    };
+    const userUuid = userData.uuid || getUserUuidFromEmail(userData.email);
 
-    // Try to upsert user
+    // ✅ 关键修复：先检查用户是否已存在
+    const { data: existingUser } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('uuid, subscription_plan, subscription_status, credits_remaining, total_videos_processed, storage_used_mb')
+      .eq('uuid', userUuid)
+      .single();
+
+    let userToSave: Partial<DatabaseUser>;
+
+    if (existingUser) {
+      // ✅ 已存在用户：只更新登录相关字段，不覆盖积分和订阅
+      console.log(`🔄 更新已存在用户: ${userUuid}`);
+      userToSave = {
+        uuid: userUuid,
+        email: userData.email.toLowerCase().trim(),
+        nickname: userData.nickname || userData.email.split('@')[0],
+        avatar_url: userData.avatar_url || '',
+        signin_type: userData.signin_type,
+        signin_provider: userData.signin_provider,
+        signin_openid: userData.signin_openid,
+        signin_ip: userData.signin_ip,
+        email_verified: userData.email_verified ?? false,
+        last_login: now,
+        updated_at: now,
+        is_active: true,
+        // ✅ 保留现有的订阅和积分信息（不覆盖）
+        subscription_plan: existingUser.subscription_plan,
+        subscription_status: existingUser.subscription_status,
+        credits_remaining: existingUser.credits_remaining,
+        total_videos_processed: existingUser.total_videos_processed,
+        storage_used_mb: existingUser.storage_used_mb,
+      };
+    } else {
+      // ✅ 新用户：使用默认值
+      console.log(`✨ 创建新用户: ${userUuid}`);
+      userToSave = {
+        uuid: userUuid,
+        email: userData.email.toLowerCase().trim(),
+        nickname: userData.nickname || userData.email.split('@')[0],
+        avatar_url: userData.avatar_url || '',
+        signin_type: userData.signin_type,
+        signin_provider: userData.signin_provider,
+        signin_openid: userData.signin_openid,
+        signin_ip: userData.signin_ip,
+        email_verified: userData.email_verified ?? false,
+        last_login: now,
+        created_at: now,
+        updated_at: now,
+        is_active: true,
+        // Set default AI Video platform values for new users
+        subscription_status: 'active',
+        subscription_plan: 'free',
+        credits_remaining: 50, // Free credits for new users
+        total_videos_processed: 0,
+        storage_used_mb: 0,
+        max_storage_mb: 1024, // 1GB default
+      };
+    }
+
+    // 使用upsert操作
     const { data, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .upsert(userToSave, { 
-        onConflict: 'email',
-        ignoreDuplicates: false 
+      .upsert(userToSave, {
+        onConflict: 'uuid',
+        ignoreDuplicates: false
       })
       .select()
       .single();
@@ -56,8 +93,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       throw new Error('No user data returned from database');
     }
 
-    console.log(`✅ User saved: ${data.email} (${data.uuid})`);
-    
+
     return {
       uuid: data.uuid,
       email: data.email,
@@ -195,7 +231,6 @@ export async function updateUser(uuid: string, updateData: UpdateUserData): Prom
       throw new Error('No user data returned from update');
     }
 
-    console.log(`✅ User updated: ${data.email} (${data.uuid})`);
     
     return {
       uuid: data.uuid,
@@ -256,9 +291,10 @@ export async function updateLastLogin(uuid: string, ip?: string): Promise<void> 
  */
 export async function getUserProfile(uuid: string): Promise<UserProfile | null> {
   try {
+    // 🔥 安全查询，避免406错误
     const { data, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .select('uuid, email, nickname, avatar_url, created_at, subscription_status, subscription_plan, credits_remaining')
+      .select('*')  // 使用通配符避免字段约束问题
       .eq('uuid', uuid)
       .eq('is_active', true)
       .single();
@@ -270,16 +306,30 @@ export async function getUserProfile(uuid: string): Promise<UserProfile | null> 
       handleSupabaseError(error);
     }
 
-    return data ? {
+    if (!data) return null;
+
+    // 🔥 安全地读取订阅字段
+    let subscription_plan = data.subscription_plan || 'free'; // 🔥 修复：默认为free套餐
+    const subscription_status = data.subscription_status || 'active';
+    const credits_remaining = data.credits_remaining || 50;
+
+    // 🔥 将旧套餐类型映射到新类型（确保兼容性）
+    if (subscription_plan === 'basic') {
+      subscription_plan = 'free';  // 修复：basic映射为free
+    } else if (subscription_plan === 'enterprise') {
+      subscription_plan = 'premium';
+    }
+
+    return {
       uuid: data.uuid,
       email: data.email,
       nickname: data.nickname,
       avatar_url: data.avatar_url,
       created_at: data.created_at,
-      subscription_status: data.subscription_status,
-      subscription_plan: data.subscription_plan,
-      credits_remaining: data.credits_remaining,
-    } : null;
+      subscription_status,
+      subscription_plan,
+      credits_remaining,
+    };
   } catch (error: any) {
     console.error('Error in getUserProfile:', error);
     throw error;
@@ -303,7 +353,6 @@ export async function deactivateUser(uuid: string): Promise<void> {
       handleSupabaseError(error);
     }
 
-    console.log(`✅ User deactivated: ${uuid}`);
   } catch (error: any) {
     console.error('Error in deactivateUser:', error);
     throw error;
@@ -340,7 +389,6 @@ export async function updateUserCredits(uuid: string, creditsUsed: number): Prom
       handleSupabaseError(updateError);
     }
 
-    console.log(`✅ User credits updated: ${uuid}, used: ${creditsUsed}, remaining: ${newCredits}`);
     return newCredits;
   } catch (error: any) {
     console.error('Error in updateUserCredits:', error);
@@ -378,7 +426,6 @@ export async function addUserCredits(uuid: string, creditsToAdd: number): Promis
       handleSupabaseError(updateError);
     }
 
-    console.log(`✅ User credits added: ${uuid}, added: ${creditsToAdd}, total: ${newCredits}`);
     return newCredits;
   } catch (error: any) {
     console.error('Error in addUserCredits:', error);

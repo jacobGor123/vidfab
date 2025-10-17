@@ -1,37 +1,77 @@
 /**
- * 图片上传API路由 - 用于image-to-video功能
+ * Image Upload API Route - for image-to-video functionality
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { getServerSession } from 'next-auth'
+import { authConfig } from '@/auth/config'
 import { VideoStorageManager } from '@/lib/storage'
-import { ImageProcessor } from '@/lib/image-processor'
+// 移除对浏览器API图片处理器的依赖
 import { v4 as uuidv4 } from 'uuid'
+
+/**
+ * 服务器端图片文件验证函数 - 兼容Node.js环境
+ */
+function validateImageFile(file: {
+  type: string;
+  size: number;
+  name: string;
+}): { valid: boolean; error?: string } {
+  // 检查文件类型
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    return {
+      valid: false,
+      error: `Unsupported image format: ${file.type}. Supported formats: JPG, PNG, WebP`
+    }
+  }
+
+  // 检查文件大小 (10MB)
+  const maxSize = 10 * 1024 * 1024
+  if (file.size > maxSize) {
+    return {
+      valid: false,
+      error: `Image file too large. Maximum: ${maxSize / (1024 * 1024)}MB, Current: ${(file.size / (1024 * 1024)).toFixed(2)}MB`
+    }
+  }
+
+  return { valid: true }
+}
 
 export async function POST(request: NextRequest) {
   try {
-    // 验证用户身份
-    const session = await auth()
+    // NextAuth 4.x 认证方式
+    const session = await getServerSession(authConfig)
+
+
     if (!session?.user?.uuid) {
+      console.error('❌ Image upload: Authentication failed')
       return NextResponse.json(
-        { error: '未授权访问' },
+        { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
 
-    // 解析表单数据
+    // Parse form data
     const formData = await request.formData()
-    const file = formData.get('file') as File
+    const fileEntry = formData.get('file')
     const quality = formData.get('quality') as string || 'STANDARD'
 
-    if (!file) {
+    if (!fileEntry || typeof fileEntry === 'string') {
       return NextResponse.json(
-        { error: '未上传文件' },
+        { error: 'No file uploaded' },
         { status: 400 }
       )
     }
 
-    // 验证文件类型和大小
-    const validation = ImageProcessor.validateImage(file)
+    // In Node.js environment, this will be a File-like object
+    const file = fileEntry as File
+
+    // 服务器端验证文件类型和大小
+    const validation = validateImageFile({
+      type: file.type,
+      size: file.size,
+      name: file.name
+    })
     if (!validation.valid) {
       return NextResponse.json(
         { error: validation.error },
@@ -66,9 +106,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('图片上传API错误:', error)
+    console.error('Image upload API error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : '上传失败' },
+      { error: error instanceof Error ? error.message : 'Upload failed' },
       { status: 500 }
     )
   }
@@ -76,11 +116,14 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // 验证用户身份
-    const session = await auth()
+    // NextAuth 4.x 认证方式
+    const session = await getServerSession(authConfig)
+
+
     if (!session?.user?.uuid) {
+      console.error('❌ Image delete: Authentication failed')
       return NextResponse.json(
-        { error: '未授权访问' },
+        { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
@@ -90,7 +133,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!imageId) {
       return NextResponse.json(
-        { error: '缺少图片ID' },
+        { error: 'Missing image ID' },
         { status: 400 }
       )
     }
@@ -101,13 +144,13 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: '图片删除成功'
+      message: 'Image deleted successfully'
     })
 
   } catch (error) {
-    console.error('图片删除API错误:', error)
+    console.error('Image deletion API error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : '删除失败' },
+      { error: error instanceof Error ? error.message : 'Deletion failed' },
       { status: 500 }
     )
   }

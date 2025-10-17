@@ -18,6 +18,10 @@ yarn-error.log*
 
 # env files
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -26,4 +30,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# logs - 所有日志文件
+*.log
 *log
+logs/
+**/*.log
+
+# Docker logs
+docker-*.log
+
+# 临时文件
+tmp/
+queue-worker.js

@@ -6,9 +6,10 @@ import { cn } from "@/lib/utils"
 
 interface GetStartedButtonProps {
   className?: string
+  text?: string
 }
 
-export function GetStartedButton({ className }: GetStartedButtonProps) {
+export function GetStartedButton({ className, text = "Start for free" }: GetStartedButtonProps) {
   return (
     <Button
       variant="default"
@@ -19,7 +20,7 @@ export function GetStartedButton({ className }: GetStartedButtonProps) {
       asChild
     >
       <Link href="/create">
-        Get Started
+        {text}
       </Link>
     </Button>
   )

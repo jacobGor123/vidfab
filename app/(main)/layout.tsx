@@ -5,6 +5,7 @@ import type React from "react"
 import { Navbar } from "@/components/navbar" // Corrected path
 import { Footer } from "@/components/footer" // Corrected path
 import { SpaceBackground } from "@/components/space-background" // Corrected path
+import { AOSInit } from "@/components/aos-init"
 import { useState, useEffect } from "react"
 
 /**
@@ -29,6 +30,7 @@ export default function MainLayout({
 
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden bg-brand-gray-900 text-white">
+      <AOSInit />
       <SpaceBackground />
       <Navbar scrolled={scrolled} />
       <main className="flex-grow">{children}</main>

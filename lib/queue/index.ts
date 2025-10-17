@@ -125,20 +125,16 @@ export async function checkQueueHealth(): Promise<{
  */
 export async function initializeQueueSystem(): Promise<void> {
   try {
-    console.log('🚀 Initializing video processing queue system...')
 
     // Start the worker
     await videoQueueManager.startWorker({
       onActive: (job) => {
-        console.log(`🔄 Processing video job: ${job.type} for user ${job.userId}`)
       },
 
       onProgress: (job, progress) => {
-        console.log(`📊 Job progress: ${job.type} - ${progress.percent}% (${progress.message})`)
       },
 
       onCompleted: (job, result) => {
-        console.log(`✅ Job completed: ${job.type} for user ${job.userId}`)
       },
 
       onFailed: (job, error) => {
@@ -152,13 +148,11 @@ export async function initializeQueueSystem(): Promise<void> {
 
     // Perform health check
     const health = await checkQueueHealth()
-    console.log('🏥 Queue system health check:', health)
 
     if (!health.redis) {
       throw new Error('Redis is not healthy')
     }
 
-    console.log('✅ Queue system initialized successfully')
 
   } catch (error) {
     console.error('❌ Failed to initialize queue system:', error)
@@ -171,9 +165,7 @@ export async function initializeQueueSystem(): Promise<void> {
  */
 export async function shutdownQueueSystem(): Promise<void> {
   try {
-    console.log('🛑 Shutting down queue system...')
     await videoQueueManager.cleanup()
-    console.log('✅ Queue system shutdown complete')
   } catch (error) {
     console.error('❌ Error during queue system shutdown:', error)
     throw error

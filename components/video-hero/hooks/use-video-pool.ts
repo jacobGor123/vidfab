@@ -38,12 +38,9 @@ export const useVideoPool = (items: VideoHeroItem[], shouldPreload: boolean) => 
 
   const loadVideo = useCallback(async (item: VideoHeroItem, priority: 'high' | 'medium' | 'low' = 'medium') => {
     if (videoPool.has(item.id)) {
-      console.log('🔄 Video already in pool:', item.id)
       return
     }
 
-    console.log('📼 Loading video:', item.id, 'Priority:', priority)
-    console.log('🔗 Video URL:', item.videoUrl)
 
     const videoElement = createVideoElement(item)
     document.body.appendChild(videoElement)
@@ -60,13 +57,10 @@ export const useVideoPool = (items: VideoHeroItem[], shouldPreload: boolean) => 
     setLoadingCount(prev => prev + 1)
 
     const handleCanPlay = async () => {
-      console.log('✅ Video can play:', item.id)
       poolItem.loadState = 'canplay'
       
       if (priority === 'high') {
-        console.log('🎯 Pre-decoding high priority video:', item.id)
         poolItem.isPreDecoded = await preDecodeVideo(videoElement)
-        console.log('🎯 Pre-decode result:', poolItem.isPreDecoded)
       }
       
       poolItem.lastUsed = Date.now()
@@ -82,15 +76,12 @@ export const useVideoPool = (items: VideoHeroItem[], shouldPreload: boolean) => 
     }
 
     const handleLoadStart = () => {
-      console.log('🚀 Video load started:', item.id)
     }
 
     const handleLoadedMetadata = () => {
-      console.log('📊 Video metadata loaded:', item.id)
     }
 
     const timeout = setTimeout(() => {
-      console.log('⏰ Video load timeout:', item.id)
       handleError(new Event('timeout'))
       timeoutsRef.current.delete(item.id)
     }, VIDEO_HERO_CONFIG.videoLoadTimeout)

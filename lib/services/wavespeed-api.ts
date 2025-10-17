@@ -156,6 +156,28 @@ export async function submitImageToVideoGeneration(
 }
 
 /**
+ * Submit a video effects generation request
+ * 提交视频特效请求
+ */
+export async function submitVideoEffectsGeneration(
+  request: { image: string; effectId: string; effectName?: string }
+): Promise<VideoGenerationResponse> {
+  // 🔥 将视频特效请求转换为通用请求格式
+  const videoRequest: VideoGenerationRequest = {
+    prompt: `${request.effectName || request.effectId} Effect`, // 使用特效名称作为提示
+    image: request.image,
+    effectId: request.effectId,
+    effectName: request.effectName,
+    generationType: 'video-effects',
+    model: 'video-effects', // 固定模型
+    resolution: '720p', // 视频特效的默认分辨率
+    duration: '5s' // 视频特效固定5秒（API最低要求）
+  }
+
+  return submitGeneralVideoGeneration(videoRequest)
+}
+
+/**
  * Submit a video generation request (general implementation)
  * 提交视频生成请求（通用实现，支持text-to-video和image-to-video）
  */
@@ -179,7 +201,23 @@ async function submitGeneralVideoGeneration(
   let apiRequest: any
   let endpoint: string
 
-  if (isVeo3Model) {
+  if (generationType === "video-effects") {
+    // 🔥 视频特效暂时使用图片转视频的端点，加上特效参数
+    apiRequest = {
+      prompt: request.prompt || `Apply ${request.effectName || request.effectId} effect to the image`,
+      image: request.image,
+      duration: 5,  // 视频特效固定5秒（API最低要求）
+      camera_fixed: true,  // 特效通常需要固定镜头
+      seed: -1,
+      // 特效相关的额外参数（将来可能会用到）
+      effect_id: request.effectId,
+      effect_name: request.effectName
+    }
+
+    // 🔥 暂时使用 bytedance i2v 端点，将来需要替换为真实的视频特效端点
+    endpoint = "/bytedance/seedance-v1-pro-i2v-720p"
+
+  } else if (isVeo3Model) {
     // veo3 API 参数格式
     apiRequest = {
       prompt: request.prompt,
@@ -299,8 +337,16 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
     if (!["720p", "1080p"].includes(request.resolution)) {
       errors.push("Vidfab Pro only supports 720p and 1080p resolution")
     }
-    if (!["16:9", "9:16"].includes(request.aspectRatio)) {
-      errors.push("Vidfab Pro only supports 16:9 and 9:16 aspect ratios")
+
+    // 根据生成类型验证宽高比
+    if (generationType === "text-to-video") {
+      if (!["16:9", "9:16"].includes(request.aspectRatio)) {
+        errors.push("Text-to-Video Vidfab Pro supports 16:9 and 9:16 aspect ratios")
+      }
+    } else if (generationType === "image-to-video") {
+      if (request.aspectRatio !== "16:9") {
+        errors.push("Image-to-Video Vidfab Pro only supports 16:9 aspect ratio")
+      }
     }
   }
 

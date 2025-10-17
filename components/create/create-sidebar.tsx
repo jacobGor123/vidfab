@@ -3,31 +3,33 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { 
-  ChevronLeft, 
+import {
+  ChevronLeft,
   ChevronRight,
-  Video, 
-  Image, 
-  Search, 
+  Video,
+  Image,
+  Search,
   FolderOpen,
   Type,
-  ImageIcon
+  ImageIcon,
+  Sparkles,
+  User
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface CreateSidebarProps {
   isOpen: boolean
   onToggle: () => void
 }
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "my-assets"
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | "my-profile"
 
 // Discover 单独菜单项
 const discoverItem = {
   id: "discover" as ToolType,
   label: "Discover",
-  icon: Search,
-  description: "Browse video templates and inspiration"
+  icon: Search
 }
 
 // 其他分类菜单项
@@ -38,14 +40,17 @@ const menuCategories = [
       {
         id: "text-to-video" as ToolType,
         label: "Text to Video",
-        icon: Type,
-        description: "Generate videos from text descriptions"
+        icon: Type
       },
       {
         id: "image-to-video" as ToolType,
-        label: "Image to Video", 
-        icon: ImageIcon,
-        description: "Convert images to video sequences"
+        label: "Image to Video",
+        icon: ImageIcon
+      },
+      {
+        id: "video-effects" as ToolType,
+        label: "Video Effects",
+        icon: Sparkles
       }
     ]
   },
@@ -55,8 +60,17 @@ const menuCategories = [
       {
         id: "my-assets" as ToolType,
         label: "My Assets",
-        icon: FolderOpen,
-        description: "Manage your video creations"
+        icon: FolderOpen
+      }
+    ]
+  },
+  {
+    category: "Account",
+    items: [
+      {
+        id: "my-profile" as ToolType,
+        label: "Plans & Billing",
+        icon: User
       }
     ]
   }
@@ -65,6 +79,7 @@ const menuCategories = [
 export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const isMobile = useIsMobile()
   // 默认为 "discover"，与页面逻辑保持一致
   const activeTool = (searchParams.get("tool") as ToolType) || "discover"
 
@@ -72,6 +87,11 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
     const params = new URLSearchParams(searchParams.toString())
     params.set("tool", toolId)
     router.push(`/create?${params.toString()}`)
+  }
+
+  // 在移动端隐藏侧边栏
+  if (isMobile) {
+    return null
   }
 
   return (
@@ -125,7 +145,6 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                   {isOpen && (
                     <div className="ml-3 flex-1 min-w-0">
                       <div className="font-medium truncate">{discoverItem.label}</div>
-                      <div className="text-xs text-gray-500 truncate">{discoverItem.description}</div>
                     </div>
                   )}
                 </button>
@@ -167,7 +186,6 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                       {isOpen && (
                         <div className="ml-3 flex-1 min-w-0">
                           <div className="font-medium truncate">{item.label}</div>
-                          <div className="text-xs text-gray-500 truncate">{item.description}</div>
                         </div>
                       )}
                     </button>

@@ -11,7 +11,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Download,
   Share2,
-  RotateCcw,
   Play,
   Pause,
   Volume2,
@@ -36,7 +35,6 @@ interface VideoResultProps {
     aspectRatio: string
     style?: string
   }
-  onRegenerateClick: () => void
   videoId?: string
   // Database video data
   video?: UserVideo
@@ -48,7 +46,6 @@ export function VideoResult({
   thumbnailUrl,
   prompt,
   settings,
-  onRegenerateClick,
   videoId,
   video,
   isFromDatabase = false
@@ -56,7 +53,7 @@ export function VideoResult({
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // 🔥 修复：默认不loading
   const [hasError, setHasError] = useState(false)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
@@ -64,9 +61,14 @@ export function VideoResult({
 
   const videoContext = useVideoContext()
 
+  // 🔥 强制重置状态，确保视频可见
+  useEffect(() => {
+    setIsLoading(false)
+    setHasError(false)
+  }, [videoUrl])
+
   // Video load completed
   const handleVideoLoad = useCallback(() => {
-    console.log("Video loaded:", videoUrl)
     setIsLoading(false)
     setHasError(false)
 
@@ -82,7 +84,6 @@ export function VideoResult({
 
   // Video load error
   const handleVideoError = useCallback(() => {
-    console.error("Video failed to load:", videoUrl)
     setIsLoading(false)
     setHasError(true)
     toast.error("Video failed to load, please refresh and try again")
@@ -101,7 +102,6 @@ export function VideoResult({
         setIsPlaying(true)
       }
     } catch (error) {
-      console.error("Error playing video:", error)
       toast.error("Playback failed, please check your network connection")
     }
   }, [isPlaying])
@@ -140,7 +140,6 @@ export function VideoResult({
         setIsFullscreen(false)
       }
     } catch (error) {
-      console.error("Fullscreen toggle failed:", error)
     }
   }, [])
 
@@ -159,7 +158,6 @@ export function VideoResult({
   // Download video
   const handleDownload = useCallback(async () => {
     try {
-      console.log("Starting video download:", videoUrl)
 
       // Show download progress
       toast.loading("Preparing download...", { id: "download" })
@@ -184,7 +182,6 @@ export function VideoResult({
 
       toast.success("Video download started", { id: "download" })
     } catch (error) {
-      console.error("Video download failed:", error)
       toast.error("Download failed, please try again", { id: "download" })
     }
   }, [videoUrl])
@@ -207,7 +204,6 @@ export function VideoResult({
         toast.success("Video link copied to clipboard")
       }
     } catch (error) {
-      console.error('Share failed:', error)
 
       // Fallback to copy link
       try {
@@ -231,6 +227,7 @@ export function VideoResult({
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.thumbnail_path}`
     : thumbnailUrl
 
+
   return (
     <Card className="bg-gray-950 border-gray-800">
       <CardContent className="p-0">
@@ -244,8 +241,24 @@ export function VideoResult({
               "aspect-square"
             )}
           >
+            {/* 🔥 修复：始终显示视频元素，用loading overlay */}
+            <video
+              ref={videoRef}
+              src={actualVideoUrl}
+              poster={actualThumbnailUrl}
+              className="w-full h-full object-contain bg-black"
+              onLoadedData={handleVideoLoad}
+              onError={handleVideoError}
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={handleVideoEnd}
+              muted={isMuted}
+              playsInline
+              preload="metadata"
+            />
+
+            {/* Loading overlay */}
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
                 <div className="flex items-center justify-between flex-col">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mb-4"></div>
                   <p className="text-gray-400 text-sm">Loading video...</p>
@@ -253,8 +266,9 @@ export function VideoResult({
               </div>
             )}
 
-            {hasError ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            {/* Error overlay */}
+            {hasError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
                 <div className="flex items-center justify-between flex-col">
                   <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mb-4">
                     <Play className="w-6 h-6 text-red-400" />
@@ -265,20 +279,6 @@ export function VideoResult({
                   </Button>
                 </div>
               </div>
-            ) : (
-              <video
-                ref={videoRef}
-                src={actualVideoUrl}
-                poster={actualThumbnailUrl}
-                className="w-full h-full object-contain bg-black"
-                onLoadedData={handleVideoLoad}
-                onError={handleVideoError}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleVideoEnd}
-                muted={isMuted}
-                playsInline
-                preload="metadata"
-              />
             )}
 
             {/* Video control overlay */}
@@ -341,7 +341,9 @@ export function VideoResult({
             </div>
             <div className="flex flex-wrap gap-2 text-sm text-gray-400">
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.model}</span>
-              <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.duration}</span>
+              <span className="px-2 py-1 bg-gray-800 rounded text-xs">
+                {typeof settings.duration === 'number' ? `${settings.duration}s` : settings.duration}
+              </span>
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.resolution}</span>
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.aspectRatio}</span>
               {settings.style && (
@@ -366,14 +368,6 @@ export function VideoResult({
               title="Share"
             >
               <Share2 className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={onRegenerateClick}
-              className="p-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors"
-              title="Regenerate"
-            >
-              <RotateCcw className="w-5 h-5" />
             </button>
           </div>
         </div>

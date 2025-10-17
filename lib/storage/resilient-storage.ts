@@ -274,7 +274,6 @@ export class ResilientVideoProcessor {
         'Video cleanup'
       )
 
-      console.log(`Cleaned up failed video: ${videoId}`)
     } catch (error) {
       this.errorReporter.reportError(error, 'Video cleanup failed')
       // Don't throw error for cleanup failures

@@ -6,32 +6,53 @@
 import Redis from 'ioredis'
 
 // Redis connection configuration
-const redisConfig = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD || undefined,
-  db: parseInt(process.env.REDIS_DB || '0'),
-  retryDelayOnFailover: 100,
-  enableReadyCheck: false,
-  maxRetriesPerRequest: null,
-  lazyConnect: true,
-  keepAlive: 30000,
-  // Connection pool settings
-  family: 4,
-  connectTimeout: 10000,
-  commandTimeout: 5000,
+const getRedisConfig = () => {
+  // Support both REDIS_URL and individual config
+  if (process.env.REDIS_URL) {
+    return {
+      // 🔥 Support REDIS_PASSWORD even when using REDIS_URL
+      // This allows REDIS_URL without password and separate REDIS_PASSWORD
+      password: process.env.REDIS_PASSWORD || undefined,
+      db: parseInt(process.env.REDIS_DB || '0'),
+      retryDelayOnFailover: 100,
+      enableReadyCheck: false,
+      maxRetriesPerRequest: null,
+      lazyConnect: true,
+      keepAlive: 30000,
+      family: 4,
+      connectTimeout: 10000,
+      commandTimeout: 5000,
+    }
+  }
+
+  return {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    password: process.env.REDIS_PASSWORD || undefined,
+    db: parseInt(process.env.REDIS_DB || '0'),
+    retryDelayOnFailover: 100,
+    enableReadyCheck: false,
+    maxRetriesPerRequest: null,
+    lazyConnect: true,
+    keepAlive: 30000,
+    family: 4,
+    connectTimeout: 10000,
+    commandTimeout: 5000,
+  }
 }
 
+const redisConfig = getRedisConfig()
+
 // Create Redis instance
-export const redis = new Redis(redisConfig)
+export const redis = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL, redisConfig)
+  : new Redis(redisConfig)
 
 // Connection event handlers
 redis.on('connect', () => {
-  console.log('✅ Redis connected successfully')
 })
 
 redis.on('ready', () => {
-  console.log('🚀 Redis ready for operations')
 })
 
 redis.on('error', (error) => {
@@ -39,11 +60,9 @@ redis.on('error', (error) => {
 })
 
 redis.on('close', () => {
-  console.log('🔌 Redis connection closed')
 })
 
 redis.on('reconnecting', () => {
-  console.log('🔄 Redis reconnecting...')
 })
 
 // Health check function
@@ -61,7 +80,6 @@ export async function checkRedisHealth(): Promise<boolean> {
 export async function closeRedisConnection(): Promise<void> {
   try {
     await redis.quit()
-    console.log('✅ Redis connection closed gracefully')
   } catch (error) {
     console.error('Error closing Redis connection:', error)
   }

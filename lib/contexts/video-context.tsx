@@ -18,6 +18,25 @@ import { VideoJob, VideoResult, VideoGenerationSettings, VideoGenerationType } f
 import { UserVideo, UserQuotaInfo } from "@/lib/supabase"
 import { UserVideosDB } from "@/lib/database/user-videos"
 
+// 🔥 新增：API客户端函数
+async function fetchUserQuota(userId: string): Promise<UserQuotaInfo> {
+  const response = await fetch('/api/user/quota', {
+    method: 'GET',
+    credentials: 'include', // 包含session cookies
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch quota: ${response.status}`)
+  }
+
+  const result = await response.json()
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to fetch quota')
+  }
+
+  return result.data
+}
+
 // Storage keys
 const STORAGE_KEYS = {
   ACTIVE_JOBS: "vidfab_active_video_jobs",
@@ -28,14 +47,17 @@ const STORAGE_KEYS = {
 // BroadcastChannel for cross-tab communication
 const BROADCAST_CHANNEL_NAME = "vidfab_video_sync"
 
-// State interface
+// 🔥 新增：分离临时和永久视频的状态接口
 interface VideoState {
   activeJobs: VideoJob[]
-  completedVideos: UserVideo[]
+  temporaryVideos: VideoResult[] // 🔥 新增：刚生成的临时视频
+  permanentVideos: UserVideo[]   // 🔥 重命名：已保存到数据库的永久视频
+  completedVideos: UserVideo[]   // 🔥 保留：向后兼容，现在指向permanentVideos
   failedJobs: VideoJob[]
   isLoading: boolean
   error: string | null
   quotaInfo: UserQuotaInfo | null
+  quotaLoading: boolean         // 🔥 新增：存储配额加载状态
   totalVideos: number
   hasMore: boolean
   currentPage: number
@@ -53,10 +75,20 @@ type VideoAction =
   | { type: "DELETE_VIDEO"; payload: string }
   | { type: "RESTORE_STATE"; payload: Partial<VideoState> }
   | { type: "SYNC_FROM_BROADCAST"; payload: Partial<VideoState> }
+  // 🔥 新增：分离临时和永久视频的Actions
+  | { type: "ADD_TEMPORARY_VIDEO"; payload: VideoResult }
+  | { type: "MOVE_TO_PERMANENT"; payload: { temporaryId: string; permanentVideo: UserVideo } }
+  | { type: "REMOVE_TEMPORARY_VIDEO"; payload: string }
+  | { type: "SET_PERMANENT_VIDEOS"; payload: { videos: UserVideo[]; total: number; hasMore: boolean; page: number } }
+  | { type: "ADD_PERMANENT_VIDEO"; payload: UserVideo }
+  | { type: "UPDATE_PERMANENT_VIDEO"; payload: { id: string; updates: Partial<UserVideo> } }
+  // 🔥 保留：向后兼容的Actions
   | { type: "SET_COMPLETED_VIDEOS"; payload: { videos: UserVideo[]; total: number; hasMore: boolean; page: number } }
   | { type: "ADD_COMPLETED_VIDEO"; payload: UserVideo }
   | { type: "UPDATE_COMPLETED_VIDEO"; payload: { id: string; updates: Partial<UserVideo> } }
+  | { type: "REMOVE_COMPLETED_VIDEO"; payload: string }
   | { type: "SET_QUOTA_INFO"; payload: UserQuotaInfo | null }
+  | { type: "SET_QUOTA_LOADING"; payload: boolean }
 
 // Context interface
 interface VideoContextType extends VideoState {
@@ -69,17 +101,29 @@ interface VideoContextType extends VideoState {
   deleteVideo: (id: string) => Promise<void>
   removeCompletedVideo: (id: string) => void
 
+  // 🔥 新增：临时和永久视频管理
+  addTemporaryVideo: (result: Omit<VideoResult, "id">) => VideoResult
+  moveTemporaryToPermanent: (temporaryId: string, permanentVideo: UserVideo) => void
+  removeTemporaryVideo: (id: string) => void
+  getAllVideos: () => (VideoResult | UserVideo)[] // 🔥 获取所有视频（临时+永久）
+
   // Utility functions
   getJobById: (id: string) => VideoJob | undefined
   getVideoById: (id: string) => UserVideo | undefined
+  getTemporaryVideoById: (id: string) => VideoResult | undefined
   getJobsByStatus: (status: VideoJob["status"]) => VideoJob[]
 
   // Database operations
   loadCompletedVideos: (page?: number) => Promise<void>
+  loadPermanentVideos: (page?: number) => Promise<void> // 🔥 新增：加载永久视频
   refreshQuotaInfo: () => Promise<void>
   recordVideoView: (videoId: string) => Promise<void>
   toggleVideoFavorite: (videoId: string) => Promise<boolean>
   handleVideoStorageCompleted: (videoId: string) => Promise<void>
+
+  // Storage management
+  cleanupUserStorage: (targetSizeMB?: number) => Promise<{ deletedVideos: number; freedSizeMB: number; remainingSizeMB: number }>
+  checkStorageStatus: () => Promise<boolean>
 
   // State management
   clearError: () => void
@@ -89,11 +133,14 @@ interface VideoContextType extends VideoState {
 // Initial state
 const initialState: VideoState = {
   activeJobs: [],
-  completedVideos: [],
+  temporaryVideos: [],      // 🔥 新增：临时视频
+  permanentVideos: [],      // 🔥 新增：永久视频
+  completedVideos: [],      // 🔥 保留：向后兼容
   failedJobs: [],
   isLoading: false,
   error: null,
   quotaInfo: null,
+  quotaLoading: false,      // 🔥 新增：存储配额加载状态
   totalVideos: 0,
   hasMore: false,
   currentPage: 1
@@ -115,37 +162,23 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
 
     case "UPDATE_JOB": {
       const { id, updates } = action.payload
+      const existingJob = state.activeJobs.find(job => job.id === id)
+
+      if (!existingJob) {
+        console.warn(`🔥 UPDATE_JOB: Job ${id} not found in activeJobs`)
+        return state
+      }
+
       const updatedJob = {
-        ...state.activeJobs.find(job => job.id === id),
+        ...existingJob,
         ...updates,
         updatedAt: new Date().toISOString()
       } as VideoJob
 
+
       const newActiveJobs = state.activeJobs.map(job =>
         job.id === id ? updatedJob : job
       )
-
-      // 🔥 如果任务完成且有resultUrl，同时添加到completedVideos
-      if (updates.status === 'completed' && updates.resultUrl) {
-        const videoResult: VideoResult = {
-          id: updatedJob.id,
-          videoUrl: updates.resultUrl,
-          prompt: updatedJob.prompt,
-          settings: updatedJob.settings,
-          createdAt: updatedJob.createdAt,
-          userId: updatedJob.userId
-        }
-
-        // 检查是否已存在，避免重复添加
-        const alreadyExists = state.completedVideos.some(v => v.id === videoResult.id)
-        if (!alreadyExists) {
-          return {
-            ...state,
-            activeJobs: newActiveJobs,
-            completedVideos: [videoResult, ...state.completedVideos]
-          }
-        }
-      }
 
       return { ...state, activeJobs: newActiveJobs }
     }
@@ -156,7 +189,7 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
 
       if (!job) return state
 
-      // Keep legacy VideoResult handling for temporary jobs
+      // 🔥 重构：现在将完成的视频添加到临时存储
       const videoResult: VideoResult = {
         id: result.id || id,
         videoUrl: result.videoUrl,
@@ -164,14 +197,15 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
         prompt: result.prompt,
         settings: result.settings,
         createdAt: result.createdAt,
-        userId: result.userId
+        userId: result.userId,
+        isStored: result.isStored || false
       }
 
-      // 🔥 关键修复：将完成的视频添加到 completedVideos 列表
       return {
         ...state,
         activeJobs: state.activeJobs.filter(job => job.id !== id),
-        completedVideos: [videoResult, ...state.completedVideos] // 添加到已完成视频列表
+        temporaryVideos: [videoResult, ...state.temporaryVideos], // 🔥 添加到临时存储
+        completedVideos: [videoResult, ...state.completedVideos] // 🔥 保留：向后兼容
       }
     }
 
@@ -205,6 +239,8 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
     case "DELETE_VIDEO":
       return {
         ...state,
+        temporaryVideos: state.temporaryVideos.filter(video => video.id !== action.payload),
+        permanentVideos: state.permanentVideos.filter(video => video.id !== action.payload),
         completedVideos: state.completedVideos.filter(video => video.id !== action.payload)
       }
 
@@ -247,11 +283,77 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
         quotaInfo: action.payload
       }
 
+    case "SET_QUOTA_LOADING":
+      return {
+        ...state,
+        quotaLoading: action.payload
+      }
+
     case "RESTORE_STATE":
       return { ...state, ...action.payload }
 
     case "SYNC_FROM_BROADCAST":
       return { ...state, ...action.payload }
+
+    // 🔥 新增：临时视频管理
+    case "ADD_TEMPORARY_VIDEO":
+      return {
+        ...state,
+        temporaryVideos: [action.payload, ...state.temporaryVideos],
+        completedVideos: [action.payload, ...state.completedVideos] // 🔥 向后兼容
+      }
+
+    case "MOVE_TO_PERMANENT": {
+      const { temporaryId, permanentVideo } = action.payload
+      return {
+        ...state,
+        temporaryVideos: state.temporaryVideos.filter(video => video.id !== temporaryId),
+        permanentVideos: [permanentVideo, ...state.permanentVideos],
+        completedVideos: [permanentVideo, ...state.completedVideos.filter(v => v.id !== temporaryId)] // 🔥 向后兼容
+      }
+    }
+
+    case "REMOVE_TEMPORARY_VIDEO":
+      return {
+        ...state,
+        temporaryVideos: state.temporaryVideos.filter(video => video.id !== action.payload),
+        completedVideos: state.completedVideos.filter(video => video.id !== action.payload) // 🔥 向后兼容
+      }
+
+    case "SET_PERMANENT_VIDEOS": {
+      const { videos, total, hasMore, page } = action.payload
+      return {
+        ...state,
+        permanentVideos: page === 1 ? videos : [...state.permanentVideos, ...videos],
+        completedVideos: page === 1 ?
+          [...state.temporaryVideos, ...videos] :
+          [...state.completedVideos, ...videos], // 🔥 向后兼容：临时+永久
+        totalVideos: total,
+        hasMore,
+        currentPage: page
+      }
+    }
+
+    case "ADD_PERMANENT_VIDEO":
+      return {
+        ...state,
+        permanentVideos: [action.payload, ...state.permanentVideos],
+        completedVideos: [action.payload, ...state.completedVideos], // 🔥 向后兼容
+        totalVideos: state.totalVideos + 1
+      }
+
+    case "UPDATE_PERMANENT_VIDEO": {
+      const { id, updates } = action.payload
+      return {
+        ...state,
+        permanentVideos: state.permanentVideos.map(video =>
+          video.id === id ? { ...video, ...updates } : video
+        ),
+        completedVideos: state.completedVideos.map(video =>
+          video.id === id ? { ...video, ...updates } : video
+        ) // 🔥 向后兼容
+      }
+    }
 
     default:
       return state
@@ -292,7 +394,7 @@ function loadFromStorage<T>(key: string, defaultValue: T): T {
 // Provider component
 export function VideoProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(videoReducer, initialState)
-  const { data: session } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null)
   const isInitializedRef = useRef(false)
 
@@ -317,7 +419,14 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined" || isInitializedRef.current) return
 
+
+    // 等待session加载完成
+    if (sessionStatus === "loading") {
+      return
+    }
+
     const initializeData = async () => {
+
       try {
         dispatch({ type: "SET_LOADING", payload: true })
 
@@ -330,33 +439,93 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           const allActiveJobs = loadFromStorage(STORAGE_KEYS.ACTIVE_JOBS, [])
           const allFailedJobs = loadFromStorage(STORAGE_KEYS.FAILED_JOBS, [])
 
+
           const userActiveJobs = allActiveJobs.filter(job => job.userId === session.user.uuid)
           const userFailedJobs = allFailedJobs.filter(job => job.userId === session.user.uuid)
 
-          // Load completed videos from database
-          const result = await UserVideosDB.getUserVideos(session.user.uuid, {
-            page: 1,
-            limit: 20,
-            status: ['completed'],
-            orderBy: 'created_at',
-            orderDirection: 'desc'
-          })
 
-          dispatch({
-            type: "SET_COMPLETED_VIDEOS",
-            payload: {
-              videos: result.videos,
-              total: result.total,
-              hasMore: result.hasMore,
-              page: result.page
+          // 🔥 新流程：通过API加载永久视频
+
+          try {
+            const response = await fetch(`/api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc`)
+
+            if (response.ok) {
+              const apiData = await response.json()
+
+              if (apiData.success) {
+                const permanentVideos = apiData.data.videos || []
+
+                // 使用新的永久视频Action
+                dispatch({
+                  type: "SET_PERMANENT_VIDEOS",
+                  payload: {
+                    videos: permanentVideos,
+                    total: apiData.data.pagination.total,
+                    hasMore: apiData.data.pagination.hasMore,
+                    page: apiData.data.pagination.page
+                  }
+                })
+
+                // 🔥 保持向后兼容性
+                dispatch({
+                  type: "SET_COMPLETED_VIDEOS",
+                  payload: {
+                    videos: permanentVideos,
+                    total: apiData.data.pagination.total,
+                    hasMore: apiData.data.pagination.hasMore,
+                    page: apiData.data.pagination.page
+                  }
+                })
+              } else {
+                throw new Error(apiData.error || 'API returned success=false')
+              }
+            } else {
+              throw new Error(`API responded with status: ${response.status}`)
             }
-          })
+          } catch (apiError) {
+            console.warn('API failed, falling back to direct database access:', apiError)
+
+            // 后备方案：直接使用数据库
+            const result = await UserVideosDB.getUserVideos(session.user.uuid, {
+              page: 1,
+              limit: 20,
+              status: ['completed'],
+              orderBy: 'created_at',
+              orderDirection: 'desc'
+            })
+
+            dispatch({
+              type: "SET_PERMANENT_VIDEOS",
+              payload: {
+                videos: result.videos,
+                total: result.total,
+                hasMore: result.hasMore,
+                page: result.page
+              }
+            })
+
+            dispatch({
+              type: "SET_COMPLETED_VIDEOS",
+              payload: {
+                videos: result.videos,
+                total: result.total,
+                hasMore: result.hasMore,
+                page: result.page
+              }
+            })
+          }
 
           // Load quota information
-          const quotaInfo = await UserVideosDB.getUserQuota(session.user.uuid)
-          dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
+          try {
+            const quotaInfo = await fetchUserQuota(session.user.uuid)
+            dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
+          } catch (quotaError) {
+            console.error('Error fetching quota:', quotaError)
+            dispatch({ type: "SET_QUOTA_INFO", payload: null })
+          }
 
           // Restore filtered user data only
+
           dispatch({
             type: "RESTORE_STATE",
             payload: {
@@ -364,6 +533,9 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
               failedJobs: userFailedJobs
             }
           })
+
+        } else {
+          dispatch({ type: "SET_QUOTA_INFO", payload: null })
         }
       } catch (error) {
         console.error('Failed to initialize video context:', error)
@@ -375,7 +547,8 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     }
 
     initializeData()
-  }, [session?.user?.uuid])
+  }, [session?.user?.uuid, sessionStatus])
+
 
   // Save active/failed jobs to localStorage and broadcast state changes
   useEffect(() => {
@@ -404,8 +577,8 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
       id: `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // 自动识别生成类型
-      generationType: jobData.sourceImage ? "image-to-video" : "text-to-video"
+      // 只在没有明确设置generationType时才自动识别
+      generationType: jobData.generationType || (jobData.sourceImage ? "image-to-video" : "text-to-video")
     }
 
     dispatch({ type: "ADD_JOB", payload: job })
@@ -435,11 +608,42 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
   const getJobById = useCallback((id: string) => {
     return [...state.activeJobs, ...state.failedJobs].find(job => job.id === id)
-  }, [state.activeJobs, state.failedJobs])
+  }, [state.activeJobs.length, state.failedJobs.length])
 
   const getVideoById = useCallback((id: string) => {
     return state.completedVideos.find(video => video.id === id)
-  }, [state.completedVideos])
+  }, [state.completedVideos.length])
+
+  // 🔥 新增：临时和永久视频管理方法
+  const addTemporaryVideo = useCallback((result: Omit<VideoResult, "id">): VideoResult => {
+    const videoResult: VideoResult = {
+      ...result,
+      id: result.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    }
+    dispatch({ type: "ADD_TEMPORARY_VIDEO", payload: videoResult })
+    return videoResult
+  }, [])
+
+  const moveTemporaryToPermanent = useCallback((temporaryId: string, permanentVideo: UserVideo) => {
+    dispatch({ type: "MOVE_TO_PERMANENT", payload: { temporaryId, permanentVideo } })
+  }, [])
+
+  const removeTemporaryVideo = useCallback((id: string) => {
+    dispatch({ type: "REMOVE_TEMPORARY_VIDEO", payload: id })
+  }, [])
+
+  const getAllVideos = useCallback((): (VideoResult | UserVideo)[] => {
+    // 🔥 合并临时和永久视频，按时间排序
+    const allVideos = [...state.temporaryVideos, ...state.permanentVideos]
+    return allVideos.sort((a, b) =>
+      new Date(b.createdAt || b.created_at || 0).getTime() -
+      new Date(a.createdAt || a.created_at || 0).getTime()
+    )
+  }, [state.temporaryVideos.length, state.permanentVideos.length])
+
+  const getTemporaryVideoById = useCallback((id: string) => {
+    return state.temporaryVideos.find(video => video.id === id)
+  }, [state.temporaryVideos.length])
 
   // Database operations
   const loadCompletedVideos = useCallback(async (page: number = 1) => {
@@ -473,14 +677,63 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session?.user?.uuid])
 
-  const refreshQuotaInfo = useCallback(async () => {
+  // 🔥 新增：加载永久视频方法
+  const loadPermanentVideos = useCallback(async (page: number = 1) => {
     if (!session?.user?.uuid) return
 
     try {
-      const quotaInfo = await UserVideosDB.getUserQuota(session.user.uuid)
+      dispatch({ type: "SET_LOADING", payload: true })
+
+      const result = await UserVideosDB.getUserVideos(session.user.uuid, {
+        page,
+        limit: 20,
+        status: ['completed'],
+        orderBy: 'created_at',
+        orderDirection: 'desc'
+      })
+
+      dispatch({
+        type: "SET_PERMANENT_VIDEOS",
+        payload: {
+          videos: result.videos,
+          total: result.total,
+          hasMore: result.hasMore,
+          page: result.page
+        }
+      })
+    } catch (error) {
+      console.error('Failed to load permanent videos:', error)
+      dispatch({ type: "SET_ERROR", payload: "Failed to load videos" })
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false })
+    }
+  }, [session?.user?.uuid])
+
+  // Add debouncing for quota info refresh to prevent infinite loops
+  const lastQuotaRefreshRef = useRef<number>(0)
+  const QUOTA_REFRESH_COOLDOWN = 5000 // 5 seconds cooldown
+
+  const refreshQuotaInfo = useCallback(async () => {
+    if (!session?.user?.uuid) return
+
+    // Prevent frequent calls
+    const now = Date.now()
+    if (now - lastQuotaRefreshRef.current < QUOTA_REFRESH_COOLDOWN) {
+      return
+    }
+    lastQuotaRefreshRef.current = now
+
+    try {
+      // 🔥 开始加载，设置 loading 状态
+      dispatch({ type: "SET_QUOTA_LOADING", payload: true })
+
+      const quotaInfo = await fetchUserQuota(session.user.uuid)
       dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
     } catch (error) {
       console.error('Failed to refresh quota info:', error)
+    } finally {
+      // 🔥 加载完成，清除 loading 状态
+      dispatch({ type: "SET_QUOTA_LOADING", payload: false })
     }
   }, [session?.user?.uuid])
 
@@ -518,7 +771,7 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Failed to record video view:', error)
     }
-  }, [session?.user?.uuid, state.completedVideos])
+  }, [session?.user?.uuid])
 
   const toggleVideoFavorite = useCallback(async (videoId: string) => {
     if (!session?.user?.uuid) return false
@@ -542,32 +795,97 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session?.user?.uuid])
 
-  // Handle when video storage is completed
+  // 🔥 重构：新的储存完成处理流程
   const handleVideoStorageCompleted = useCallback(async (videoId: string) => {
     if (!session?.user?.uuid) return
 
     try {
-      // Fetch the completed video from database
-      const video = await UserVideosDB.getVideoById(videoId, session.user.uuid)
-      if (video && video.status === 'completed') {
-        dispatch({ type: "ADD_COMPLETED_VIDEO", payload: video })
 
-        // Refresh quota info
-        await refreshQuotaInfo()
+      // 🔥 检查是否是临时记录ID，如果是则跳过数据库查询
+      if (videoId.startsWith('00000000-0000-4000-8000-')) {
+        // 临时记录已经通过completeJob添加到内存中，这里只需要标记存储完成
+        return
       }
+
+      // 🔥 首先尝试从数据库获取完整的视频信息
+      const permanentVideo = await UserVideosDB.getVideoById(videoId, session.user.uuid)
+
+      if (!permanentVideo) {
+        console.warn(`⚠️ Video not found in database: ${videoId}`)
+        return
+      }
+
+      if (permanentVideo.status !== 'completed') {
+        console.warn(`⚠️ Video not in completed status: ${videoId}, status: ${permanentVideo.status}`)
+        return
+      }
+
+      // 🔥 查找对应的临时视频
+      const temporaryVideo = state.temporaryVideos.find(video => {
+        // 可能通过多种方式匹配：
+        // 1. 直接ID匹配
+        // 2. 通过wavespeed_request_id匹配
+        // 3. 通过original_url匹配
+        return video.id === videoId ||
+               (video as any).wavespeed_request_id === permanentVideo.wavespeed_request_id ||
+               (video as VideoResult).videoUrl === permanentVideo.original_url
+      })
+
+      if (temporaryVideo) {
+        // 移动临时视频到永久存储
+        moveTemporaryToPermanent(temporaryVideo.id, permanentVideo)
+      } else {
+        // 如果没有找到对应的临时视频，直接添加到永久存储（数据库直接创建的情况）
+        dispatch({ type: "ADD_PERMANENT_VIDEO", payload: permanentVideo })
+      }
+
+      // Refresh quota info
+      await refreshQuotaInfo()
+
     } catch (error) {
       console.error('Failed to handle video storage completion:', error)
     }
-  }, [session?.user?.uuid, refreshQuotaInfo])
+  }, [session?.user?.uuid, refreshQuotaInfo, moveTemporaryToPermanent, state.temporaryVideos.length])
 
   const getJobsByStatus = useCallback((status: VideoJob["status"]) => {
     if (status === "failed") return state.failedJobs
     return state.activeJobs.filter(job => job.status === status)
-  }, [state.activeJobs, state.failedJobs])
+  }, [state.activeJobs.length, state.failedJobs.length])
 
   const clearError = useCallback(() => {
     dispatch({ type: "SET_ERROR", payload: null })
   }, [])
+
+  // Storage management functions
+  const cleanupUserStorage = useCallback(async (targetSizeMB?: number) => {
+    if (!session?.user?.uuid) {
+      throw new Error('User not authenticated')
+    }
+
+    try {
+      const result = await UserVideosDB.cleanupUserStorage(session.user.uuid, targetSizeMB)
+
+      // Refresh completed videos and quota after cleanup
+      await loadCompletedVideos(1)
+      await refreshQuotaInfo()
+
+      return result
+    } catch (error) {
+      console.error('Failed to cleanup user storage:', error)
+      throw error
+    }
+  }, [session?.user?.uuid, loadCompletedVideos, refreshQuotaInfo])
+
+  const checkStorageStatus = useCallback(async () => {
+    if (!session?.user?.uuid) return false
+
+    try {
+      return await UserVideosDB.isStorageExceeded(session.user.uuid)
+    } catch (error) {
+      console.error('Failed to check storage status:', error)
+      return false
+    }
+  }, [session?.user?.uuid])
 
   const refreshState = useCallback(async () => {
     // Force re-initialization
@@ -579,7 +897,7 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
       await loadCompletedVideos(1)
       await refreshQuotaInfo()
     }
-  }, [session?.user?.uuid, loadCompletedVideos, refreshQuotaInfo])
+  }, [session?.user?.uuid])
 
   const contextValue: VideoContextType = {
     ...state,
@@ -590,14 +908,23 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     removeJob,
     deleteVideo,
     removeCompletedVideo,
+    // 🔥 新增：临时和永久视频管理方法
+    addTemporaryVideo,
+    moveTemporaryToPermanent,
+    removeTemporaryVideo,
+    getAllVideos,
     getJobById,
     getVideoById,
+    getTemporaryVideoById,
     getJobsByStatus,
     loadCompletedVideos,
+    loadPermanentVideos, // 🔥 新增
     refreshQuotaInfo,
     recordVideoView,
     toggleVideoFavorite,
     handleVideoStorageCompleted,
+    cleanupUserStorage,
+    checkStorageStatus,
     clearError,
     refreshState
   }

@@ -10,56 +10,48 @@ import { VideoNavigation } from './video-navigation'
 import { HeroContent } from './hero-content'
 import { HERO_VIDEO_ITEMS } from './config/video-hero.config'
 import { cn } from '@/lib/utils'
+import type { VideoHeroItem } from './types/video-hero.types'
 
 interface VideoHeroContainerProps {
-  onQuerySubmit: (query: string) => void
+  onQuerySubmit?: (query: string) => void
   className?: string
+  videoItems?: VideoHeroItem[] // 允许自定义视频配置
 }
 
 export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
   onQuerySubmit,
-  className = ""
+  className = "",
+  videoItems = HERO_VIDEO_ITEMS // 默认使用首页配置
 }) => {
   const { isMobile, isDesktop } = useMobileDetection()
   const { shouldPreloadVideos, shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
-  
+
   const {
     getVideo,
     isVideoReady,
     loadingCount,
     isPoolReady
-  } = useVideoPool(HERO_VIDEO_ITEMS, false) // 暂时禁用预加载
+  } = useVideoPool(videoItems, false) // 使用传入的配置
 
   const {
     state,
     controls,
     currentItem
   } = useVideoCarousel({
-    items: HERO_VIDEO_ITEMS,
+    items: videoItems, // 使用传入的配置
     onIndexChange: (index) => {
-      console.log('Video switched to:', HERO_VIDEO_ITEMS[index]?.title)
     },
     autoPlay: isDesktop && !isSlowConnection
   })
 
   const handleVideoEnd = () => {
-    console.log('🎬 handleVideoEnd called', {
-      isAutoPlaying: state.isAutoPlaying,
-      isPaused: state.isPaused,
-      itemsLength: HERO_VIDEO_ITEMS.length
-    })
-    
     // 如果有多个视频，总是进行轮播（无论是否自动播放状态）
-    if (HERO_VIDEO_ITEMS.length > 1) {
-      console.log('🔄 Proceeding with next video')
+    if (videoItems.length > 1) {
       controls.goToNext()
-    } else {
-      console.log('📺 Single video mode, no switching needed')
     }
   }
 
   const handleVideoCanPlay = (itemId: string) => {
-    console.log('Video ready:', itemId)
   }
 
   return (
@@ -71,7 +63,7 @@ export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
       {/* Background Layer */}
       {isDesktop && shouldShowVideoBackground ? (
         <VideoBackground
-          items={HERO_VIDEO_ITEMS}
+          items={videoItems}
           currentIndex={state.currentIndex}
           getVideo={getVideo}
           isVideoReady={isVideoReady}
@@ -91,20 +83,6 @@ export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
         onQuerySubmit={onQuerySubmit}
         className="relative z-10"
       />
-
-      {/* Navigation Layer - Desktop Only */}
-      {isDesktop && shouldShowVideoBackground && HERO_VIDEO_ITEMS.length > 1 && (
-        <VideoNavigation
-          items={HERO_VIDEO_ITEMS}
-          currentIndex={state.currentIndex}
-          onItemSelect={(index) => {
-            console.log('🎯 Manual switch to:', index, HERO_VIDEO_ITEMS[index]?.title)
-            controls.goToIndex(index)
-          }}
-          isVideoReady={() => true} // 简化，总是显示可点击
-          loadingCount={loadingCount}
-        />
-      )}
     </div>
   )
 }

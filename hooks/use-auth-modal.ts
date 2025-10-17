@@ -40,18 +40,15 @@ export function useAuthModal(
 
   // 显示登录弹框
   const showAuthModal = useCallback(() => {
-    console.log("🔐 显示登录弹框")
     setIsAuthModalOpen(true)
   }, [])
 
   // 隐藏登录弹框
   const hideAuthModal = useCallback(() => {
-    console.log("❌ 隐藏登录弹框")
     setIsAuthModalOpen(false)
 
     // 如果有待执行的操作且用户取消登录，清理它
     if (pendingActionRef.current) {
-      console.log("用户取消登录，清理待执行操作")
       pendingActionRef.current = null
       onLoginCancel?.()
     }
@@ -63,13 +60,11 @@ export function useAuthModal(
   ): Promise<boolean> => {
     // 如果正在加载登录状态，等待
     if (isLoading) {
-      console.log("⏳ 等待登录状态检查...")
       return false
     }
 
     // 如果已经登录，直接执行操作
     if (isAuthenticated) {
-      console.log("✅ 用户已登录，执行操作")
       try {
         await action()
         return true
@@ -80,7 +75,6 @@ export function useAuthModal(
     }
 
     // 如果未登录，保存操作并显示登录弹框
-    console.log("🚫 用户未登录，显示登录弹框")
     pendingActionRef.current = action
     showAuthModal()
     return false
@@ -90,7 +84,6 @@ export function useAuthModal(
   useEffect(() => {
     // 如果用户刚登录成功且有待执行操作
     if (session?.user && pendingActionRef.current) {
-      console.log("✅ 登录成功，执行待执行操作")
 
       const action = pendingActionRef.current
       pendingActionRef.current = null
@@ -179,10 +172,8 @@ export function useRequireAuth() {
 export function useVideoGenerationAuth() {
   return useAuthModal({
     onLoginSuccess: (user) => {
-      console.log(`用户 ${user.email} 登录成功，可以开始生成视频`)
     },
     onLoginCancel: () => {
-      console.log("用户取消登录，取消视频生成")
     }
   })
 }

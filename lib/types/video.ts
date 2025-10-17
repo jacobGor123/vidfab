@@ -21,7 +21,7 @@ export interface VideoGenerationRequest extends BaseVideoGenerationRequest {
 }
 
 // 生成类型枚举
-export type VideoGenerationType = "text-to-video" | "image-to-video"
+export type VideoGenerationType = "text-to-video" | "image-to-video" | "video-effects"
 
 // Duration mapping from UI strings to API numbers
 export const DURATION_MAP: Record<string, number> = {
@@ -32,6 +32,12 @@ export const DURATION_MAP: Record<string, number> = {
 
 // 辅助函数：判断生成类型
 export function getGenerationType(request: VideoGenerationRequest): VideoGenerationType {
+  // 🔥 首先检查是否是视频特效
+  if (request.effectId || request.generationType === 'video-effects') {
+    return "video-effects"
+  }
+
+  // 然后检查是否是图片转视频
   return request.image ? "image-to-video" : "text-to-video"
 }
 
@@ -69,6 +75,11 @@ export interface VideoJob {
   userEmail?: string  // 用户邮箱，用于内部调用
   generationType?: VideoGenerationType  // 生成类型标识
   sourceImage?: string  // 源图片（image-to-video使用）
+  // Video-effects 特有字段
+  effectId?: string    // 特效ID
+  effectName?: string  // 特效名称
+  // 🔥 积分管理字段
+  reservationId?: string  // 积分预扣ID，用于确认消费
 }
 
 export interface VideoGenerationSettings {
@@ -81,6 +92,9 @@ export interface VideoGenerationSettings {
   // Image-to-video 特有设置
   imageStrength?: number  // 图片影响强度
   generationType?: VideoGenerationType  // 生成类型
+  // Video-effects 特有设置
+  effectId?: string    // 特效ID
+  effectName?: string  // 特效名称
 }
 
 export interface VideoResult {
@@ -91,6 +105,7 @@ export interface VideoResult {
   settings: VideoGenerationSettings
   createdAt: string
   userId: string
+  isStored?: boolean // 🔥 新增：标记是否已存储到数据库
 }
 
 // Model mapping from UI to API
@@ -108,14 +123,21 @@ export const MODEL_API_MAP: Record<string, string> = {
   "vidfab-pro-1080p": "veo3-fast-t2v",
   // Vidfab Pro (veo3) models - Image-to-Video
   "vidfab-pro-i2v-720p": "veo3-fast-i2v",
-  "vidfab-pro-i2v-1080p": "veo3-fast-i2v"
+  "vidfab-pro-i2v-1080p": "veo3-fast-i2v",
+  // Video Effects models - 视频特效不依赖分辨率，使用固定映射
+  "video-effects": "video-effects-api"
 }
 
 
 // Generate model key from settings
 export function getModelKey(model: string, resolution: string, generationType?: VideoGenerationType): string {
+  // 🔥 视频特效使用固定的键，不依赖模型或分辨率
+  if (generationType === "video-effects") {
+    return "video-effects"
+  }
+
   const modelMap: Record<string, string> = {
-    "vidu-q1": "vidfab-q1",
+    "vidfab-q1": "vidfab-q1",
     "vidfab-pro": "vidfab-pro"  // 添加 Vidfab Pro 映射
   }
 
@@ -131,7 +153,11 @@ export function getModelKey(model: string, resolution: string, generationType?: 
 
 // 图片验证辅助函数
 export function validateImageData(image: string): boolean {
-  if (!image) return false
+  // 更安全的检查：确保image是字符串且不为空
+  if (!image || typeof image !== 'string' || image.trim() === '') {
+    console.log('🔍 validateImageData failed - invalid image:', typeof image, image?.length)
+    return false
+  }
 
   // 检查是否是base64编码
   if (image.startsWith('data:image/')) {
@@ -158,7 +184,10 @@ export function validateImageData(image: string): boolean {
 
 // 获取图片大小（支持base64和HTTP URL）
 export function getImageSize(image: string): number {
-  if (!image) return 0
+  if (!image || typeof image !== 'string' || image.trim() === '') {
+    console.log('🔍 getImageSize failed - invalid image:', typeof image, image?.length)
+    return 0
+  }
 
   // 如果是base64格式，计算解码后的大小
   if (image.startsWith('data:image/')) {
@@ -184,7 +213,10 @@ export function getImageSize(image: string): number {
 
 // 图片格式验证（支持base64和HTTP URL两种格式）
 export function validateImageFormat(image: string): boolean {
-  if (!image) return false
+  if (!image || typeof image !== 'string' || image.trim() === '') {
+    console.log('🔍 validateImageFormat failed - invalid image:', typeof image, image?.length)
+    return false
+  }
 
   // 检查是否是base64格式
   if (image.startsWith('data:image/')) {
