@@ -184,7 +184,8 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
             autoPlay
             playsInline
             loop={items.length === 1}  // 单视频循环，多视频不循环
-            preload="auto"  // 改为完整预加载
+            preload="metadata"  // 改为 metadata 预加载，减少初始加载
+            crossOrigin="anonymous"  // 允许跨域加载
             controls={false}
             style={{ zIndex: 1 }}
             ref={(video) => {
@@ -254,6 +255,7 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
             src={currentItem.posterUrl}
             alt={currentItem.title}
             className="absolute inset-0 w-full h-full object-cover"
+            crossOrigin="anonymous"
             style={{ zIndex: 0 }}
             onError={() => console.error('❌ Poster error:', currentItem.id)}
           />
