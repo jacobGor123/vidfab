@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 224 71% 4%; /* Example: Dark Blueish --hsl(224, 71%, 4%) */
+    --foreground: 210 40% 98%; /* Light Gray/White */
+
+    --card: 224 71% 4%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 262 84% 58%; /* Refined Purple */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 180 100% 45%; /* Refined Cyan */
+    --secondary-foreground: 224 71% 4%;
+
+    --accent: 333 100% 62%; /* Refined Pink */
+    --accent-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 22%;
+    --input: 217 33% 22%;
+    --ring: 262 84% 58%;
+
+    --radius: 0.75rem; /* Slightly larger default radius for modern feel */
+  }
+
+  .dark {
+    /* Keep the same variables for dark theme as it's the default */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1; /* Enable common ligatures */
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+    line-height: 1.2; /* 确保所有标题的 line-height 至少为 1.2 */
+  }
+
+  /* 覆盖 Tailwind 大字号的默认 line-height */
+  .text-5xl,
+  .text-6xl,
+  .text-7xl,
+  .text-8xl,
+  .text-9xl {
+    line-height: 1.2 !important;
+  }
+
+  /* 响应式断点也要覆盖 */
+  @media (min-width: 640px) {
+    .sm\:text-5xl,
+    .sm\:text-6xl,
+    .sm\:text-7xl,
+    .sm\:text-8xl,
+    .sm\:text-9xl {
+      line-height: 1.2 !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .md\:text-5xl,
+    .md\:text-6xl,
+    .md\:text-7xl,
+    .md\:text-8xl,
+    .md\:text-9xl {
+      line-height: 1.2 !important;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .lg\:text-5xl,
+    .lg\:text-6xl,
+    .lg\:text-7xl,
+    .lg\:text-8xl,
+    .lg\:text-9xl {
+      line-height: 1.2 !important;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .xl\:text-5xl,
+    .xl\:text-6xl,
+    .xl\:text-7xl,
+    .xl\:text-8xl,
+    .xl\:text-9xl {
+      line-height: 1.2 !important;
+    }
+  }
+}
+
+/* Custom gradient text utility */
+@layer utilities {
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent;
+  }
+  
+  /* Custom minimal scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(107, 114, 128, 0.8);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.9);
+  }
+  
+  /* Firefox scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107, 114, 128, 0.8) transparent;
+  }
+
+  /* Skeleton shimmer animation */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+
+  /* AOS Animation Custom Styles */
+  [data-aos] {
+    transition-property: opacity, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-aos][data-aos][data-aos-duration="400"] {
+    transition-duration: 400ms;
+  }
+
+  [data-aos][data-aos][data-aos-duration="600"] {
+    transition-duration: 600ms;
+  }
+
+  [data-aos][data-aos][data-aos-duration="800"] {
+    transition-duration: 800ms;
+  }
+
+  [data-aos][data-aos][data-aos-delay="100"] {
+    transition-delay: 100ms;
+  }
+
+  [data-aos][data-aos][data-aos-delay="200"] {
+    transition-delay: 200ms;
+  }
+
+  [data-aos][data-aos][data-aos-delay="300"] {
+    transition-delay: 300ms;
+  }
+
+  /* Fade animations */
+  [data-aos="fade"] {
+    opacity: 0;
+  }
+
+  [data-aos="fade"].aos-animate {
+    opacity: 1;
+  }
+
+  [data-aos="fade-up"] {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  [data-aos="fade-up"].aos-animate {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-aos="fade-down"] {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  [data-aos="fade-down"].aos-animate {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-aos="fade-left"] {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  [data-aos="fade-left"].aos-animate {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  [data-aos="fade-right"] {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  [data-aos="fade-right"].aos-animate {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Zoom animations */
+  [data-aos="zoom-in"] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  [data-aos="zoom-in"].aos-animate {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

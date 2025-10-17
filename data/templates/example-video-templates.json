@@ -1,0 +1,32 @@
+[
+  {
+    "id": "template-1758182307700-example1",
+    "prompt": "animate the image",
+    "imageUrl": "https://static.vidfab.ai/user-image/vidfab-2910ad47-9d15-4ab4-8a59-aea9cf2500d8.png",
+    "videoUrl": "https://static.vidfab.ai/user-video/vidfab-2910ad47-9d15-4ab4-8a59-aea9cf2500d8.mp4",
+    "duration": 10,
+    "resolution": "1024x576",
+    "aspectRatio": "16:9",
+    "createdAt": "2025-09-18T07:58:27.700Z"
+  },
+  {
+    "id": "template-1758182307701-example2",
+    "prompt": "一位金髮女子站在微暗水中，周圍漂浮著多朵紅玫瑰，她緩慢地將手深入水中，拾起一朵漂浮的紅玫瑰，水波隨著手的動作溫柔晃動。背景為柔和的光線，映照出鮮豔玫瑰的色彩。鏡頭從正面微下方角度拍攝，聚焦於動作和水波細節。",
+    "imageUrl": "https://static.vidfab.ai/user-image/vidfab-cc5fedd1-507a-4415-bef7-7bfe1d3e8c49.png",
+    "videoUrl": "https://static.vidfab.ai/user-video/vidfab-cc5fedd1-507a-4415-bef7-7bfe1d3e8c49.mp4",
+    "duration": 10,
+    "resolution": "1024x576",
+    "aspectRatio": "16:9",
+    "createdAt": "2025-09-18T07:58:27.701Z"
+  },
+  {
+    "id": "template-1758182307701-example3",
+    "prompt": "A young boy with blond hair and a yellow scarf, wearing a blue robe, is holding a vividly colored rose in his hand. He naturally floats up and down in the air, his scarf gently waving as if blown by the wind. Rose petals detach from the rose and softly float around him. The environment features a mystical, space-like background with colorful ribbons of light gracefully floating around, and stars in the background gently twinkling. The camera is fixed in place, capturing the entire scene from a medium distance.",
+    "imageUrl": "https://static.vidfab.ai/user-image/vidfab-18f88fc8-b716-4766-9d99-19cadea0a78c.png",
+    "videoUrl": "https://static.vidfab.ai/user-video/vidfab-18f88fc8-b716-4766-9d99-19cadea0a78c.mp4",
+    "duration": 10,
+    "resolution": "1024x576",
+    "aspectRatio": "16:9",
+    "createdAt": "2025-09-18T07:58:27.701Z"
+  }
+]
