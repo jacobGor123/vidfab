@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "title": "VidFab - AI Video Platform",
+    "description": "Transform your videos with cutting-edge AI technology. Create, enhance, and convert videos effortlessly with VidFab."
+  },
+  "navigation": {
+    "home": "Home",
+    "features": "Features",
+    "pricing": "Pricing",
+    "howItWorks": "How it Works",
+    "login": "Login",
+    "signup": "Sign Up",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "support": "Support",
+    "logout": "Logout"
+  },
+  "auth": {
+    "welcomeBack": "Welcome to VidFab!",
+    "welcomeToVidFab": "Welcome to VidFab",
+    "signInDescription": "Sign in to start creating amazing AI-powered videos",
+    "signUpDescription": "Join thousands of creators using AI to transform their videos",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithEmail": "Continue with Email",
+    "orContinueWith": "Or continue with",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUpForFree": "Sign up for free",
+    "backToHomepage": "← Back to homepage",
+    "sendVerificationCode": "Send Verification Code",
+    "enterVerificationCode": "Enter Verification Code",
+    "verificationCodeSent": "Code sent to {email}",
+    "enterSixDigitCode": "Enter the 6-digit code",
+    "resendCode": "Resend Code",
+    "resendIn": "Resend in {time}",
+    "changeEmail": "Change Email",
+    "verifying": "Verifying...",
+    "verifyingCode": "Please wait while we verify your code"
+  },
+  "dashboard": {
+    "welcome": "Welcome to your dashboard",
+    "quickActions": "Quick Actions",
+    "recentVideos": "Recent Videos",
+    "usage": "Usage",
+    "credits": "Credits",
+    "creditsRemaining": "{count} credits remaining",
+    "storageUsed": "Storage: {used} / {total}",
+    "generateVideo": "Generate Video",
+    "enhanceVideo": "Enhance Video",
+    "convertVideo": "Convert Video",
+    "viewHistory": "View History"
+  },
+  "video": {
+    "generate": "Generate",
+    "enhance": "Enhance",
+    "convert": "Convert",
+    "processing": "Processing...",
+    "completed": "Completed",
+    "failed": "Failed",
+    "pending": "Pending",
+    "uploadVideo": "Upload Video",
+    "selectVideo": "Select a video file",
+    "dragAndDrop": "Drag and drop your video here",
+    "maxFileSize": "Max file size: {size}",
+    "supportedFormats": "Supported formats: {formats}",
+    "startProcessing": "Start Processing",
+    "downloadVideo": "Download Video",
+    "shareVideo": "Share Video",
+    "deleteVideo": "Delete Video"
+  },
+  "pricing": {
+    "title": "Simple, Transparent Pricing",
+    "description": "Choose the plan that's right for you and start creating amazing AI videos.",
+    "monthly": "Monthly",
+    "annually": "Annual",
+    "save20Percent": "Save 20%",
+    "mostPopular": "Most Popular",
+    "getStarted": "Get Started",
+    "contactSales": "Contact Sales",
+    "basic": {
+      "name": "Basic",
+      "description": "Perfect for individuals just getting started with AI video creation.",
+      "features": [
+        "10 video generations per month",
+        "Basic AI video capabilities",
+        "Standard processing speed",
+        "720p video output",
+        "Email support"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Ideal for content creators who need comprehensive video capabilities.",
+      "features": [
+        "50 video generations per month",
+        "Advanced AI video capabilities",
+        "Priority processing",
+        "1080p video output",
+        "Advanced editing tools",
+        "Priority support"
+      ]
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "description": "For organizations that need the most powerful video capabilities.",
+      "features": [
+        "Unlimited video generations",
+        "Enterprise-grade AI video",
+        "Custom model training",
+        "4K video output",
+        "API access",
+        "Dedicated support manager"
+      ]
+    }
+  },
+  "features": {
+    "title": "Powerful AI Video Features",
+    "description": "Everything you need to create, enhance, and transform your videos with AI.",
+    "aiGeneration": {
+      "title": "AI Video Generation",
+      "description": "Create stunning videos from text prompts using advanced AI models."
+    },
+    "videoEnhancement": {
+      "title": "Video Enhancement",
+      "description": "Improve video quality, resolution, and visual appeal automatically."
+    },
+    "formatConversion": {
+      "title": "Format Conversion",
+      "description": "Convert between any video formats with optimized settings."
+    },
+    "batchProcessing": {
+      "title": "Batch Processing",
+      "description": "Process multiple videos simultaneously to save time."
+    },
+    "customModels": {
+      "title": "Custom Models",
+      "description": "Train custom AI models for your specific video creation needs."
+    },
+    "apiAccess": {
+      "title": "API Access",
+      "description": "Integrate VidFab's capabilities directly into your applications."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "upload": "Upload",
+    "download": "Download",
+    "share": "Share",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "viewAll": "View All",
+    "showMore": "Show More",
+    "showLess": "Show Less"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "validationError": "Please check your input and try again.",
+    "authRequired": "Please sign in to continue.",
+    "insufficientCredits": "Insufficient credits. Please upgrade your plan.",
+    "fileTooLarge": "File is too large. Maximum size is {maxSize}.",
+    "unsupportedFormat": "Unsupported file format.",
+    "processingFailed": "Video processing failed. Please try again.",
+    "uploadFailed": "Upload failed. Please try again."
+  },
+  "footer": {
+    "copyright": "© 2024 VidFab. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact"
+  }
+}
