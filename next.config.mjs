@@ -25,6 +25,7 @@ const nextConfig = {
       'lh3.googleusercontent.com', // Google profile images
       'avatars.githubusercontent.com', // GitHub avatars (if needed)
       'accounts.google.com', // Google OAuth
+      'static.vidfab.ai', // CDN for videos and images
     ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
