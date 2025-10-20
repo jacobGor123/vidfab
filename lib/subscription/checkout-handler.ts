@@ -106,11 +106,13 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
     // ✅ 修复：更新订单状态
     const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
 
-    const { data: updatedOrder, error: orderError } = await supabaseAdmin
+    // 首先尝试用 stripe_checkout_session_id 匹配
+    let { data: updatedOrder, error: orderError } = await supabaseAdmin
       .from('subscription_orders')
       .update({
         status: 'completed',
         stripe_subscription_id: subscriptionId,
+        stripe_checkout_session_id: session.id, // 确保记录 session ID
         completed_at: getIsoTimestr(),
       })
       .eq('user_uuid', userUuid)
@@ -118,15 +120,52 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
       .eq('status', 'pending')
       .select();
 
+    // 如果没有匹配到，可能是因为 stripe_checkout_session_id 为 NULL
+    // 尝试用 stripe_customer_id + 时间范围匹配最近的 pending 订单
+    if (!orderError && (!updatedOrder || updatedOrder.length === 0)) {
+      console.warn('[CHECKOUT] No order found with session ID, trying customer ID fallback');
+
+      const stripeCustomerId = session.customer as string;
+      if (stripeCustomerId) {
+        // 查找该用户最近 10 分钟内创建的 pending 订单
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+        const fallbackResult = await supabaseAdmin
+          .from('subscription_orders')
+          .update({
+            status: 'completed',
+            stripe_subscription_id: subscriptionId,
+            stripe_checkout_session_id: session.id, // 补充记录 session ID
+            stripe_customer_id: stripeCustomerId, // 补充记录 customer ID
+            completed_at: getIsoTimestr(),
+          })
+          .eq('user_uuid', userUuid)
+          .eq('stripe_customer_id', stripeCustomerId)
+          .eq('status', 'pending')
+          .gte('created_at', tenMinutesAgo)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .select();
+
+        updatedOrder = fallbackResult.data;
+        orderError = fallbackResult.error;
+
+        if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
+          console.log(`✅ [CHECKOUT] Order completed via fallback: ${fallbackResult.data[0].id}`);
+        }
+      }
+    }
+
     if (orderError) {
       console.error('[CHECKOUT] Error updating order:', orderError);
       // 不抛出错误，因为用户积分已经更新成功
     } else if (updatedOrder && updatedOrder.length > 0) {
       console.log(`✅ [CHECKOUT] Order completed: ${updatedOrder[0].id}`);
     } else {
-      console.warn('[CHECKOUT] No pending order found to update:', {
+      console.error('[CHECKOUT] ❌ CRITICAL: No pending order found to update:', {
         userUuid,
         sessionId: session.id,
+        customerId: session.customer,
       });
     }
 
