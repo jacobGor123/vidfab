@@ -17,13 +17,11 @@ const PLAN_CREDITS: Record<string, number> = {
 /**
  * 处理Stripe checkout session完成事件
  * 参考iMedio的简单逻辑：直接更新用户状态和积分
- * ✅ 修复：同时更新订单状态和 Stripe Subscription ID
  */
 export async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<void> {
   try {
     // 检查支付状态
     if (session.payment_status !== 'paid') {
-      console.log('[CHECKOUT] Payment not completed, skipping');
       return;
     }
 
@@ -54,24 +52,9 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
     }
 
     if (!userUuid || !planId) {
-      console.error('[CHECKOUT] Missing required metadata:', { userUuid, planId });
+      console.error('[CHECKOUT] Missing required metadata');
       return;
     }
-
-    // ✅ 获取 subscription ID
-    const subscriptionId = session.subscription as string;
-    if (!subscriptionId) {
-      console.error('[CHECKOUT] No subscription ID in session');
-      return;
-    }
-
-    console.log('[CHECKOUT] Processing payment:', {
-      userUuid,
-      planId,
-      billingCycle,
-      subscriptionId,
-      sessionId: session.id,
-    });
 
     // 获取用户信息
     const user = await getUserByUuid(userUuid);
@@ -94,41 +77,11 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
     const updateData = {
       subscription_plan: planId,
       subscription_status: 'active',
-      subscription_stripe_id: subscriptionId,
       credits_remaining: newCreditsBalance,
       updated_at: getIsoTimestr(),
     };
 
     await updateUser(userUuid, updateData);
-
-    console.log(`✅ [CHECKOUT] User updated: ${userUuid}, credits: ${currentCredits} → ${newCreditsBalance}`);
-
-    // ✅ 修复：更新订单状态
-    const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
-
-    const { data: updatedOrder, error: orderError } = await supabaseAdmin
-      .from('subscription_orders')
-      .update({
-        status: 'completed',
-        stripe_subscription_id: subscriptionId,
-        completed_at: getIsoTimestr(),
-      })
-      .eq('user_uuid', userUuid)
-      .eq('stripe_checkout_session_id', session.id)
-      .eq('status', 'pending')
-      .select();
-
-    if (orderError) {
-      console.error('[CHECKOUT] Error updating order:', orderError);
-      // 不抛出错误，因为用户积分已经更新成功
-    } else if (updatedOrder && updatedOrder.length > 0) {
-      console.log(`✅ [CHECKOUT] Order completed: ${updatedOrder[0].id}`);
-    } else {
-      console.warn('[CHECKOUT] No pending order found to update:', {
-        userUuid,
-        sessionId: session.id,
-      });
-    }
 
   } catch (error: any) {
     console.error('[CHECKOUT] Error handling checkout session:', error);
