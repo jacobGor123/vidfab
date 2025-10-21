@@ -3,7 +3,6 @@
 import type React from "react"
 import { useMobileDetection } from './hooks/use-mobile-detection'
 import { useNetworkAware } from './hooks/use-network-aware'
-import { useVideoPool } from './hooks/use-video-pool'
 import { useVideoCarousel } from './hooks/use-video-carousel'
 import { VideoBackground } from './video-background'
 import { VideoNavigation } from './video-navigation'
@@ -25,13 +24,6 @@ export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
 }) => {
   const { isMobile, isDesktop } = useMobileDetection()
   const { shouldPreloadVideos, shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
-
-  const {
-    getVideo,
-    isVideoReady,
-    loadingCount,
-    isPoolReady
-  } = useVideoPool(videoItems, false) // 使用传入的配置
 
   const {
     state,
@@ -65,8 +57,6 @@ export const VideoHeroContainer: React.FC<VideoHeroContainerProps> = ({
         <VideoBackground
           items={videoItems}
           currentIndex={state.currentIndex}
-          getVideo={getVideo}
-          isVideoReady={isVideoReady}
           onVideoEnd={handleVideoEnd}
           onVideoCanPlay={handleVideoCanPlay}
         />
