@@ -44,7 +44,7 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
         crossOrigin="anonymous"
         style={{ zIndex: 1 }}
         loading="eager"
-        onError={() => console.error('❌ Poster error:', currentItem.id)}
+        onError={() => console.warn('⚠️ Poster loading failed:', currentItem.id)}
       />
 
       {/* 主视频 */}
@@ -52,7 +52,6 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
         key={`${currentItem.id}-${currentIndex}`}
         className="absolute inset-0 w-full h-full object-cover"
         src={currentItem.videoUrl}
-        poster={currentItem.posterUrl}
         muted
         autoPlay
         playsInline
@@ -67,7 +66,7 @@ export const VideoBackground: React.FC<VideoBackgroundProps> = ({
           onVideoCanPlay?.(currentItem.id)
         }}
         onError={(e) => {
-          console.error('❌ Video error:', currentItem.id, e)
+          console.warn('⚠️ Video loading failed:', currentItem.id)
           if (items.length > 1) {
             handleVideoEnd()
           }
