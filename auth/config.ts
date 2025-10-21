@@ -124,6 +124,14 @@ if (
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+        }
+      }
     })
   );
 }
