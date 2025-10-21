@@ -41,6 +41,7 @@ const defaultVideos: CommunityVideo[] = [
 
 function VideoItem({ video, rowIndex, index, isMobile }: { video: CommunityVideo; rowIndex: number; index: number; isMobile: boolean }) {
   const [isMuted, setIsMuted] = useState(true)
+  const [isReady, setIsReady] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const handleToggleMute = (e: MouseEvent<HTMLButtonElement>) => {
@@ -58,6 +59,17 @@ function VideoItem({ video, rowIndex, index, isMobile }: { video: CommunityVideo
     if (videoRef.current && !isMuted) {
       videoRef.current.muted = true
       setIsMuted(true)
+    }
+  }
+
+  // 只在视频真正能播放时才开始播放
+  const handleCanPlay = () => {
+    setIsReady(true)
+    if (videoRef.current) {
+      videoRef.current.play().catch(err => {
+        // 静默处理自动播放失败 (某些浏览器可能阻止自动播放)
+        console.debug('Video autoplay prevented:', err)
+      })
     }
   }
 
@@ -79,12 +91,11 @@ function VideoItem({ video, rowIndex, index, isMobile }: { video: CommunityVideo
           "w-auto block transition-transform duration-500 group-hover:scale-110",
           isMobile ? "h-[200px] max-w-[280px]" : "h-[300px]"
         )}
-        autoPlay
         loop
         muted
         playsInline
-        preload="none"
-        loading="lazy"
+        preload="metadata"
+        onCanPlay={handleCanPlay}
       />
 
       {/* Audio Toggle Button */}
