@@ -7,11 +7,9 @@ import { FAQSection } from "@/components/sections/faq-section"
 import { LoadingState } from "@/components/loading-state"
 import { usePageTranslation } from "@/lib/i18n"
 import { VideoBackground } from "@/components/video-hero/video-background"
-import { VideoNavigation } from "@/components/video-hero/video-navigation"
 import { TEXT_TO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
 import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
-import { useVideoPool } from "@/components/video-hero/hooks/use-video-pool"
 import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
 import Link from "next/link"
 import { FileText, MousePointerClick, Sparkles, Download } from "lucide-react"
@@ -30,7 +28,6 @@ function TextToVideoHero() {
   const { isDesktop } = useMobileDetection()
   const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
 
-  const { getVideo, isVideoReady, loadingCount } = useVideoPool(TEXT_TO_VIDEO_ITEMS, false)
   const { state, controls } = useVideoCarousel({
     items: TEXT_TO_VIDEO_ITEMS,
     onIndexChange: () => {},
@@ -50,8 +47,6 @@ function TextToVideoHero() {
         <VideoBackground
           items={TEXT_TO_VIDEO_ITEMS}
           currentIndex={state.currentIndex}
-          getVideo={getVideo}
-          isVideoReady={isVideoReady}
           onVideoEnd={handleVideoEnd}
           onVideoCanPlay={() => {}}
         />
@@ -89,17 +84,6 @@ function TextToVideoHero() {
           </div>
         </div>
       </div>
-
-      {/* Video Navigation */}
-      {isDesktop && shouldShowVideoBackground && TEXT_TO_VIDEO_ITEMS.length > 1 && (
-        <VideoNavigation
-          items={TEXT_TO_VIDEO_ITEMS}
-          currentIndex={state.currentIndex}
-          onItemSelect={(index) => controls.goToIndex(index)}
-          isVideoReady={() => true}
-          loadingCount={loadingCount}
-        />
-      )}
     </div>
   )
 }
