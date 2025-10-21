@@ -6,8 +6,6 @@ import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
 import { LoadingState } from "@/components/loading-state"
 import { VideoBackground } from "@/components/video-hero/video-background"
-import { VideoNavigation } from "@/components/video-hero/video-navigation"
-import { useVideoPool } from "@/components/video-hero/hooks/use-video-pool"
 import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
 import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
 import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
@@ -30,8 +28,6 @@ function AIVideoEffectsHero() {
   const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
   const { translations } = usePageTranslation('ai-video-effects')
 
-  const { getVideo, isVideoReady, loadingCount } = useVideoPool(AI_VIDEO_EFFECTS_ITEMS, false)
-
   const { state, controls } = useVideoCarousel({
     items: AI_VIDEO_EFFECTS_ITEMS,
     onIndexChange: () => {},
@@ -51,8 +47,6 @@ function AIVideoEffectsHero() {
         <VideoBackground
           items={AI_VIDEO_EFFECTS_ITEMS}
           currentIndex={state.currentIndex}
-          getVideo={getVideo}
-          isVideoReady={isVideoReady}
           onVideoEnd={handleVideoEnd}
           onVideoCanPlay={() => {}}
         />
@@ -90,17 +84,6 @@ function AIVideoEffectsHero() {
           </div>
         </div>
       </div>
-
-      {/* Video Navigation */}
-      {isDesktop && shouldShowVideoBackground && AI_VIDEO_EFFECTS_ITEMS.length > 1 && (
-        <VideoNavigation
-          items={AI_VIDEO_EFFECTS_ITEMS}
-          currentIndex={state.currentIndex}
-          onItemSelect={(index) => controls.goToIndex(index)}
-          isVideoReady={() => true}
-          loadingCount={loadingCount}
-        />
-      )}
     </div>
   )
 }
