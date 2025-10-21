@@ -64,7 +64,7 @@ export interface VideoJob {
   requestId: string  // Wavespeed request ID
   prompt: string
   settings: VideoGenerationSettings
-  status: "pending" | "processing" | "completed" | "failed" | "storing"
+  status: "pending" | "generating" | "processing" | "completed" | "failed" | "storing"
   progress?: number
   resultUrl?: string
   videoId?: string  // Database video ID for storing jobs

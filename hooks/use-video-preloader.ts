@@ -88,6 +88,8 @@ export function useVideoPreloader(
   const metricsUpdateIntervalRef = useRef<number | null>(null)
   const errorCountRef = useRef(0)
   const lastErrorTimeRef = useRef(0)
+  // 🔥 修复：追踪内存优化的setTimeout
+  const optimizeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // ===== 预加载器初始化 =====
 
@@ -150,6 +152,12 @@ export function useVideoPreloader(
       if (metricsUpdateIntervalRef.current) {
         clearInterval(metricsUpdateIntervalRef.current)
         metricsUpdateIntervalRef.current = null
+      }
+
+      // 🔥 修复：清理内存优化的setTimeout
+      if (optimizeTimeoutRef.current) {
+        clearTimeout(optimizeTimeoutRef.current)
+        optimizeTimeoutRef.current = null
       }
 
       preloader.removeEventListener(PreloadEventType.MetricsUpdate, handleMetricsUpdate)
@@ -284,9 +292,16 @@ export function useVideoPreloader(
         preloaderRef.current?.removeFromQueue(item.video.id)
       })
 
+      // 🔥 修复：追踪setTimeout，确保组件卸载时能清理
+      // 先清理旧的timeout
+      if (optimizeTimeoutRef.current) {
+        clearTimeout(optimizeTimeoutRef.current)
+      }
+
       // 1秒后恢复预加载
-      setTimeout(() => {
+      optimizeTimeoutRef.current = setTimeout(() => {
         preloaderRef.current?.resumeAll()
+        optimizeTimeoutRef.current = null
       }, 1000)
     }
   }, [realtimeMetrics.currentMemoryUsage, config.memoryLimit])

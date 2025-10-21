@@ -44,7 +44,7 @@ export const supabaseAdmin = globalThis.supabaseAdminGlobalInstance ?? createCli
     },
     global: {
       headers: {
-        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Authorization': `Bearer ${supabaseServiceKey || supabaseAnonKey}`,
       },
     },
   }
