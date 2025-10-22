@@ -11,8 +11,8 @@
 
 ### 🔧 独立服务启动 (可选)
 如需单独启动某个服务，可使用以下脚本：
-- `./scripts/start-redis-standalone.sh` - 单独启动 Redis
-- `./scripts/start-queue-standalone.sh` - 单独启动队列工作进程
+- `./scripts/redis-start.sh` - 单独启动 Redis
+- `./scripts/redis-stop.sh` - 停止 Redis
 
 ### 🏗️ 构建和部署
 - `./scripts/build.sh` - 构建生产版本
@@ -46,13 +46,10 @@
 ### 分步启动（可选）
 ```bash
 # 1. 先启动 Redis
-./scripts/start-redis-standalone.sh
+./scripts/redis-start.sh
 
-# 2. 再启动队列工作进程
-./scripts/start-queue-standalone.sh
-
-# 3. 最后启动 Next.js（或使用统一脚本）
-pnpm dev
+# 2. 然后启动开发服务器（包含队列）
+./scripts/dev.sh
 ```
 
 ### 构建和部署

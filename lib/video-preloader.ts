@@ -347,18 +347,36 @@ export class SmartVideoPreloader implements VideoPreloader, QueueManager {
     })
   }
 
-  private async waitForLoad(videoId: string | number): Promise<HTMLVideoElement> {
+  private async waitForLoad(videoId: string | number, timeout = 30000): Promise<HTMLVideoElement> {
     return new Promise((resolve, reject) => {
+      const startTime = Date.now()
+      let timeoutId: NodeJS.Timeout | null = null
+
+      // 设置超时定时器
+      timeoutId = setTimeout(() => {
+        reject(new Error('Wait for load timeout'))
+      }, timeout)
+
       const checkStatus = () => {
+        // 超时检查
+        if (Date.now() - startTime > timeout) {
+          if (timeoutId) clearTimeout(timeoutId)
+          reject(new Error('Wait for load timeout'))
+          return
+        }
+
         const queueItem = this.queue.get(videoId)
         if (!queueItem) {
+          if (timeoutId) clearTimeout(timeoutId)
           reject(new Error('Video removed from queue'))
           return
         }
 
         if (queueItem.status === PreloadStatus.Loaded && queueItem.videoElement) {
+          if (timeoutId) clearTimeout(timeoutId)
           resolve(queueItem.videoElement)
         } else if (queueItem.status === PreloadStatus.Error) {
+          if (timeoutId) clearTimeout(timeoutId)
           reject(new Error(queueItem.error || 'Preload failed'))
         } else {
           // 继续等待

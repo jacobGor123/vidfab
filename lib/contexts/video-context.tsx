@@ -417,21 +417,23 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize data from localStorage and database on mount
   useEffect(() => {
-    if (typeof window === "undefined" || isInitializedRef.current) return
+    if (typeof window === "undefined") return
 
+    // 只在 sessionStatus 从 loading → authenticated 时执行一次
+    if (sessionStatus !== 'authenticated') return
+    if (!session?.user?.uuid) return
+    if (isInitializedRef.current) return
 
-    // 等待session加载完成
-    if (sessionStatus === "loading") {
-      return
-    }
+    // 立即标记为已初始化,防止重复执行
+    isInitializedRef.current = true
 
     const initializeData = async () => {
 
       try {
         dispatch({ type: "SET_LOADING", payload: true })
 
-        // Clear any existing data first to prevent flicker
-        dispatch({ type: "RESTORE_STATE", payload: { activeJobs: [], failedJobs: [] } })
+        // 移除清空数据的操作,避免导致闪烁
+        // dispatch({ type: "RESTORE_STATE", payload: { activeJobs: [], failedJobs: [] } })
 
         // Only load data if user is logged in
         if (session?.user?.uuid) {
@@ -542,7 +544,7 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "SET_ERROR", payload: "Failed to load video data" })
       } finally {
         dispatch({ type: "SET_LOADING", payload: false })
-        isInitializedRef.current = true
+        // isInitializedRef.current 已在 useEffect 开头设置,无需重复
       }
     }
 
@@ -801,9 +803,12 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
     try {
 
-      // 🔥 检查是否是临时记录ID，如果是则跳过数据库查询
-      if (videoId.startsWith('00000000-0000-4000-8000-')) {
-        // 临时记录已经通过completeJob添加到内存中，这里只需要标记存储完成
+      // 🔥 改进：检查是否是各种临时ID格式
+      if (videoId.startsWith('00000000-0000-4000-8000-') ||
+          videoId.startsWith('job_') ||
+          videoId.startsWith('temp-') ||
+          videoId.startsWith('pred_')) {
+        console.log(`✅ 跳过临时ID的数据库查询: ${videoId}`)
         return
       }
 
@@ -820,21 +825,18 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // 🔥 查找对应的临时视频
+      // 🔥 改进：通过videoUrl匹配临时视频（因为VideoResult没有wavespeed_request_id字段）
       const temporaryVideo = state.temporaryVideos.find(video => {
-        // 可能通过多种方式匹配：
-        // 1. 直接ID匹配
-        // 2. 通过wavespeed_request_id匹配
-        // 3. 通过original_url匹配
-        return video.id === videoId ||
-               (video as any).wavespeed_request_id === permanentVideo.wavespeed_request_id ||
-               (video as VideoResult).videoUrl === permanentVideo.original_url
+        // 通过original_url/videoUrl匹配（最可靠的方式）
+        return video.videoUrl === permanentVideo.original_url
       })
 
       if (temporaryVideo) {
+        console.log(`✅ 找到对应的临时视频，移动到永久存储: ${temporaryVideo.id} -> ${permanentVideo.id}`)
         // 移动临时视频到永久存储
         moveTemporaryToPermanent(temporaryVideo.id, permanentVideo)
       } else {
+        console.log(`⚠️ 未找到对应的临时视频，直接添加到永久存储: ${permanentVideo.id}`)
         // 如果没有找到对应的临时视频，直接添加到永久存储（数据库直接创建的情况）
         dispatch({ type: "ADD_PERMANENT_VIDEO", payload: permanentVideo })
       }

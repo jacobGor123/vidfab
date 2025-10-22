@@ -298,13 +298,20 @@ export function useVideoPolling(
           // 🔥 1. 先释放预扣的积分
           if (job.reservationId) {
             try {
+              // 🔥 修复：添加超时控制
+              const controller = new AbortController()
+              const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
+
               const releaseResponse = await fetch('/api/subscription/credits/release', {
                 method: 'POST',
+                signal: controller.signal,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   reservation_id: job.reservationId
                 })
               })
+
+              clearTimeout(timeoutId)
 
               if (releaseResponse.ok) {
                 const releaseData = await releaseResponse.json()
@@ -321,7 +328,11 @@ export function useVideoPolling(
                 console.error('❌ 积分释放失败:', await releaseResponse.text())
               }
             } catch (releaseError) {
-              console.error('❌ 积分释放API调用失败:', releaseError)
+              if ((releaseError as Error).name === 'AbortError') {
+                console.warn('⏱️ 积分释放请求超时')
+              } else {
+                console.error('❌ 积分释放API调用失败:', releaseError)
+              }
             }
           } else {
             console.warn('⚠️ 视频失败但缺少 reservationId，无法释放积分')
@@ -536,6 +547,7 @@ export function useVideoPolling(
     // 清理已完成但未正确移除的轮询任务
     if (pollingJobIds.size > 0) {
       const jobIdsToClean = new Set<string>()
+      const TASK_MAX_AGE = 60 * 60 * 1000 // 🔥 修复：1小时最大年龄限制
 
       pollingJobIds.forEach(jobId => {
         const job = videoContext.activeJobs.find(j => j.id === jobId)
@@ -545,6 +557,14 @@ export function useVideoPolling(
         } else if (job.status === "completed" || job.status === "failed" || job.status === "storing") {
           // 任务已完成，应该清理
           jobIdsToClean.add(jobId)
+        } else {
+          // 🔥 修复：检查任务年龄，强制清理过期任务
+          const taskAge = Date.now() - new Date(job.createdAt).getTime()
+          if (taskAge > TASK_MAX_AGE) {
+            console.warn(`🚨 任务 ${jobId} 已存在超过1小时，强制标记为失败并清理`)
+            videoContext.failJob(jobId, "Task exceeded maximum age (1 hour)")
+            jobIdsToClean.add(jobId)
+          }
         }
       })
 
