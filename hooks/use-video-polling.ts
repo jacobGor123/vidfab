@@ -243,8 +243,6 @@ export function useVideoPolling(
         case "completed":
           if (resultUrl) {
             // 🔥 1. 简化积分处理 - 直接触发积分刷新（因为我们使用即时扣除模式）
-            console.log('✅ 视频生成完成，触发积分刷新')
-
             // 触发前端积分刷新（通过广播事件）
             window.dispatchEvent(new CustomEvent('credits-updated', {
               detail: {
@@ -315,7 +313,6 @@ export function useVideoPolling(
 
               if (releaseResponse.ok) {
                 const releaseData = await releaseResponse.json()
-                console.log(`✅ 积分释放成功 - 用户: ${job.userId}, 释放积分: ${releaseData.credits_released}`)
 
                 // 🔥 触发前端积分刷新
                 window.dispatchEvent(new CustomEvent('credits-updated', {
@@ -393,7 +390,6 @@ export function useVideoPolling(
 
       // 忽略 AbortError (主动取消的请求)
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log(`轮询任务 ${jobId} 已被取消`)
         return
       }
 
@@ -784,7 +780,6 @@ export function useVideoPolling(
       })
 
       if (jobsNeedingPolling.length > 0) {
-        console.log(`🔄 自动恢复 ${jobsNeedingPolling.length} 个轮询任务`)
         jobsNeedingPolling.forEach(job => {
           startPolling(job.id)
         })
