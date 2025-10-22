@@ -211,7 +211,6 @@ export function useSimpleSubscription(): UseSimpleSubscriptionReturn {
   // 🔥 监听积分更新事件（视频完成时自动刷新积分）
   useEffect(() => {
     const handleCreditsUpdate = () => {
-      console.log('🔄 收到积分更新事件，刷新积分信息')
       refreshCredits()
     }
 

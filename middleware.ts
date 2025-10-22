@@ -35,6 +35,7 @@ const protectedRoutes = [
   '/settings',
   '/video',
   '/subscription',
+  '/admin', // Admin dashboard (additional admin check in layout)
 ]
 
 function isPublicPath(pathname: string): boolean {

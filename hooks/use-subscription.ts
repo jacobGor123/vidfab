@@ -276,18 +276,22 @@ export function useSubscription(): UseSubscriptionReturn {
   // 🔥 监听积分更新事件，实时更新积分余额
   useEffect(() => {
     const handleCreditsUpdate = (event: CustomEvent) => {
-      const { creditsRemaining: newCreditsRemaining, creditsConsumed } = event.detail
+      const { creditsRemaining: newCreditsRemaining, creditsConsumed } = event.detail || {}
 
-      console.log(`🔄 积分余额实时更新 - 新余额: ${newCreditsRemaining}, 本次消费: ${creditsConsumed}`)
+      // 只在有有效数据时更新
+      if (typeof newCreditsRemaining === 'number') {
+        // 立即更新积分余额
+        setCreditsRemaining(newCreditsRemaining)
 
-      // 立即更新积分余额
-      setCreditsRemaining(newCreditsRemaining)
-
-      // 同时更新订阅信息中的积分
-      setSubscription(prev => prev ? {
-        ...prev,
-        credits_remaining: newCreditsRemaining
-      } : null)
+        // 同时更新订阅信息中的积分
+        setSubscription(prev => prev ? {
+          ...prev,
+          credits_remaining: newCreditsRemaining
+        } : null)
+      } else {
+        // 如果没有具体数值，触发完整刷新
+        fetchSubscriptionStatus()
+      }
     }
 
     // 监听积分更新事件
@@ -296,7 +300,7 @@ export function useSubscription(): UseSubscriptionReturn {
     return () => {
       window.removeEventListener('credits-updated', handleCreditsUpdate as EventListener)
     }
-  }, [])
+  }, [fetchSubscriptionStatus])
 
   return {
     subscription,

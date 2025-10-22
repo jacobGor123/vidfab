@@ -5,7 +5,7 @@
  * 1:1 replica of text-to-video functionality with image upload capability
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -34,18 +34,11 @@ import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 // Types
 import { VideoGenerationRequest, DURATION_MAP } from "@/lib/types/video"
 import { ImageProcessor } from "@/lib/image-processor"
-
-interface ImageToVideoParams {
-  image: string // Image URL or base64
-  imageFile: File | null // Local file reference
-  uploadMode: 'local' | 'url'
-  prompt: string
-  model: string
-  duration: string
-  resolution: string
-  aspectRatio: string
-  style: string
-}
+import { UploadTask } from "./image-upload/types"
+import { ImageToVideoParams } from "./types"
+import { useImageUpload } from "./hooks/use-image-upload"
+import { ImageUploadArea } from "./image-upload/image-upload-area"
+import { ImageUploadGrid } from "./image-upload/image-upload-grid"
 
 export function ImageToVideoPanelEnhanced() {
   const isMobile = useIsMobile()
@@ -64,15 +57,30 @@ export function ImageToVideoPanelEnhanced() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [showLimitDialog, setShowLimitDialog] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [imageUploadProgress, setImageUploadProgress] = useState(0)
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [uploadHistory, setUploadHistory] = useState<Array<{id: string, name: string, size: string, timestamp: Date}>>([])
 
   // Context and hooks
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
+
+  // 🔥 多图上传 Hook
+  const imageUpload = useImageUpload(
+    {
+      uploadMode: params.uploadMode,
+      onAuthRequired: async () => {
+        return await authModal.requireAuth(async () => {
+          // 认证成功后继续上传
+        })
+      }
+    },
+    (imageUrl: string) => {
+      // 当图片被选中时,更新 params
+      setParams(prev => ({
+        ...prev,
+        imageFile: null,
+        image: imageUrl
+      }))
+    }
+  )
   const { getRemixData, clearRemixData } = useRemix()
   const {
     creditsInfo: subscription,
@@ -87,7 +95,6 @@ export function ImageToVideoPanelEnhanced() {
   // Video polling
   const videoPolling = useVideoPolling({
     onCompleted: (job, resultUrl) => {
-      console.log('Image-to-video generation completed:', job.id)
       // 🔥 刷新积分显示，确保前端显示的积分数是最新的
       refreshCredits()
     },
@@ -101,7 +108,6 @@ export function ImageToVideoPanelEnhanced() {
   // Video generation
   const videoGeneration = useVideoGeneration({
     onSuccess: (jobId) => {
-      console.log('Image-to-video generation started successfully:', jobId)
       startPolling(jobId) // 🔥 启动轮询
     },
     onError: (error) => {
@@ -156,32 +162,22 @@ export function ImageToVideoPanelEnhanced() {
   useEffect(() => {
     const remixData = getRemixData()
     if (remixData) {
-      // 🔥 Download image from URL, convert to File, and upload to Supabase
+      // 🔥 Download image from URL, convert to File, and upload using Hook
       const loadAndUploadRemixImage = async () => {
         try {
-          setIsUploadingImage(true)
-          setImageUploadProgress(5)
-
           // Fetch the image through proxy to avoid CORS issues
           const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(remixData.imageUrl)}`
           const response = await fetch(proxyUrl)
-          setImageUploadProgress(15)
 
           if (!response.ok) {
             throw new Error('Failed to fetch image')
           }
 
           const blob = await response.blob()
-          setImageUploadProgress(25)
 
           // Create File object from blob
           const fileName = remixData.imageUrl.split('/').pop() || 'remixed-image.webp'
           const file = new File([blob], fileName, { type: blob.type })
-
-          // Set preview immediately
-          const previewUrl = URL.createObjectURL(blob)
-          setImagePreview(previewUrl)
-          setImageUploadProgress(35)
 
           // Set prompt
           setParams(prev => ({
@@ -190,52 +186,11 @@ export function ImageToVideoPanelEnhanced() {
             uploadMode: 'local' // 🔥 Use local mode for remix images
           }))
 
-          // Process and upload to Supabase
-          setImageUploadProgress(45)
-          const processedResult = await ImageProcessor.processImageSmart(file)
-          setImageUploadProgress(60)
-
-          // Upload to Supabase
-          const formData = new FormData()
-          formData.append('file', processedResult.file)
-          formData.append('autoOptimized', 'true')
-
-          const uploadResponse = await fetch('/api/images/upload', {
-            method: 'POST',
-            body: formData
-          })
-
-          const result = await uploadResponse.json()
-
-          if (!uploadResponse.ok) {
-            throw new Error(result.error || 'Upload failed')
-          }
-
-          setImageUploadProgress(90)
-
-          // Set final Supabase URL
-          setParams(prev => ({
-            ...prev,
-            imageFile: null,
-            image: result.data.url
-          }))
-
-          // Add to upload history
-          setUploadHistory(prev => [{
-            id: result.data.id,
-            name: file.name,
-            size: `${(result.data.size / 1024).toFixed(1)}KB`,
-            timestamp: new Date()
-          }, ...prev.slice(0, 4)])
-
-          setImageUploadProgress(100)
-          setIsUploadingImage(false)
+          // 🔥 使用 imageUpload Hook 上传图片
+          await imageUpload.uploadImage(file)
 
         } catch (error) {
           console.error('Failed to load remix image:', error)
-          setIsUploadingImage(false)
-          setImageUploadProgress(0)
-          setImagePreview(null)
 
           // Fallback: just set the prompt
           setParams(prev => ({
@@ -251,7 +206,7 @@ export function ImageToVideoPanelEnhanced() {
       clearRemixData()
 
     }
-  }, [getRemixData, clearRemixData])
+  }, [getRemixData, clearRemixData, imageUpload])
 
   // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
@@ -301,152 +256,27 @@ export function ImageToVideoPanelEnhanced() {
     return errors
   }, [params])
 
-  // Image upload handling with compression and Supabase integration
-  const handleImageUpload = async (file: File) => {
-    if (!file) return
-
-    // 检查用户认证状态
-    const authSuccess = await authModal.requireAuth(async () => {
-      await uploadImageFile(file)
-    })
-
-    if (!authSuccess) {
-      return
-    }
-  }
-
-  // 实际的图片上传逻辑，分离出来以便于认证检查
-  const uploadImageFile = async (file: File) => {
-    setIsUploadingImage(true)
-    setImageUploadProgress(0)
-
-    const startTime = Date.now()
-
-    try {
-
-      // Step 1: Validate image (5%)
-      setImageUploadProgress(5)
-      const validation = ImageProcessor.validateImage(file)
-      if (!validation.valid) {
-        throw new Error(validation.error)
-      }
-
-      // Step 2: Create immediate preview (15%)
-      setImageUploadProgress(15)
-      const previewUrl = await ImageProcessor.createPreviewUrl(file)
-      setImagePreview(previewUrl)
-
-      // Step 3: 🤖 智能处理和压缩图片 (45%)
-      setImageUploadProgress(30)
-      const processedResult = await ImageProcessor.processImageSmart(file)
-
-
-      setImageUploadProgress(60)
-
-      // Step 4: Upload to Supabase (85%)
-      const formData = new FormData()
-      formData.append('file', processedResult.file)
-      formData.append('autoOptimized', 'true')
-
-      const response = await fetch('/api/images/upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Upload failed')
-      }
-
-      setImageUploadProgress(90)
-
-      // Step 5: Complete (100%)
-      setParams(prev => ({
-        ...prev,
-        imageFile: null,
-        image: result.data.url
-      }))
-
-      setImageUploadProgress(100)
-
-      // Add to upload history
-      setUploadHistory(prev => [{
-        id: result.data.id,
-        name: file.name,
-        size: `${(result.data.size / 1024).toFixed(1)}KB`,
-        timestamp: new Date()
-      }, ...prev.slice(0, 4)]) // Keep only last 5 uploads
-
-
-      setValidationErrors([])
-
-    } catch (error) {
-      setValidationErrors([error instanceof Error ? error.message : "Failed to process image. Please try again."])
-      setImagePreview(null)
-      setParams(prev => ({ ...prev, imageFile: null, image: '' }))
-    } finally {
-      setIsUploadingImage(false)
-      setTimeout(() => setImageUploadProgress(0), 2000)
-    }
-  }
-
-  // Handle file input change
-  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      handleImageUpload(file)
-    }
-  }
-
-  // Drag and drop handlers
+  // 🔥 拖放处理器（支持多图）
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
-    setIsDragging(true)
+    imageUpload.setIsDragging(true)
   }
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault()
-    setIsDragging(false)
+    imageUpload.setIsDragging(false)
   }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
-    setIsDragging(false)
+    imageUpload.setIsDragging(false)
 
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
-      handleImageUpload(files[0])
+    const filesArray = Array.from(e.dataTransfer.files)
+    const imageFiles = filesArray.filter(file => file.type.startsWith('image/'))
+
+    if (imageFiles.length > 0) {
+      imageUpload.uploadMultiple(imageFiles)
     }
-  }
-
-  const removeImage = async () => {
-    // If there's a Supabase URL, attempt to delete the image
-    if (params.image && params.uploadMode === 'local') {
-      try {
-        // Extract image ID from URL for deletion
-        const urlParts = params.image.split('/')
-        const imageFile = urlParts[urlParts.length - 1]
-        const imageId = imageFile.split('.')[0]
-
-        if (imageId) {
-          await fetch(`/api/images/upload?imageId=${imageId}`, {
-            method: 'DELETE'
-          })
-
-          // Remove from upload history
-          setUploadHistory(prev => prev.filter(item => item.id !== imageId))
-        }
-      } catch (error) {
-        // Don't throw error, just log warning
-      }
-    }
-
-    // Clear local state
-    setParams(prev => ({ ...prev, imageFile: null, image: '' }))
-    setImagePreview(null)
-    setImageUploadProgress(0)
-    setValidationErrors([]) // Clear any image-related errors
   }
 
   // Generate video
@@ -469,7 +299,6 @@ export function ImageToVideoPanelEnhanced() {
         const oldestItem = sortedCompleted[0]
         // 只从前端预览移除，不删除数据库记录
         videoContext.removeCompletedVideo(oldestItem.id)
-        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
       } else {
         // 如果没有已完成的视频可清理，显示限制提示
         setShowLimitDialog(true)
@@ -640,100 +469,26 @@ export function ImageToVideoPanelEnhanced() {
                   </div>
 
                   {params.uploadMode === "local" ? (
-                    /* Local Upload Mode */
+                    /* 🔥 多图上传模式 */
                     <div className="space-y-4">
+                      <ImageUploadArea
+                        disabled={videoGeneration.isGenerating}
+                        onFilesSelected={imageUpload.uploadMultiple}
+                        multiple={true}
+                        isDragging={imageUpload.isDragging}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                      />
 
-                      {!imagePreview ? (
-                        <div
-                          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer ${
-                            isDragging
-                              ? 'border-purple-400 bg-purple-500/10'
-                              : 'border-gray-700 hover:border-purple-500/50'
-                          }`}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onDrop={handleDrop}
-                        >
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={handleFileInputChange}
-                            className="hidden"
-                            id="image-upload"
-                            disabled={isUploadingImage || videoGeneration.isGenerating}
-                          />
-                          <label htmlFor="image-upload" className="cursor-pointer block">
-                            <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-gray-600 transition-colors">
-                              <Upload className="w-8 h-8 text-gray-400" />
-                            </div>
-                            <p className="text-gray-300 mb-2">
-                              {isDragging ? 'Drop image here' : 'Click to upload or drag & drop'}
-                            </p>
-                            <p className="text-sm text-gray-500">JPEG, PNG, WebP (max 10MB)</p>
-                          </label>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="relative">
-                            <img
-                              src={imagePreview}
-                              alt="Uploaded image"
-                              className="w-full max-h-64 object-contain rounded-lg bg-gray-800"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={removeImage}
-                              disabled={videoGeneration.isGenerating}
-                              className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white w-8 h-8"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                            {uploadHistory.length > 0 && (
-                              <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                                {uploadHistory[0].size} • auto-optimized
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Upload Success Feedback */}
-                          {uploadHistory.length > 0 && !isUploadingImage && (
-                            <div className="flex items-center gap-2 text-sm text-green-400">
-                              <CheckCircle className="w-4 h-4" />
-                              <span>
-                                Upload successful • Saved {uploadHistory[0].size} to cloud
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Upload Progress */}
-                      {isUploadingImage && (
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-400">
-                              {imageUploadProgress < 15 ? 'Validating...' :
-                               imageUploadProgress < 60 ? 'Processing...' :
-                               imageUploadProgress < 90 ? 'Uploading...' : 'Completing...'}
-                            </span>
-                            <span className="text-gray-400">{imageUploadProgress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-700 rounded-full h-2">
-                            <div
-                              className="bg-gradient-to-r from-purple-500 to-cyan-400 h-2 rounded-full transition-all duration-500 ease-out"
-                              style={{ width: `${imageUploadProgress}%` }}
-                            />
-                          </div>
-                          <div className="text-xs text-gray-500 text-center">
-                            {imageUploadProgress < 15 ? 'Checking file format and size...' :
-                             imageUploadProgress < 30 ? 'Creating preview...' :
-                             imageUploadProgress < 60 ? '🤖 Auto-optimizing image quality...' :
-                             imageUploadProgress < 90 ? 'Uploading to cloud storage...' :
-                             'Finalizing upload...'}
-                          </div>
-                        </div>
-                      )}
+                      <ImageUploadGrid
+                        tasks={imageUpload.uploadTasks}
+                        selectedId={imageUpload.selectedImageId}
+                        onSelectImage={imageUpload.selectImage}
+                        onRemoveTask={imageUpload.removeTask}
+                        onClearAll={() => imageUpload.clearAll()}
+                        disabled={videoGeneration.isGenerating}
+                      />
                     </div>
                   ) : (
                     /* URL Upload Mode */
@@ -758,7 +513,7 @@ export function ImageToVideoPanelEnhanced() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={removeImage}
+                            onClick={() => updateParam("image", "")}
                             disabled={videoGeneration.isGenerating}
                             className="w-full text-gray-400 hover:text-white hover:bg-gray-800"
                           >
@@ -915,7 +670,7 @@ export function ImageToVideoPanelEnhanced() {
               {/* Generate button */}
               <Button
                 onClick={handleGenerate}
-                disabled={!params.prompt.trim() || !params.image || videoGeneration.isGenerating || authModal.isLoading || processingJobs.length >= 4 || isUploadingImage}
+                disabled={!params.prompt.trim() || !params.image || videoGeneration.isGenerating || authModal.isLoading || processingJobs.length >= 4}
                 className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-6 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 {videoGeneration.isGenerating ? (
@@ -931,11 +686,6 @@ export function ImageToVideoPanelEnhanced() {
                 ) : !authModal.isAuthenticated ? (
                   <>
                     Sign In & Generate Video
-                  </>
-                ) : isUploadingImage ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Processing Image...
                   </>
                 ) : processingJobs.length >= 4 ? (
                   <>
