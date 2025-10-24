@@ -308,6 +308,86 @@ CREATE TRIGGER update_{table}_updated_at
 |------|----------|------|
 | GET /api/admin/tasks | ~300ms | 50 tasks, 6 tables parallel |
 
+## 🐛 已修复问题
+
+### 2025-01-24 (2): 修改为读取 user_videos 表
+
+**问题描述:**
+- 管理后台显示 "No tasks yet",但数据库中有 238 条数据
+- 数据存储在 `user_videos` 表,而非 `video_generation_tasks` 表
+
+**根本原因:**
+项目实际使用 `user_videos` 表存储视频生成任务,但管理后台默认读取 `video_generation_tasks` 等专用任务表。
+
+**解决方案:**
+修改管理后台,将视频生成任务的数据源从 `video_generation_tasks` 改为 `user_videos` 表:
+
+1. **修改表映射** (`lib/admin/all-tasks-fetcher.ts:21`)
+   ```typescript
+   video_generation: 'user_videos', // 使用 user_videos 存储历史数据
+   ```
+
+2. **优化数据查询** (`lib/admin/all-tasks-fetcher.ts:141-170`)
+   - 通过 JOIN users 表获取 user_email
+   - 适配 user_videos 表的字段命名
+
+3. **更新字段映射** (`lib/admin/all-tasks-fetcher.ts:35-63`)
+   - `original_url` → `video_url`
+   - `wavespeed_request_id` → `external_task_id`
+   - `error_message` → `error`
+   - `download_progress` → `progress`
+   - `settings.model` → `model`
+
+**修改的文件:**
+- `lib/admin/all-tasks-fetcher.ts` - 主要业务逻辑修改
+
+**影响:**
+- ✅ 管理后台能正常显示所有 238 条视频生成任务
+- ✅ 统计数据正确显示
+- ✅ 支持通过 user_id JOIN 获取用户邮箱
+- ✅ 兼容 user_videos 表的字段结构
+
+---
+
+### 2025-01-24 (1): 修复数据缓存问题
+
+**问题描述:**
+- `/admin/paid-orders` 和 `/admin/tasks` 页面数据不更新
+- 数据库中已有新数据,但页面显示的是旧数据
+
+**根本原因:**
+Next.js 13+ 默认会缓存所有 Server Components。管理后台的所有页面都是 Server Components,但没有配置动态渲染,导致:
+1. 页面被静态渲染和缓存
+2. 刷新页面时返回缓存的数据
+3. 无法看到数据库中的最新数据
+
+**解决方案:**
+在所有管理后台页面和布局文件中添加强制动态渲染配置:
+
+```typescript
+// 🔥 Force dynamic rendering - disable caching for admin pages
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+```
+
+**修改的文件:**
+- `app/(main)/admin/layout.tsx` - 管理后台布局
+- `app/(main)/admin/users/page.tsx` - 用户管理页
+- `app/(main)/admin/paid-orders/page.tsx` - 订单管理页
+- `app/(main)/admin/tasks/page.tsx` - 任务管理页
+- `app/(main)/admin/debug/page.tsx` - 调试页面
+
+**影响:**
+- ✅ 管理后台页面始终显示最新数据
+- ✅ 每次访问都会重新从数据库获取数据
+- ⚠️ 性能略有下降(但对于管理后台来说可以接受)
+
+**参考文档:**
+- [Next.js Dynamic Rendering](https://nextjs.org/docs/app/building-your-application/rendering/server-components#dynamic-rendering)
+- [Next.js Route Segment Config](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamic)
+
+---
+
 ## 🔄 下一步优化建议
 
 ### 短期优化 (1-2周)

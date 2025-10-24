@@ -21,10 +21,20 @@ const ADMIN_EMAILS = process.env.ADMIN_EMAILS
  */
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) {
+    console.log('[Admin Auth] No email provided');
     return false;
   }
 
-  return ADMIN_EMAILS.includes(email.toLowerCase());
+  const emailLower = email.toLowerCase();
+  const isAdmin = ADMIN_EMAILS.includes(emailLower);
+
+  console.log('[Admin Auth] Checking email:', {
+    email: emailLower,
+    adminEmails: ADMIN_EMAILS,
+    isAdmin,
+  });
+
+  return isAdmin;
 }
 
 /**
@@ -35,13 +45,19 @@ export async function getCurrentUser() {
   try {
     const session = await getServerSession(authConfig as any);
 
+    console.log('[Admin Auth] Session status:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userEmail: session?.user?.email || 'N/A',
+    });
+
     if (!session || !session.user) {
       return null;
     }
 
     return session.user;
   } catch (err) {
-    console.error('Error in getCurrentUser:', err);
+    console.error('[Admin Auth] Error in getCurrentUser:', err);
     return null;
   }
 }
@@ -51,13 +67,23 @@ export async function getCurrentUser() {
  * @returns True if current user is admin
  */
 export async function isCurrentUserAdmin(): Promise<boolean> {
+  console.log('[Admin Auth] Checking if current user is admin...');
+
   const user = await getCurrentUser();
 
   if (!user || !user.email) {
+    console.log('[Admin Auth] No user or email found');
     return false;
   }
 
-  return isAdminEmail(user.email);
+  const isAdmin = isAdminEmail(user.email);
+
+  console.log('[Admin Auth] Final result:', {
+    userEmail: user.email,
+    isAdmin,
+  });
+
+  return isAdmin;
 }
 
 /**
