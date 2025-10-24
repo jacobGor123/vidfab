@@ -9,6 +9,10 @@ import { TaskType } from '@/types/admin/tasks';
 import TaskTypeFilter from '@/components/admin/task-type-filter';
 import TasksListWithPagination from '@/components/admin/tasks-list-with-pagination';
 
+// 🔥 Force dynamic rendering - disable caching for admin pages
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Note: Removed edge runtime - NextAuth requires Node.js runtime
 
 interface TasksPageProps {

@@ -18,7 +18,7 @@ import {
  */
 function getTableName(taskType: TaskType): string {
   const mapping: Record<TaskType, string> = {
-    video_generation: 'video_generation_tasks',
+    video_generation: 'user_videos', // 🔥 Using user_videos for historical data
     audio_generation: 'audio_generation_tasks',
     watermark_removal: 'watermark_removal_tasks',
     video_upscaler: 'video_upscaler_tasks',
@@ -40,11 +40,11 @@ function normalizeTask(rawTask: any, taskType: TaskType): UnifiedTask {
     user_id: rawTask.user_id || null,
     user_email: rawTask.user_email || null,
     status: rawTask.status,
-    progress: rawTask.progress || 0,
+    progress: rawTask.download_progress || rawTask.progress || (rawTask.status === 'completed' ? 100 : 0),
     created_at: rawTask.created_at,
     updated_at: rawTask.updated_at,
     credits_used: rawTask.credits_used || 0,
-    error: rawTask.error || null,
+    error: rawTask.error_message || rawTask.error || null,
   };
 
   // Add task-specific fields based on type
@@ -54,12 +54,12 @@ function normalizeTask(rawTask: any, taskType: TaskType): UnifiedTask {
         ...base,
         input_image_url: rawTask.image_url || rawTask.input_image || null,
         prompt: rawTask.prompt || rawTask.description || null,
-        video_url: rawTask.video_url || rawTask.result_url || null,
-        model: rawTask.model || rawTask.provider || null,
-        provider: rawTask.provider || null,
-        duration: rawTask.duration || null,
+        video_url: rawTask.original_url || rawTask.video_url || rawTask.result_url || null, // 🔥 user_videos uses 'original_url'
+        model: rawTask.settings?.model || rawTask.model || rawTask.provider || null,
+        provider: rawTask.settings?.model || rawTask.provider || null,
+        duration: rawTask.duration_seconds || rawTask.duration || null,
         replicate_prediction_id: rawTask.replicate_prediction_id || null,
-        external_task_id: rawTask.external_task_id || null,
+        external_task_id: rawTask.wavespeed_request_id || rawTask.external_task_id || null, // 🔥 user_videos uses 'wavespeed_request_id'
       } as UnifiedTask;
 
     case 'audio_generation':
@@ -126,7 +126,7 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
   const tablesToQuery: { table: string; type: TaskType }[] = taskType
     ? [{ table: getTableName(taskType), type: taskType }]
     : [
-        { table: 'video_generation_tasks', type: 'video_generation' },
+        { table: 'user_videos', type: 'video_generation' }, // 🔥 Using user_videos for video generation
         { table: 'audio_generation_tasks', type: 'audio_generation' },
         { table: 'watermark_removal_tasks', type: 'watermark_removal' },
         { table: 'video_upscaler_tasks', type: 'video_upscaler' },
@@ -137,6 +137,39 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
   // Query all tables in parallel
   const results = await Promise.allSettled(
     tablesToQuery.map(({ table, type }) => {
+      // 🔥 Special handling for user_videos: JOIN with users table to get email
+      if (table === 'user_videos') {
+        let query = supabase
+          .from(table)
+          .select('*, users(email)')
+          .order('created_at', { ascending: false });
+
+        // Apply cursor if provided (only get tasks older than cursor)
+        if (cursor) {
+          query = query.lt('created_at', cursor);
+        }
+
+        // Fetch limit + 1 to determine if there are more results
+        return query
+          .limit(limit + 1)
+          .then(({ data, error }) => {
+            if (error) {
+              console.error(`Failed to fetch ${table}:`, error.message);
+              return [];
+            }
+            // Flatten the users object to get email
+            return (data || []).map((item: any) => {
+              const flatItem = {
+                ...item,
+                user_email: item.users?.email || null,
+              };
+              delete flatItem.users;
+              return normalizeTask(flatItem, type);
+            });
+          });
+      }
+
+      // Standard query for other tables
       let query = supabase
         .from(table)
         .select('*')
@@ -152,7 +185,7 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
         .limit(limit + 1)
         .then(({ data, error }) => {
           if (error) {
-            console.warn(`⚠️  Failed to fetch ${table}:`, error.message);
+            console.warn(`Failed to fetch ${table}:`, error.message);
             return [];
           }
           return (data || []).map((item) => normalizeTask(item, type));
@@ -194,7 +227,7 @@ export async function fetchTaskStats(taskType?: TaskType): Promise<TaskStats> {
   const tablesToQuery = taskType
     ? [getTableName(taskType)]
     : [
-        'video_generation_tasks',
+        'user_videos', // 🔥 Using user_videos for video generation stats
         'audio_generation_tasks',
         'watermark_removal_tasks',
         'video_upscaler_tasks',

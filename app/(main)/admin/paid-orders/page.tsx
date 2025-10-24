@@ -9,6 +9,10 @@ import TableSlot from '@/components/dashboard/slots/table';
 import { Table as TableSlotType } from '@/types/slots/table';
 import { TableColumn } from '@/types/blocks/table';
 
+// 🔥 Force dynamic rendering - disable caching for admin pages
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Note: Removed edge runtime - NextAuth requires Node.js runtime
 
 export default async function PaidOrdersPage() {
