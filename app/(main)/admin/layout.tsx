@@ -9,6 +9,10 @@ import { redirect } from 'next/navigation';
 import { isCurrentUserAdmin } from '@/lib/admin/auth';
 import SidebarNav from '@/components/admin/sidebar-nav';
 
+// 🔥 Force dynamic rendering - disable caching for admin pages
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminLayout({
   children,
 }: {
