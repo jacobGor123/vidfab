@@ -73,22 +73,37 @@ export default function TasksListWithPagination({
     title: `${taskType ? getTaskTypeLabel(taskType) + ' - ' : ''}Task Management (Total: ${stats.total} | Completed: ${stats.completed} | Failed: ${stats.failed} | Processing: ${stats.processing})`,
     columns: [
       {
-        name: 'task_type',
-        title: 'Type',
-        className: 'w-24',
+        name: 'generation_type',
+        title: 'Generation Type',
+        className: 'w-36',
         callback: (item: UnifiedTask) => {
-          const colors: Record<TaskType, string> = {
-            video_generation: 'bg-blue-100 text-blue-800 border-blue-200',
-            audio_generation: 'bg-orange-100 text-orange-800 border-orange-200',
-            watermark_removal: 'bg-purple-100 text-purple-800 border-purple-200',
-            video_upscaler: 'bg-green-100 text-green-800 border-green-200',
-            video_effects: 'bg-pink-100 text-pink-800 border-pink-200',
-            face_swap: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-          };
-          const color = colors[item.task_type] || 'bg-gray-100 text-gray-800 border-gray-200';
+          let color: string;
+          let icon: string;
+          let label: string;
+
+          switch (item.generation_type) {
+            case 'image_to_video':
+              color = 'bg-purple-100 text-purple-800 border-purple-200';
+              icon = '🖼️';
+              label = 'Image to Video';
+              break;
+            case 'video_effects':
+              color = 'bg-pink-100 text-pink-800 border-pink-200';
+              icon = '✨';
+              label = 'Video Effects';
+              break;
+            case 'text_to_video':
+            default:
+              color = 'bg-blue-100 text-blue-800 border-blue-200';
+              icon = '✍️';
+              label = 'Text to Video';
+              break;
+          }
+
           return (
-            <span className={`px-2 py-1 rounded text-xs font-medium border ${color} whitespace-nowrap`}>
-              {getTaskTypeLabel(item.task_type)}
+            <span className={`px-2 py-1 rounded text-xs font-medium border ${color} whitespace-nowrap inline-flex items-center gap-1`}>
+              <span>{icon}</span>
+              <span>{label}</span>
             </span>
           );
         },
@@ -109,36 +124,53 @@ export default function TasksListWithPagination({
         },
       },
       {
-        name: 'input_content',
-        title: 'Input',
-        className: 'w-32',
+        name: 'input_image',
+        title: 'Input Image',
+        className: 'w-28',
         callback: (item: UnifiedTask) => {
-          if (item.input_image_url || item.face_image_url) {
-            return <MediaPreview src={item.input_image_url || item.face_image_url} type="image" alt="Input Image" placeholder="No image" />;
-          }
-          if (item.input_video_url) {
-            return <MediaPreview src={item.input_video_url} type="video" alt="Input Video" placeholder="No video" />;
-          }
-          if (item.prompt) {
-            const short = item.prompt.substring(0, 30);
-            return (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="cursor-help">
-                      <span className="text-xs text-gray-600 line-clamp-2">
-                        {short}{item.prompt.length > 30 ? '...' : ''}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-md">
-                    <p className="text-sm whitespace-pre-wrap">{item.prompt}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
+          if (item.input_image_url) {
+            return <MediaPreview src={item.input_image_url} type="image" alt="Input Image" placeholder="No image" />;
           }
           return <span className="text-gray-400 text-xs">-</span>;
+        },
+      },
+      {
+        name: 'prompt',
+        title: 'Prompt / Effect',
+        className: 'w-48',
+        callback: (item: UnifiedTask) => {
+          // 如果是 video-effects，优先显示特效名称
+          if (item.generation_type === 'video_effects' && item.effectName) {
+            return (
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2 py-1 rounded bg-pink-50 text-pink-700 border border-pink-200">
+                  ✨ {item.effectName}
+                </span>
+              </div>
+            );
+          }
+
+          if (!item.prompt) {
+            return <span className="text-gray-400 text-xs">-</span>;
+          }
+
+          const short = item.prompt.substring(0, 50);
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="cursor-help">
+                    <span className="text-xs text-gray-700 line-clamp-2">
+                      {short}{item.prompt.length > 50 ? '...' : ''}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-md">
+                  <p className="text-sm whitespace-pre-wrap">{item.prompt}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
         },
       },
       {
@@ -168,13 +200,15 @@ export default function TasksListWithPagination({
       {
         name: 'status',
         title: 'Status',
-        className: 'w-24',
+        className: 'w-28',
         callback: (item: UnifiedTask) => {
           const statusColors = {
-            pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            processing: 'bg-blue-100 text-blue-800 border-blue-200',
+            generating: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            downloading: 'bg-blue-100 text-blue-800 border-blue-200',
+            processing: 'bg-purple-100 text-purple-800 border-purple-200',
             completed: 'bg-green-100 text-green-800 border-green-200',
             failed: 'bg-red-100 text-red-800 border-red-200',
+            deleted: 'bg-gray-100 text-gray-500 border-gray-200',
           };
           const color = statusColors[item.status] || 'bg-gray-100 text-gray-800 border-gray-200';
 
@@ -196,17 +230,20 @@ export default function TasksListWithPagination({
         },
       },
       {
-        name: 'credits_used',
-        title: 'Credits',
-        className: 'w-16 text-right',
+        name: 'model',
+        title: 'Model',
+        className: 'w-24',
         callback: (item: UnifiedTask) => {
-          return <span className="text-sm font-mono">{item.credits_used}</span>;
+          if (!item.model) {
+            return <span className="text-gray-400 text-xs">-</span>;
+          }
+          return <span className="text-xs font-mono text-gray-700">{item.model}</span>;
         },
       },
       {
         name: 'created_at',
         title: 'Created',
-        className: 'w-32',
+        className: 'w-36',
         callback: (item: UnifiedTask) => {
           const date = new Date(item.created_at);
           return (
