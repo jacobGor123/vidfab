@@ -112,7 +112,14 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
         duration: settings.duration,
         resolution: settings.resolution,
         aspectRatio: settings.aspectRatio,
-        style: settings.style
+        style: settings.style,
+        // 🔥 保存图片 URL（如果是 image-to-video）
+        image_url: settings.image_url || settings.imageUrl || settings.image || null,
+        // 🔥 保存特效信息（如果是 video-effects）
+        effectId: settings.effectId || null,
+        effectName: settings.effectName || null,
+        // 🔥 保存生成类型
+        generationType: settings.generationType || null
       },
       originalUrl
     }, userEmail) // 🔥 传递userEmail参数
