@@ -82,7 +82,14 @@ export function useVideoPolling(
           originalUrl: resultUrl,
           settings: {
             ...job.settings,
-            prompt: job.prompt
+            prompt: job.prompt,
+            // 🔥 传递图片 URL（如果是 image-to-video）
+            image_url: job.sourceImage || job.settings.image_url || job.settings.image || null,
+            // 🔥 传递特效信息（如果是 video-effects）
+            effectId: job.effectId || job.settings.effectId || null,
+            effectName: job.effectName || job.settings.effectName || null,
+            // 🔥 传递生成类型
+            generationType: job.generationType || job.settings.generationType || null
           }
         })
       })

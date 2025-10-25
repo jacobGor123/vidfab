@@ -1,60 +1,57 @@
 /**
  * Admin Tasks Type Definitions
  * Unified task interface for all task types in the admin dashboard
+ *
+ * Note: 当前所有任务都存储在 user_videos 表中
+ * TaskType 保留用于未来扩展或分类显示
  */
 
-export type TaskType =
-  | 'video_generation'    // Image to video generation
-  | 'audio_generation'    // Video audio/sound effects
-  | 'watermark_removal'   // Video watermark removal
-  | 'video_upscaler'      // Video upscaling/super resolution
-  | 'video_effects'       // AI video effects
-  | 'face_swap';          // Face swap in videos
+export type TaskType = 'video_generation';  // 当前仅支持视频生成任务
 
-export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type TaskStatus = 'generating' | 'downloading' | 'processing' | 'completed' | 'failed' | 'deleted';
+
+export type GenerationType = 'text_to_video' | 'image_to_video' | 'video_effects';
 
 /**
  * Unified Task Interface
- * Combines all task types into a single standardized format
+ * 基于 user_videos 表结构的统一任务接口
  */
 export interface UnifiedTask {
-  // Core fields (present in all tasks)
-  id: string;                      // Format: {task_type}_{original_id}
-  task_type: TaskType;
+  // 核心字段
+  id: string;                      // user_videos.id (UUID)
+  task_type: TaskType;             // 固定为 'video_generation'
   user_id: string | null;
   user_email: string | null;
   status: TaskStatus;
-  progress: number;                // 0-100
+  progress: number;                // 0-100 (download_progress)
   created_at: string;              // ISO timestamp
   updated_at: string;              // ISO timestamp
 
-  // Input data (varies by task type)
-  input_image_url?: string | null;
-  input_video_url?: string | null;
-  face_image_url?: string | null;
-  prompt?: string | null;
+  // 生成类型和输入数据
+  generation_type: GenerationType; // text_to_video / image_to_video / video_effects
+  input_image_url: string | null;  // settings.image_url（image_to_video 或 video_effects）
+  prompt: string;                  // user_videos.prompt
 
-  // Output data
-  result_url?: string | null;
-  video_url?: string | null;
-  audio_url?: string | null;
+  // 输出数据
+  video_url: string | null;        // user_videos.original_url
+  storage_path: string | null;     // user_videos.storage_path
+  thumbnail_path: string | null;   // user_videos.thumbnail_path
 
-  // Task parameters
-  model?: string | null;
-  provider?: string | null;
-  duration?: number | null;
-  target_resolution?: string | null;
-  template_id?: string | null;
-  template_name?: string | null;
+  // 任务参数
+  model: string | null;            // settings.model
+  duration: number | null;         // duration_seconds
+  settings: any;                   // 完整的 settings JSONB
 
-  // Credits and errors
-  credits_used: number;
-  error?: string | null;
+  // Video Effects 特有字段
+  effectId: string | null;         // settings.effectId
+  effectName: string | null;       // settings.effectName
 
-  // External task IDs
-  replicate_prediction_id?: string | null;
-  wavespeed_task_id?: string | null;
-  external_task_id?: string | null;
+  // 积分和错误
+  credits_used: number;            // 默认 0（当前未跟踪）
+  error: string | null;            // error_message
+
+  // 外部任务 ID
+  wavespeed_request_id: string;    // user_videos.wavespeed_request_id
 }
 
 /**

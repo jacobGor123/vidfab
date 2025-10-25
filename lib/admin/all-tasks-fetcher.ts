@@ -1,7 +1,7 @@
 /**
  * All Tasks Fetcher - Business Logic Layer
- * Handles fetching and aggregating tasks from multiple tables
- * Implements cursor-based pagination for optimal performance
+ * 从 user_videos 表获取所有任务数据
+ * 实现基于游标的分页以优化性能
  */
 
 import { getSupabaseAdminClient } from '@/models/db';
@@ -11,203 +11,122 @@ import {
   TaskStats,
   FetchTasksOptions,
   FetchTasksResult,
+  GenerationType,
 } from '@/types/admin/tasks';
 
 /**
- * Map task type to database table name
+ * 判断任务的生成类型
  */
-function getTableName(taskType: TaskType): string {
-  const mapping: Record<TaskType, string> = {
-    video_generation: 'user_videos', // 🔥 Using user_videos for historical data
-    audio_generation: 'audio_generation_tasks',
-    watermark_removal: 'watermark_removal_tasks',
-    video_upscaler: 'video_upscaler_tasks',
-    video_effects: 'video_effect_tasks',
-    face_swap: 'video_face_swap_tasks',
-  };
-  return mapping[taskType];
+function determineGenerationType(settings: any): GenerationType {
+  // 优先使用显式的 generationType 字段
+  if (settings?.generationType) {
+    return settings.generationType;
+  }
+
+  // 判断是否为 video-effects（通过 effectId 或 model）
+  if (settings?.effectId || settings?.effectName || settings?.model === 'video-effects') {
+    return 'video_effects';
+  }
+
+  // 判断是否为 image_to_video（通过 image_url）
+  if (settings?.image_url || settings?.imageUrl || settings?.inputImage) {
+    return 'image_to_video';
+  }
+
+  // 默认为 text_to_video
+  return 'text_to_video';
 }
 
 /**
- * Normalize raw task data to UnifiedTask format
- * Handles different field names across different task tables
+ * 将 user_videos 表数据标准化为 UnifiedTask 格式
  */
-function normalizeTask(rawTask: any, taskType: TaskType): UnifiedTask {
-  // Base fields common to all tasks
-  const base: Partial<UnifiedTask> = {
-    id: `${taskType}_${rawTask.id}`,
-    task_type: taskType,
+function normalizeTask(rawTask: any): UnifiedTask {
+  const settings = rawTask.settings || {};
+  const generationType = determineGenerationType(settings);
+
+  return {
+    id: rawTask.id,
+    task_type: 'video_generation',
     user_id: rawTask.user_id || null,
     user_email: rawTask.user_email || null,
     status: rawTask.status,
-    progress: rawTask.download_progress || rawTask.progress || (rawTask.status === 'completed' ? 100 : 0),
+    progress: rawTask.download_progress || (rawTask.status === 'completed' ? 100 : 0),
     created_at: rawTask.created_at,
     updated_at: rawTask.updated_at,
-    credits_used: rawTask.credits_used || 0,
-    error: rawTask.error_message || rawTask.error || null,
+
+    // 生成类型和输入数据
+    generation_type: generationType,
+    input_image_url: settings.image_url || settings.imageUrl || settings.inputImage || null,
+    prompt: rawTask.prompt || '',
+
+    // 输出数据
+    video_url: rawTask.original_url || null,
+    storage_path: rawTask.storage_path || null,
+    thumbnail_path: rawTask.thumbnail_path || null,
+
+    // 任务参数
+    model: settings.model || null,
+    duration: rawTask.duration_seconds || null,
+    settings: settings,
+
+    // Video Effects 特有字段
+    effectId: settings.effectId || null,
+    effectName: settings.effectName || null,
+
+    // 积分和错误
+    credits_used: 0, // user_videos 表中未跟踪积分使用
+    error: rawTask.error_message || null,
+
+    // 外部任务 ID
+    wavespeed_request_id: rawTask.wavespeed_request_id,
   };
-
-  // Add task-specific fields based on type
-  switch (taskType) {
-    case 'video_generation':
-      return {
-        ...base,
-        input_image_url: rawTask.image_url || rawTask.input_image || null,
-        prompt: rawTask.prompt || rawTask.description || null,
-        video_url: rawTask.original_url || rawTask.video_url || rawTask.result_url || null, // 🔥 user_videos uses 'original_url'
-        model: rawTask.settings?.model || rawTask.model || rawTask.provider || null,
-        provider: rawTask.settings?.model || rawTask.provider || null,
-        duration: rawTask.duration_seconds || rawTask.duration || null,
-        replicate_prediction_id: rawTask.replicate_prediction_id || null,
-        external_task_id: rawTask.wavespeed_request_id || rawTask.external_task_id || null, // 🔥 user_videos uses 'wavespeed_request_id'
-      } as UnifiedTask;
-
-    case 'audio_generation':
-      return {
-        ...base,
-        input_video_url: rawTask.video_url || null,
-        prompt: rawTask.prompt || null,
-        audio_url: rawTask.audio_url || null,
-        replicate_prediction_id: rawTask.replicate_prediction_id || null,
-      } as UnifiedTask;
-
-    case 'watermark_removal':
-      return {
-        ...base,
-        input_video_url: rawTask.video_url || rawTask.input_video_url || null,
-        result_url: rawTask.result_url || null,
-      } as UnifiedTask;
-
-    case 'video_upscaler':
-      return {
-        ...base,
-        input_video_url: rawTask.video_url || rawTask.input_video_url || null,
-        result_url: rawTask.result_url || null,
-        target_resolution: rawTask.target_resolution || null,
-      } as UnifiedTask;
-
-    case 'video_effects':
-      return {
-        ...base,
-        input_image_url: rawTask.image_url || rawTask.input_image_url || null,
-        result_url: rawTask.result_url || rawTask.video_url || null,
-        template_id: rawTask.template_id || null,
-        template_name: rawTask.template_name || null,
-        wavespeed_task_id: rawTask.wavespeed_task_id || rawTask.external_task_id || null,
-        external_task_id: rawTask.external_task_id || rawTask.wavespeed_task_id || null,
-      } as UnifiedTask;
-
-    case 'face_swap':
-      return {
-        ...base,
-        face_image_url: rawTask.face_image_url || null,
-        input_video_url: rawTask.video_url || rawTask.input_video_url || null,
-        result_url: rawTask.result_video_url || rawTask.result_url || null,
-        wavespeed_task_id: rawTask.wavespeed_task_id || rawTask.external_task_id || null,
-        external_task_id: rawTask.external_task_id || rawTask.wavespeed_task_id || null,
-      } as UnifiedTask;
-
-    default:
-      return base as UnifiedTask;
-  }
 }
 
 /**
- * Fetch all tasks with cursor-based pagination
- * Supports filtering by task type and efficient multi-table queries
+ * 获取所有任务（支持基于游标的分页）
  */
 export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
-  const { taskType, limit = 50, cursor } = options;
+  const { limit = 50, cursor } = options;
   const supabase = getSupabaseAdminClient();
 
-  const allTasks: UnifiedTask[] = [];
+  // 构建查询 - 从 user_videos 表获取数据并 JOIN users 表获取 email
+  let query = supabase
+    .from('user_videos')
+    .select('*, users(email)')
+    .neq('status', 'deleted') // 排除已删除的视频
+    .order('created_at', { ascending: false });
 
-  // Determine which tables to query
-  const tablesToQuery: { table: string; type: TaskType }[] = taskType
-    ? [{ table: getTableName(taskType), type: taskType }]
-    : [
-        { table: 'user_videos', type: 'video_generation' }, // 🔥 Using user_videos for video generation
-        { table: 'audio_generation_tasks', type: 'audio_generation' },
-        { table: 'watermark_removal_tasks', type: 'watermark_removal' },
-        { table: 'video_upscaler_tasks', type: 'video_upscaler' },
-        { table: 'video_effect_tasks', type: 'video_effects' },
-        { table: 'video_face_swap_tasks', type: 'face_swap' },
-      ];
+  // 应用游标（只获取早于游标时间的任务）
+  if (cursor) {
+    query = query.lt('created_at', cursor);
+  }
 
-  // Query all tables in parallel
-  const results = await Promise.allSettled(
-    tablesToQuery.map(({ table, type }) => {
-      // 🔥 Special handling for user_videos: JOIN with users table to get email
-      if (table === 'user_videos') {
-        let query = supabase
-          .from(table)
-          .select('*, users(email)')
-          .order('created_at', { ascending: false });
+  // 获取 limit + 1 条数据以判断是否有更多结果
+  const { data, error } = await query.limit(limit + 1);
 
-        // Apply cursor if provided (only get tasks older than cursor)
-        if (cursor) {
-          query = query.lt('created_at', cursor);
-        }
+  if (error) {
+    console.error('Failed to fetch tasks:', error);
+    return {
+      tasks: [],
+      nextCursor: null,
+      hasMore: false,
+    };
+  }
 
-        // Fetch limit + 1 to determine if there are more results
-        return query
-          .limit(limit + 1)
-          .then(({ data, error }) => {
-            if (error) {
-              console.error(`Failed to fetch ${table}:`, error.message);
-              return [];
-            }
-            // Flatten the users object to get email
-            return (data || []).map((item: any) => {
-              const flatItem = {
-                ...item,
-                user_email: item.users?.email || null,
-              };
-              delete flatItem.users;
-              return normalizeTask(flatItem, type);
-            });
-          });
-      }
+  // 扁平化 users 对象以获取 email
+  const flattenedData = (data || []).map((item: any) => ({
+    ...item,
+    user_email: item.users?.email || null,
+  }));
 
-      // Standard query for other tables
-      let query = supabase
-        .from(table)
-        .select('*')
-        .order('created_at', { ascending: false });
+  // 标准化任务数据
+  const allTasks = flattenedData.map((item) => normalizeTask(item));
 
-      // Apply cursor if provided (only get tasks older than cursor)
-      if (cursor) {
-        query = query.lt('created_at', cursor);
-      }
-
-      // Fetch limit + 1 to determine if there are more results
-      return query
-        .limit(limit + 1)
-        .then(({ data, error }) => {
-          if (error) {
-            console.warn(`Failed to fetch ${table}:`, error.message);
-            return [];
-          }
-          return (data || []).map((item) => normalizeTask(item, type));
-        });
-    })
-  );
-
-  // Collect all successful results
-  results.forEach((result) => {
-    if (result.status === 'fulfilled') {
-      allTasks.push(...result.value);
-    }
-  });
-
-  // Sort by created_at descending
-  allTasks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-  // Determine if there are more results
+  // 判断是否有更多结果
   const hasMore = allTasks.length > limit;
   const tasks = hasMore ? allTasks.slice(0, limit) : allTasks;
 
-  // Calculate next cursor (last task's created_at)
+  // 计算下一个游标（最后一个任务的 created_at）
   const nextCursor = tasks.length > 0 ? tasks[tasks.length - 1].created_at : null;
 
   return {
@@ -218,73 +137,41 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
 }
 
 /**
- * Fetch task statistics
- * Returns counts for total, completed, failed, and processing tasks
+ * 获取任务统计信息
  */
 export async function fetchTaskStats(taskType?: TaskType): Promise<TaskStats> {
   const supabase = getSupabaseAdminClient();
 
-  const tablesToQuery = taskType
-    ? [getTableName(taskType)]
-    : [
-        'user_videos', // 🔥 Using user_videos for video generation stats
-        'audio_generation_tasks',
-        'watermark_removal_tasks',
-        'video_upscaler_tasks',
-        'video_effect_tasks',
-        'video_face_swap_tasks',
-      ];
+  // 查询 user_videos 表的统计信息
+  const [totalResult, completedResult, failedResult, processingResult] = await Promise.allSettled([
+    // 总数（排除已删除）
+    supabase.from('user_videos').select('id', { count: 'exact', head: true }).neq('status', 'deleted'),
+    // 已完成
+    supabase.from('user_videos').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
+    // 失败
+    supabase.from('user_videos').select('id', { count: 'exact', head: true }).eq('status', 'failed'),
+    // 处理中（generating + downloading + processing）
+    supabase
+      .from('user_videos')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['generating', 'downloading', 'processing']),
+  ]);
 
-  let total = 0;
-  let completed = 0;
-  let failed = 0;
-  let processing = 0;
-
-  // Query statistics from all tables in parallel
-  const results = await Promise.allSettled(
-    tablesToQuery.flatMap((table) => [
-      // Total count
-      supabase.from(table).select('id', { count: 'exact', head: true }),
-      // Completed count
-      supabase.from(table).select('id', { count: 'exact', head: true }).eq('status', 'completed'),
-      // Failed count
-      supabase.from(table).select('id', { count: 'exact', head: true }).eq('status', 'failed'),
-      // Processing count (pending + processing)
-      supabase
-        .from(table)
-        .select('id', { count: 'exact', head: true })
-        .in('status', ['pending', 'processing']),
-    ])
-  );
-
-  // Aggregate results
-  results.forEach((result, index) => {
-    if (result.status === 'fulfilled') {
-      const count = result.value.count || 0;
-      const statType = index % 4;
-
-      if (statType === 0) total += count;
-      else if (statType === 1) completed += count;
-      else if (statType === 2) failed += count;
-      else if (statType === 3) processing += count;
-    }
-  });
+  const total = totalResult.status === 'fulfilled' ? totalResult.value.count || 0 : 0;
+  const completed = completedResult.status === 'fulfilled' ? completedResult.value.count || 0 : 0;
+  const failed = failedResult.status === 'fulfilled' ? failedResult.value.count || 0 : 0;
+  const processing = processingResult.status === 'fulfilled' ? processingResult.value.count || 0 : 0;
 
   return { total, completed, failed, processing };
 }
 
 /**
- * Get task type display label
+ * 获取任务类型显示标签
  */
 export function getTaskTypeLabel(taskType: TaskType | 'all'): string {
   const labels: Record<TaskType | 'all', string> = {
     all: 'All Tasks',
-    video_generation: 'Image to Video',
-    audio_generation: 'Audio Generation',
-    watermark_removal: 'Watermark Removal',
-    video_upscaler: 'Video Upscaler',
-    video_effects: 'AI Effects',
-    face_swap: 'Face Swap',
+    video_generation: 'Video Generation',
   };
   return labels[taskType] || taskType;
 }
