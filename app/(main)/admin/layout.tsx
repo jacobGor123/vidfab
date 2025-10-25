@@ -18,12 +18,19 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  console.log('[Admin Layout] Starting admin check...');
+
   // Check if user is admin
   const isAdmin = await isCurrentUserAdmin();
 
+  console.log('[Admin Layout] isAdmin result:', isAdmin);
+
   if (!isAdmin) {
+    console.warn('[Admin Layout] User is not admin, redirecting to /');
     redirect('/');
   }
+
+  console.log('[Admin Layout] Admin check passed, rendering layout');
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">

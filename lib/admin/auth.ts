@@ -11,8 +11,14 @@ import { authConfig } from '@/auth/config';
  * TODO: Move this to environment variable for production
  */
 const ADMIN_EMAILS = process.env.ADMIN_EMAILS
-  ? process.env.ADMIN_EMAILS.split(',').map((email) => email.trim())
+  ? process.env.ADMIN_EMAILS.split(',').map((email) => email.trim().toLowerCase())
   : [];
+
+console.log('[Admin Auth] Loaded ADMIN_EMAILS:', {
+  raw: process.env.ADMIN_EMAILS || '(NOT SET)',
+  parsed: ADMIN_EMAILS,
+  count: ADMIN_EMAILS.length,
+});
 
 /**
  * Check if an email is an admin
