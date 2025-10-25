@@ -28,6 +28,7 @@ const publicRoutes = [
   '/terms-of-service',
   '/support',
   '/debug-admin', // Admin debug page (public for troubleshooting)
+  '/admin', // Admin pages (protected by admin layout's isCurrentUserAdmin() check, not by middleware)
 ]
 
 // Auth routes that should redirect if already logged in
