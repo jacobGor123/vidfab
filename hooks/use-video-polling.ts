@@ -35,6 +35,7 @@ const MAX_POLLING_DURATION = 30 * 60 * 1000 // 30 minutes
 const MAX_CONSECUTIVE_ERRORS = 5
 const MAX_STORAGE_RETRIES = 3 // 最大存储重试次数
 const STORAGE_RETRY_DELAY = 2000 // 存储重试延迟（毫秒）
+const MAX_CONCURRENT_POLLS = 3 // 🔥 限制最大并发轮询数量,防止资源耗尽
 
 export function useVideoPolling(
   options: UseVideoPollingOptions = {}
@@ -192,9 +193,15 @@ export function useVideoPolling(
     const controller = new AbortController()
     abortControllersRef.current.set(jobId, controller)
 
+    // 🔥 添加请求超时控制(30秒)
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+    }, 30000)
+
     try {
       // 在异步操作前再次检查
       if (stoppedJobIdsRef.current.has(jobId)) {
+        clearTimeout(timeoutId)
         abortControllersRef.current.delete(jobId)
         return
       }
@@ -205,6 +212,9 @@ export function useVideoPolling(
         signal: controller.signal, // 🔥 添加 abort signal
         headers: { 'Content-Type': 'application/json' }
       })
+
+      // 🔥 清理超时定时器
+      clearTimeout(timeoutId)
 
       // 请求完成后再次检查是否已停止
       if (stoppedJobIdsRef.current.has(jobId)) {
@@ -392,11 +402,13 @@ export function useVideoPolling(
       }
 
     } catch (error) {
-      // 🔥 清理 controller
+      // 🔥 清理超时定时器和 controller
+      clearTimeout(timeoutId)
       abortControllersRef.current.delete(jobId)
 
       // 忽略 AbortError (主动取消的请求)
       if (error instanceof Error && error.name === 'AbortError') {
+        console.warn(`轮询任务 ${jobId} 被取消或超时`)
         return
       }
 
@@ -523,13 +535,13 @@ export function useVideoPolling(
     if (storagePollingIds.size === 0) return
 
 
-    // We need to get the original job data for each storage polling
-    // For now, we'll implement a simpler approach
+    // 🔥 优化：收集所有需要轮询的存储任务
+    const storageTasks: Array<{ videoId: string; job: VideoJob }> = []
+
     for (const videoId of storagePollingIds) {
-      // Find the job that has this videoId
       const job = videoContext.activeJobs.find(j => j.videoId === videoId)
       if (job) {
-        await pollStorageProgress(videoId, job)
+        storageTasks.push({ videoId, job })
       } else {
         // If no job found, stop polling this storage
         setStoragePollingIds(prev => {
@@ -539,7 +551,45 @@ export function useVideoPolling(
         })
       }
     }
+
+    // 🔥 批量处理存储轮询,限制并发数量
+    for (let i = 0; i < storageTasks.length; i += MAX_CONCURRENT_POLLS) {
+      const batch = storageTasks.slice(i, i + MAX_CONCURRENT_POLLS)
+
+      await Promise.allSettled(
+        batch.map(({ videoId, job }) => pollStorageProgress(videoId, job))
+      )
+
+      // 如果还有下一批,添加小延迟
+      if (i + MAX_CONCURRENT_POLLS < storageTasks.length) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    }
   }, [storagePollingIds, pollStorageProgress, videoContext.activeJobs])
+
+  // 🔥 并发控制辅助函数,防止浏览器资源耗尽
+  const pollWithConcurrencyLimit = async (jobs: VideoJob[]) => {
+    const results: PromiseSettledResult<void>[] = []
+
+    // 将任务分批处理,每批最多 MAX_CONCURRENT_POLLS 个
+    for (let i = 0; i < jobs.length; i += MAX_CONCURRENT_POLLS) {
+      const batch = jobs.slice(i, i + MAX_CONCURRENT_POLLS)
+
+      // 批次内并发执行,批次间串行
+      const batchResults = await Promise.allSettled(
+        batch.map(job => pollJobStatus(job))
+      )
+
+      results.push(...batchResults)
+
+      // 如果还有下一批,添加小延迟避免资源竞争
+      if (i + MAX_CONCURRENT_POLLS < jobs.length) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    }
+
+    return results
+  }
 
   // 轮询所有活跃任务
   const pollAllJobs = useCallback(async () => {
@@ -594,10 +644,8 @@ export function useVideoPolling(
     }
 
 
-    // 并发轮询所有任务
-    await Promise.allSettled(
-      jobsToPoll.map(job => pollJobStatus(job))
-    )
+    // 🔥 使用并发控制的轮询,防止资源耗尽
+    await pollWithConcurrencyLimit(jobsToPoll)
   }, [pollingJobs, pollJobStatus, pollingJobIds, videoContext.activeJobs])
 
   // 启动轮询
