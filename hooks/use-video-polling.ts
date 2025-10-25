@@ -36,6 +36,8 @@ const MAX_CONSECUTIVE_ERRORS = 5
 const MAX_STORAGE_RETRIES = 3 // 最大存储重试次数
 const STORAGE_RETRY_DELAY = 2000 // 存储重试延迟（毫秒）
 const MAX_CONCURRENT_POLLS = 3 // 🔥 限制最大并发轮询数量,防止资源耗尽
+const MAX_GENERATING_DURATION = 5 * 60 * 1000 // 🔥 最大任务创建等待时间(5分钟)
+const HEALTH_CHECK_INTERVAL = 30000 // 🔥 健康检查间隔(30秒)
 
 export function useVideoPolling(
   options: UseVideoPollingOptions = {}
@@ -64,6 +66,43 @@ export function useVideoPolling(
 
   // 使用 ref 立即同步追踪应该停止轮询的任务，避免异步状态更新导致的时序问题
   const stoppedJobIdsRef = useRef<Set<string>>(new Set())
+
+  // 🔥 清理无效任务的函数,防止僵尸轮询
+  const cleanInvalidJobs = useCallback(() => {
+    const now = Date.now()
+
+    videoContext.activeJobs.forEach(job => {
+      // 检查1: 任务状态为 'generating' 超过5分钟 → 标记为失败
+      // 这通常意味着任务创建过程中出现了问题(API超时、网络中断等)
+      if (job.status === 'generating') {
+        const taskAge = now - new Date(job.createdAt).getTime()
+        if (taskAge > MAX_GENERATING_DURATION) {
+          console.warn(`🧹 清理超时的 generating 任务: ${job.id} (${Math.floor(taskAge / 1000)}秒)`)
+          videoContext.failJob(job.id, "Task creation timeout - please try again")
+          return
+        }
+      }
+
+      // 检查2: 任务状态为 'processing'/'queued'/'created' 但无 requestId → 标记为失败
+      // 这是不合法的状态,任务不可能在没有 requestId 的情况下进入这些状态
+      if ((job.status === 'processing' || job.status === 'queued' || job.status === 'created') && !job.requestId) {
+        console.warn(`🧹 清理无 requestId 的任务: ${job.id}, status: ${job.status}`)
+        videoContext.failJob(job.id, "Invalid task state - missing request ID")
+        return
+      }
+
+      // 检查3: 任务在 pollingJobIds 中,但已经 completed/failed → 清理轮询
+      if ((job.status === 'completed' || job.status === 'failed') && pollingJobIds.has(job.id)) {
+        console.warn(`🧹 清理已完成但仍在轮询的任务: ${job.id}`)
+        stoppedJobIdsRef.current.add(job.id)
+        setPollingJobIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(job.id)
+          return newSet
+        })
+      }
+    })
+  }, [videoContext, pollingJobIds])
 
   // 🔥 改进的数据库保存函数，包含重试机制和超时控制
   const saveVideoToDatabase = useCallback(async (job: VideoJob, resultUrl: string, retryCount = 0) => {
@@ -843,6 +882,21 @@ export function useVideoPolling(
 
     return () => clearTimeout(timer)
   }, [videoContext?.activeJobs.length, pollingJobIds.size, enabled, startPolling]) // 🔥 更精确的依赖
+
+  // 🔥 健康检查定时器,定期清理无效任务
+  useEffect(() => {
+    // 立即执行一次清理
+    cleanInvalidJobs()
+
+    // 每30秒执行一次健康检查
+    const healthCheckTimer = setInterval(() => {
+      cleanInvalidJobs()
+    }, HEALTH_CHECK_INTERVAL)
+
+    return () => {
+      clearInterval(healthCheckTimer)
+    }
+  }, [cleanInvalidJobs])
 
   // 🔥 修复1+2: 页面卸载时彻底清理所有资源
   useEffect(() => {
