@@ -157,8 +157,43 @@ export default async function AdminDebugPage() {
               <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded">{process.env.NODE_ENV}</code>
             </div>
             <div className="flex justify-between">
+              <span className="font-medium">DOCKER_ENVIRONMENT:</span>
+              <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded">{process.env.DOCKER_ENVIRONMENT || '(not set)'}</code>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">NEXTAUTH_URL:</span>
+              <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded text-xs">{process.env.NEXTAUTH_URL || '(not set)'}</code>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">NEXTAUTH_SECRET:</span>
+              <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded">
+                {process.env.NEXTAUTH_SECRET ? '✓ SET (hidden)' : '✗ NOT SET'}
+              </code>
+            </div>
+            <div className="flex justify-between">
               <span className="font-medium">Timestamp:</span>
               <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded">{new Date().toISOString()}</code>
+            </div>
+          </div>
+        </div>
+
+        {/* Cookie & Session Config */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Cookie & Session Config:</h2>
+          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="font-medium">Secure Cookies:</span>
+              <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded">
+                {process.env.NODE_ENV === 'production' && !process.env.DOCKER_ENVIRONMENT ? 'true (HTTPS required)' : 'false (HTTP ok)'}
+              </code>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Session Strategy:</span>
+              <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded">JWT</code>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Session Max Age:</span>
+              <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded">30 days</code>
             </div>
           </div>
         </div>
