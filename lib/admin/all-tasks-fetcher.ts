@@ -20,7 +20,15 @@ import {
 function determineGenerationType(settings: any): GenerationType {
   // 优先使用显式的 generationType 字段
   if (settings?.generationType) {
-    return settings.generationType;
+    // 🔥 修复:转换中划线格式为下划线格式
+    const type = settings.generationType;
+    if (type === 'image-to-video') return 'image_to_video';
+    if (type === 'video-effects') return 'video_effects';
+    if (type === 'text-to-video') return 'text_to_video';
+    // 如果已经是下划线格式,直接返回
+    if (type === 'image_to_video' || type === 'video_effects' || type === 'text_to_video') {
+      return type;
+    }
   }
 
   // 判断是否为 video-effects（通过 effectId 或 model）
