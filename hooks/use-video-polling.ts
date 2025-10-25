@@ -35,6 +35,9 @@ const MAX_POLLING_DURATION = 30 * 60 * 1000 // 30 minutes
 const MAX_CONSECUTIVE_ERRORS = 5
 const MAX_STORAGE_RETRIES = 3 // 最大存储重试次数
 const STORAGE_RETRY_DELAY = 2000 // 存储重试延迟（毫秒）
+const MAX_CONCURRENT_POLLS = 3 // 🔥 限制最大并发轮询数量,防止资源耗尽
+const MAX_GENERATING_DURATION = 5 * 60 * 1000 // 🔥 最大任务创建等待时间(5分钟)
+const HEALTH_CHECK_INTERVAL = 30000 // 🔥 健康检查间隔(30秒)
 
 export function useVideoPolling(
   options: UseVideoPollingOptions = {}
@@ -63,6 +66,43 @@ export function useVideoPolling(
 
   // 使用 ref 立即同步追踪应该停止轮询的任务，避免异步状态更新导致的时序问题
   const stoppedJobIdsRef = useRef<Set<string>>(new Set())
+
+  // 🔥 清理无效任务的函数,防止僵尸轮询
+  const cleanInvalidJobs = useCallback(() => {
+    const now = Date.now()
+
+    videoContext.activeJobs.forEach(job => {
+      // 检查1: 任务状态为 'generating' 超过5分钟 → 标记为失败
+      // 这通常意味着任务创建过程中出现了问题(API超时、网络中断等)
+      if (job.status === 'generating') {
+        const taskAge = now - new Date(job.createdAt).getTime()
+        if (taskAge > MAX_GENERATING_DURATION) {
+          console.warn(`🧹 清理超时的 generating 任务: ${job.id} (${Math.floor(taskAge / 1000)}秒)`)
+          videoContext.failJob(job.id, "Task creation timeout - please try again")
+          return
+        }
+      }
+
+      // 检查2: 任务状态为 'processing'/'queued'/'created' 但无 requestId → 标记为失败
+      // 这是不合法的状态,任务不可能在没有 requestId 的情况下进入这些状态
+      if ((job.status === 'processing' || job.status === 'queued' || job.status === 'created') && !job.requestId) {
+        console.warn(`🧹 清理无 requestId 的任务: ${job.id}, status: ${job.status}`)
+        videoContext.failJob(job.id, "Invalid task state - missing request ID")
+        return
+      }
+
+      // 检查3: 任务在 pollingJobIds 中,但已经 completed/failed → 清理轮询
+      if ((job.status === 'completed' || job.status === 'failed') && pollingJobIds.has(job.id)) {
+        console.warn(`🧹 清理已完成但仍在轮询的任务: ${job.id}`)
+        stoppedJobIdsRef.current.add(job.id)
+        setPollingJobIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(job.id)
+          return newSet
+        })
+      }
+    })
+  }, [videoContext, pollingJobIds])
 
   // 🔥 改进的数据库保存函数，包含重试机制和超时控制
   const saveVideoToDatabase = useCallback(async (job: VideoJob, resultUrl: string, retryCount = 0) => {
@@ -192,9 +232,15 @@ export function useVideoPolling(
     const controller = new AbortController()
     abortControllersRef.current.set(jobId, controller)
 
+    // 🔥 添加请求超时控制(30秒)
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+    }, 30000)
+
     try {
       // 在异步操作前再次检查
       if (stoppedJobIdsRef.current.has(jobId)) {
+        clearTimeout(timeoutId)
         abortControllersRef.current.delete(jobId)
         return
       }
@@ -205,6 +251,9 @@ export function useVideoPolling(
         signal: controller.signal, // 🔥 添加 abort signal
         headers: { 'Content-Type': 'application/json' }
       })
+
+      // 🔥 清理超时定时器
+      clearTimeout(timeoutId)
 
       // 请求完成后再次检查是否已停止
       if (stoppedJobIdsRef.current.has(jobId)) {
@@ -392,11 +441,13 @@ export function useVideoPolling(
       }
 
     } catch (error) {
-      // 🔥 清理 controller
+      // 🔥 清理超时定时器和 controller
+      clearTimeout(timeoutId)
       abortControllersRef.current.delete(jobId)
 
       // 忽略 AbortError (主动取消的请求)
       if (error instanceof Error && error.name === 'AbortError') {
+        console.warn(`轮询任务 ${jobId} 被取消或超时`)
         return
       }
 
@@ -523,13 +574,13 @@ export function useVideoPolling(
     if (storagePollingIds.size === 0) return
 
 
-    // We need to get the original job data for each storage polling
-    // For now, we'll implement a simpler approach
+    // 🔥 优化：收集所有需要轮询的存储任务
+    const storageTasks: Array<{ videoId: string; job: VideoJob }> = []
+
     for (const videoId of storagePollingIds) {
-      // Find the job that has this videoId
       const job = videoContext.activeJobs.find(j => j.videoId === videoId)
       if (job) {
-        await pollStorageProgress(videoId, job)
+        storageTasks.push({ videoId, job })
       } else {
         // If no job found, stop polling this storage
         setStoragePollingIds(prev => {
@@ -539,7 +590,45 @@ export function useVideoPolling(
         })
       }
     }
+
+    // 🔥 批量处理存储轮询,限制并发数量
+    for (let i = 0; i < storageTasks.length; i += MAX_CONCURRENT_POLLS) {
+      const batch = storageTasks.slice(i, i + MAX_CONCURRENT_POLLS)
+
+      await Promise.allSettled(
+        batch.map(({ videoId, job }) => pollStorageProgress(videoId, job))
+      )
+
+      // 如果还有下一批,添加小延迟
+      if (i + MAX_CONCURRENT_POLLS < storageTasks.length) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    }
   }, [storagePollingIds, pollStorageProgress, videoContext.activeJobs])
+
+  // 🔥 并发控制辅助函数,防止浏览器资源耗尽
+  const pollWithConcurrencyLimit = async (jobs: VideoJob[]) => {
+    const results: PromiseSettledResult<void>[] = []
+
+    // 将任务分批处理,每批最多 MAX_CONCURRENT_POLLS 个
+    for (let i = 0; i < jobs.length; i += MAX_CONCURRENT_POLLS) {
+      const batch = jobs.slice(i, i + MAX_CONCURRENT_POLLS)
+
+      // 批次内并发执行,批次间串行
+      const batchResults = await Promise.allSettled(
+        batch.map(job => pollJobStatus(job))
+      )
+
+      results.push(...batchResults)
+
+      // 如果还有下一批,添加小延迟避免资源竞争
+      if (i + MAX_CONCURRENT_POLLS < jobs.length) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    }
+
+    return results
+  }
 
   // 轮询所有活跃任务
   const pollAllJobs = useCallback(async () => {
@@ -594,10 +683,8 @@ export function useVideoPolling(
     }
 
 
-    // 并发轮询所有任务
-    await Promise.allSettled(
-      jobsToPoll.map(job => pollJobStatus(job))
-    )
+    // 🔥 使用并发控制的轮询,防止资源耗尽
+    await pollWithConcurrencyLimit(jobsToPoll)
   }, [pollingJobs, pollJobStatus, pollingJobIds, videoContext.activeJobs])
 
   // 启动轮询
@@ -795,6 +882,21 @@ export function useVideoPolling(
 
     return () => clearTimeout(timer)
   }, [videoContext?.activeJobs.length, pollingJobIds.size, enabled, startPolling]) // 🔥 更精确的依赖
+
+  // 🔥 健康检查定时器,定期清理无效任务
+  useEffect(() => {
+    // 立即执行一次清理
+    cleanInvalidJobs()
+
+    // 每30秒执行一次健康检查
+    const healthCheckTimer = setInterval(() => {
+      cleanInvalidJobs()
+    }, HEALTH_CHECK_INTERVAL)
+
+    return () => {
+      clearInterval(healthCheckTimer)
+    }
+  }, [cleanInvalidJobs])
 
   // 🔥 修复1+2: 页面卸载时彻底清理所有资源
   useEffect(() => {
