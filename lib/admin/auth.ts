@@ -14,12 +14,6 @@ const ADMIN_EMAILS = process.env.ADMIN_EMAILS
   ? process.env.ADMIN_EMAILS.split(',').map((email) => email.trim().toLowerCase())
   : [];
 
-console.log('[Admin Auth] Loaded ADMIN_EMAILS:', {
-  raw: process.env.ADMIN_EMAILS || '(NOT SET)',
-  parsed: ADMIN_EMAILS,
-  count: ADMIN_EMAILS.length,
-});
-
 /**
  * Check if an email is an admin
  * @param email - Email address to check
@@ -27,20 +21,11 @@ console.log('[Admin Auth] Loaded ADMIN_EMAILS:', {
  */
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) {
-    console.log('[Admin Auth] No email provided');
     return false;
   }
 
   const emailLower = email.toLowerCase();
-  const isAdmin = ADMIN_EMAILS.includes(emailLower);
-
-  console.log('[Admin Auth] Checking email:', {
-    email: emailLower,
-    adminEmails: ADMIN_EMAILS,
-    isAdmin,
-  });
-
-  return isAdmin;
+  return ADMIN_EMAILS.includes(emailLower);
 }
 
 /**
@@ -50,12 +35,6 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 export async function getCurrentUser() {
   try {
     const session = await getServerSession(authConfig as any);
-
-    console.log('[Admin Auth] Session status:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userEmail: session?.user?.email || 'N/A',
-    });
 
     if (!session || !session.user) {
       return null;
@@ -73,23 +52,13 @@ export async function getCurrentUser() {
  * @returns True if current user is admin
  */
 export async function isCurrentUserAdmin(): Promise<boolean> {
-  console.log('[Admin Auth] Checking if current user is admin...');
-
   const user = await getCurrentUser();
 
   if (!user || !user.email) {
-    console.log('[Admin Auth] No user or email found');
     return false;
   }
 
-  const isAdmin = isAdminEmail(user.email);
-
-  console.log('[Admin Auth] Final result:', {
-    userEmail: user.email,
-    isAdmin,
-  });
-
-  return isAdmin;
+  return isAdminEmail(user.email);
 }
 
 /**
