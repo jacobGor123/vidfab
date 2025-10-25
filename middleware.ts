@@ -24,6 +24,7 @@ const publicRoutes = [
   '/terms',
   '/terms-of-service',
   '/support',
+  '/debug-admin', // Admin debug page (public for troubleshooting)
 ]
 
 // Auth routes that should redirect if already logged in
