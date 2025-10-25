@@ -6,6 +6,9 @@ import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+// 🔥 Enable detailed logging for debugging
+const DEBUG_AUTH = true;
+
 // Public routes that don't require authentication
 const publicRoutes = [
   '/',
@@ -36,7 +39,8 @@ const protectedRoutes = [
   '/settings',
   '/video',
   '/subscription',
-  '/admin', // Admin dashboard (additional admin check in layout)
+  // Note: /admin is NOT in this list - it's protected by admin layout's isCurrentUserAdmin() check
+  // This ensures admin auth uses the same method as /debug-admin for consistency
 ]
 
 function isPublicPath(pathname: string): boolean {
@@ -72,6 +76,15 @@ export default withAuth(
     const { nextUrl } = req
     const isLoggedIn = !!req.nextauth?.token
 
+    if (DEBUG_AUTH && !nextUrl.pathname.startsWith('/_next/')) {
+      console.log('[Middleware] Request:', {
+        pathname: nextUrl.pathname,
+        hasToken: !!req.nextauth?.token,
+        tokenEmail: req.nextauth?.token?.email || 'N/A',
+        cookies: req.cookies.getAll().map(c => c.name).join(', ') || 'none',
+      });
+    }
+
     // Skip auth checks for API routes and static files
     if (
       nextUrl.pathname.startsWith('/api/') ||
@@ -83,12 +96,18 @@ export default withAuth(
 
     // Check if it's a public route
     if (isPublicPath(nextUrl.pathname)) {
+      if (DEBUG_AUTH) {
+        console.log('[Middleware] Public route, allowing:', nextUrl.pathname);
+      }
       return NextResponse.next()
     }
 
     // Check if it's an auth route
     if (isAuthPath(nextUrl.pathname)) {
       if (isLoggedIn) {
+        if (DEBUG_AUTH) {
+          console.log('[Middleware] Auth route but already logged in, redirecting to /create');
+        }
         // Redirect to create page if already logged in
         return NextResponse.redirect(new URL('/create', nextUrl.origin))
       }
@@ -98,6 +117,14 @@ export default withAuth(
     // Check if it's a protected route
     if (isProtectedPath(nextUrl.pathname)) {
       if (!isLoggedIn) {
+        if (DEBUG_AUTH) {
+          console.error('[Middleware] Protected route but not logged in!', {
+            pathname: nextUrl.pathname,
+            hasToken: !!req.nextauth?.token,
+            hasNextAuth: !!req.nextauth,
+            cookieNames: req.cookies.getAll().map(c => c.name),
+          });
+        }
         // Redirect to login with callback URL
         let callbackUrl = nextUrl.pathname
         if (nextUrl.search) {
@@ -108,6 +135,9 @@ export default withAuth(
         loginUrl.searchParams.set('callbackUrl', encodeURIComponent(callbackUrl))
         return NextResponse.redirect(loginUrl)
       }
+      if (DEBUG_AUTH) {
+        console.log('[Middleware] Protected route, user logged in, allowing:', nextUrl.pathname);
+      }
       return NextResponse.next()
     }
 
@@ -116,14 +146,31 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
+        const pathname = req.nextUrl.pathname;
+
         // Allow all public routes
-        if (isPublicPath(req.nextUrl.pathname)) {
+        if (isPublicPath(pathname)) {
           return true
         }
+
         // Require token for protected routes
-        return !!token
+        const hasToken = !!token;
+
+        if (DEBUG_AUTH && !pathname.startsWith('/_next/')) {
+          console.log('[Middleware authorized callback]:', {
+            pathname,
+            hasToken,
+            tokenEmail: token?.email || 'N/A',
+            decision: hasToken ? 'ALLOW' : 'DENY',
+          });
+        }
+
+        return hasToken;
       }
-    }
+    },
+    pages: {
+      signIn: '/login',
+    },
   }
 )
 
