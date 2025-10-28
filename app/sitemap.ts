@@ -19,19 +19,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      route: '/features',
-      changeFrequency: 'weekly' as const,
-      priority: 0.9,
-    },
-    {
       route: '/pricing',
       changeFrequency: 'weekly' as const,
       priority: 0.9,
-    },
-    {
-      route: '/how-it-works',
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
     },
     {
       route: '/text-to-video',
