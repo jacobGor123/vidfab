@@ -21,6 +21,9 @@ export default function robots(): MetadataRoute.Robots {
           '/private/',       // Disallow private routes
           '/(auth)/',        // Disallow auth routes
           '/subscription/',  // Disallow subscription internal routes
+          '/*.ico',          // Disallow favicon files
+          '/site.webmanifest', // Disallow PWA manifest
+          '/fonts/',         // Disallow font files
         ],
       },
       // Block AI crawlers that don't respect content licensing
@@ -48,12 +51,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/'],
+        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/', '/*.ico', '/site.webmanifest', '/fonts/'],
       },
       {
         userAgent: 'Bingbot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/'],
+        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/', '/*.ico', '/site.webmanifest', '/fonts/'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
