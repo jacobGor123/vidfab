@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import dynamic from "next/dynamic"
 import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
+import { AmazingFeatures } from "@/components/sections/amazing-features"
 import { LoadingState } from "@/components/loading-state"
 import { usePageTranslation } from "@/lib/i18n"
 import { VideoBackground } from "@/components/video-hero/video-background"
@@ -101,6 +102,35 @@ export default function ImageToVideoPage() {
     icon: [Upload, MousePointerClick, Sparkles, Download][index]
   })) || []
 
+  // Key Features data
+  const keyFeatures = [
+    {
+      number: "1",
+      title: "Effortless Video Creation",
+      description: "Convert images to video in just a few clicks. Upload your photos and let our AI-powered online video maker do the rest."
+    },
+    {
+      number: "2",
+      title: "AI-Powered Enhancements",
+      description: "Use AI to create image animations, add smooth transitions, and apply effects that bring your visuals to life while captivating your audience."
+    },
+    {
+      number: "3",
+      title: "Customized Resolution",
+      description: "Select your preferred resolution with one click to optimize your video generation."
+    },
+    {
+      number: "4",
+      title: "Multiple Ratio Options",
+      description: "Select your desired ratio and use the generated video for easy sharing on social media."
+    },
+    {
+      number: "5",
+      title: "Fast and Simple",
+      description: "Go from photo to video in under 10 minutes with no compromise on quality."
+    }
+  ]
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <Suspense fallback={<LoadingState message="Loading Image-to-Video..." />}>
@@ -110,13 +140,18 @@ export default function ImageToVideoPage() {
 
           {/* Content Sections */}
           <div className="relative z-10 bg-black">
+            {/* Key Features Section */}
+            <AmazingFeatures
+              title="Key Features of Image-to-Video Conversion"
+              features={keyFeatures}
+            />
+
             {/* How It Works Section */}
             <HowItWorks steps={steps} />
 
             {/* FAQ Section */}
             <FAQSection
               title={translations?.faq?.title || "FAQ"}
-              subtitle={translations?.faq?.subtitle}
               faqs={translations?.faq?.items || []}
             />
 
