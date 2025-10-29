@@ -14,6 +14,7 @@ interface FeatureShowcaseProps {
   layout?: "left-text" | "right-text"
   className?: string
   categoryText?: string // 左上角分类展示文案
+  categoryLink?: string // 左上角分类链接
   ctaText?: string // CTA 按钮文案
   ctaLink?: string // CTA 按钮链接
 }
@@ -26,6 +27,7 @@ export function FeatureShowcase({
   layout = "left-text",
   className,
   categoryText,
+  categoryLink,
   ctaText,
   ctaLink
 }: FeatureShowcaseProps) {
@@ -48,18 +50,36 @@ export function FeatureShowcase({
           >
             {/* Category Label */}
             {categoryText && (
-              <div className="inline-flex items-center gap-2 mb-4">
-                <Image
-                  src="/cta-icon.svg"
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="w-5 h-5"
-                />
-                <span className="text-lg font-semibold bg-gradient-to-r from-[#E34C9B] via-[#AC4FFF] via-[#7254FF] via-[#497CFF] to-[#3EDEFB] bg-clip-text text-transparent">
-                  {categoryText}
-                </span>
-              </div>
+              categoryLink ? (
+                <Link
+                  href={categoryLink}
+                  className="inline-flex items-center gap-2 mb-4 group hover:scale-105 transition-transform duration-300"
+                >
+                  <Image
+                    src="/cta-icon.svg"
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300"
+                  />
+                  <span className="text-lg font-semibold bg-gradient-to-r from-[#E34C9B] via-[#AC4FFF] via-[#7254FF] via-[#497CFF] to-[#3EDEFB] bg-clip-text text-transparent">
+                    {categoryText}
+                  </span>
+                </Link>
+              ) : (
+                <div className="inline-flex items-center gap-2 mb-4">
+                  <Image
+                    src="/cta-icon.svg"
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="w-5 h-5"
+                  />
+                  <span className="text-lg font-semibold bg-gradient-to-r from-[#E34C9B] via-[#AC4FFF] via-[#7254FF] via-[#497CFF] to-[#3EDEFB] bg-clip-text text-transparent">
+                    {categoryText}
+                  </span>
+                </div>
+              )
             )}
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white leading-tight">
               {title}

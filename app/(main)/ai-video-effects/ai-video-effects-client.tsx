@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import dynamic from "next/dynamic"
 import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
+import { AmazingFeatures } from "@/components/sections/amazing-features"
 import { LoadingState } from "@/components/loading-state"
 import { VideoBackground } from "@/components/video-hero/video-background"
 import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
@@ -101,6 +102,30 @@ export default function AIVideoEffectsPage() {
     icon: [Layers, Upload, Sparkles, Download][index]
   })) || []
 
+  // Key Features data
+  const keyFeatures = [
+    {
+      number: "1",
+      title: "Dynamic Transitions and Effects",
+      description: "Explore an array of visually stunning transitions and effects that elevate your videos, ensuring they captivate your audience on platforms like TikTok and beyond."
+    },
+    {
+      number: "2",
+      title: "Up-to-date Templates",
+      description: "Explore the most popular AI video effects right from the main interface. Simply choose your favorite and easily customize it with your own content."
+    },
+    {
+      number: "3",
+      title: "Rapid Video Processing",
+      description: "Create and enhance videos in minutes with our fast AI-powered rendering, perfect for meeting tight deadlines or last-minute creative needs."
+    },
+    {
+      number: "4",
+      title: "Accessible to All Skill Levels",
+      description: "Whether you're a beginner or a seasoned creator, our tools are designed to be user-friendly, enabling anyone to produce amazing videos effortlessly."
+    }
+  ]
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <Suspense fallback={<LoadingState message="Loading AI Video Effects..." />}>
@@ -110,13 +135,18 @@ export default function AIVideoEffectsPage() {
 
           {/* Content Sections */}
           <div className="relative z-10 bg-black">
+            {/* Key Features Section */}
+            <AmazingFeatures
+              title="Key Features of AI Video Effects"
+              features={keyFeatures}
+            />
+
             {/* How It Works Section */}
             <HowItWorks steps={steps} />
 
             {/* FAQ Section */}
             <FAQSection
               title={translations?.faq?.title || "FAQ"}
-              subtitle={translations?.faq?.subtitle}
               faqs={translations?.faq?.items || []}
             />
 
