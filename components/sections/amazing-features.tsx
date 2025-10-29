@@ -45,11 +45,12 @@ export function AmazingFeatures({
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto">
+        <div className="flex flex-wrap justify-center gap-8 mx-auto max-w-7xl">
           {features.map((feature, index) => (
             <div
               key={index}
               className={cn(
+                "w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] md:max-w-[400px]",
                 "bg-brand-gray-800/70 backdrop-blur-md border border-brand-gray-700",
                 "rounded-xl p-4 sm:p-6 shadow-apple-soft transition-all duration-300 ease-apple",
                 "hover:bg-brand-gray-700/90 hover:shadow-apple-medium hover:border-brand-purple-DEFAULT/30",

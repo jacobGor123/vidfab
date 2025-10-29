@@ -100,12 +100,17 @@ const config: Config = {
       },
       animation: {
         shine: "shine 2.5s ease-in-out infinite",
+        gradient: "gradient 3s ease infinite",
       },
       keyframes: {
         shine: {
           "0%": { transform: "translateX(-100%)" },
           "50%": { transform: "translateX(100%)" },
           "100%": { transform: "translateX(100%)" },
+        },
+        gradient: {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
         },
       },
     },

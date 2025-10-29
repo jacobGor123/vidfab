@@ -56,7 +56,7 @@ const defaultFAQs: FAQItem[] = [
 
 export function FAQSection({
   title = "FAQ",
-  subtitle = "Frequently Asked Questions",
+  subtitle,
   faqs = defaultFAQs,
   className,
   defaultOpenIndex = 0,

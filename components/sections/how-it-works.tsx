@@ -53,9 +53,10 @@ interface HowItWorksProps {
   steps?: Step[]
   className?: string
   autoPlayInterval?: number
+  subtitle?: string
 }
 
-export function HowItWorks({ steps = defaultSteps, className, autoPlayInterval = 5000 }: HowItWorksProps) {
+export function HowItWorks({ steps = defaultSteps, className, autoPlayInterval = 5000, subtitle }: HowItWorksProps) {
   const [activeStep, setActiveStep] = useState(steps[0].id)
   const [isUserInteracting, setIsUserInteracting] = useState(false)
 
@@ -93,9 +94,11 @@ export function HowItWorks({ steps = defaultSteps, className, autoPlayInterval =
           <h2 className="text-4xl md:text-5xl font-heading font-extrabold mb-4 text-white">
             How It Works
           </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Create professional videos in four simple steps
-          </p>
+          {subtitle && (
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+              {subtitle}
+            </p>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto lg:items-center">

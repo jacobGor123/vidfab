@@ -5,6 +5,8 @@ import dynamic from "next/dynamic"
 import { Hero } from "@/components/hero"
 import { FeatureShowcase } from "@/components/sections/feature-showcase"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
+import { UserTestimonials } from "@/components/sections/user-testimonials"
+import { WhyChooseVidFab } from "@/components/sections/why-choose-vidfab"
 import { PaymentSuccessHandler } from "@/components/payment-success-handler"
 import { useTranslation } from "@/lib/i18n"
 import { LoadingState } from "@/components/loading-state"
@@ -44,6 +46,7 @@ export default function HomeClient() {
             videoAlt={translations?.homepage?.features?.textToVideo?.imageAlt || "Text to video"}
             layout="left-text"
             categoryText="Text to Video"
+            categoryLink="/text-to-video"
             ctaText="Try it now"
             ctaLink="/text-to-video"
           />
@@ -55,6 +58,7 @@ export default function HomeClient() {
             videoAlt={translations?.homepage?.features?.imageToVideo?.imageAlt || "Image to video"}
             layout="right-text"
             categoryText="Image to Video"
+            categoryLink="/image-to-video"
             ctaText="Try it now"
             ctaLink="/image-to-video"
           />
@@ -66,6 +70,7 @@ export default function HomeClient() {
             videoAlt={translations?.homepage?.features?.popularEffects?.imageAlt || "Popular effects"}
             layout="left-text"
             categoryText="AI Video Effects"
+            categoryLink="/ai-video-effects"
             ctaText="Try it now"
             ctaLink="/ai-video-effects"
           />
@@ -84,6 +89,16 @@ export default function HomeClient() {
               { number: "5", title: "Integration of Several Powerful AI Models", description: "Leverage the best AI models for superior video generation", highlighted: true },
               { number: "6", title: "Data Security Guarantee", description: "Your content and data are protected with enterprise-level security" }
             ]}
+          />
+
+          {/* User Testimonials Carousel */}
+          <UserTestimonials
+            title={translations?.homepage?.testimonials?.title || "User Testimonials"}
+          />
+
+          {/* Why Choose VidFab */}
+          <WhyChooseVidFab
+            title={translations?.homepage?.whyChoose?.title || "Why Choose VidFab?"}
           />
 
           {/* Community CTA */}
