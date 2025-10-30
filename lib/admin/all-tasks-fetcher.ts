@@ -75,6 +75,9 @@ function normalizeTask(rawTask: any): UnifiedTask {
     // 任务参数
     model: settings.model || null,
     duration: rawTask.duration_seconds || null,
+    resolution: settings.resolution || null,
+    aspectRatio: settings.aspectRatio || null,
+    durationStr: settings.duration || null,
     settings: settings,
 
     // Video Effects 特有字段

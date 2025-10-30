@@ -54,7 +54,7 @@ export default async function PaidOrdersPage() {
       callback: (row) => {
         const amount = row.amount || 0;
         return (
-          <span className="font-mono font-semibold text-green-700 dark:text-green-400">
+          <span className="font-mono font-bold text-green-700">
             ${amount.toFixed(2)}
           </span>
         );
