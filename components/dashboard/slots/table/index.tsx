@@ -23,10 +23,10 @@ export default function TableSlot({
       {(title || description) && (
         <div className="space-y-2">
           {title && (
-            <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-gray-900">{title}</h2>
           )}
           {description && (
-            <p className="text-muted-foreground">{description}</p>
+            <p className="text-gray-600 font-medium">{description}</p>
           )}
         </div>
       )}

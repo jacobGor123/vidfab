@@ -26,7 +26,7 @@ export default function TableBlock({
   emptyMessage = 'No data available',
 }: TableBlockProps) {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>

@@ -40,6 +40,9 @@ export interface UnifiedTask {
   // 任务参数
   model: string | null;            // settings.model
   duration: number | null;         // duration_seconds
+  resolution: string | null;       // settings.resolution (例如: "480p", "720p", "1080p")
+  aspectRatio: string | null;      // settings.aspectRatio (例如: "16:9", "9:16", "1:1")
+  durationStr: string | null;      // settings.duration (例如: "5s", "8s", "10s")
   settings: any;                   // 完整的 settings JSONB
 
   // Video Effects 特有字段

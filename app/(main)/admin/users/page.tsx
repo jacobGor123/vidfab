@@ -47,8 +47,8 @@ export default async function UsersPage() {
       callback: (row) => {
         if (!row.avatar_url) {
           return (
-            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-              <span className="text-xs text-gray-500">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-200 to-blue-200 flex items-center justify-center">
+              <span className="text-xs font-semibold text-purple-700">
                 {row.nickname?.charAt(0)?.toUpperCase() || row.email?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>

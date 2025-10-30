@@ -26,13 +26,13 @@ interface TaskTypeFilterProps {
 
 function getColor(type: TaskType | 'all'): string {
   const colors: Record<TaskType | 'all', string> = {
-    all: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200',
-    video_generation: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-200',
-    audio_generation: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900 dark:text-orange-200',
-    watermark_removal: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900 dark:text-purple-200',
-    video_upscaler: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200',
-    video_effects: 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900 dark:text-pink-200',
-    face_swap: 'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900 dark:text-indigo-200',
+    all: 'bg-gray-100 text-gray-800 border-gray-300',
+    video_generation: 'bg-blue-100 text-blue-800 border-blue-300',
+    audio_generation: 'bg-orange-100 text-orange-800 border-orange-300',
+    watermark_removal: 'bg-purple-100 text-purple-800 border-purple-300',
+    video_upscaler: 'bg-green-100 text-green-800 border-green-300',
+    video_effects: 'bg-pink-100 text-pink-800 border-pink-300',
+    face_swap: 'bg-indigo-100 text-indigo-800 border-indigo-300',
   };
   return colors[type] || colors.all;
 }

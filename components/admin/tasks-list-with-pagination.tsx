@@ -70,7 +70,8 @@ export default function TasksListWithPagination({
 
   // Define table columns
   const table: TableSlotType = {
-    title: `${taskType ? getTaskTypeLabel(taskType) + ' - ' : ''}Task Management (Total: ${stats.total} | Completed: ${stats.completed} | Failed: ${stats.failed} | Processing: ${stats.processing})`,
+    title: taskType ? `${getTaskTypeLabel(taskType)} Tasks` : 'All Tasks',
+    description: `Total: ${stats.total} | Completed: ${stats.completed} | Failed: ${stats.failed} | Processing: ${stats.processing}`,
     columns: [
       {
         name: 'generation_type',
@@ -170,6 +171,51 @@ export default function TasksListWithPagination({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+          );
+        },
+      },
+      {
+        name: 'parameters',
+        title: 'Parameters',
+        className: 'w-40',
+        callback: (item: UnifiedTask) => {
+          return (
+            <div className="flex flex-col gap-1 text-xs">
+              {/* Duration */}
+              {item.durationStr && (
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-500 font-medium">Duration:</span>
+                  <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">
+                    {item.durationStr}
+                  </span>
+                </div>
+              )}
+
+              {/* Resolution */}
+              {item.resolution && (
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-500 font-medium">Res:</span>
+                  <span className="px-2 py-0.5 rounded bg-green-100 text-green-800 font-semibold">
+                    {item.resolution}
+                  </span>
+                </div>
+              )}
+
+              {/* Aspect Ratio */}
+              {item.aspectRatio && (
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-500 font-medium">Ratio:</span>
+                  <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-semibold">
+                    {item.aspectRatio}
+                  </span>
+                </div>
+              )}
+
+              {/* 如果都没有，显示占位符 */}
+              {!item.durationStr && !item.resolution && !item.aspectRatio && (
+                <span className="text-gray-400">-</span>
+              )}
+            </div>
           );
         },
       },
@@ -291,7 +337,7 @@ export default function TasksListWithPagination({
           <button
             onClick={loadMore}
             disabled={loading}
-            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
           >
             {loading ? 'Loading...' : 'Load More'}
           </button>

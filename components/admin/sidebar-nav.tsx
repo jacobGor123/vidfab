@@ -42,7 +42,7 @@ export default function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 px-4 py-6 space-y-1">
+    <nav className="flex-1 px-4 py-6 space-y-2">
       {navItems.map((item) => {
         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
@@ -50,10 +50,10 @@ export default function SidebarNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+            className={`flex items-center px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 ${
               isActive
-                ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white shadow-md transform scale-[1.02]'
+                : 'text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-700'
             }`}
           >
             {item.icon}
