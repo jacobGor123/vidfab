@@ -19,11 +19,13 @@ export async function GET(request: NextRequest) {
     const cursor = searchParams.get('cursor') || undefined;
     const taskType = searchParams.get('type') as TaskType | undefined;
     const limit = parseInt(searchParams.get('limit') || '50');
+    const excludeEmail = searchParams.get('excludeEmail') || undefined;
 
     const result = await fetchAllTasks({
       taskType,
       limit,
       cursor,
+      excludeEmail,
     });
 
     return NextResponse.json({

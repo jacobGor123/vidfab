@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UnifiedTask, TaskType, TaskStats } from '@/types/admin/tasks';
 import { Table as TableSlotType } from '@/types/slots/table';
 import TableSlot from '@/components/dashboard/slots/table';
@@ -17,6 +17,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { X } from 'lucide-react';
 
 interface TasksListProps {
   initialTasks: UnifiedTask[];
@@ -38,6 +40,62 @@ export default function TasksListWithPagination({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
 
+  // 邮箱排除搜索
+  const [excludeEmailInput, setExcludeEmailInput] = useState('');
+  const [excludeEmail, setExcludeEmail] = useState('');
+  const [isInitialMount, setIsInitialMount] = useState(true);
+
+  /**
+   * 防抖：输入停止 300ms 后更新搜索关键词
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setExcludeEmail(excludeEmailInput.trim());
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [excludeEmailInput]);
+
+  /**
+   * 当搜索关键词变化时，重新加载数据
+   */
+  const fetchTasks = useCallback(async (excludeKeyword: string) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (taskType) {
+        params.set('type', taskType);
+      }
+      if (excludeKeyword) {
+        params.set('excludeEmail', excludeKeyword);
+      }
+
+      const response = await fetch(`/api/admin/tasks?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setTasks(data.tasks);
+        setNextCursor(data.nextCursor);
+        setHasMore(data.hasMore);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tasks:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [taskType]);
+
+  useEffect(() => {
+    // 跳过初始挂载，避免不必要的 API 调用
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
+
+    // 当 excludeEmail 变化时，重新加载数据
+    fetchTasks(excludeEmail);
+  }, [excludeEmail, fetchTasks, isInitialMount]);
+
   /**
    * Load more tasks
    */
@@ -51,6 +109,9 @@ export default function TasksListWithPagination({
       });
       if (taskType) {
         params.set('type', taskType);
+      }
+      if (excludeEmail) {
+        params.set('excludeEmail', excludeEmail);
       }
 
       const response = await fetch(`/api/admin/tasks?${params.toString()}`);
@@ -329,6 +390,35 @@ export default function TasksListWithPagination({
 
   return (
     <div>
+      {/* 邮箱排除搜索框 */}
+      <div className="mb-6 flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Input
+            type="text"
+            placeholder="Enter email keyword to exclude..."
+            value={excludeEmailInput}
+            onChange={(e) => setExcludeEmailInput(e.target.value)}
+            className="pr-8"
+          />
+          {excludeEmailInput && (
+            <button
+              onClick={() => setExcludeEmailInput('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {excludeEmail && (
+          <span className="text-sm text-gray-500">
+            Excluding emails containing: <span className="font-semibold text-red-600">{excludeEmail}</span>
+          </span>
+        )}
+        {loading && excludeEmail && (
+          <span className="text-sm text-blue-500">Loading...</span>
+        )}
+      </div>
+
       <TableSlot {...table} />
 
       {/* Load More Button */}

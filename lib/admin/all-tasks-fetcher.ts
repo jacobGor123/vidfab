@@ -97,15 +97,20 @@ function normalizeTask(rawTask: any): UnifiedTask {
  * 获取所有任务（支持基于游标的分页）
  */
 export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
-  const { limit = 50, cursor } = options;
+  const { limit = 50, cursor, excludeEmail } = options;
   const supabase = getSupabaseAdminClient();
 
   // 构建查询 - 从 user_videos 表获取数据并 JOIN users 表获取 email
   let query = supabase
     .from('user_videos')
-    .select('*, users(email)')
+    .select('*, users!inner(email)')  // 使用 inner join 以便过滤 users 表
     .neq('status', 'deleted') // 排除已删除的视频
     .order('created_at', { ascending: false });
+
+  // 应用邮箱排除过滤（模糊匹配，不区分大小写）
+  if (excludeEmail && excludeEmail.trim()) {
+    query = query.not('users.email', 'ilike', `%${excludeEmail.trim()}%`);
+  }
 
   // 应用游标（只获取早于游标时间的任务）
   if (cursor) {

@@ -74,6 +74,7 @@ export interface FetchTasksOptions {
   taskType?: TaskType;
   limit?: number;
   cursor?: string;  // ISO timestamp for cursor-based pagination
+  excludeEmail?: string;  // 排除包含该关键词的邮箱
 }
 
 /**
