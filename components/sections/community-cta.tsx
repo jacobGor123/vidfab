@@ -3,7 +3,6 @@
 import { ArrowRight, Volume2, VolumeX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getVideoPoster } from "@/lib/utils/video-poster"
 import Link from "next/link"
 import { useState, useRef, MouseEvent, useEffect } from "react"
 
@@ -86,7 +85,6 @@ function VideoItem({ video, rowIndex, index, isMobile }: { video: CommunityVideo
       <video
         ref={videoRef}
         src={video.url}
-        poster={getVideoPoster(video.url, { useLocal: true })}
         className={cn(
           "w-auto block transition-transform duration-500 group-hover:scale-110",
           isMobile ? "h-[200px] max-w-[280px]" : "h-[300px]"
@@ -171,9 +169,6 @@ export function CommunityCTA({
           <h2 className="text-4xl md:text-5xl font-heading font-extrabold mb-6 text-gradient-brand">
             {title}
           </h2>
-          <p className="text-lg md:text-xl text-brand-gray-300 mb-8 max-w-2xl mx-auto">
-            {description}
-          </p>
           <Button
             size="lg"
             className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white hover:opacity-90 transition-opacity"
@@ -187,7 +182,6 @@ export function CommunityCTA({
         </div>
 
         {/* Scrolling Video Gallery - 瀑布流布局 */}
-        {/*
         <div className="relative -mx-4 overflow-hidden">
           <div className="flex flex-col gap-4 py-4">
             {videoRows.map((rowVideos, rowIndex) => (
@@ -204,6 +198,7 @@ export function CommunityCTA({
                     animationDuration: `${25 + rowIndex * 5}s`,
                   }}
                 >
+                  {/* 移动端两倍渲染，桌面端三倍渲染实现无缝循环 */}
                   {(isMobile
                     ? [...rowVideos, ...rowVideos]
                     : [...rowVideos, ...rowVideos, ...rowVideos]
@@ -221,10 +216,10 @@ export function CommunityCTA({
             ))}
           </div>
 
+          {/* 渐变遮罩 */}
           <div className="absolute top-0 left-0 bottom-0 w-32 bg-gradient-to-r from-black/80 to-transparent pointer-events-none z-10" />
           <div className="absolute top-0 right-0 bottom-0 w-32 bg-gradient-to-l from-black/80 to-transparent pointer-events-none z-10" />
         </div>
-        */}
       </div>
 
       {/* Background Decoration */}

@@ -15,11 +15,11 @@ import { usePageTranslation } from "@/lib/i18n"
 import Link from "next/link"
 import { Layers, Upload, Sparkles, Download } from "lucide-react"
 
-// 动态导入 CommunityCTA
-const CommunityCTA = dynamic(
-  () => import("@/components/sections/community-cta").then(mod => ({ default: mod.CommunityCTA })),
+// 动态导入 SimpleCTA
+const SimpleCTA = dynamic(
+  () => import("@/components/sections/simple-cta").then(mod => ({ default: mod.SimpleCTA })),
   {
-    loading: () => <LoadingState message="Loading community videos..." />,
+    loading: () => <LoadingState message="Loading CTA..." />,
     ssr: false,
   }
 )
@@ -150,13 +150,11 @@ export default function AIVideoEffectsPage() {
               faqs={translations?.faq?.items || []}
             />
 
-            {/* Community CTA Section */}
-            <CommunityCTA
+            {/* CTA Section */}
+            <SimpleCTA
               title={translations?.community?.title || "Create Videos With Text Effortlessly"}
-              subtitle={translations?.community?.subtitle || "Find your inspiration in a sea of creativity"}
               description={translations?.community?.description || "VidFab makes it simple to create engaging videos from text. Don't waste time with complicated tools — our AI video generator does the heavy lifting for you."}
               ctaText={translations?.community?.cta || "Generate Your First Video for Free"}
-              getInspiredText={translations?.community?.getInspiredButton || "Get Inspired"}
             />
           </div>
         </main>
