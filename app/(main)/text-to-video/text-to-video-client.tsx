@@ -15,11 +15,11 @@ import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carous
 import Link from "next/link"
 import { FileText, MousePointerClick, Sparkles, Download } from "lucide-react"
 
-// 动态导入 SimpleCTA - 非首屏内容延迟加载
-const SimpleCTA = dynamic(
-  () => import("@/components/sections/simple-cta").then(mod => ({ default: mod.SimpleCTA })),
+// 动态导入 CommunityCTA - 非首屏内容延迟加载
+const CommunityCTA = dynamic(
+  () => import("@/components/sections/community-cta").then(mod => ({ default: mod.CommunityCTA })),
   {
-    loading: () => <LoadingState message="Loading CTA..." />,
+    loading: () => <LoadingState message="Loading community videos..." />,
     ssr: false,
   }
 )
@@ -160,11 +160,13 @@ export default function TextToVideoPage() {
               faqs={translations?.faq?.items || []}
             />
 
-            {/* CTA Section */}
-            <SimpleCTA
+            {/* Community CTA Section */}
+            <CommunityCTA
               title={translations?.community?.title || "Create Videos With Text Effortlessly"}
+              subtitle={translations?.community?.subtitle || "Find your inspiration in a sea of creativity"}
               description={translations?.community?.description || "VidFab makes it simple to create engaging videos from text. Don't waste time with complicated tools — our AI video generator does the heavy lifting for you."}
               ctaText={translations?.community?.cta || "Generate Your First Video for Free"}
+              getInspiredText={translations?.community?.getInspiredButton || "Get Inspired"}
             />
           </div>
         </main>
