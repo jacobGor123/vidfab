@@ -65,13 +65,20 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
  * Require admin authentication
  * Throws error if user is not authenticated or not an admin
  * Use this in API routes and server components
+ * @returns The admin user object
  */
-export async function requireAdmin(): Promise<void> {
-  const isAdmin = await isCurrentUserAdmin();
+export async function requireAdmin() {
+  const user = await getCurrentUser();
 
-  if (!isAdmin) {
+  if (!user || !user.email) {
+    throw new Error('Unauthorized: Not authenticated');
+  }
+
+  if (!isAdminEmail(user.email)) {
     throw new Error('Unauthorized: Admin access required');
   }
+
+  return user;
 }
 
 /**
