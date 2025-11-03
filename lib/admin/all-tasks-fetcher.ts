@@ -37,7 +37,7 @@ function determineGenerationType(settings: any): GenerationType {
   }
 
   // 判断是否为 image_to_video（通过 image_url）
-  if (settings?.image_url || settings?.imageUrl || settings?.inputImage) {
+  if (settings?.image_url || settings?.imageUrl || settings?.image || settings?.inputImage) {
     return 'image_to_video';
   }
 
@@ -64,7 +64,7 @@ function normalizeTask(rawTask: any): UnifiedTask {
 
     // 生成类型和输入数据
     generation_type: generationType,
-    input_image_url: settings.image_url || settings.imageUrl || settings.inputImage || null,
+    input_image_url: settings.image_url || settings.imageUrl || settings.image || settings.inputImage || null,
     prompt: rawTask.prompt || '',
 
     // 输出数据
