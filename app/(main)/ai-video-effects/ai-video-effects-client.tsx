@@ -139,6 +139,7 @@ export default function AIVideoEffectsPage() {
             <AmazingFeatures
               title="Key Features of AI Video Effects"
               features={keyFeatures}
+              layout="2-columns"
             />
 
             {/* How It Works Section */}
