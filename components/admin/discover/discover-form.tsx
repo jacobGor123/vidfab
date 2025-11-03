@@ -176,20 +176,24 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
       {/* Category */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Category (Auto-detect if not selected)
+          Category (Leave empty for auto-detect)
         </label>
-        <select
+        <input
+          type="text"
+          list="category-suggestions"
           value={formData.category}
           onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          placeholder="Enter category or leave empty for auto-detect"
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
-        >
-          <option value="">Auto Detect</option>
+        />
+        <datalist id="category-suggestions">
           {getAllCategories().map(cat => (
-            <option key={cat.value} value={cat.value}>
-              {cat.label}
-            </option>
+            <option key={cat.value} value={cat.value} />
           ))}
-        </select>
+        </datalist>
+        <p className="mt-1 text-xs text-gray-500">
+          Suggestions: {getAllCategories().map(c => c.label).join(', ')}
+        </p>
       </div>
 
       {/* Status */}
