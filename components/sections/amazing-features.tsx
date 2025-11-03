@@ -14,6 +14,7 @@ interface AmazingFeaturesProps {
   title: string
   features: FeatureItem[]
   className?: string
+  layout?: '2-columns' | '3-columns'
 }
 
 // 根据特性编号返回对应图标
@@ -32,7 +33,8 @@ const getFeatureIcon = (number: string) => {
 export function AmazingFeatures({
   title,
   features,
-  className
+  className,
+  layout = '3-columns'
 }: AmazingFeaturesProps) {
   return (
     <section className={cn("py-20", className)}>
@@ -50,7 +52,10 @@ export function AmazingFeatures({
             <div
               key={index}
               className={cn(
-                "w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] md:max-w-[400px]",
+                "w-full",
+                layout === '2-columns'
+                  ? "md:w-[calc(50%-1rem)] md:max-w-[500px]"
+                  : "md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] md:max-w-[400px]",
                 "bg-brand-gray-800/70 backdrop-blur-md border border-brand-gray-700",
                 "rounded-xl p-4 sm:p-6 shadow-apple-soft transition-all duration-300 ease-apple",
                 "hover:bg-brand-gray-700/90 hover:shadow-apple-medium hover:border-brand-purple-DEFAULT/30",

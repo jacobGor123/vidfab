@@ -111,7 +111,7 @@ export const AI_VIDEO_EFFECTS_ITEMS: VideoHeroItem[] = [
   {
     id: 'ai-video-effects-1',
     title: 'Popular Effects',
-    posterUrl: 'https://static.vidfab.ai/public/image/home-step-03-poster.webp', // 如果有poster的话
+    posterUrl: 'https://static.vidfab.ai/public/image/home-step-03-poster.webp',
     videoUrl: 'https://static.vidfab.ai/public/video/home-step-03.mp4',
     typingTexts: [
       "Apply stunning AI effects to your videos...",

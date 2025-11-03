@@ -103,11 +103,11 @@ export default function HomeClient() {
 
           {/* Community CTA */}
           <CommunityCTA
-            title={translations?.homepage?.community?.title || "Find More Inspirations in VidFab"}
-            subtitle={translations?.homepage?.community?.subtitle || "Find your inspiration in a sea of creativity"}
-            description={translations?.homepage?.community?.description || "Explore unlimited inspiration alongside other VidFab users. Let creativity be inspired by shared excitement and collaborative genius."}
-            ctaText={translations?.homepage?.community?.cta || "Discover Now"}
-            getInspiredText={translations?.homepage?.community?.getInspiredButton || "Get Inspired"}
+            title={translations?.homepage?.community?.title || "Create Videos With Text Effortlessly"}
+            subtitle=""
+            description=""
+            ctaText={translations?.homepage?.community?.cta || "Generate Your First Video for Free"}
+            getInspiredText=""
           />
         </div>
       </main>

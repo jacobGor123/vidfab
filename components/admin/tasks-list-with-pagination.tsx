@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UnifiedTask, TaskType, TaskStats } from '@/types/admin/tasks';
 import { Table as TableSlotType } from '@/types/slots/table';
 import TableSlot from '@/components/dashboard/slots/table';
@@ -17,6 +17,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { X } from 'lucide-react';
 
 interface TasksListProps {
   initialTasks: UnifiedTask[];
@@ -38,6 +40,62 @@ export default function TasksListWithPagination({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
 
+  // 邮箱排除搜索
+  const [excludeEmailInput, setExcludeEmailInput] = useState('');
+  const [excludeEmail, setExcludeEmail] = useState('');
+  const [isInitialMount, setIsInitialMount] = useState(true);
+
+  /**
+   * 防抖：输入停止 300ms 后更新搜索关键词
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setExcludeEmail(excludeEmailInput.trim());
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [excludeEmailInput]);
+
+  /**
+   * 当搜索关键词变化时，重新加载数据
+   */
+  const fetchTasks = useCallback(async (excludeKeyword: string) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (taskType) {
+        params.set('type', taskType);
+      }
+      if (excludeKeyword) {
+        params.set('excludeEmail', excludeKeyword);
+      }
+
+      const response = await fetch(`/api/admin/tasks?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setTasks(data.tasks);
+        setNextCursor(data.nextCursor);
+        setHasMore(data.hasMore);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tasks:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [taskType]);
+
+  useEffect(() => {
+    // 跳过初始挂载，避免不必要的 API 调用
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
+
+    // 当 excludeEmail 变化时，重新加载数据
+    fetchTasks(excludeEmail);
+  }, [excludeEmail, fetchTasks, isInitialMount]);
+
   /**
    * Load more tasks
    */
@@ -51,6 +109,9 @@ export default function TasksListWithPagination({
       });
       if (taskType) {
         params.set('type', taskType);
+      }
+      if (excludeEmail) {
+        params.set('excludeEmail', excludeEmail);
       }
 
       const response = await fetch(`/api/admin/tasks?${params.toString()}`);
@@ -70,7 +131,8 @@ export default function TasksListWithPagination({
 
   // Define table columns
   const table: TableSlotType = {
-    title: `${taskType ? getTaskTypeLabel(taskType) + ' - ' : ''}Task Management (Total: ${stats.total} | Completed: ${stats.completed} | Failed: ${stats.failed} | Processing: ${stats.processing})`,
+    title: taskType ? `${getTaskTypeLabel(taskType)} Tasks` : 'All Tasks',
+    description: `Total: ${stats.total} | Completed: ${stats.completed} | Failed: ${stats.failed} | Processing: ${stats.processing}`,
     columns: [
       {
         name: 'generation_type',
@@ -170,6 +232,51 @@ export default function TasksListWithPagination({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+          );
+        },
+      },
+      {
+        name: 'parameters',
+        title: 'Parameters',
+        className: 'w-40',
+        callback: (item: UnifiedTask) => {
+          return (
+            <div className="flex flex-col gap-1 text-xs">
+              {/* Duration */}
+              {item.durationStr && (
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-500 font-medium">Duration:</span>
+                  <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">
+                    {item.durationStr}
+                  </span>
+                </div>
+              )}
+
+              {/* Resolution */}
+              {item.resolution && (
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-500 font-medium">Res:</span>
+                  <span className="px-2 py-0.5 rounded bg-green-100 text-green-800 font-semibold">
+                    {item.resolution}
+                  </span>
+                </div>
+              )}
+
+              {/* Aspect Ratio */}
+              {item.aspectRatio && (
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-500 font-medium">Ratio:</span>
+                  <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-semibold">
+                    {item.aspectRatio}
+                  </span>
+                </div>
+              )}
+
+              {/* 如果都没有，显示占位符 */}
+              {!item.durationStr && !item.resolution && !item.aspectRatio && (
+                <span className="text-gray-400">-</span>
+              )}
+            </div>
           );
         },
       },
@@ -283,6 +390,35 @@ export default function TasksListWithPagination({
 
   return (
     <div>
+      {/* 邮箱排除搜索框 */}
+      <div className="mb-6 flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Input
+            type="text"
+            placeholder="Enter email keyword to exclude..."
+            value={excludeEmailInput}
+            onChange={(e) => setExcludeEmailInput(e.target.value)}
+            className="pr-8"
+          />
+          {excludeEmailInput && (
+            <button
+              onClick={() => setExcludeEmailInput('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {excludeEmail && (
+          <span className="text-sm text-gray-500">
+            Excluding emails containing: <span className="font-semibold text-red-600">{excludeEmail}</span>
+          </span>
+        )}
+        {loading && excludeEmail && (
+          <span className="text-sm text-blue-500">Loading...</span>
+        )}
+      </div>
+
       <TableSlot {...table} />
 
       {/* Load More Button */}
@@ -291,7 +427,7 @@ export default function TasksListWithPagination({
           <button
             onClick={loadMore}
             disabled={loading}
-            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
           >
             {loading ? 'Loading...' : 'Load More'}
           </button>

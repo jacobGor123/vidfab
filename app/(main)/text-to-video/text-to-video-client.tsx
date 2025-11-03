@@ -162,11 +162,12 @@ export default function TextToVideoPage() {
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title={translations?.community?.title || "Find More Inspirations in VidFab"}
-              subtitle={translations?.community?.subtitle || "Find your inspiration in a sea of creativity"}
-              description={translations?.community?.description || "Explore unlimited inspiration alongside other VidFab users."}
-              ctaText={translations?.community?.cta || "Discover Now"}
-              getInspiredText={translations?.community?.getInspiredButton || "Get Inspired"}
+              title="Create Videos With Text Effortlessly"
+              subtitle=""
+              description="VidFab makes it simple to create engaging videos from text. Don't waste time with complicated tools — our AI video generator does the heavy lifting for you."
+              ctaText="Generate Your First Video for Free"
+              getInspiredText=""
+              showVideos={false}
             />
           </div>
         </main>

@@ -139,6 +139,7 @@ export default function AIVideoEffectsPage() {
             <AmazingFeatures
               title="Key Features of AI Video Effects"
               features={keyFeatures}
+              layout="2-columns"
             />
 
             {/* How It Works Section */}
@@ -152,11 +153,12 @@ export default function AIVideoEffectsPage() {
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title={translations?.community?.title || "Find More Inspirations in VidFab"}
-              subtitle={translations?.community?.subtitle || "Find your inspiration in a sea of creativity"}
-              description={translations?.community?.description || "Explore unlimited inspiration alongside other VidFab users."}
-              ctaText={translations?.community?.cta || "Discover Now"}
-              getInspiredText={translations?.community?.getInspiredButton || "Get Inspired"}
+              title="Apply Trending Effects in One Tap"
+              subtitle=""
+              description="Create amazing videos with stunning AI effects. Forget complicated editing — our AI video generator makes it easy."
+              ctaText="Start Your Free Trial Today"
+              getInspiredText=""
+              showVideos={false}
             />
           </div>
         </main>

@@ -157,11 +157,12 @@ export default function ImageToVideoPage() {
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title={translations?.community?.title || "Find More Inspirations in VidFab"}
-              subtitle={translations?.community?.subtitle || "Find your inspiration in a sea of creativity"}
-              description={translations?.community?.description || "Explore unlimited inspiration alongside other VidFab users."}
-              ctaText={translations?.community?.cta || "Discover Now"}
-              getInspiredText={translations?.community?.getInspiredButton || "Get Inspired"}
+              title="Turn Images Into Engaging Videos"
+              subtitle=""
+              description="Transform your photos into stunning videos with VidFab. Forget complicated operation — our AI video generator simplifies the process for you."
+              ctaText="Start Your Free Trial Today"
+              getInspiredText=""
+              showVideos={false}
             />
           </div>
         </main>

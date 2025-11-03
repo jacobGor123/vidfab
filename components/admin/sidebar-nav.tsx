@@ -36,13 +36,22 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    href: '/admin/discover',
+    label: 'Discover',
+    icon: (
+      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 px-4 py-6 space-y-1">
+    <nav className="flex-1 px-4 py-6 space-y-2">
       {navItems.map((item) => {
         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
@@ -50,10 +59,10 @@ export default function SidebarNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+            className={`flex items-center px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 ${
               isActive
-                ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white shadow-md transform scale-[1.02]'
+                : 'text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-700'
             }`}
           >
             {item.icon}
