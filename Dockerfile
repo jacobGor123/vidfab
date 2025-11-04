@@ -44,8 +44,8 @@ RUN npm run build; EXIT_CODE=$?; if [ $EXIT_CODE -eq 0 ]; then echo "Build succe
 FROM base AS runner
 WORKDIR /app
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+# Install curl for healthcheck and ffmpeg for video compression
+RUN apk add --no-cache curl ffmpeg
 
 # Let .env.local control NODE_ENV - don't force production at runtime
 # Uncomment the following line in case you want to disable telemetry during runtime.

@@ -9,6 +9,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { categorizePrompt } from '@/lib/discover/categorize'
 import { uploadVideoToS3, uploadImageToS3, downloadAndUploadToS3 } from '@/lib/discover/upload'
+import { compressImage } from '@/lib/discover/compress-image'
+import { compressVideo, checkFfmpegInstalled } from '@/lib/discover/compress-video'
 import { DiscoverStatus, type DiscoverQueryParams } from '@/types/discover'
 
 /**
@@ -113,8 +115,35 @@ export async function POST(request: NextRequest) {
     let finalVideoUrl = videoUrl
 
     if (videoFile) {
-      const buffer = Buffer.from(await videoFile.arrayBuffer())
-      const uploadResult = await uploadVideoToS3(buffer, videoFile.type)
+      let buffer = Buffer.from(await videoFile.arrayBuffer())
+
+      // 检查视频大小，如果超过 1MB 则压缩
+      const videoSizeMB = buffer.length / 1024 / 1024
+      console.log(`原始视频大小: ${videoSizeMB.toFixed(2)}MB`)
+
+      if (videoSizeMB > 1) {
+        console.log('视频超过 1MB，开始压缩...')
+        const compressResult = await compressVideo(buffer, { targetSizeMB: 1 })
+
+        if (!compressResult.success) {
+          // 如果压缩失败（比如 ffmpeg 未安装），返回错误
+          return NextResponse.json(
+            { success: false, error: `视频压缩失败: ${compressResult.error}` },
+            { status: 500 }
+          )
+        }
+
+        // 使用压缩后的 buffer
+        buffer = compressResult.buffer!
+        console.log(`压缩后视频大小: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`)
+
+        // 如果有警告，记录到控制台
+        if (compressResult.warning) {
+          console.warn(compressResult.warning)
+        }
+      }
+
+      const uploadResult = await uploadVideoToS3(buffer, 'video/mp4')
 
       if (!uploadResult.success) {
         return NextResponse.json(
@@ -134,8 +163,33 @@ export async function POST(request: NextRequest) {
     let finalImageUrl = imageUrl
 
     if (imageFile) {
-      const buffer = Buffer.from(await imageFile.arrayBuffer())
-      const uploadResult = await uploadImageToS3(buffer, imageFile.type)
+      let buffer = Buffer.from(await imageFile.arrayBuffer())
+
+      // 自动压缩图片并转换为 webp 格式
+      const imageSizeKB = buffer.length / 1024
+      console.log(`原始图片大小: ${imageSizeKB.toFixed(2)}KB`)
+
+      console.log('压缩图片并转换为 webp 格式...')
+      const compressResult = await compressImage(buffer, {
+        targetSizeKB: 100,
+        format: 'webp',
+        quality: 80,
+        minQuality: 60,
+        maxWidth: 1920
+      })
+
+      if (!compressResult.success) {
+        return NextResponse.json(
+          { success: false, error: `图片压缩失败: ${compressResult.error}` },
+          { status: 500 }
+        )
+      }
+
+      // 使用压缩后的 buffer
+      buffer = compressResult.buffer!
+      console.log(`压缩后图片大小: ${(buffer.length / 1024).toFixed(2)}KB`)
+
+      const uploadResult = await uploadImageToS3(buffer, 'image/webp')
 
       if (!uploadResult.success) {
         return NextResponse.json(
