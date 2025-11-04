@@ -10,6 +10,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { categorizePrompt } from '@/lib/discover/categorize'
 import { uploadVideoToS3, uploadImageToS3 } from '@/lib/discover/upload'
+import { compressVideo } from '@/lib/discover/compress-video'
+import { compressImage } from '@/lib/discover/compress-image'
+import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
 import { DiscoverStatus } from '@/types/discover'
 
 interface RouteContext {
@@ -87,10 +90,28 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     // 处理视频上传
     let finalVideoUrl = existing.video_url
+    let videoBuffer: Buffer | null = null // 保存视频 buffer 供后续提取缩略图使用
 
     if (videoFile) {
-      const buffer = Buffer.from(await videoFile.arrayBuffer())
-      const uploadResult = await uploadVideoToS3(buffer, videoFile.type)
+      let buffer = Buffer.from(await videoFile.arrayBuffer())
+
+      // 检查视频大小，如果超过 1MB 则压缩
+      const videoSizeMB = buffer.length / 1024 / 1024
+
+      if (videoSizeMB > 1) {
+        const compressResult = await compressVideo(buffer, { targetSizeMB: 1 })
+
+        if (!compressResult.success) {
+          return NextResponse.json(
+            { success: false, error: `视频压缩失败: ${compressResult.error}` },
+            { status: 500 }
+          )
+        }
+
+        buffer = compressResult.buffer!
+      }
+
+      const uploadResult = await uploadVideoToS3(buffer, 'video/mp4')
 
       if (!uploadResult.success) {
         return NextResponse.json(
@@ -100,6 +121,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       }
 
       finalVideoUrl = uploadResult.url!
+      videoBuffer = buffer // 保存 buffer 供后续提取缩略图使用
     } else if (videoUrl) {
       finalVideoUrl = videoUrl
     }
@@ -108,8 +130,27 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     let finalImageUrl = existing.image_url
 
     if (imageFile) {
-      const buffer = Buffer.from(await imageFile.arrayBuffer())
-      const uploadResult = await uploadImageToS3(buffer, imageFile.type)
+      let buffer = Buffer.from(await imageFile.arrayBuffer())
+
+      // 自动压缩图片并转换为 webp 格式
+      const compressResult = await compressImage(buffer, {
+        targetSizeKB: 100,
+        format: 'webp',
+        quality: 80,
+        minQuality: 60,
+        maxWidth: 1920
+      })
+
+      if (!compressResult.success) {
+        return NextResponse.json(
+          { success: false, error: `图片压缩失败: ${compressResult.error}` },
+          { status: 500 }
+        )
+      }
+
+      buffer = compressResult.buffer!
+
+      const uploadResult = await uploadImageToS3(buffer, 'image/webp')
 
       if (!uploadResult.success) {
         return NextResponse.json(
@@ -121,6 +162,24 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       finalImageUrl = uploadResult.url!
     } else if (imageUrl !== null) {
       finalImageUrl = imageUrl
+    } else if (videoBuffer && !existing.image_url) {
+      // 如果当前没有图片，且上传了新视频，自动从视频中提取第一帧作为缩略图
+      const thumbnailResult = await extractVideoThumbnail(videoBuffer, {
+        timestamp: 0.1,
+        format: 'webp',
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 85,
+        targetSizeKB: 100
+      })
+
+      if (thumbnailResult.success) {
+        const uploadResult = await uploadImageToS3(thumbnailResult.buffer!, 'image/webp')
+
+        if (uploadResult.success) {
+          finalImageUrl = uploadResult.url!
+        }
+      }
     }
 
     // 自动分类（如果未指定且 prompt 有变化）

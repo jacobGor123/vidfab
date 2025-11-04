@@ -1,11 +1,13 @@
 /**
  * Admin Discover API - 批量操作
- * POST: 批量删除、批量更新状态、批量更新排序
+ * POST: 批量删除、批量更新状态、批量更新排序、批量生成缩略图
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
+import { downloadToBuffer, uploadImageToS3 } from '@/lib/discover/upload'
+import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
 import type { DiscoverBatchRequest } from '@/types/discover'
 
 /**
@@ -52,6 +54,10 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
 
+      case 'generateThumbnails':
+        // 批量生成缩略图
+        return await handleGenerateThumbnails(ids)
+
       default:
         return NextResponse.json({ success: false, error: '无效的操作类型' }, { status: 400 })
     }
@@ -71,6 +77,131 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { success: false, error: error.message || '批量操作失败' },
       { status: error.status || 500 }
+    )
+  }
+}
+
+/**
+ * 批量生成缩略图
+ * 对于指定的 discover 记录，如果没有 image_url，则从 video_url 提取第一帧作为缩略图
+ */
+async function handleGenerateThumbnails(ids: number[]) {
+  try {
+    // 获取指定 ids 的记录
+    const { data: records, error: fetchError } = await supabaseAdmin
+      .from('discover_videos')
+      .select('id, video_url, image_url')
+      .in('id', ids)
+
+    if (fetchError) {
+      return NextResponse.json(
+        { success: false, error: `获取记录失败: ${fetchError.message}` },
+        { status: 500 }
+      )
+    }
+
+    if (!records || records.length === 0) {
+      return NextResponse.json({ success: false, error: '未找到任何记录' }, { status: 404 })
+    }
+
+    // 筛选出没有 image_url 且有 video_url 的记录
+    const recordsToProcess = records.filter((r) => !r.image_url && r.video_url)
+
+    if (recordsToProcess.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: '所有记录都已有缩略图',
+        processed: 0,
+        failed: 0
+      })
+    }
+
+    // 逐个处理记录
+    const results = {
+      processed: 0,
+      failed: 0,
+      errors: [] as Array<{ id: number; error: string }>
+    }
+
+    for (const record of recordsToProcess) {
+      try {
+        // 下载视频到 buffer
+        const videoBuffer = await downloadToBuffer(record.video_url)
+
+        if (!videoBuffer) {
+          results.failed++
+          results.errors.push({ id: record.id, error: '下载视频失败' })
+          continue
+        }
+
+        // 提取第一帧
+        const thumbnailResult = await extractVideoThumbnail(videoBuffer, {
+          timestamp: 0.1,
+          format: 'webp',
+          maxWidth: 1920,
+          maxHeight: 1080,
+          quality: 85,
+          targetSizeKB: 100
+        })
+
+        if (!thumbnailResult.success) {
+          results.failed++
+          results.errors.push({
+            id: record.id,
+            error: `提取缩略图失败: ${thumbnailResult.error}`
+          })
+          continue
+        }
+
+        // 上传到 S3
+        const uploadResult = await uploadImageToS3(thumbnailResult.buffer!, 'image/webp')
+
+        if (!uploadResult.success) {
+          results.failed++
+          results.errors.push({
+            id: record.id,
+            error: `上传缩略图失败: ${uploadResult.error}`
+          })
+          continue
+        }
+
+        // 更新数据库
+        const { error: updateError } = await supabaseAdmin
+          .from('discover_videos')
+          .update({ image_url: uploadResult.url })
+          .eq('id', record.id)
+
+        if (updateError) {
+          results.failed++
+          results.errors.push({
+            id: record.id,
+            error: `更新数据库失败: ${updateError.message}`
+          })
+          continue
+        }
+
+        results.processed++
+      } catch (error) {
+        results.failed++
+        results.errors.push({
+          id: record.id,
+          error: error instanceof Error ? error.message : '未知错误'
+        })
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `批量生成缩略图完成，成功 ${results.processed} 条，失败 ${results.failed} 条`,
+      processed: results.processed,
+      failed: results.failed,
+      errors: results.errors
+    })
+  } catch (error: any) {
+    console.error('批量生成缩略图错误:', error)
+    return NextResponse.json(
+      { success: false, error: error.message || '批量生成缩略图失败' },
+      { status: 500 }
     )
   }
 }
