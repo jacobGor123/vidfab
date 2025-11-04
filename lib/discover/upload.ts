@@ -7,12 +7,10 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import crypto from 'crypto'
 
 // S3 客户端配置
+// 使用 EC2 Instance Profile，不需要显式配置 credentials
+// AWS SDK 会自动从 EC2 实例元数据服务获取临时凭证
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-west-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
-  }
+  region: process.env.AWS_REGION || 'us-west-1'
 })
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'static.vidfab.ai'
