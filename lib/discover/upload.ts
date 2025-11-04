@@ -138,3 +138,22 @@ export async function downloadAndUploadToS3(
     }
   }
 }
+
+/**
+ * 下载文件到 Buffer
+ * @param fileUrl 文件 URL
+ * @returns Buffer 或 null
+ */
+export async function downloadToBuffer(fileUrl: string): Promise<Buffer | null> {
+  try {
+    const response = await fetch(fileUrl)
+    if (!response.ok) {
+      return null
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    return Buffer.from(arrayBuffer)
+  } catch (error) {
+    return null
+  }
+}

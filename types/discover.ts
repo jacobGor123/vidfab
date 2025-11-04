@@ -86,7 +86,7 @@ export interface CategoryStats {
 
 // 批量操作请求
 export interface DiscoverBatchRequest {
-  action: 'delete' | 'updateStatus' | 'updateOrder'
+  action: 'delete' | 'updateStatus' | 'updateOrder' | 'generateThumbnails'
   ids: string[]
   payload?: {
     status?: DiscoverStatus
@@ -98,7 +98,10 @@ export interface DiscoverBatchRequest {
 export interface DiscoverBatchResponse {
   success: boolean
   message: string
-  affected: number
+  affected?: number
+  processed?: number
+  failed?: number
+  errors?: Array<{ id: number; error: string }>
 }
 
 // 查询参数
