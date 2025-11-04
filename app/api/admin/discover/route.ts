@@ -11,6 +11,7 @@ import { categorizePrompt } from '@/lib/discover/categorize'
 import { uploadVideoToS3, uploadImageToS3, downloadAndUploadToS3 } from '@/lib/discover/upload'
 import { compressImage } from '@/lib/discover/compress-image'
 import { compressVideo, checkFfmpegInstalled } from '@/lib/discover/compress-video'
+import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
 import { DiscoverStatus, type DiscoverQueryParams } from '@/types/discover'
 
 /**
@@ -113,16 +114,15 @@ export async function POST(request: NextRequest) {
 
     // 处理视频上传
     let finalVideoUrl = videoUrl
+    let videoBuffer: Buffer | null = null // 保存视频 buffer 供后续提取缩略图使用
 
     if (videoFile) {
       let buffer = Buffer.from(await videoFile.arrayBuffer())
 
       // 检查视频大小，如果超过 1MB 则压缩
       const videoSizeMB = buffer.length / 1024 / 1024
-      console.log(`原始视频大小: ${videoSizeMB.toFixed(2)}MB`)
 
       if (videoSizeMB > 1) {
-        console.log('视频超过 1MB，开始压缩...')
         const compressResult = await compressVideo(buffer, { targetSizeMB: 1 })
 
         if (!compressResult.success) {
@@ -135,12 +135,6 @@ export async function POST(request: NextRequest) {
 
         // 使用压缩后的 buffer
         buffer = compressResult.buffer!
-        console.log(`压缩后视频大小: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`)
-
-        // 如果有警告，记录到控制台
-        if (compressResult.warning) {
-          console.warn(compressResult.warning)
-        }
       }
 
       const uploadResult = await uploadVideoToS3(buffer, 'video/mp4')
@@ -153,6 +147,7 @@ export async function POST(request: NextRequest) {
       }
 
       finalVideoUrl = uploadResult.url!
+      videoBuffer = buffer // 保存 buffer 供后续提取缩略图使用
     } else if (videoUrl) {
       // 如果提供的是 URL，可选择下载后上传到自己的 S3（更可控）
       // 这里暂时直接使用提供的 URL
@@ -166,10 +161,6 @@ export async function POST(request: NextRequest) {
       let buffer = Buffer.from(await imageFile.arrayBuffer())
 
       // 自动压缩图片并转换为 webp 格式
-      const imageSizeKB = buffer.length / 1024
-      console.log(`原始图片大小: ${imageSizeKB.toFixed(2)}KB`)
-
-      console.log('压缩图片并转换为 webp 格式...')
       const compressResult = await compressImage(buffer, {
         targetSizeKB: 100,
         format: 'webp',
@@ -187,7 +178,6 @@ export async function POST(request: NextRequest) {
 
       // 使用压缩后的 buffer
       buffer = compressResult.buffer!
-      console.log(`压缩后图片大小: ${(buffer.length / 1024).toFixed(2)}KB`)
 
       const uploadResult = await uploadImageToS3(buffer, 'image/webp')
 
@@ -201,8 +191,26 @@ export async function POST(request: NextRequest) {
       finalImageUrl = uploadResult.url!
     } else if (imageUrl) {
       finalImageUrl = imageUrl
+    } else if (videoBuffer) {
+      // 如果没有图片，自动从视频中提取第一帧作为缩略图
+      const thumbnailResult = await extractVideoThumbnail(videoBuffer, {
+        timestamp: 0.1, // 0.1秒，避免第一帧可能是黑屏
+        format: 'webp',
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 85,
+        targetSizeKB: 100
+      })
+
+      if (thumbnailResult.success) {
+        // 上传缩略图到 S3
+        const uploadResult = await uploadImageToS3(thumbnailResult.buffer!, 'image/webp')
+
+        if (uploadResult.success) {
+          finalImageUrl = uploadResult.url!
+        }
+      }
     }
-    // 如果没有图片，finalImageUrl 为 null，后续可以实现自动生成缩略图
 
     // 自动分类（如果未指定）
     const finalCategory = category || categorizePrompt(prompt)
