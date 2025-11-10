@@ -42,3 +42,6 @@ docker-*.log
 # 临时文件
 tmp/
 queue-worker.js
+
+# Playwright 测试截图和临时文件
+.playwright-mcp/

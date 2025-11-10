@@ -59,6 +59,7 @@ export function useImageGeneration(options: UseImageGenerationOptions = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           prompt,
           model: settings.model,
@@ -128,6 +129,7 @@ export function useImageGeneration(options: UseImageGenerationOptions = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           images,
           prompt,
