@@ -2,7 +2,36 @@
 
 ## 🔍 快速诊断步骤
 
-### 步骤 1：检查代码版本
+### 步骤 1：检查 Session 解析（最关键！）⭐
+
+**如果请求已经带了 Cookie，但仍然 401，先检查这个**：
+
+在浏览器控制台执行：
+
+```javascript
+fetch('/api/debug/session', { credentials: 'include' })
+  .then(r => r.json())
+  .then(data => {
+    console.log('诊断结果:', data.diagnosis.problem)
+    console.log('Cookie 已发送:', data.cookie.exists)
+    console.log('Session 已解析:', data.session.parsed)
+    console.log('完整信息:', data)
+  })
+```
+
+**关键判断**：
+- ✅ `cookie.exists: true` + `session.parsed: true` → Session 正常
+- ❌ `cookie.exists: true` + `session.parsed: false` → **NEXTAUTH_SECRET 不匹配或 token 已过期**
+- ❌ `cookie.exists: false` → Cookie 未发送（前端问题）
+
+**如果 Cookie 存在但 Session 无法解析**：
+1. 检查服务器的 `NEXTAUTH_SECRET` 是否正确
+2. 尝试重新登录（token 可能已过期）
+3. 确认环境变量在所有服务器实例上一致
+
+---
+
+### 步骤 2：检查代码版本
 
 在浏览器控制台执行：
 
@@ -25,7 +54,7 @@ fetch('/api/debug/version')
 
 ---
 
-### 步骤 2：运行完整诊断脚本
+### 步骤 3：运行完整诊断脚本
 
 在浏览器控制台执行：
 
@@ -42,7 +71,7 @@ fetch('/debug-check.js').then(r => r.text()).then(eval)
 
 ---
 
-### 步骤 3：手动检查 Network 请求
+### 步骤 4：手动检查 Network 请求
 
 1. **打开开发者工具** (F12)
 2. **切换到 Network 标签**
