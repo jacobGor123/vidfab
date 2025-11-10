@@ -18,6 +18,11 @@ import {
  * 判断任务的生成类型
  */
 function determineGenerationType(settings: any): GenerationType {
+  // 🔥 调试：记录 settings 内容（生产环境可以删除）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[determineGenerationType] settings:', JSON.stringify(settings, null, 2));
+  }
+
   // 优先使用显式的 generationType 字段
   if (settings?.generationType) {
     // 🔥 修复:转换中划线格式为下划线格式
@@ -36,8 +41,16 @@ function determineGenerationType(settings: any): GenerationType {
     return 'video_effects';
   }
 
-  // 判断是否为 image_to_video（通过 image_url）
-  if (settings?.image_url || settings?.imageUrl || settings?.image || settings?.inputImage) {
+  // 🔥 增强判断：检查更多可能的字段名
+  // 判断是否为 image_to_video（通过 image_url 等字段）
+  if (
+    settings?.image_url ||
+    settings?.imageUrl ||
+    settings?.image ||
+    settings?.inputImage ||
+    settings?.input_image ||
+    settings?.['image-url']
+  ) {
     return 'image_to_video';
   }
 
@@ -97,6 +110,17 @@ function normalizeTask(rawTask: any): UnifiedTask {
  * 将 user_images 表数据标准化为 UnifiedTask 格式
  */
 function normalizeImageTask(rawTask: any): UnifiedTask {
+  // 🔥 修复：转换中划线格式为下划线格式
+  let generationType: GenerationType = 'text_to_image'; // 默认值
+  if (rawTask.generation_type) {
+    const type = rawTask.generation_type;
+    if (type === 'text-to-image' || type === 'text_to_image') {
+      generationType = 'text_to_image';
+    } else if (type === 'image-to-image' || type === 'image_to_image') {
+      generationType = 'image_to_image';
+    }
+  }
+
   return {
     id: rawTask.id,
     task_type: 'image_generation',
@@ -108,7 +132,7 @@ function normalizeImageTask(rawTask: any): UnifiedTask {
     updated_at: rawTask.updated_at,
 
     // 生成类型和输入数据
-    generation_type: rawTask.generation_type, // 'text_to_image' | 'image_to_image'
+    generation_type: generationType, // 转换后的下划线格式
     input_image_url: rawTask.source_images || null, // image_to_image 的源图
     prompt: rawTask.prompt || '',
 
