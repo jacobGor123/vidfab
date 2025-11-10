@@ -3,7 +3,6 @@
 import { ArrowRight, Volume2, VolumeX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getVideoPoster } from "@/lib/utils/video-poster"
 import Link from "next/link"
 import { useState, useRef, MouseEvent, useEffect } from "react"
 
@@ -87,7 +86,6 @@ function VideoItem({ video, rowIndex, index, isMobile }: { video: CommunityVideo
       <video
         ref={videoRef}
         src={video.url}
-        poster={getVideoPoster(video.url, { useLocal: false })}
         className={cn(
           "w-auto block transition-transform duration-500 group-hover:scale-110",
           isMobile ? "h-[200px] max-w-[280px]" : "h-[300px]"
