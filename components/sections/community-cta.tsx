@@ -87,7 +87,7 @@ function VideoItem({ video, rowIndex, index, isMobile }: { video: CommunityVideo
       <video
         ref={videoRef}
         src={video.url}
-        poster={getVideoPoster(video.url, { useLocal: true })}
+        poster={getVideoPoster(video.url, { useLocal: false })}
         className={cn(
           "w-auto block transition-transform duration-500 group-hover:scale-110",
           isMobile ? "h-[200px] max-w-[280px]" : "h-[300px]"
