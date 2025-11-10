@@ -13,11 +13,7 @@ import { getTaskTypeLabel } from '@/lib/admin/all-tasks-fetcher';
 const TASK_TYPES: (TaskType | 'all')[] = [
   'all',
   'video_generation',
-  'audio_generation',
-  'watermark_removal',
-  'video_upscaler',
-  'video_effects',
-  'face_swap',
+  'image_generation',
 ];
 
 interface TaskTypeFilterProps {
@@ -28,11 +24,7 @@ function getColor(type: TaskType | 'all'): string {
   const colors: Record<TaskType | 'all', string> = {
     all: 'bg-gray-100 text-gray-800 border-gray-300',
     video_generation: 'bg-blue-100 text-blue-800 border-blue-300',
-    audio_generation: 'bg-orange-100 text-orange-800 border-orange-300',
-    watermark_removal: 'bg-purple-100 text-purple-800 border-purple-300',
-    video_upscaler: 'bg-green-100 text-green-800 border-green-300',
-    video_effects: 'bg-pink-100 text-pink-800 border-pink-300',
-    face_swap: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+    image_generation: 'bg-orange-100 text-orange-800 border-orange-300',
   };
   return colors[type] || colors.all;
 }

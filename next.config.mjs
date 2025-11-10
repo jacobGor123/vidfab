@@ -43,7 +43,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'd1q70pf5vjeyhc.cloudfront.net', // Wavespeed API CloudFront CDN
+        hostname: 'd1q7bp5vjyehc.cloudfront.net', // Wavespeed API CloudFront CDN
       },
     ],
     formats: ['image/webp', 'image/avif'],

@@ -6,11 +6,11 @@
  * TaskType 保留用于未来扩展或分类显示
  */
 
-export type TaskType = 'video_generation';  // 当前仅支持视频生成任务
+export type TaskType = 'video_generation' | 'image_generation';  // 支持视频和图片生成任务
 
-export type TaskStatus = 'generating' | 'downloading' | 'processing' | 'completed' | 'failed' | 'deleted';
+export type TaskStatus = 'generating' | 'downloading' | 'processing' | 'completed' | 'failed' | 'deleted' | 'uploading';
 
-export type GenerationType = 'text_to_video' | 'image_to_video' | 'video_effects';
+export type GenerationType = 'text_to_video' | 'image_to_video' | 'video_effects' | 'text_to_image' | 'image_to_image';
 
 /**
  * Unified Task Interface
@@ -34,8 +34,9 @@ export interface UnifiedTask {
 
   // 输出数据
   video_url: string | null;        // user_videos.original_url
-  storage_path: string | null;     // user_videos.storage_path
-  thumbnail_path: string | null;   // user_videos.thumbnail_path
+  image_url?: string | null;       // user_images.storage_url（图片任务特有）
+  storage_path: string | null;     // user_videos.storage_path / user_images.storage_path
+  thumbnail_path: string | null;   // user_videos.thumbnail_path（图片任务无缩略图）
 
   // 任务参数
   model: string | null;            // settings.model
@@ -48,6 +49,12 @@ export interface UnifiedTask {
   // Video Effects 特有字段
   effectId: string | null;         // settings.effectId
   effectName: string | null;       // settings.effectName
+
+  // 图片任务特有字段
+  width?: number | null;           // user_images.width（图片宽度）
+  height?: number | null;          // user_images.height（图片高度）
+  upload_source?: 'file' | 'url' | null;  // user_images.upload_source（上传来源）
+  source_images?: any | null;      // user_images.source_images（image_to_image 的源图片）
 
   // 积分和错误
   credits_used: number;            // 默认 0（当前未跟踪）
