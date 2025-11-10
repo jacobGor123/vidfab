@@ -135,6 +135,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           prompt,
           model: settings.model || 'vidfab-q1',
@@ -228,6 +229,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           image: imageUrl,
           prompt: prompt || 'Convert image to video',
