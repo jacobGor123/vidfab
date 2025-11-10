@@ -5,52 +5,60 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   ChevronLeft,
-  ChevronRight,
-  Video,
-  Image,
-  Search,
-  FolderOpen,
-  Type,
-  ImageIcon,
-  Sparkles,
-  User
+  ChevronRight
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
+import Image from "next/image"
 
 interface CreateSidebarProps {
   isOpen: boolean
   onToggle: () => void
 }
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | "my-profile"
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile"
 
 // Discover 单独菜单项
 const discoverItem = {
   id: "discover" as ToolType,
   label: "Discover",
-  icon: Search
+  iconPath: "/logo/discover.svg"
 }
 
 // 其他分类菜单项
 const menuCategories = [
   {
-    category: "Tools",
+    category: "AI Video",
     items: [
       {
         id: "text-to-video" as ToolType,
         label: "Text to Video",
-        icon: Type
+        iconPath: "/logo/text-to-video.svg"
       },
       {
         id: "image-to-video" as ToolType,
         label: "Image to Video",
-        icon: ImageIcon
+        iconPath: "/logo/image-to-video.svg"
       },
       {
         id: "video-effects" as ToolType,
         label: "Video Effects",
-        icon: Sparkles
+        iconPath: "/logo/video-effects.svg"
+      }
+    ]
+  },
+  {
+    category: "AI Image",
+    items: [
+      {
+        id: "text-to-image" as ToolType,
+        label: "Text to Image",
+        iconPath: "/logo/text-to-image.svg"
+      },
+      {
+        id: "image-to-image" as ToolType,
+        label: "Image to Image",
+        iconPath: "/logo/image-to-image.svg"
       }
     ]
   },
@@ -60,7 +68,7 @@ const menuCategories = [
       {
         id: "my-assets" as ToolType,
         label: "My Assets",
-        icon: FolderOpen
+        iconPath: "/logo/my-assets.svg"
       }
     ]
   },
@@ -70,7 +78,7 @@ const menuCategories = [
       {
         id: "my-profile" as ToolType,
         label: "Plans & Billing",
-        icon: User
+        iconPath: "/logo/plans-&-billing.svg"
       }
     ]
   }
@@ -124,8 +132,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
           <div className="mb-6">
             {(() => {
               const isActive = activeTool === discoverItem.id
-              const Icon = discoverItem.icon
-              
+
               return (
                 <button
                   key={discoverItem.id}
@@ -133,15 +140,23 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                   className={cn(
                     "w-full flex items-center text-left px-4 py-3 text-sm transition-all duration-200",
                     "hover:bg-gray-800",
-                    isActive 
-                      ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600" 
+                    isActive
+                      ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600"
                       : "text-gray-300"
                   )}
                 >
-                  <Icon className={cn(
-                    "h-5 w-5 flex-shrink-0",
-                    isActive ? "text-purple-600" : "text-gray-400"
-                  )} />
+                  <div className={cn(
+                    "h-5 w-5 flex-shrink-0 relative",
+                    isActive ? "opacity-100" : "opacity-60"
+                  )}>
+                    <Image
+                      src={discoverItem.iconPath}
+                      alt={discoverItem.label}
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />
+                  </div>
                   {isOpen && (
                     <div className="ml-3 flex-1 min-w-0">
                       <div className="font-medium truncate">{discoverItem.label}</div>
@@ -164,9 +179,8 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
               )}
               <div className="space-y-1">
                 {category.items.map((item) => {
-                  const Icon = item.icon
                   const isActive = activeTool === item.id
-                  
+
                   return (
                     <button
                       key={item.id}
@@ -174,15 +188,23 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                       className={cn(
                         "w-full flex items-center text-left px-4 py-3 text-sm transition-all duration-200",
                         "hover:bg-gray-800",
-                        isActive 
-                          ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600" 
+                        isActive
+                          ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600"
                           : "text-gray-300"
                       )}
                     >
-                      <Icon className={cn(
-                        "h-5 w-5 flex-shrink-0",
-                        isActive ? "text-purple-600" : "text-gray-400"
-                      )} />
+                      <div className={cn(
+                        "h-5 w-5 flex-shrink-0 relative",
+                        isActive ? "opacity-100" : "opacity-60"
+                      )}>
+                        <Image
+                          src={item.iconPath}
+                          alt={item.label}
+                          width={20}
+                          height={20}
+                          className="object-contain"
+                        />
+                      </div>
                       {isOpen && (
                         <div className="ml-3 flex-1 min-w-0">
                           <div className="font-medium truncate">{item.label}</div>

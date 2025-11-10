@@ -187,32 +187,26 @@ fi
 
 echo -e "${GREEN}✅ Docker 正在运行${NC}"
 
-# 检查 Redis 容器是否已运行
-if docker ps -q -f name=vidfab-redis | grep -q .; then
+# 检查独立的 Redis 容器是否已运行
+if docker ps -q -f name=vidfab-redis-standalone | grep -q .; then
     echo -e "${GREEN}✅ Redis 容器已在运行${NC}"
+
+    # 健康检查
+    if docker exec vidfab-redis-standalone redis-cli ping > /dev/null 2>&1; then
+        echo -e "${GREEN}✅ Redis 健康检查通过${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Redis 健康检查失败，但容器已启动，继续执行...${NC}"
+    fi
 else
     echo -e "${YELLOW}🔄 启动 Redis 容器...${NC}"
 
-    # 尝试启动 Redis (兼容新旧版本的 Docker Compose)
-    if command -v docker-compose >/dev/null 2>&1; then
-        COMPOSE_CMD="docker-compose"
-    else
-        COMPOSE_CMD="docker compose"
-    fi
-
-    if $COMPOSE_CMD up -d redis; then
+    # 使用 redis-start.sh 脚本启动独立的 Redis
+    if ./scripts/redis-start.sh > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Redis 启动成功！${NC}"
-        sleep 3  # 等待 Redis 完全启动
-
-        # 健康检查
-        if docker exec vidfab-redis redis-cli ping > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ Redis 健康检查通过${NC}"
-        else
-            echo -e "${YELLOW}⚠️  Redis 健康检查失败，但容器已启动，继续执行...${NC}"
-        fi
+        sleep 2  # 等待 Redis 完全启动
     else
         echo -e "${RED}❌ Redis 启动失败${NC}"
-        echo -e "${YELLOW}💡 请检查 docker-compose.yml 配置${NC}"
+        echo -e "${YELLOW}💡 请检查 Redis 配置或手动运行: ./scripts/redis-start.sh${NC}"
         exit 1
     fi
 fi

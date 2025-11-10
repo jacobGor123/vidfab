@@ -19,13 +19,32 @@ const nextConfig = {
   },
   images: {
     unoptimized: false, // 🔥 启用图片优化
-    domains: [
-      'localhost',
-      '0.0.0.0', // Docker container access
-      'lh3.googleusercontent.com', // Google profile images
-      'avatars.githubusercontent.com', // GitHub avatars (if needed)
-      'accounts.google.com', // Google OAuth
-      'static.vidfab.ai', // CDN for videos and images
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // Google profile images
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com', // GitHub avatars
+      },
+      {
+        protocol: 'https',
+        hostname: 'accounts.google.com', // Google OAuth
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.vidfab.ai', // CDN for videos and images
+      },
+      {
+        protocol: 'https',
+        hostname: 'ycahbhhuzgixfrljtqmi.supabase.co', // Supabase storage
+        pathname: '/storage/v1/object/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'd1q70pf5vjeyhc.cloudfront.net', // Wavespeed API CloudFront CDN
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

@@ -154,6 +154,43 @@ export interface UserQuotaInfo {
   is_subscribed: boolean;
 }
 
+// Image generation and storage types
+export interface UserImage {
+  id: string;
+  user_id: string;
+
+  // Wavespeed 请求信息
+  wavespeed_request_id: string;
+
+  // 图片 URL
+  original_url: string;
+  storage_url?: string;
+  storage_path?: string;
+
+  // 生成参数
+  prompt: string;
+  model: string;
+  aspect_ratio?: string;
+  generation_type: 'text-to-image' | 'image-to-image';
+  source_images?: string[];
+
+  // 状态管理
+  status: 'downloading' | 'processing' | 'completed' | 'failed';
+  error_message?: string;
+
+  // 元数据
+  metadata?: {
+    settings?: any;
+    stored_at?: string;
+    user_email?: string;
+    [key: string]: any;
+  };
+
+  // 时间戳
+  created_at: string;
+  updated_at: string;
+}
+
 // Legacy interface (keeping for compatibility)
 export interface DatabaseVideoJob {
   id: string;
@@ -175,6 +212,7 @@ export const TABLES = {
   VERIFICATION_CODES: 'verification_codes',
   VIDEO_JOBS: 'video_jobs', // Legacy table
   USER_VIDEOS: 'user_videos', // New video storage table
+  USER_IMAGES: 'user_images', // Image storage table
   USER_STORAGE_QUOTAS: 'user_storage_quotas',
   SUBSCRIPTIONS: 'subscriptions',
   PAYMENTS: 'payments',

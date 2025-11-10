@@ -72,7 +72,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Security: Only allow specific domains
-    const allowedDomains = ['static.vidfab.ai', 'vidfab.ai']
+    const allowedDomains = [
+      'static.vidfab.ai',
+      'vidfab.ai',
+      'd1q70pf5vjeyhc.cloudfront.net', // 🔥 CloudFront CDN for image generation
+      'cloudfront.net' // 🔥 Generic CloudFront domain
+    ]
     if (!allowedDomains.some(domain => imageUrl.hostname.endsWith(domain))) {
       console.warn('[Image Proxy] Domain not allowed:', imageUrl.hostname)
       return NextResponse.json(
