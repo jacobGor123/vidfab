@@ -2,7 +2,7 @@
 
 /**
  * Image to Image Panel
- * 图生图面板主组件（重构版 - 使用共享 Hook）
+ * 图生图面板主组件（重构版 - 使用 useImageUpload Hook）
  */
 
 import { useState, useCallback } from "react"
@@ -13,28 +13,39 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Loader2, Sparkles, AlertTriangle, Zap } from "lucide-react"
 import { ImageGenerationSettings } from "./image-generation-settings"
-import { ImageUploadSection } from "./image-upload-section"
 import { ImageTaskGridItem } from "./image-task-grid-item"
 import { useImageGenerationManager } from "@/hooks/use-image-generation-manager"
 import { useAuthModal } from "@/hooks/use-auth-modal"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
-import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"  // 🔥 订阅弹框
+import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 import { IMAGE_GENERATION_CREDITS } from "@/lib/simple-credits-check"
-
-interface UploadedImage {
-  id: string
-  url: string
-  file?: File
-}
+import { useImageUpload } from "../hooks/use-image-upload"
+import { ImageUploadArea } from "../image-upload/image-upload-area"
+import { ImageUploadGrid } from "../image-upload/image-upload-grid"
 
 export function ImageToImagePanel() {
   const [prompt, setPrompt] = useState("")
   const [model, setModel] = useState("seedream-v4")
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)  // 🔥 订阅弹框状态
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   // 🔥 认证弹框 Hook
   const authModal = useAuthModal()
+
+  // 🔥 多图上传 Hook
+  const imageUpload = useImageUpload(
+    {
+      uploadMode: 'local',
+      onAuthRequired: async () => {
+        return await authModal.requireAuth(async () => {
+          // 认证成功后继续上传
+        })
+      }
+    },
+    (imageUrl: string) => {
+      // 当图片被选中时的回调（可选）
+      console.log('Selected image:', imageUrl)
+    }
+  )
 
   // 🔥 使用统一的图片生成管理 Hook
   const {
@@ -50,76 +61,48 @@ export function ImageToImagePanel() {
     onAuthRequired: () => {
       authModal.showAuthModal()
     },
-    onSubscriptionRequired: () => {  // 🔥 积分不足时显示订阅弹框
+    onSubscriptionRequired: () => {
       setShowUpgradeDialog(true)
     }
   })
 
-  // 上传图片到 Supabase
-  const handleUploadImages = useCallback(async (files: File[]): Promise<string[]> => {
-    const uploadedUrls: string[] = []
+  // 🔥 拖放处理器（支持多图）
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    imageUpload.setIsDragging(true)
+  }
 
-    for (const file of files) {
-      console.log(`📤 Uploading image:`, {
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        type: file.type
-      })
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    imageUpload.setIsDragging(false)
+  }
 
-      const formData = new FormData()
-      formData.append('file', file)
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    imageUpload.setIsDragging(false)
 
-      const response = await fetch('/api/images/upload', {
-        method: 'POST',
-        body: formData
-      })
+    const filesArray = Array.from(e.dataTransfer.files)
+    const imageFiles = filesArray.filter(file => file.type.startsWith('image/'))
 
-      // 🔥 处理 401 未认证错误，显示登录弹框
-      if (response.status === 401) {
-        const authSuccess = await authModal.requireAuth(async () => {
-          // 认证成功后继续
-        })
-
-        if (authSuccess) {
-          // 认证成功后重新上传
-          return await handleUploadImages(files)
-        } else {
-          throw new Error('Authentication required')
-        }
-      }
-
-      // 🔥 详细的错误日志
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`❌ Upload failed [${response.status}]:`, errorText)
-
-        let errorMessage = 'Failed to upload image'
-        try {
-          const errorData = JSON.parse(errorText)
-          errorMessage = errorData.error || errorMessage
-        } catch (e) {
-          // errorText 不是 JSON，使用原始文本
-          errorMessage = errorText || errorMessage
-        }
-
-        throw new Error(errorMessage)
-      }
-
-      const data = await response.json()
-      console.log(`✅ Upload successful:`, data.data.url)
-      uploadedUrls.push(data.data.url)
+    if (imageFiles.length > 0) {
+      imageUpload.uploadMultiple(imageFiles)
     }
-
-    return uploadedUrls
-  }, [authModal])
+  }
 
   // 生成图片 - 使用 requireAuth 包装
   const handleGenerate = useCallback(async () => {
     await authModal.requireAuth(async () => {
-      const imageUrls = uploadedImages.map(img => img.url)
+      // 🔥 从 imageUpload Hook 获取所有已完成上传的图片 URL
+      const completedImages = imageUpload.getCompletedImages()
+      const imageUrls = completedImages.map(task => task.resultUrl).filter(Boolean) as string[]
+
+      if (imageUrls.length === 0) {
+        throw new Error('Please upload at least one image')
+      }
+
       await generateImageToImage(imageUrls, prompt, model)
     })
-  }, [prompt, model, uploadedImages, generateImageToImage, authModal])
+  }, [prompt, model, imageUpload, generateImageToImage, authModal])
 
   return (
     <div className="h-screen flex flex-row">
@@ -140,12 +123,23 @@ export function ImageToImagePanel() {
             {/* 图片上传 */}
             <Card className="bg-gray-950 border-gray-800">
               <CardContent className="space-y-4 pt-6">
-                <ImageUploadSection
-                  images={uploadedImages}
-                  onImagesChange={setUploadedImages}
-                  onUpload={handleUploadImages}
+                <ImageUploadArea
                   disabled={isGenerating}
-                  maxImages={3}
+                  onFilesSelected={imageUpload.uploadMultiple}
+                  multiple={true}
+                  isDragging={imageUpload.isDragging}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                />
+
+                <ImageUploadGrid
+                  tasks={imageUpload.uploadTasks}
+                  selectedId={imageUpload.selectedImageId}
+                  onSelectImage={imageUpload.selectImage}
+                  onRemoveTask={imageUpload.removeTask}
+                  onClearAll={() => imageUpload.clearAll()}
+                  disabled={isGenerating}
                 />
               </CardContent>
             </Card>
@@ -187,7 +181,7 @@ export function ImageToImagePanel() {
             {/* Generate 按钮 */}
             <Button
               onClick={handleGenerate}
-              disabled={!prompt.trim() || uploadedImages.length === 0 || isGenerating || processingCount >= 4}
+              disabled={!prompt.trim() || imageUpload.getCompletedImages().length === 0 || isGenerating || processingCount >= 4}
               className="w-full bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white py-6 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? (
