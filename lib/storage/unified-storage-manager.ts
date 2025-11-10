@@ -13,6 +13,7 @@ export interface UnifiedStorageStatus {
   maxSizeMB: number
   storagePercentage: number
   totalVideos: number
+  totalImages: number  // 🔥 添加图片数量
   isSubscribed: boolean
   freeUserExpiredVideos: UserVideo[]
   canUpload: boolean
@@ -29,7 +30,7 @@ export class UnifiedStorageManager {
   static async getStorageStatus(userId: string, isSubscribed: boolean): Promise<UnifiedStorageStatus> {
     try {
       // Get all completed videos (only completed videos count toward storage)
-      const { data: videos, error } = await supabaseAdmin
+      const { data: videos, error: videoError } = await supabaseAdmin
         .from(TABLES.USER_VIDEOS)
         .select('*')
         .eq('user_id', userId)
@@ -37,18 +38,35 @@ export class UnifiedStorageManager {
         .not('file_size', 'is', null)
         .order('updated_at', { ascending: true }) // Oldest first for deletion priority
 
-      if (error) {
-        console.error('Error fetching videos for storage status:', error)
-        throw error
+      if (videoError) {
+        console.error('Error fetching videos for storage status:', videoError)
+        throw videoError
+      }
+
+      // Get all completed images
+      const { data: images, error: imageError } = await supabaseAdmin
+        .from(TABLES.USER_IMAGES)
+        .select('id, file_size, created_at, updated_at')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .not('file_size', 'is', null)
+        .order('updated_at', { ascending: true })
+
+      if (imageError) {
+        console.error('Error fetching images for storage status:', imageError)
       }
 
       const allVideos = videos || []
+      const allImages = images || []
 
-      // Calculate total storage used (only file_size, excluding thumbnails)
-      const totalSizeBytes = allVideos.reduce((sum, video) => sum + (video.file_size || 0), 0)
+      // Calculate total storage used (videos + images)
+      const videoSizeBytes = allVideos.reduce((sum, video) => sum + (video.file_size || 0), 0)
+      const imageSizeBytes = allImages.reduce((sum, image) => sum + (image.file_size || 0), 0)
+      const totalSizeBytes = videoSizeBytes + imageSizeBytes
+
       const totalSizeMB = Math.round(totalSizeBytes / (1024 * 1024) * 100) / 100
       const maxSizeMB = Math.round(this.MAX_STORAGE_BYTES / (1024 * 1024))
-      const storagePercentage = Math.round((totalSizeBytes / this.MAX_STORAGE_BYTES) * 100)
+      const storagePercentage = Math.round((totalSizeBytes / this.MAX_STORAGE_BYTES) * 100 * 10) / 10
 
       // Find expired videos for free users (24h after completion)
       const expiredVideos: UserVideo[] = []
@@ -71,6 +89,7 @@ export class UnifiedStorageManager {
         maxSizeMB,
         storagePercentage,
         totalVideos: allVideos.length,
+        totalImages: allImages.length,
         isSubscribed,
         freeUserExpiredVideos: expiredVideos,
         canUpload: totalSizeBytes < this.MAX_STORAGE_BYTES
@@ -78,7 +97,6 @@ export class UnifiedStorageManager {
 
     } catch (error) {
       console.error('Error getting storage status:', error)
-      // Return safe defaults
       return {
         currentSizeBytes: 0,
         currentSizeMB: 0,
@@ -86,6 +104,7 @@ export class UnifiedStorageManager {
         maxSizeMB: 1024,
         storagePercentage: 0,
         totalVideos: 0,
+        totalImages: 0,
         isSubscribed,
         freeUserExpiredVideos: [],
         canUpload: true

@@ -6,6 +6,9 @@
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
 import { calculateRequiredCredits, type VideoModel } from "@/lib/credits-calculator"
 
+// 图片生成固定消耗 3 积分
+export const IMAGE_GENERATION_CREDITS = 3
+
 interface SimpleCreditCheckResult {
   success: boolean
   canAfford: boolean
@@ -134,6 +137,60 @@ export async function deductUserCredits(
     return {
       success: false,
       error: 'Credits deduction failed'
+    }
+  }
+}
+
+/**
+ * 图片生成积分检查（服务器端）
+ * @param userUuid 用户UUID
+ * @returns 积分检查结果
+ */
+export async function checkImageGenerationCredits(
+  userUuid: string
+): Promise<SimpleCreditCheckResult> {
+  try {
+    const requiredCredits = IMAGE_GENERATION_CREDITS
+
+    // 查询用户当前积分
+    const { data: user, error } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('credits_remaining')
+      .eq('uuid', userUuid)
+      .single()
+
+    if (error) {
+      console.error('❌ Failed to fetch user credits for image generation:', error)
+      return {
+        success: false,
+        canAfford: false,
+        userCredits: 0,
+        requiredCredits,
+        remainingCredits: 0,
+        error: 'Failed to fetch user credits'
+      }
+    }
+
+    const userCredits = user?.credits_remaining || 0
+    const canAfford = userCredits >= requiredCredits
+    const remainingCredits = Math.max(0, userCredits - requiredCredits)
+
+    return {
+      success: true,
+      canAfford,
+      userCredits,
+      requiredCredits,
+      remainingCredits
+    }
+  } catch (error) {
+    console.error('❌ Image generation credits check error:', error)
+    return {
+      success: false,
+      canAfford: false,
+      userCredits: 0,
+      requiredCredits: IMAGE_GENERATION_CREDITS,
+      remainingCredits: 0,
+      error: 'Credits check failed'
     }
   }
 }

@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { VideoStorageManager } from '@/lib/storage'
+import { supabaseAdmin, TABLES } from '@/lib/supabase'
 // 移除对浏览器API图片处理器的依赖
 import { v4 as uuidv4 } from 'uuid'
 
@@ -39,14 +40,24 @@ function validateImageFile(file: {
 
 export async function POST(request: NextRequest) {
   try {
-    // NextAuth 4.x 认证方式
+    // 认证检查
     const session = await getServerSession(authConfig)
 
-
-    if (!session?.user?.uuid) {
+    if (!session?.user) {
       console.error('❌ Image upload: Authentication failed')
       return NextResponse.json(
         { error: 'Unauthorized access' },
+        { status: 401 }
+      )
+    }
+
+    // 获取用户ID
+    let userId = session.user.uuid || session.user.id
+
+    if (!userId) {
+      console.error('❌ Image upload: User UUID/ID missing')
+      return NextResponse.json(
+        { error: 'User UUID missing' },
         { status: 401 }
       )
     }
@@ -86,7 +97,7 @@ export async function POST(request: NextRequest) {
     // 上传到Supabase Storage
     const imageId = uuidv4()
     const uploadResult = await VideoStorageManager.uploadImage(
-      session.user.uuid,
+      userId,
       imageId,
       buffer,
       file.type
@@ -116,14 +127,24 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // NextAuth 4.x 认证方式
+    // 认证检查
     const session = await getServerSession(authConfig)
 
-
-    if (!session?.user?.uuid) {
+    if (!session?.user) {
       console.error('❌ Image delete: Authentication failed')
       return NextResponse.json(
         { error: 'Unauthorized access' },
+        { status: 401 }
+      )
+    }
+
+    // 获取用户ID
+    let userId = session.user.uuid || session.user.id
+
+    if (!userId) {
+      console.error('❌ Image delete: User UUID/ID missing')
+      return NextResponse.json(
+        { error: 'User UUID missing' },
         { status: 401 }
       )
     }
@@ -139,7 +160,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 删除图片文件
-    const imagePath = `images/${session.user.uuid}/${imageId}`
+    const imagePath = `images/${userId}/${imageId}`
     await VideoStorageManager.deleteFile(imagePath)
 
     return NextResponse.json({

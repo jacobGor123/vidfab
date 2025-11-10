@@ -17,7 +17,11 @@ import {
 } from "@/lib/types/video"
 
 const WAVESPEED_BASE_URL = "https://api.wavespeed.ai/api/v3"
-const WAVESPEED_API_KEY = "a329907377c20848f126692adb8cd0594e1a1ebef19140b7369b79a69c800929"
+const WAVESPEED_API_KEY = process.env.WAVESPEED_API_KEY || ""
+
+if (!WAVESPEED_API_KEY) {
+  console.error("⚠️ WAVESPEED_API_KEY is not configured in environment variables")
+}
 
 // Rate limiting and retry configuration
 const MAX_RETRIES = 3

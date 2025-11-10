@@ -58,6 +58,9 @@ export function ImageToVideoPanelEnhanced() {
   const [showLimitDialog, setShowLimitDialog] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
+  // 🔥 追踪是否已经加载过 image-to-video 数据
+  const imageToVideoLoadedRef = useRef(false)
+
   // Context and hooks
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
@@ -207,6 +210,89 @@ export function ImageToVideoPanelEnhanced() {
 
     }
   }, [getRemixData, clearRemixData, imageUpload])
+
+  // 🔥 Check for image-to-video data from other pages (image previews, my assets)
+  useEffect(() => {
+    // 如果已经加载过，跳过
+    if (imageToVideoLoadedRef.current) {
+      return
+    }
+
+    const checkImageToVideoData = async () => {
+      try {
+        const stored = sessionStorage.getItem('vidfab-image-to-video')
+        if (!stored) {
+          console.log('📋 No image-to-video data in sessionStorage')
+          return
+        }
+
+        console.log('📋 Found image-to-video data in sessionStorage:', stored)
+
+        const data = JSON.parse(stored)
+
+        // Check if data is fresh (within 5 minutes)
+        const now = Date.now()
+        const age = now - (data.timestamp || 0)
+        if (age > 5 * 60 * 1000) { // 5 minutes
+          console.log('⏰ Image-to-video data expired, removing...')
+          sessionStorage.removeItem('vidfab-image-to-video')
+          return
+        }
+
+        // 标记为已加载
+        imageToVideoLoadedRef.current = true
+
+        console.log('🔄 Loading image from URL:', data.imageUrl)
+
+        // 🔥 Download image from URL and upload
+        const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(data.imageUrl)}`
+        const response = await fetch(proxyUrl)
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch image')
+        }
+
+        const blob = await response.blob()
+        const fileName = data.imageUrl.split('/').pop() || 'image-to-video.jpg'
+
+        // 🔥 根据文件扩展名推断正确的 MIME 类型
+        const ext = fileName.toLowerCase().split('.').pop()
+        const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+                         ext === 'png' ? 'image/png' :
+                         ext === 'webp' ? 'image/webp' :
+                         blob.type || 'image/jpeg' // 默认使用 blob.type 或 image/jpeg
+
+        const file = new File([blob], fileName, { type: mimeType })
+
+        console.log('📤 Uploading image file:', {
+          fileName,
+          size: `${(file.size / 1024).toFixed(1)}KB`,
+          mimeType
+        })
+
+        // Set prompt
+        setParams(prev => ({
+          ...prev,
+          prompt: data.prompt || '',
+          uploadMode: 'local'
+        }))
+
+        // Upload image
+        await imageUpload.uploadImage(file)
+
+        console.log('✅ Image uploaded successfully')
+
+        // Clear sessionStorage
+        sessionStorage.removeItem('vidfab-image-to-video')
+
+      } catch (error) {
+        console.error('❌ Failed to load image-to-video data:', error)
+        sessionStorage.removeItem('vidfab-image-to-video')
+      }
+    }
+
+    checkImageToVideoData()
+  }, [imageUpload]) // 🔥 依赖 imageUpload，当它可用时执行
 
   // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {

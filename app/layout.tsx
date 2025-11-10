@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SessionProvider } from "@/components/auth/session-provider"
 import { VideoProvider } from "@/lib/contexts/video-context"
+import { ImageProvider } from "@/lib/contexts/image-context"
 import { WebVitals } from "@/components/web-vitals"
 import { cn } from "@/lib/utils"
 import { openSans } from "@/lib/fonts"
@@ -166,7 +167,9 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <VideoProvider>
-              {children}
+              <ImageProvider>
+                {children}
+              </ImageProvider>
             </VideoProvider>
             <Toaster
               position="bottom-right"
