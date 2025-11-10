@@ -437,6 +437,17 @@ export class UserVideosDB {
           search
         } = options
 
+        // 🔥 详细的调试日志
+        console.log('🔍 [DB] getUserVideos called:', {
+          userId,
+          page,
+          limit,
+          status,
+          orderBy,
+          orderDirection,
+          search
+        })
+
         let query = supabaseAdmin
           .from(TABLES.USER_VIDEOS)
           .select('*', { count: 'exact' })
@@ -461,7 +472,19 @@ export class UserVideosDB {
         const to = from + limit - 1
         query = query.range(from, to)
 
+        console.log('🔍 [DB] Executing query with:', {
+          from,
+          to,
+          table: TABLES.USER_VIDEOS
+        })
+
         const { data: videos, error, count } = await query
+
+        console.log('🔍 [DB] Query result:', {
+          videoCount: videos?.length || 0,
+          count,
+          error: error?.message || null
+        })
 
         if (error) {
           console.error('Error getting user videos:', error)

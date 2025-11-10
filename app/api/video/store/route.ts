@@ -8,12 +8,13 @@ import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { UserVideosDB } from '@/lib/database/user-videos'
 import { supabaseAdmin } from '@/lib/supabase'
+import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // 🔥 检查是否是内部调用（包含userId参数）
+    // Check for internal call (contains userId parameter)
     if (body.userId) {
       // 内部调用，直接使用传递的userId，跳过session验证
       const userId = body.userId
@@ -72,7 +73,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 🔥 极简化的视频存储处理逻辑 - 直接依赖UserVideosDB的内置用户创建
 async function processVideoStorage(userId: string, userEmail: string, data: {
   wavespeedRequestId: string,
   originalUrl: string,
@@ -103,7 +103,6 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
       })
     }
 
-    // 🔥 直接创建视频，UserVideosDB会自动处理用户不存在的情况
     const newVideo = await UserVideosDB.createVideo(userId, {
       wavespeedRequestId,
       prompt: settings.prompt || 'Generated video',
@@ -113,54 +112,81 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
         resolution: settings.resolution,
         aspectRatio: settings.aspectRatio,
         style: settings.style,
-        // 🔥 保存图片 URL（如果是 image-to-video）
         image_url: settings.image_url || settings.imageUrl || settings.image || null,
-        // 🔥 保存特效信息（如果是 video-effects）
         effectId: settings.effectId || null,
         effectName: settings.effectName || null,
-        // 🔥 保存生成类型
         generationType: settings.generationType || null
       },
       originalUrl
-    }, userEmail) // 🔥 传递userEmail参数
+    }, userEmail)
 
 
-    // 🔥 只更新真实数据库记录，跳过临时记录，并获取文件大小
+    // Only update real database records, skip temporary records
     if (!newVideo.id.startsWith('temp-') && !newVideo.id.startsWith('00000000-0000-4000-8000-')) {
       // 获取文件大小
       let fileSize = null
       try {
-        console.log(`📏 获取文件大小: ${originalUrl}`)
         const response = await fetch(originalUrl, { method: 'HEAD' })
-
         if (response.ok) {
           const contentLength = response.headers.get('content-length')
           if (contentLength) {
             fileSize = parseInt(contentLength, 10)
-            console.log(`✅ 获取到文件大小: ${(fileSize / 1024 / 1024).toFixed(2)}MB`)
           }
         }
       } catch (sizeError) {
-        console.warn(`⚠️ 无法获取文件大小: ${sizeError.message}`)
-        // 使用估算值
+        console.warn(`Failed to get file size: ${sizeError.message}`)
         fileSize = 10 * 1024 * 1024 // 默认 10MB
-        console.log(`📐 使用估算文件大小: ${(fileSize / 1024 / 1024).toFixed(2)}MB`)
       }
 
-      // 立即标记为完成并设置文件大小
+      // 生成并上传缩略图
+      let thumbnailPath: string | null = null
+      try {
+        const videoResponse = await fetch(originalUrl)
+        if (!videoResponse.ok) {
+          throw new Error(`Failed to fetch video: ${videoResponse.statusText}`)
+        }
+        const videoBuffer = Buffer.from(await videoResponse.arrayBuffer())
+
+        const thumbnailResult = await extractVideoThumbnail(videoBuffer, {
+          timestamp: 0.1,
+          format: 'webp',
+          maxWidth: 1280,
+          maxHeight: 720,
+          quality: 85,
+          targetSizeKB: 100
+        })
+
+        if (thumbnailResult.success && thumbnailResult.buffer) {
+          const thumbnailFileName = `${userId}/${newVideo.id}-thumbnail.webp`
+          const { error: uploadError } = await supabaseAdmin
+            .storage
+            .from('video-thumbnails')
+            .upload(thumbnailFileName, thumbnailResult.buffer, {
+              contentType: 'image/webp',
+              upsert: true
+            })
+
+          if (uploadError) {
+            console.error('Thumbnail upload failed:', uploadError)
+          } else {
+            thumbnailPath = thumbnailFileName
+          }
+        }
+      } catch (thumbnailError) {
+        console.error('Thumbnail generation failed:', thumbnailError)
+      }
+
+      // 更新视频状态
       try {
         await UserVideosDB.updateVideoStatus(newVideo.id, {
           status: 'completed',
           downloadProgress: 100,
-          fileSize: fileSize
+          fileSize: fileSize,
+          thumbnailPath: thumbnailPath
         })
-        console.log(`✅ Video status updated to completed with file size: ${newVideo.id}, ${fileSize ? (fileSize / 1024 / 1024).toFixed(2) + 'MB' : 'unknown'}`)
       } catch (updateError) {
-        console.error(`❌ Failed to update video status:`, updateError)
-        // 不抛出错误，允许继续执行
+        console.error('Failed to update video status:', updateError)
       }
-    } else {
-      console.log(`🔄 跳过临时视频状态更新: ${newVideo.id}`)
     }
 
 
@@ -176,7 +202,7 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
     })
 
   } catch (error) {
-    console.error('❌ Video storage failed:', error)
+    console.error('Video storage failed:', error)
     return NextResponse.json({
       success: false,
       error: 'Failed to save video',

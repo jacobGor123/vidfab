@@ -3,12 +3,13 @@
 import { TextToVideoPanelEnhanced } from "./text-to-video-panel-new"
 import { ImageToVideoPanelEnhanced } from "./image-to-video-panel"
 import { VideoEffectsPanel } from "./video-effects-panel"
+import { TextToImagePanel } from "./image/text-to-image-panel"
+import { ImageToImagePanel } from "./image/image-to-image-panel"
 import { TemplateGallery } from "./template-gallery"
 import { MyAssets } from "./my-assets"
 import { MyProfilePanel } from "./my-profile-panel"
-import { EmptyState } from "./empty-state"
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | "my-profile" | null
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile" | null
 
 interface CreateContentProps {
   activeTool: ToolType
@@ -27,6 +28,10 @@ export function CreateContent({ activeTool, onToolChange, initialPrompt }: Creat
         return <ImageToVideoPanelEnhanced />
       case "video-effects":
         return <VideoEffectsPanel />
+      case "text-to-image":
+        return <TextToImagePanel />
+      case "image-to-image":
+        return <ImageToImagePanel />
       case "my-assets":
         return <MyAssets />
       case "my-profile":

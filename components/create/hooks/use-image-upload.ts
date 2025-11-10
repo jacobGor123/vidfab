@@ -136,6 +136,23 @@ export function useImageUpload(
 
       const result = await response.json()
 
+      // 🔥 处理 401 未认证错误，显示登录弹框而不是普通错误
+      if (response.status === 401) {
+        // 删除当前失败的任务
+        uploadTasksRef.current.delete(taskId)
+        triggerRerender()
+
+        // 调用认证回调显示登录弹框
+        if (onAuthRequired) {
+          const authSuccess = await onAuthRequired()
+          if (authSuccess) {
+            // 认证成功后重新上传
+            await uploadImageFile(file)
+          }
+        }
+        return
+      }
+
       if (!response.ok) {
         throw new Error(result.error || 'Upload failed')
       }

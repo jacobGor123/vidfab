@@ -86,6 +86,46 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
 
     if (error) {
       console.error('Save user error:', error);
+
+      // 🔥 特殊处理：如果是唯一性约束冲突(用户已存在),直接查询返回现有用户
+      if (error.code === '23505') {
+        console.warn(`⚠️ User ${userUuid} already exists (constraint conflict), fetching existing user...`);
+
+        const { data: existingData, error: fetchError } = await supabaseAdmin
+          .from(TABLES.USERS)
+          .select('*')
+          .eq('uuid', userUuid)
+          .single();
+
+        if (fetchError || !existingData) {
+          console.error('Failed to fetch existing user after conflict:', fetchError);
+          handleSupabaseError(error); // 如果查询失败,抛出原始错误
+        }
+
+        // 成功获取现有用户,返回
+        console.log(`✅ Successfully fetched existing user: ${userUuid}`);
+        return {
+          uuid: existingData.uuid,
+          email: existingData.email,
+          nickname: existingData.nickname,
+          avatar_url: existingData.avatar_url,
+          signin_type: existingData.signin_type,
+          signin_provider: existingData.signin_provider,
+          signin_openid: existingData.signin_openid,
+          created_at: existingData.created_at,
+          updated_at: existingData.updated_at,
+          signin_ip: existingData.signin_ip,
+          email_verified: existingData.email_verified,
+          last_login: existingData.last_login,
+          is_active: existingData.is_active,
+          subscription_status: existingData.subscription_status,
+          subscription_plan: existingData.subscription_plan,
+          credits_remaining: existingData.credits_remaining,
+          total_videos_processed: existingData.total_videos_processed,
+        };
+      }
+
+      // 其他错误正常抛出
       handleSupabaseError(error);
     }
 

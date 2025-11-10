@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,12 +15,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { FolderOpen, Download, Trash2, Play, Loader2, AlertTriangle, Sparkles } from "lucide-react"
+import { FolderOpen, Download, Trash2, Play, Loader2, AlertTriangle, Sparkles, Video } from "lucide-react"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { UserVideosDB } from "@/lib/database/user-videos"
 import { UserVideo } from "@/lib/supabase"
 import { VideoResult } from "@/lib/types/video"
 import { StorageUtils } from "@/lib/utils/storage-helpers"
+import { UnifiedAsset, UserImage, mergeAssets } from "@/lib/types/asset"
 import { toast } from "sonner"
 import { VideoSkeleton, EmptyVideosSkeleton } from "./video-skeleton"
 import {
@@ -42,10 +44,15 @@ import {
 export function MyAssets() {
   const videoContext = useVideoContext()
   const { data: session, status: sessionStatus } = useSession()
+  const router = useRouter()
   const [videos, setVideos] = useState<UserVideo[]>([])
+  const [images, setImages] = useState<UserImage[]>([])
+  const [assets, setAssets] = useState<UnifiedAsset[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalVideos, setTotalVideos] = useState(0)
+  const [totalImages, setTotalImages] = useState(0)
+  const [totalAssets, setTotalAssets] = useState(0)
   const [isCleaningUp, setIsCleaningUp] = useState(false)
   const [isPageChanging, setIsPageChanging] = useState(false)
   const ITEMS_PER_PAGE = 10
@@ -62,14 +69,15 @@ export function MyAssets() {
   })
 
   // Alert dialog states
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; videoId: string | null }>({
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; assetId: string | null; assetType: 'image' | 'video' | null }>({
     open: false,
-    videoId: null
+    assetId: null,
+    assetType: null
   })
   const [cleanupDialog, setCleanupDialog] = useState(false)
 
-  // Track videos being deleted for loading states
-  const [deletingVideoIds, setDeletingVideoIds] = useState<Set<string>>(new Set())
+  // Track assets being deleted for loading states
+  const [deletingAssetIds, setDeletingAssetIds] = useState<Set<string>>(new Set())
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -130,7 +138,7 @@ export function MyAssets() {
         }
 
         const permanentVideos = apiData.data.videos || []
-        const pagination = apiData.data.pagination
+        const videoPagination = apiData.data.pagination
 
         console.log(`📡 API returned ${permanentVideos.length} videos for page ${currentPage}:`, permanentVideos.map(v => ({
           id: v.id,
@@ -138,18 +146,41 @@ export function MyAssets() {
           prompt: v.prompt?.substring(0, 30) + '...'
         })))
 
-        // 🔥 My Assets only shows permanent storage data, no temporary data
+        // 🔥 New: Load images data
+        const imagesResponse = await fetch(`/api/user/images?page=${currentPage}&limit=${ITEMS_PER_PAGE}&orderBy=created_at&orderDirection=desc`)
+
+        if (!imagesResponse.ok) {
+          console.warn('⚠️ Failed to load images, continuing with videos only')
+        }
+
+        const imagesData = await imagesResponse.json()
+        const permanentImages = imagesData.success ? (imagesData.data.images || []) : []
+        const imagePagination = imagesData.success ? imagesData.data.pagination : { total: 0 }
+
+        console.log(`📡 API returned ${permanentImages.length} images for page ${currentPage}`)
+
+        // 🔥 Store videos and images separately
         const allVideos = permanentVideos.map(video => ({
           ...video,
           _isTemporary: false
-        })).sort((a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
+        }))
 
-        console.log(`📊 Final processed videos: ${allVideos.length}`)
         setVideos(allVideos)
-        setTotalVideos(pagination.total)
-        setTotalPages(Math.ceil(pagination.total / ITEMS_PER_PAGE))
+        setImages(permanentImages)
+        setTotalVideos(videoPagination.total)
+        setTotalImages(imagePagination.total)
+
+        // 🔥 Merge assets and sort by creation time
+        const mergedAssets = mergeAssets(allVideos, permanentImages)
+        setAssets(mergedAssets)
+
+        // Calculate total assets and pages
+        const totalCount = videoPagination.total + imagePagination.total
+        setTotalAssets(totalCount)
+        setTotalPages(Math.ceil(totalCount / ITEMS_PER_PAGE))
+
+        console.log(`📊 Final merged assets: ${mergedAssets.length} (${allVideos.length} videos + ${permanentImages.length} images)`)
+
         setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: false })
         setIsPageChanging(false)
 
@@ -187,8 +218,8 @@ export function MyAssets() {
     }
   }, [sessionStatus, session?.user?.uuid, videoContext])
 
-  // Use all videos without filtering
-  const filteredVideos = videos
+  // Use all assets without filtering
+  const filteredAssets = assets
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return
@@ -197,32 +228,54 @@ export function MyAssets() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const openDeleteDialog = (videoId: string) => {
-    setDeleteDialog({ open: true, videoId })
+  const openDeleteDialog = (assetId: string, assetType: 'image' | 'video') => {
+    setDeleteDialog({ open: true, assetId, assetType })
   }
 
-  const confirmDeleteVideo = async () => {
-    const videoId = deleteDialog.videoId
-    if (!videoId) return
+  // 🔥 跳转到 Image to Video（参考 remix 逻辑）
+  const handleImageToVideo = useCallback((imageUrl: string, prompt: string) => {
+    // 存储图片数据到 sessionStorage（5分钟有效期）
+    const imageToVideoData = {
+      imageUrl,
+      prompt: prompt || '',
+      timestamp: Date.now()
+    }
+
+    sessionStorage.setItem('vidfab-image-to-video', JSON.stringify(imageToVideoData))
+
+    // 跳转到 Image to Video
+    router.push('/create?tool=image-to-video')
+
+    toast.success('Image ready for video generation')
+  }, [router])
+
+  const confirmDeleteAsset = async () => {
+    const { assetId, assetType } = deleteDialog
+    if (!assetId || !assetType) return
 
     // Close dialog first
-    setDeleteDialog({ open: false, videoId: null })
+    setDeleteDialog({ open: false, assetId: null, assetType: null })
 
     if (!session?.user?.uuid) {
-      toast.error('Please log in to delete videos')
+      toast.error(`Please log in to delete ${assetType}s`)
       return
     }
 
     try {
-      console.log(`🗑️ Starting video deletion: ${videoId}`)
+      console.log(`🗑️ Starting ${assetType} deletion: ${assetId}`)
       console.log(`🔍 User UUID: ${session.user.uuid}`)
 
       // Add to deleting state for loading effect
-      setDeletingVideoIds(prev => new Set([...prev, videoId]))
+      setDeletingAssetIds(prev => new Set([...prev, assetId]))
 
-      // Call enhanced delete API with detailed logging
-      console.log(`📡 Calling enhanced delete API...`)
-      const deleteResponse = await fetch(`/api/user/videos/delete?videoId=${encodeURIComponent(videoId)}`, {
+      // Determine API endpoint based on asset type
+      const endpoint = assetType === 'image'
+        ? `/api/user/images/delete?imageId=${encodeURIComponent(assetId)}`
+        : `/api/user/videos/delete?videoId=${encodeURIComponent(assetId)}`
+
+      // Call delete API
+      console.log(`📡 Calling delete API for ${assetType}...`)
+      const deleteResponse = await fetch(endpoint, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
@@ -238,24 +291,20 @@ export function MyAssets() {
 
       console.log(`✅ Delete API completed successfully:`, deleteResult.data)
 
-      console.log(`✅ Video deletion verified successfully: ${videoId}`)
-
       // Remove from deleting state
-      setDeletingVideoIds(prev => {
+      setDeletingAssetIds(prev => {
         const newSet = new Set(prev)
-        newSet.delete(videoId)
+        newSet.delete(assetId)
         return newSet
       })
 
-      toast.success("Video deleted successfully")
+      toast.success(`${assetType === 'image' ? 'Image' : 'Video'} deleted successfully`)
 
       // 🔥 Force reload data from server to verify deletion
       console.log(`🔄 Reloading data to verify deletion...`)
-      // Don't show skeleton during deletion reload since it's a background refresh
-      const currentLoadingState = loadingState
 
       // If current page becomes empty after deletion, go to previous page
-      if (filteredVideos.length === 1 && currentPage > 1) {
+      if (filteredAssets.length === 1 && currentPage > 1) {
         setCurrentPage(prev => prev - 1)
       } else {
         await loadUserData()
@@ -263,24 +312,27 @@ export function MyAssets() {
         setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
       }
 
-      // 🔥 Refresh storage quota info after deletion
-      console.log(`📊 Refreshing storage quota after deletion...`)
-      await videoContext.refreshQuotaInfo()
-      console.log(`✅ Storage quota refreshed`)
+      // 🔥 Refresh storage quota info after deletion (only for videos)
+      if (assetType === 'video') {
+        console.log(`📊 Refreshing storage quota after deletion...`)
+        await videoContext.refreshQuotaInfo()
+        console.log(`✅ Storage quota refreshed`)
+      }
 
     } catch (error) {
-      console.error('❌ Video deletion failed:', error)
+      console.error(`❌ ${assetType} deletion failed:`, error)
       console.error('❌ Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
-        videoId,
+        assetId,
+        assetType,
         userId: session.user.uuid
       })
 
       // Remove from deleting state on failure
-      setDeletingVideoIds(prev => {
+      setDeletingAssetIds(prev => {
         const newSet = new Set(prev)
-        newSet.delete(videoId)
+        newSet.delete(assetId)
         return newSet
       })
 
@@ -290,7 +342,6 @@ export function MyAssets() {
 
       // 🔥 Reload data to restore correct state
       console.log(`🔄 Reloading data after deletion failure...`)
-      // Don't show skeleton during error recovery reload
       await loadUserData()
       setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
     }
@@ -344,7 +395,7 @@ export function MyAssets() {
   }
 
   // Show empty skeleton if we know there's no data
-  if (loadingState.isDataLoaded && videos.length === 0 && !loadingState.hasError) {
+  if (loadingState.isDataLoaded && assets.length === 0 && !loadingState.hasError) {
     // We could show EmptyVideosSkeleton briefly, but let's go directly to the real empty state
     // This prevents the flash you mentioned
   }
@@ -403,7 +454,7 @@ export function MyAssets() {
                   <>
                     <div className="text-2xl font-bold text-brand-cyan-DEFAULT transition-all duration-300">
                       {videoContext.quotaInfo ?
-                        `${videoContext.quotaInfo.current_size_mb.toFixed(0)}MB` :
+                        `${videoContext.quotaInfo.current_size_mb.toFixed(1)}MB` :
                         '0MB'}
                     </div>
                     <div className="text-sm text-gray-400">Storage Used</div>
@@ -518,152 +569,181 @@ export function MyAssets() {
           )}
 
           <div className={`h-full overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 pr-2 transition-opacity duration-200 ${isPageChanging ? 'opacity-30' : 'opacity-100'}`}>
-        {filteredVideos.map((video) => {
-          // 🔥 Determine URL and thumbnail for permanent storage video
-          const videoUrl = video.storage_path
-            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.storage_path}` // Prefer local storage
-            : video.original_url // Fallback: use original URL if no local storage
-
-          // Thumbnail logic: only handle thumbnails for permanent storage videos
-          const thumbnailUrl = video.thumbnail_path
-            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.thumbnail_path}` // Supabase stored thumbnail
-            : null // No thumbnail
-
-          // 🔥 If no thumbnail but has video URL, use video as preview source
-          const shouldUseVideoPreview = !thumbnailUrl && videoUrl
-
-          // Check if this video is being deleted
-          const isDeleting = deletingVideoIds.has(video.id)
+        {filteredAssets.map((asset) => {
+          // Check if this asset is being deleted
+          const isDeleting = deletingAssetIds.has(asset.id)
 
           return (
-            <Card key={video.id} className="bg-gray-950 border-gray-800 relative">
+            <Card key={asset.id} className="bg-gray-950 border-gray-800 relative">
               {/* Deleting Overlay */}
               {isDeleting && (
                 <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center z-10">
                   <div className="flex items-center space-x-3 text-white">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="text-sm font-medium">Deleting video...</span>
+                    <span className="text-sm font-medium">Deleting {asset.type}...</span>
                   </div>
                 </div>
               )}
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    {/* Thumbnail / Video Preview */}
+                    {/* Thumbnail / Preview */}
                     <div className="w-20 h-14 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden relative">
-                      {thumbnailUrl ? (
-                        <img
-                          src={thumbnailUrl}
-                          alt={video.prompt || 'Video thumbnail'}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : shouldUseVideoPreview ? (
-                        <video
-                          src={videoUrl}
-                          className="w-full h-full object-cover"
-                          muted
-                          playsInline
-                          preload="metadata"
-                          poster=""
-                          onError={(e) => {
-                            // If video loading fails, hide video element and show play icon
-                            e.currentTarget.style.display = 'none'
-                            const playIcon = e.currentTarget.nextElementSibling as HTMLElement
-                            if (playIcon) playIcon.style.display = 'flex'
-                          }}
-                        />
-                      ) : null}
+                      {asset.type === 'image' ? (
+                        // 🔥 Image preview
+                        <>
+                          <img
+                            src={asset.previewUrl}
+                            alt={asset.prompt || 'Image'}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // If image loading fails, show placeholder
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
+                          {/* Preview overlay for image */}
+                          <div
+                            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                            onClick={() => {
+                              // Show image in modal
+                              const modal = document.createElement('div')
+                              modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50'
+                              modal.innerHTML = `
+                                <div class="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center p-4">
+                                  <img
+                                    class="max-w-full max-h-full rounded-lg"
+                                    src="${asset.previewUrl}"
+                                    alt="${asset.prompt || 'Image'}"
+                                  />
+                                  <button
+                                    class="absolute top-4 right-4 text-white bg-black/50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/70"
+                                    onclick="this.closest('.fixed').remove()"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              `
+                              document.body.appendChild(modal)
 
-                      {/* 🔥 Fallback play icon - shown when no thumbnail and video preview fails */}
-                      {!thumbnailUrl && (
-                        <div
-                          className={`absolute inset-0 flex items-center justify-center ${shouldUseVideoPreview ? 'hidden' : 'flex'}`}
-                        >
-                          <Play className="w-5 h-5 text-gray-500 ml-1" />
-                        </div>
-                      )}
+                              // Click background to close
+                              modal.addEventListener('click', (e) => {
+                                if (e.target === modal) {
+                                  modal.remove()
+                                }
+                              })
+                            }}
+                          >
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                          </div>
+                        </>
+                      ) : (
+                        // 🔥 Video preview
+                        <>
+                          {asset.previewUrl ? (
+                            <img
+                              src={asset.previewUrl}
+                              alt={asset.prompt || 'Video thumbnail'}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Play className="w-5 h-5 text-gray-500" />
+                          )}
 
-                      {/* 🔥 Preview button overlay */}
-                      {videoUrl && (
-                        <div
-                          className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
-                          onClick={() => {
-                            // Play video in modal
-                            const modal = document.createElement('div')
-                            modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50'
-                            modal.innerHTML = `
-                              <div class="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center p-4">
-                                <video
-                                  controls
-                                  autoplay
-                                  class="max-w-full max-h-full rounded-lg"
-                                  src="${videoUrl}"
-                                >
-                                  Your browser does not support video playback.
-                                </video>
-                                <button
-                                  class="absolute top-4 right-4 text-white bg-black/50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/70"
-                                  onclick="this.closest('.fixed').remove()"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            `
-                            document.body.appendChild(modal)
+                          {/* Preview overlay for video */}
+                          {asset.downloadUrl && (
+                            <div
+                              className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                              onClick={() => {
+                                // Play video in modal
+                                const modal = document.createElement('div')
+                                modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50'
+                                modal.innerHTML = `
+                                  <div class="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center p-4">
+                                    <video
+                                      controls
+                                      autoplay
+                                      class="max-w-full max-h-full rounded-lg"
+                                      src="${asset.downloadUrl}"
+                                    >
+                                      Your browser does not support video playback.
+                                    </video>
+                                    <button
+                                      class="absolute top-4 right-4 text-white bg-black/50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/70"
+                                      onclick="this.closest('.fixed').remove()"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                `
+                                document.body.appendChild(modal)
 
-                            // Click background to close
-                            modal.addEventListener('click', (e) => {
-                              if (e.target === modal) {
-                                modal.remove()
-                              }
-                            })
-                          }}
-                        >
-                          <Play className="w-4 h-4 text-white" />
-                        </div>
+                                // Click background to close
+                                modal.addEventListener('click', (e) => {
+                                  if (e.target === modal) {
+                                    modal.remove()
+                                  }
+                                })
+                              }}
+                            >
+                              <Play className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
 
-                    {/* Video Info */}
+                    {/* Asset Info */}
                     <div className="flex-1 min-w-0">
-                      {(() => {
-                        const fullPrompt = video.prompt && video.prompt.trim() ? video.prompt : 'AI Generated Video'
-                        const maxLength = 60 // 最大60个字符,约为原来的1/3
-                        const truncatedPrompt = fullPrompt.length > maxLength
-                          ? fullPrompt.substring(0, maxLength) + '...'
-                          : fullPrompt
-                        const needsTooltip = fullPrompt.length > maxLength
+                      <div className="flex items-center gap-2 mb-1">
+                        {(() => {
+                          const fullPrompt = asset.prompt && asset.prompt.trim() ? asset.prompt : `AI Generated ${asset.type === 'image' ? 'Image' : 'Video'}`
+                          const maxLength = 60
+                          const truncatedPrompt = fullPrompt.length > maxLength
+                            ? fullPrompt.substring(0, maxLength) + '...'
+                            : fullPrompt
+                          const needsTooltip = fullPrompt.length > maxLength
 
-                        return needsTooltip ? (
-                          <TooltipProvider delayDuration={200}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <h3 className="font-semibold text-white mb-1 cursor-help truncate">
-                                  {truncatedPrompt}
-                                </h3>
-                              </TooltipTrigger>
-                              <TooltipContent
-                                side="top"
-                                className="max-w-md bg-gray-900 border border-gray-700 text-gray-200 p-3"
-                              >
-                                <p className="text-sm leading-relaxed">{fullPrompt}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          <h3 className="font-semibold text-white mb-1 truncate">
-                            {truncatedPrompt}
-                          </h3>
-                        )
-                      })()}
+                          return needsTooltip ? (
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <h3 className="font-semibold text-white cursor-help truncate">
+                                    {truncatedPrompt}
+                                  </h3>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  side="top"
+                                  className="max-w-md bg-gray-900 border border-gray-700 text-gray-200 p-3"
+                                >
+                                  <p className="text-sm leading-relaxed">{fullPrompt}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <h3 className="font-semibold text-white truncate">
+                              {truncatedPrompt}
+                            </h3>
+                          )
+                        })()}
+                        {/* 🔥 Asset Type Badge */}
+                        <span className={`px-2 py-0.5 text-xs rounded flex-shrink-0 ${
+                          asset.type === 'image'
+                            ? 'bg-purple-500/20 text-purple-300'
+                            : 'bg-cyan-500/20 text-cyan-300'
+                        }`}>
+                          {asset.type === 'image' ? 'Image' : 'Video'}
+                        </span>
+                      </div>
                       <div className="flex items-center space-x-4 text-sm text-gray-400">
                         <span>
-                          {video.created_at && !isNaN(new Date(video.created_at).getTime())
-                            ? new Date(video.created_at).toLocaleDateString()
+                          {asset.createdAt && !isNaN(new Date(asset.createdAt).getTime())
+                            ? new Date(asset.createdAt).toLocaleDateString()
                             : 'Recently created'}
                         </span>
-                        {video.file_size && video.file_size > 0 && (
-                          <span>{StorageUtils.formatStorageSize(video.file_size)}</span>
+                        {asset.fileSize && asset.fileSize > 0 && (
+                          <span>{StorageUtils.formatStorageSize(asset.fileSize)}</span>
                         )}
                       </div>
                     </div>
@@ -674,7 +754,7 @@ export function MyAssets() {
                   <div className="flex items-center space-x-2">
 
                     {/* Download button */}
-                    {video.status === "completed" && videoUrl && (
+                    {asset.status === "completed" && asset.downloadUrl && (
                       <Button
                         size="icon"
                         variant="ghost"
@@ -686,45 +766,52 @@ export function MyAssets() {
                         }`}
                         onClick={async () => {
                           try {
-                            // 🔥 Optimize download logic, handle CORS issues
-                            if (video.storage_path) {
-                              // Local storage video, download directly
-                              const link = document.createElement('a')
-                              link.href = videoUrl
-                              link.download = `vidfab-video-${video.id}.mp4`
-                              document.body.appendChild(link)
-                              link.click()
-                              document.body.removeChild(link)
-                            } else {
-                              // External URL, try downloading via fetch (avoid CORS issues)
-                              toast.info('Starting video download...')
+                            const filename = asset.type === 'image'
+                              ? `vidfab-image-${asset.id}.jpg`
+                              : `vidfab-video-${asset.id}.mp4`
 
-                              const response = await fetch(videoUrl, {
-                                mode: 'no-cors' // Try to avoid CORS restrictions
-                              })
+                            // Simple download approach
+                            const link = document.createElement('a')
+                            link.href = asset.downloadUrl
+                            link.download = filename
 
-                              if (response.ok || response.type === 'opaque') {
-                                const link = document.createElement('a')
-                                link.href = videoUrl
-                                link.download = `vidfab-video-${video.id}.mp4`
-                                link.target = '_blank' // Open in new tab for manual download
-                                document.body.appendChild(link)
-                                link.click()
-                                document.body.removeChild(link)
-                                toast.success('Video download started')
-                              } else {
-                                throw new Error('Video download failed')
-                              }
+                            // For external URLs, try opening in new tab
+                            if (!asset.downloadUrl.includes(process.env.NEXT_PUBLIC_SUPABASE_URL || '')) {
+                              link.target = '_blank'
                             }
+
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
+
+                            toast.success(`${asset.type === 'image' ? 'Image' : 'Video'} download started`)
                           } catch (error) {
-                            console.error('Video download failed:', error)
-                            // 🔥 If download fails, open video in new tab
-                            window.open(videoUrl, '_blank')
-                            toast.info('Video opened in new tab, right-click to save')
+                            console.error('Download failed:', error)
+                            // Fallback: open in new tab
+                            window.open(asset.downloadUrl, '_blank')
+                            toast.info('Opened in new tab, right-click to save')
                           }
                         }}
                       >
                         <Download className="w-4 h-4" />
+                      </Button>
+                    )}
+
+                    {/* 🔥 Image to Video button - 仅对 Image 显示 */}
+                    {asset.type === 'image' && asset.status === "completed" && asset.downloadUrl && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        disabled={isDeleting}
+                        className={`${
+                          isDeleting
+                            ? 'text-gray-600 cursor-not-allowed'
+                            : 'text-gray-400 hover:text-purple-400 hover:bg-purple-400/10'
+                        }`}
+                        onClick={() => !isDeleting && handleImageToVideo(asset.downloadUrl, asset.prompt || '')}
+                        title="Create video from this image"
+                      >
+                        <Video className="w-4 h-4" />
                       </Button>
                     )}
 
@@ -738,7 +825,7 @@ export function MyAssets() {
                           ? 'text-gray-600 cursor-not-allowed'
                           : 'text-gray-400 hover:text-red-400 hover:bg-red-400/10'
                       }`}
-                      onClick={() => !isDeleting && openDeleteDialog(video.id)}
+                      onClick={() => !isDeleting && openDeleteDialog(asset.id, asset.type)}
                     >
                       {isDeleting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -754,15 +841,15 @@ export function MyAssets() {
         })}
 
         {/* Empty State - shown when no assets */}
-      {filteredVideos.length === 0 && (
+      {filteredAssets.length === 0 && (
         <div className="text-center py-12">
           <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-6">
             <FolderOpen className="w-8 h-8 text-gray-500" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-400 mb-2">No videos yet</h3>
-          <p className="text-gray-500 mb-6">Start creating your first video to see it here</p>
+          <h3 className="text-lg font-semibold text-gray-400 mb-2">No assets yet</h3>
+          <p className="text-gray-500 mb-6">Start creating your first image or video to see it here</p>
           <Button className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-cyan-DEFAULT hover:from-brand-purple-600 hover:to-brand-cyan-600">
-            Create First Video
+            Create First Asset
           </Button>
         </div>
       )}
@@ -771,10 +858,10 @@ export function MyAssets() {
 
         {/* Pagination - 固定在底部 */}
         <div className="flex-shrink-0">
-        {filteredVideos.length > 0 && (
+        {filteredAssets.length > 0 && (
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-400">
-              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalVideos)} of {totalVideos} videos
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalAssets)} of {totalAssets} assets ({totalImages} images, {totalVideos} videos)
             </div>
             {totalPages > 1 && (
               <Pagination>
@@ -870,13 +957,15 @@ export function MyAssets() {
         </div>
       </div>
 
-      {/* Delete Video Confirmation Dialog */}
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, videoId: null })}>
+      {/* Delete Asset Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, assetId: null, assetType: null })}>
         <AlertDialogContent className="bg-gray-950 border border-gray-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Video</AlertDialogTitle>
+            <AlertDialogTitle className="text-white">
+              Delete {deleteDialog.assetType === 'image' ? 'Image' : 'Video'}
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400">
-              Are you sure you want to delete this video? This action cannot be undone.
+              Are you sure you want to delete this {deleteDialog.assetType === 'image' ? 'image' : 'video'}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -884,7 +973,7 @@ export function MyAssets() {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDeleteVideo}
+              onClick={confirmDeleteAsset}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete
