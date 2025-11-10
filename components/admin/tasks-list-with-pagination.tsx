@@ -154,6 +154,16 @@ export default function TasksListWithPagination({
               icon = '✨';
               label = 'Video Effects';
               break;
+            case 'text_to_image':
+              color = 'bg-orange-100 text-orange-800 border-orange-200';
+              icon = '🎨';
+              label = 'Text to Image';
+              break;
+            case 'image_to_image':
+              color = 'bg-cyan-100 text-cyan-800 border-cyan-200';
+              icon = '🖌️';
+              label = 'Image to Image';
+              break;
             case 'text_to_video':
             default:
               color = 'bg-blue-100 text-blue-800 border-blue-200';
@@ -240,6 +250,39 @@ export default function TasksListWithPagination({
         title: 'Parameters',
         className: 'w-40',
         callback: (item: UnifiedTask) => {
+          // 如果是图片任务，显示宽高
+          if (item.task_type === 'image_generation') {
+            return (
+              <div className="flex flex-col gap-1 text-xs">
+                {/* 宽高 */}
+                {item.width && item.height && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500 font-medium">Size:</span>
+                    <span className="px-2 py-0.5 rounded bg-green-100 text-green-800 font-semibold">
+                      {item.width} × {item.height}
+                    </span>
+                  </div>
+                )}
+
+                {/* Aspect Ratio */}
+                {item.aspectRatio && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500 font-medium">Ratio:</span>
+                    <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-semibold">
+                      {item.aspectRatio}
+                    </span>
+                  </div>
+                )}
+
+                {/* 如果都没有，显示占位符 */}
+                {!item.width && !item.height && !item.aspectRatio && (
+                  <span className="text-gray-400">-</span>
+                )}
+              </div>
+            );
+          }
+
+          // 视频任务逻辑（现有）
           return (
             <div className="flex flex-col gap-1 text-xs">
               {/* Duration */}
@@ -285,6 +328,12 @@ export default function TasksListWithPagination({
         title: 'Result',
         className: 'w-32',
         callback: (item: UnifiedTask) => {
+          // 如果是图片任务，显示图片
+          if (item.task_type === 'image_generation' && item.image_url) {
+            return <MediaPreview src={item.image_url} type="image" alt="Result Image" placeholder="No result" />;
+          }
+
+          // 视频任务逻辑（现有）
           const resultUrl = item.video_url || item.result_url || item.audio_url;
           if (!resultUrl) {
             return <span className="text-gray-400 text-xs">No result</span>;
