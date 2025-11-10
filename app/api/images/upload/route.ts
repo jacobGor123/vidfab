@@ -40,6 +40,8 @@ function validateImageFile(file: {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔵 Image upload request received')
+
     // 认证检查
     const session = await getServerSession(authConfig)
 
@@ -62,12 +64,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log(`✅ User authenticated: ${userId}`)
+
     // Parse form data
     const formData = await request.formData()
     const fileEntry = formData.get('file')
     const quality = formData.get('quality') as string || 'STANDARD'
 
+    console.log('📦 FormData entries:', Array.from(formData.keys()))
+
     if (!fileEntry || typeof fileEntry === 'string') {
+      console.error('❌ No file in FormData or file is string:', typeof fileEntry)
       return NextResponse.json(
         { error: 'No file uploaded' },
         { status: 400 }
@@ -77,6 +84,12 @@ export async function POST(request: NextRequest) {
     // In Node.js environment, this will be a File-like object
     const file = fileEntry as File
 
+    console.log('📄 File info:', {
+      name: file.name,
+      type: file.type,
+      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+    })
+
     // 服务器端验证文件类型和大小
     const validation = validateImageFile({
       type: file.type,
@@ -84,15 +97,20 @@ export async function POST(request: NextRequest) {
       name: file.name
     })
     if (!validation.valid) {
+      console.error('❌ File validation failed:', validation.error)
       return NextResponse.json(
         { error: validation.error },
         { status: 400 }
       )
     }
 
+    console.log('✅ File validation passed')
+
     // 转换文件为Buffer (服务器端处理)
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+
+    console.log(`📤 Uploading to Supabase Storage...`)
 
     // 上传到Supabase Storage
     const imageId = uuidv4()
@@ -102,6 +120,8 @@ export async function POST(request: NextRequest) {
       buffer,
       file.type
     )
+
+    console.log(`✅ Upload completed:`, uploadResult.url)
 
     // 返回上传结果
     return NextResponse.json({

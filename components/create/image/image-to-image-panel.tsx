@@ -60,6 +60,12 @@ export function ImageToImagePanel() {
     const uploadedUrls: string[] = []
 
     for (const file of files) {
+      console.log(`📤 Uploading image:`, {
+        name: file.name,
+        size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        type: file.type
+      })
+
       const formData = new FormData()
       formData.append('file', file)
 
@@ -82,11 +88,25 @@ export function ImageToImagePanel() {
         }
       }
 
+      // 🔥 详细的错误日志
       if (!response.ok) {
-        throw new Error('Failed to upload image')
+        const errorText = await response.text()
+        console.error(`❌ Upload failed [${response.status}]:`, errorText)
+
+        let errorMessage = 'Failed to upload image'
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMessage = errorData.error || errorMessage
+        } catch (e) {
+          // errorText 不是 JSON，使用原始文本
+          errorMessage = errorText || errorMessage
+        }
+
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
+      console.log(`✅ Upload successful:`, data.data.url)
       uploadedUrls.push(data.data.url)
     }
 

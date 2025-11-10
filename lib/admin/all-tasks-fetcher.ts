@@ -94,9 +94,61 @@ function normalizeTask(rawTask: any): UnifiedTask {
 }
 
 /**
- * 获取所有任务（支持基于游标的分页）
+ * 将 user_images 表数据标准化为 UnifiedTask 格式
  */
-export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
+function normalizeImageTask(rawTask: any): UnifiedTask {
+  return {
+    id: rawTask.id,
+    task_type: 'image_generation',
+    user_id: rawTask.user_id || null,
+    user_email: rawTask.user_email || null,
+    status: rawTask.status,
+    progress: rawTask.status === 'completed' ? 100 : 0,
+    created_at: rawTask.created_at,
+    updated_at: rawTask.updated_at,
+
+    // 生成类型和输入数据
+    generation_type: rawTask.generation_type, // 'text_to_image' | 'image_to_image'
+    input_image_url: rawTask.source_images || null, // image_to_image 的源图
+    prompt: rawTask.prompt || '',
+
+    // 输出数据（图片没有 video_url，使用 image_url）
+    video_url: null,
+    image_url: rawTask.storage_url || rawTask.original_url,
+    storage_path: rawTask.storage_path || null,
+    thumbnail_path: null, // 图片没有缩略图
+
+    // 任务参数
+    model: rawTask.model || null,
+    duration: null, // 图片没有 duration
+    resolution: null, // 图片用 width x height 表示
+    aspectRatio: rawTask.aspect_ratio || null,
+    durationStr: null,
+    settings: rawTask.metadata || {},
+
+    // 图片特有字段
+    width: rawTask.width || null,
+    height: rawTask.height || null,
+    upload_source: rawTask.upload_source || null,
+    source_images: rawTask.source_images || null,
+
+    // Video Effects 字段（图片没有）
+    effectId: null,
+    effectName: null,
+
+    // 积分和错误
+    credits_used: 0,
+    error: rawTask.error_message || null,
+
+    // 外部任务 ID
+    wavespeed_request_id: rawTask.wavespeed_request_id || '',
+  };
+}
+
+/**
+ * 获取视频任务（支持基于游标的分页）
+ */
+async function fetchVideoTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
   const { limit = 50, cursor, excludeEmail } = options;
   const supabase = getSupabaseAdminClient();
 
@@ -121,7 +173,7 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
   const { data, error } = await query.limit(limit + 1);
 
   if (error) {
-    console.error('Failed to fetch tasks:', error);
+    console.error('Failed to fetch video tasks:', error);
     return {
       tasks: [],
       nextCursor: null,
@@ -153,12 +205,115 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
 }
 
 /**
- * 获取任务统计信息
+ * 获取图片任务（支持基于游标的分页）
  */
-export async function fetchTaskStats(taskType?: TaskType): Promise<TaskStats> {
+async function fetchImageTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
+  const { limit = 50, cursor, excludeEmail } = options;
   const supabase = getSupabaseAdminClient();
 
-  // 查询 user_videos 表的统计信息
+  // 构建查询 - 从 user_images 表获取数据并 JOIN users 表获取 email
+  let query = supabase
+    .from('user_images')
+    .select('*, users!inner(email)')
+    .neq('status', 'deleted') // 排除已删除的图片
+    .order('created_at', { ascending: false });
+
+  // 应用邮箱排除过滤（模糊匹配，不区分大小写）
+  if (excludeEmail && excludeEmail.trim()) {
+    query = query.not('users.email', 'ilike', `%${excludeEmail.trim()}%`);
+  }
+
+  // 应用游标（只获取早于游标时间的任务）
+  if (cursor) {
+    query = query.lt('created_at', cursor);
+  }
+
+  // 获取 limit + 1 条数据以判断是否有更多结果
+  const { data, error } = await query.limit(limit + 1);
+
+  if (error) {
+    console.error('Failed to fetch image tasks:', error);
+    return {
+      tasks: [],
+      nextCursor: null,
+      hasMore: false,
+    };
+  }
+
+  // 扁平化 users 对象以获取 email
+  const flattenedData = (data || []).map((item: any) => ({
+    ...item,
+    user_email: item.users?.email || null,
+  }));
+
+  // 标准化任务数据
+  const allTasks = flattenedData.map((item) => normalizeImageTask(item));
+
+  // 判断是否有更多结果
+  const hasMore = allTasks.length > limit;
+  const tasks = hasMore ? allTasks.slice(0, limit) : allTasks;
+
+  // 计算下一个游标（最后一个任务的 created_at）
+  const nextCursor = tasks.length > 0 ? tasks[tasks.length - 1].created_at : null;
+
+  return {
+    tasks,
+    nextCursor,
+    hasMore,
+  };
+}
+
+/**
+ * 获取所有任务（合并视频和图片，支持基于游标的分页）
+ */
+export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
+  const { taskType } = options;
+
+  // 根据 taskType 决定获取哪种任务
+  if (taskType === 'video_generation') {
+    return fetchVideoTasks(options);
+  }
+
+  if (taskType === 'image_generation') {
+    return fetchImageTasks(options);
+  }
+
+  // taskType === undefined，获取所有任务（合并两个表）
+  const limit = options.limit || 50;
+
+  // 并发获取视频和图片任务
+  const [videoResult, imageResult] = await Promise.all([
+    fetchVideoTasks({ ...options, limit }),
+    fetchImageTasks({ ...options, limit }),
+  ]);
+
+  // 合并结果并按时间排序
+  const allTasks = [...videoResult.tasks, ...imageResult.tasks].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  // 取前 limit 条
+  const tasks = allTasks.slice(0, limit);
+
+  // 判断是否有更多
+  const hasMore = videoResult.hasMore || imageResult.hasMore || allTasks.length > limit;
+
+  // 计算下一个游标
+  const nextCursor = tasks.length > 0 ? tasks[tasks.length - 1].created_at : null;
+
+  return {
+    tasks,
+    nextCursor,
+    hasMore,
+  };
+}
+
+/**
+ * 获取视频任务统计信息
+ */
+async function fetchVideoStats(): Promise<TaskStats> {
+  const supabase = getSupabaseAdminClient();
+
   const [totalResult, completedResult, failedResult, processingResult] = await Promise.allSettled([
     // 总数（排除已删除）
     supabase.from('user_videos').select('id', { count: 'exact', head: true }).neq('status', 'deleted'),
@@ -173,12 +328,68 @@ export async function fetchTaskStats(taskType?: TaskType): Promise<TaskStats> {
       .in('status', ['generating', 'downloading', 'processing']),
   ]);
 
-  const total = totalResult.status === 'fulfilled' ? totalResult.value.count || 0 : 0;
-  const completed = completedResult.status === 'fulfilled' ? completedResult.value.count || 0 : 0;
-  const failed = failedResult.status === 'fulfilled' ? failedResult.value.count || 0 : 0;
-  const processing = processingResult.status === 'fulfilled' ? processingResult.value.count || 0 : 0;
+  return {
+    total: totalResult.status === 'fulfilled' ? totalResult.value.count || 0 : 0,
+    completed: completedResult.status === 'fulfilled' ? completedResult.value.count || 0 : 0,
+    failed: failedResult.status === 'fulfilled' ? failedResult.value.count || 0 : 0,
+    processing: processingResult.status === 'fulfilled' ? processingResult.value.count || 0 : 0,
+  };
+}
 
-  return { total, completed, failed, processing };
+/**
+ * 获取图片任务统计信息
+ */
+async function fetchImageStats(): Promise<TaskStats> {
+  const supabase = getSupabaseAdminClient();
+
+  const [totalResult, completedResult, failedResult, processingResult] = await Promise.allSettled([
+    // 总数（排除已删除）
+    supabase.from('user_images').select('id', { count: 'exact', head: true }).neq('status', 'deleted'),
+    // 已完成
+    supabase.from('user_images').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
+    // 失败
+    supabase.from('user_images').select('id', { count: 'exact', head: true }).eq('status', 'failed'),
+    // 处理中（uploading + processing）
+    supabase
+      .from('user_images')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['uploading', 'processing']),
+  ]);
+
+  return {
+    total: totalResult.status === 'fulfilled' ? totalResult.value.count || 0 : 0,
+    completed: completedResult.status === 'fulfilled' ? completedResult.value.count || 0 : 0,
+    failed: failedResult.status === 'fulfilled' ? failedResult.value.count || 0 : 0,
+    processing: processingResult.status === 'fulfilled' ? processingResult.value.count || 0 : 0,
+  };
+}
+
+/**
+ * 获取任务统计信息（支持视频、图片或全部）
+ */
+export async function fetchTaskStats(taskType?: TaskType): Promise<TaskStats> {
+  // 只统计视频任务
+  if (taskType === 'video_generation') {
+    return fetchVideoStats();
+  }
+
+  // 只统计图片任务
+  if (taskType === 'image_generation') {
+    return fetchImageStats();
+  }
+
+  // 统计所有任务（视频 + 图片）
+  const [videoStats, imageStats] = await Promise.all([
+    fetchVideoStats(),
+    fetchImageStats(),
+  ]);
+
+  return {
+    total: videoStats.total + imageStats.total,
+    completed: videoStats.completed + imageStats.completed,
+    failed: videoStats.failed + imageStats.failed,
+    processing: videoStats.processing + imageStats.processing,
+  };
 }
 
 /**
@@ -188,6 +399,7 @@ export function getTaskTypeLabel(taskType: TaskType | 'all'): string {
   const labels: Record<TaskType | 'all', string> = {
     all: 'All Tasks',
     video_generation: 'Video Generation',
+    image_generation: 'Image Generation',
   };
   return labels[taskType] || taskType;
 }
