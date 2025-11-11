@@ -173,7 +173,20 @@ export async function checkImageStatus(
 
     console.log(`📊 Status check for ${requestId}:`, {
       status: result.data.status,
-      hasOutputs: !!result.data.outputs?.length
+      hasOutputs: !!result.data.outputs?.length,
+      // 🔥 输出实际的图片 URL 用于调试
+      imageUrls: result.data.outputs?.map(url => {
+        try {
+          const urlObj = new URL(url)
+          return {
+            full: url,
+            hostname: urlObj.hostname,
+            pathname: urlObj.pathname
+          }
+        } catch {
+          return { full: url, hostname: 'invalid', pathname: 'invalid' }
+        }
+      })
     })
 
     return result
