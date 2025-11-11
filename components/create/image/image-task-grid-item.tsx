@@ -6,7 +6,7 @@
  */
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Download, AlertCircle, CheckCircle, Maximize, X, Video } from "lucide-react"
+import { Download, AlertCircle, CheckCircle, Maximize, X, Video, RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -94,6 +94,25 @@ export function ImageTaskGridItem({
     toast.success('Image ready for video generation')
   }, [imageUrl, prompt, router])
 
+  // 🔥 跳转到 Image to Image
+  const handleImageToImage = useCallback(() => {
+    if (!imageUrl) return
+
+    // 存储图片数据到 sessionStorage（5分钟有效期）
+    const imageToImageData = {
+      imageUrl,
+      prompt: prompt || '',
+      timestamp: Date.now()
+    }
+
+    sessionStorage.setItem('vidfab-image-to-image', JSON.stringify(imageToImageData))
+
+    // 跳转到 Image to Image
+    router.push('/create?tool=image-to-image')
+
+    toast.success('Image ready for transformation')
+  }, [imageUrl, prompt, router])
+
   return (
     <>
       <Card className={cn(
@@ -134,6 +153,7 @@ export function ImageTaskGridItem({
                 src={imageUrl}
                 alt={prompt}
                 fill
+                unoptimized={imageUrl.includes('cloudfront.net')}
                 className="object-cover cursor-pointer transition-transform hover:scale-105"
                 onClick={() => setShowPreview(true)}
               />
@@ -173,6 +193,18 @@ export function ImageTaskGridItem({
                   title="Create video from this image"
                 >
                   <Video className="h-4 w-4 text-white" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 bg-black/50 hover:bg-cyan-600/70 backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleImageToImage()
+                  }}
+                  title="Transform this image"
+                >
+                  <RotateCw className="h-4 w-4 text-white" />
                 </Button>
               </div>
 

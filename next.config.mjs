@@ -41,17 +41,11 @@ const nextConfig = {
         hostname: 'ycahbhhuzgixfrljtqmi.supabase.co', // Supabase storage
         pathname: '/storage/v1/object/**',
       },
+      // 🔥 注意：CloudFront 图片已在组件层面设置 unoptimized，不经过 Next.js Image Optimizer
+      // 以下配置保留作为备用，但实际上 CloudFront 图片会直接使用原始 URL
       {
         protocol: 'https',
-        hostname: 'd1q7bp5vjyehc.cloudfront.net', // Wavespeed API CloudFront CDN (new domain)
-      },
-      {
-        protocol: 'https',
-        hostname: 'd1q70pf5vjeyhc.cloudfront.net', // 🔥 Wavespeed API CloudFront CDN (old domain - actual returned)
-      },
-      {
-        protocol: 'https',
-        hostname: '*.cloudfront.net', // 🔥 支持所有 CloudFront 域名（通配符作为备用）
+        hostname: '*.cloudfront.net', // 支持所有 CloudFront 域名（通配符）
       },
     ],
     formats: ['image/webp', 'image/avif'],
