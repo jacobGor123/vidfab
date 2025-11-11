@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     const allowedDomains = [
       'static.vidfab.ai',
       'vidfab.ai',
-      'd1q70pf5vjeyhc.cloudfront.net', // 🔥 CloudFront CDN for image generation
+      'd1q7bp5vjyehc.cloudfront.net', // 🔥 CloudFront CDN for image generation (corrected)
       'cloudfront.net' // 🔥 Generic CloudFront domain
     ]
     if (!allowedDomains.some(domain => imageUrl.hostname.endsWith(domain))) {
