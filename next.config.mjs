@@ -43,11 +43,15 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'd1q7bp5vjyehc.cloudfront.net', // Wavespeed API CloudFront CDN (primary)
+        hostname: 'd1q7bp5vjyehc.cloudfront.net', // Wavespeed API CloudFront CDN (new domain)
       },
       {
         protocol: 'https',
-        hostname: '*.cloudfront.net', // 🔥 支持所有 CloudFront 域名（通配符）
+        hostname: 'd1q70pf5vjeyhc.cloudfront.net', // 🔥 Wavespeed API CloudFront CDN (old domain - actual returned)
+      },
+      {
+        protocol: 'https',
+        hostname: '*.cloudfront.net', // 🔥 支持所有 CloudFront 域名（通配符作为备用）
       },
     ],
     formats: ['image/webp', 'image/avif'],
