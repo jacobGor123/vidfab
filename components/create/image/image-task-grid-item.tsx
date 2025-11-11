@@ -134,6 +134,7 @@ export function ImageTaskGridItem({
                 src={imageUrl}
                 alt={prompt}
                 fill
+                unoptimized={imageUrl.includes('cloudfront.net')}
                 className="object-cover cursor-pointer transition-transform hover:scale-105"
                 onClick={() => setShowPreview(true)}
               />
