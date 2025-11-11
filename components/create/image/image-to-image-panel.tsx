@@ -5,7 +5,7 @@
  * 图生图面板主组件（重构版 - 使用 useImageUpload Hook）
  */
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
@@ -22,11 +22,13 @@ import { IMAGE_GENERATION_CREDITS } from "@/lib/simple-credits-check"
 import { useImageUpload } from "../hooks/use-image-upload"
 import { ImageUploadArea } from "../image-upload/image-upload-area"
 import { ImageUploadGrid } from "../image-upload/image-upload-grid"
+import toast from "react-hot-toast"
 
 export function ImageToImagePanel() {
   const [prompt, setPrompt] = useState("")
   const [model, setModel] = useState("seedream-v4")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const imageToImageLoadedRef = useRef(false)
 
   // 🔥 认证弹框 Hook
   const authModal = useAuthModal()
@@ -103,6 +105,91 @@ export function ImageToImagePanel() {
       await generateImageToImage(imageUrls, prompt, model)
     })
   }, [prompt, model, imageUpload, generateImageToImage, authModal])
+
+  // 🔥 Check for image-to-image data from other pages (image previews, my assets)
+  useEffect(() => {
+    // 如果已经加载过，跳过
+    if (imageToImageLoadedRef.current) {
+      return
+    }
+
+    const checkImageToImageData = async () => {
+      try {
+        const stored = sessionStorage.getItem('vidfab-image-to-image')
+        if (!stored) {
+          console.log('📋 No image-to-image data in sessionStorage')
+          return
+        }
+
+        console.log('📋 Found image-to-image data in sessionStorage:', stored)
+
+        const data = JSON.parse(stored)
+
+        // Check if data is fresh (within 5 minutes)
+        const now = Date.now()
+        const age = now - (data.timestamp || 0)
+        if (age > 5 * 60 * 1000) { // 5 minutes
+          console.log('⏰ Image-to-image data expired, removing...')
+          sessionStorage.removeItem('vidfab-image-to-image')
+          return
+        }
+
+        // 标记为已加载
+        imageToImageLoadedRef.current = true
+
+        console.log('🔄 Loading image from URL:', data.imageUrl)
+
+        // 🔥 Download image from URL and upload
+        const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(data.imageUrl)}`
+        const response = await fetch(proxyUrl)
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch image')
+        }
+
+        const blob = await response.blob()
+        const fileName = data.imageUrl.split('/').pop() || 'image-to-image.jpg'
+
+        // 🔥 根据文件扩展名推断正确的 MIME 类型
+        const ext = fileName.toLowerCase().split('.').pop()
+        const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+                         ext === 'png' ? 'image/png' :
+                         ext === 'webp' ? 'image/webp' :
+                         blob.type || 'image/jpeg' // 默认使用 blob.type 或 image/jpeg
+
+        const file = new File([blob], fileName, { type: mimeType })
+
+        console.log('📤 Uploading image file:', {
+          fileName,
+          size: `${(file.size / 1024).toFixed(1)}KB`,
+          mimeType
+        })
+
+        // Set prompt if available
+        if (data.prompt) {
+          setPrompt(data.prompt)
+        }
+
+        // Upload image
+        await imageUpload.uploadImage(file)
+
+        console.log('✅ Image uploaded successfully')
+
+        // Clear sessionStorage
+        sessionStorage.removeItem('vidfab-image-to-image')
+
+        // 显示成功提示
+        toast.success('Image loaded successfully')
+
+      } catch (error) {
+        console.error('❌ Failed to load image-to-image data:', error)
+        sessionStorage.removeItem('vidfab-image-to-image')
+        toast.error('Failed to load image')
+      }
+    }
+
+    checkImageToImageData()
+  }, [imageUpload]) // 🔥 依赖 imageUpload，当它可用时执行
 
   return (
     <div className="h-screen flex flex-row">

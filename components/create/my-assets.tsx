@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { FolderOpen, Download, Trash2, Play, Loader2, AlertTriangle, Sparkles, Video } from "lucide-react"
+import { FolderOpen, Download, Trash2, Play, Loader2, AlertTriangle, Sparkles, Video, RotateCw } from "lucide-react"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { UserVideosDB } from "@/lib/database/user-videos"
 import { UserVideo } from "@/lib/supabase"
@@ -247,6 +247,23 @@ export function MyAssets() {
     router.push('/create?tool=image-to-video')
 
     toast.success('Image ready for video generation')
+  }, [router])
+
+  // 🔥 跳转到 Image to Image
+  const handleImageToImage = useCallback((imageUrl: string, prompt: string) => {
+    // 存储图片数据到 sessionStorage（5分钟有效期）
+    const imageToImageData = {
+      imageUrl,
+      prompt: prompt || '',
+      timestamp: Date.now()
+    }
+
+    sessionStorage.setItem('vidfab-image-to-image', JSON.stringify(imageToImageData))
+
+    // 跳转到 Image to Image
+    router.push('/create?tool=image-to-image')
+
+    toast.success('Image ready for transformation')
   }, [router])
 
   const confirmDeleteAsset = async () => {
@@ -812,6 +829,24 @@ export function MyAssets() {
                         title="Create video from this image"
                       >
                         <Video className="w-4 h-4" />
+                      </Button>
+                    )}
+
+                    {/* 🔥 Image to Image button - 仅对 Image 显示 */}
+                    {asset.type === 'image' && asset.status === "completed" && asset.downloadUrl && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        disabled={isDeleting}
+                        className={`${
+                          isDeleting
+                            ? 'text-gray-600 cursor-not-allowed'
+                            : 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/10'
+                        }`}
+                        onClick={() => !isDeleting && handleImageToImage(asset.downloadUrl, asset.prompt || '')}
+                        title="Transform this image"
+                      >
+                        <RotateCw className="w-4 h-4" />
                       </Button>
                     )}
 
