@@ -19,8 +19,10 @@ import { useAuthModal } from "@/hooks/use-auth-modal"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"  // 🔥 订阅弹框
 import { IMAGE_GENERATION_CREDITS } from "@/lib/simple-credits-check"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function TextToImagePanel() {
+  const isMobile = useIsMobile()
   const [prompt, setPrompt] = useState("")
   const [model, setModel] = useState("seedream-v4")
   const [aspectRatio, setAspectRatio] = useState("1:1")
@@ -56,9 +58,9 @@ export function TextToImagePanel() {
   }
 
   return (
-    <div className="h-screen flex flex-row">
+    <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
       {/* 左侧控制面板 */}
-      <div className="w-1/2 h-full">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
         <div className="h-full overflow-y-auto custom-scrollbar pt-12 pb-20 px-6 pr-3">
           <div className="space-y-6">
             {/* 错误提示 */}
@@ -136,7 +138,7 @@ export function TextToImagePanel() {
       </div>
 
       {/* 右侧预览区域 */}
-      <div className="w-1/2 h-full overflow-hidden">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
         <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
           {tasks.length > 0 ? (
             <div className={`grid gap-4 ${tasks.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>

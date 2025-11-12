@@ -23,8 +23,10 @@ import { useImageUpload } from "../hooks/use-image-upload"
 import { ImageUploadArea } from "../image-upload/image-upload-area"
 import { ImageUploadGrid } from "../image-upload/image-upload-grid"
 import toast from "react-hot-toast"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function ImageToImagePanel() {
+  const isMobile = useIsMobile()
   const [prompt, setPrompt] = useState("")
   const [model, setModel] = useState("seedream-v4")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
@@ -192,9 +194,9 @@ export function ImageToImagePanel() {
   }, [imageUpload]) // 🔥 依赖 imageUpload，当它可用时执行
 
   return (
-    <div className="h-screen flex flex-row">
+    <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
       {/* 左侧控制面板 */}
-      <div className="w-1/2 h-full">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
         <div className="h-full overflow-y-auto custom-scrollbar pt-12 pb-20 px-6 pr-3">
           <div className="space-y-6">
             {/* 错误提示 */}
@@ -296,7 +298,7 @@ export function ImageToImagePanel() {
       </div>
 
       {/* 右侧预览区域 */}
-      <div className="w-1/2 h-full overflow-hidden">
+      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
         <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
           {tasks.length > 0 ? (
             <div className={`grid gap-4 ${tasks.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
