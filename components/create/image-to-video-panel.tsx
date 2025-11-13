@@ -297,12 +297,13 @@ export function ImageToVideoPanelEnhanced() {
   // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
     if (params.model === "vidfab-pro") {
-      // 自动设置为8秒、720p 和 16:9（Image-to-Video 的 Vidfab Pro 只支持 16:9）
+      // 自动设置为8秒、720p（Vidfab Pro 支持 16:9 和 9:16）
       setParams(prev => ({
         ...prev,
         duration: "8s",
         resolution: prev.resolution === "480p" ? "720p" : prev.resolution,  // 如果是480p则改为720p，否则保持
-        aspectRatio: "16:9"  // Image-to-Video 的 veo3 只支持 16:9
+        // aspectRatio 保持用户选择，不强制修改
+        aspectRatio: prev.aspectRatio === "1:1" ? "16:9" : prev.aspectRatio  // 仅当是 1:1 时切换到 16:9
       }))
     }
   }, [params.model])
@@ -728,11 +729,11 @@ export function ImageToVideoPanelEnhanced() {
                   <div className="space-y-2">
                     <Label className="text-gray-300">Aspect Ratio</Label>
                     <div className="flex gap-2">
-                      {(params.model === "vidfab-pro" ? ["16:9"] : ["16:9", "9:16", "1:1"]).map((ratio) => (
+                      {(params.model === "vidfab-pro" ? ["16:9", "9:16"] : ["16:9", "9:16", "1:1"]).map((ratio) => (
                         <button
                           key={ratio}
                           onClick={() => updateParam("aspectRatio", ratio)}
-                          disabled={videoGeneration.isGenerating || (params.model === "vidfab-pro" && ratio !== "16:9")}
+                          disabled={videoGeneration.isGenerating}
                           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all disabled:opacity-50 ${
                             params.aspectRatio === ratio
                               ? "bg-primary text-primary-foreground"
@@ -745,7 +746,7 @@ export function ImageToVideoPanelEnhanced() {
                     </div>
                     {params.model === "vidfab-pro" && (
                       <p className="text-xs text-gray-500">
-                        Image-to-Video Vidfab Pro only supports 16:9 aspect ratio
+                        Image-to-Video Vidfab Pro supports 16:9 and 9:16 aspect ratios
                       </p>
                     )}
                   </div>
