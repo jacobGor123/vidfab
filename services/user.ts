@@ -50,6 +50,25 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     } else {
       // ✅ 新用户：使用默认值
       console.log(`✨ 创建新用户: ${userUuid}`);
+
+      // 🎁 检查是否有待领取的积分
+      const { data: pendingCredits } = await supabaseAdmin
+        .from('pending_credits')
+        .select('id, credits_amount, source')
+        .eq('email', userData.email.toLowerCase().trim())
+        .eq('is_claimed', false);
+
+      let totalCredits = 50; // 默认初始积分
+      const pendingCreditIds: string[] = [];
+
+      if (pendingCredits && pendingCredits.length > 0) {
+        // 累加所有待领取积分
+        const bonusCredits = pendingCredits.reduce((sum, pc) => sum + pc.credits_amount, 0);
+        totalCredits += bonusCredits;
+        pendingCreditIds.push(...pendingCredits.map(pc => pc.id));
+        console.log(`🎁 检测到 ${pendingCredits.length} 条待领取积分，额外获得: ${bonusCredits} 积分`);
+      }
+
       userToSave = {
         uuid: userUuid,
         email: userData.email.toLowerCase().trim(),
@@ -67,11 +86,18 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         // Set default AI Video platform values for new users
         subscription_status: 'active',
         subscription_plan: 'free',
-        credits_remaining: 50, // Free credits for new users
+        credits_remaining: totalCredits, // 🎁 包含pending积分
         total_videos_processed: 0,
         storage_used_mb: 0,
         max_storage_mb: 1024, // 1GB default
       };
+
+      // 🎁 用户创建成功后，标记 pending_credits 为已领取
+      if (pendingCreditIds.length > 0) {
+        // 注意：这里需要在用户创建成功后执行，所以放在后面的逻辑中处理
+        // 暂存ID列表供后续使用
+        (userToSave as any)._pendingCreditIds = pendingCreditIds;
+      }
     }
 
     // 使用upsert操作
@@ -133,6 +159,25 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       throw new Error('No user data returned from database');
     }
 
+    // 🎁 标记 pending_credits 为已领取
+    const pendingCreditIds = (userToSave as any)._pendingCreditIds;
+    if (pendingCreditIds && pendingCreditIds.length > 0) {
+      const { error: claimError } = await supabaseAdmin
+        .from('pending_credits')
+        .update({
+          is_claimed: true,
+          claimed_by_uuid: data.uuid,
+          claimed_at: now,
+        })
+        .in('id', pendingCreditIds);
+
+      if (claimError) {
+        console.error('⚠️ 标记 pending_credits 失败:', claimError);
+        // 不抛出错误，避免影响用户注册流程
+      } else {
+        console.log(`✅ 成功领取 ${pendingCreditIds.length} 条积分记录`);
+      }
+    }
 
     return {
       uuid: data.uuid,
