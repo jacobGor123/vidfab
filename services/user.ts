@@ -23,6 +23,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       .single();
 
     let userToSave: Partial<DatabaseUser>;
+    let pendingCreditIdsToProcess: string[] = []; // 🔧 用独立变量存储
 
     if (existingUser) {
       // ✅ 已存在用户：只更新登录相关字段，不覆盖积分和订阅
@@ -94,9 +95,8 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
 
       // 🎁 用户创建成功后，标记 pending_credits 为已领取
       if (pendingCreditIds.length > 0) {
-        // 注意：这里需要在用户创建成功后执行，所以放在后面的逻辑中处理
-        // 暂存ID列表供后续使用
-        (userToSave as any)._pendingCreditIds = pendingCreditIds;
+        // 🔧 使用独立变量存储，避免污染 userToSave 对象
+        pendingCreditIdsToProcess = pendingCreditIds;
       }
     }
 
@@ -160,8 +160,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     }
 
     // 🎁 标记 pending_credits 为已领取
-    const pendingCreditIds = (userToSave as any)._pendingCreditIds;
-    if (pendingCreditIds && pendingCreditIds.length > 0) {
+    if (pendingCreditIdsToProcess && pendingCreditIdsToProcess.length > 0) {
       const { error: claimError } = await supabaseAdmin
         .from('pending_credits')
         .update({
@@ -169,13 +168,13 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
           claimed_by_uuid: data.uuid,
           claimed_at: now,
         })
-        .in('id', pendingCreditIds);
+        .in('id', pendingCreditIdsToProcess);
 
       if (claimError) {
         console.error('⚠️ 标记 pending_credits 失败:', claimError);
         // 不抛出错误，避免影响用户注册流程
       } else {
-        console.log(`✅ 成功领取 ${pendingCreditIds.length} 条积分记录`);
+        console.log(`✅ 成功领取 ${pendingCreditIdsToProcess.length} 条积分记录`);
       }
     }
 
