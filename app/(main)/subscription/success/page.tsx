@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { Navbar } from "@/components/navbar"
 import { SpaceBackground } from "@/components/space-background"
 import { Check, Zap, Crown, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,24 +12,11 @@ import { trackPurchase } from "@/lib/analytics/gtm"
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription/pricing-config"
 
 function SubscriptionSuccessPageInner() {
-  const [scrolled, setScrolled] = useState(false)
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
   const { data: session } = useSession()
   const sessionId = searchParams.get('session_id')
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
 
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
@@ -78,7 +64,6 @@ function SubscriptionSuccessPageInner() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <SpaceBackground />
-      <Navbar scrolled={scrolled} />
 
       <main className="container mx-auto px-4 pt-32 pb-20">
         <div className="max-w-3xl mx-auto text-center">
