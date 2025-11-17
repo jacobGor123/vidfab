@@ -18,7 +18,7 @@ import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIc
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
-import { useVideoPolling } from "@/hooks/use-video-polling"
+import { useVideoPollingV2 } from "@/hooks/use-video-polling-v2"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useRemix } from "@/hooks/use-remix"
@@ -95,8 +95,8 @@ export function ImageToVideoPanelEnhanced() {
     refreshCredits
   } = useSimpleSubscription()
 
-  // Video polling
-  const videoPolling = useVideoPolling({
+  // Video polling V2
+  const videoPolling = useVideoPollingV2({
     onCompleted: (job, resultUrl) => {
       // 🔥 刷新积分显示，确保前端显示的积分数是最新的
       refreshCredits()
@@ -110,8 +110,8 @@ export function ImageToVideoPanelEnhanced() {
 
   // Video generation
   const videoGeneration = useVideoGeneration({
-    onSuccess: (jobId) => {
-      startPolling(jobId) // 🔥 启动轮询
+    onSuccess: (jobId, requestId) => {
+      startPolling(jobId, requestId) // 🔥 启动轮询
     },
     onError: (error) => {
       console.error('Image-to-video generation failed:', error)
@@ -222,11 +222,9 @@ export function ImageToVideoPanelEnhanced() {
       try {
         const stored = sessionStorage.getItem('vidfab-image-to-video')
         if (!stored) {
-          console.log('📋 No image-to-video data in sessionStorage')
           return
         }
 
-        console.log('📋 Found image-to-video data in sessionStorage:', stored)
 
         const data = JSON.parse(stored)
 
@@ -234,7 +232,6 @@ export function ImageToVideoPanelEnhanced() {
         const now = Date.now()
         const age = now - (data.timestamp || 0)
         if (age > 5 * 60 * 1000) { // 5 minutes
-          console.log('⏰ Image-to-video data expired, removing...')
           sessionStorage.removeItem('vidfab-image-to-video')
           return
         }
@@ -242,7 +239,6 @@ export function ImageToVideoPanelEnhanced() {
         // 标记为已加载
         imageToVideoLoadedRef.current = true
 
-        console.log('🔄 Loading image from URL:', data.imageUrl)
 
         // 🔥 Download image from URL and upload
         const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(data.imageUrl)}`
@@ -264,11 +260,6 @@ export function ImageToVideoPanelEnhanced() {
 
         const file = new File([blob], fileName, { type: mimeType })
 
-        console.log('📤 Uploading image file:', {
-          fileName,
-          size: `${(file.size / 1024).toFixed(1)}KB`,
-          mimeType
-        })
 
         // Set prompt
         setParams(prev => ({
@@ -280,7 +271,6 @@ export function ImageToVideoPanelEnhanced() {
         // Upload image
         await imageUpload.uploadImage(file)
 
-        console.log('✅ Image uploaded successfully')
 
         // Clear sessionStorage
         sessionStorage.removeItem('vidfab-image-to-video')

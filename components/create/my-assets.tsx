@@ -140,12 +140,6 @@ export function MyAssets() {
         const permanentVideos = apiData.data.videos || []
         const videoPagination = apiData.data.pagination
 
-        console.log(`📡 API returned ${permanentVideos.length} videos for page ${currentPage}:`, permanentVideos.map(v => ({
-          id: v.id,
-          status: v.status,
-          prompt: v.prompt?.substring(0, 30) + '...'
-        })))
-
         // 🔥 New: Load images data
         const imagesResponse = await fetch(`/api/user/images?page=${currentPage}&limit=${ITEMS_PER_PAGE}&orderBy=created_at&orderDirection=desc`)
 
@@ -156,8 +150,6 @@ export function MyAssets() {
         const imagesData = await imagesResponse.json()
         const permanentImages = imagesData.success ? (imagesData.data.images || []) : []
         const imagePagination = imagesData.success ? imagesData.data.pagination : { total: 0 }
-
-        console.log(`📡 API returned ${permanentImages.length} images for page ${currentPage}`)
 
         // 🔥 Store videos and images separately
         const allVideos = permanentVideos.map(video => ({
@@ -178,8 +170,6 @@ export function MyAssets() {
         const totalCount = videoPagination.total + imagePagination.total
         setTotalAssets(totalCount)
         setTotalPages(Math.ceil(totalCount / ITEMS_PER_PAGE))
-
-        console.log(`📊 Final merged assets: ${mergedAssets.length} (${allVideos.length} videos + ${permanentImages.length} images)`)
 
         setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: false })
         setIsPageChanging(false)
@@ -210,10 +200,8 @@ export function MyAssets() {
 
   // 🔥 Refresh storage quota when switching to my-assets page
   useEffect(() => {
-    console.log(`📊 MyAssets component mounted, refreshing storage quota...`)
     if (sessionStatus === 'authenticated' && session?.user?.uuid) {
       videoContext.refreshQuotaInfo()
-        .then(() => console.log(`✅ Storage quota refreshed on page switch`))
         .catch(error => console.error(`❌ Failed to refresh storage quota:`, error))
     }
   }, [sessionStatus, session?.user?.uuid, videoContext])
@@ -279,9 +267,6 @@ export function MyAssets() {
     }
 
     try {
-      console.log(`🗑️ Starting ${assetType} deletion: ${assetId}`)
-      console.log(`🔍 User UUID: ${session.user.uuid}`)
-
       // Add to deleting state for loading effect
       setDeletingAssetIds(prev => new Set([...prev, assetId]))
 
@@ -291,7 +276,6 @@ export function MyAssets() {
         : `/api/user/videos/delete?videoId=${encodeURIComponent(assetId)}`
 
       // Call delete API
-      console.log(`📡 Calling delete API for ${assetType}...`)
       const deleteResponse = await fetch(endpoint, {
         method: 'DELETE',
         headers: {
@@ -300,13 +284,10 @@ export function MyAssets() {
       })
 
       const deleteResult = await deleteResponse.json()
-      console.log(`📡 Delete API response:`, deleteResult)
 
       if (!deleteResponse.ok || !deleteResult.success) {
         throw new Error(deleteResult.error || `Delete API failed with status: ${deleteResponse.status}`)
       }
-
-      console.log(`✅ Delete API completed successfully:`, deleteResult.data)
 
       // Remove from deleting state
       setDeletingAssetIds(prev => {
@@ -318,8 +299,6 @@ export function MyAssets() {
       toast.success(`${assetType === 'image' ? 'Image' : 'Video'} deleted successfully`)
 
       // 🔥 Force reload data from server to verify deletion
-      console.log(`🔄 Reloading data to verify deletion...`)
-
       // If current page becomes empty after deletion, go to previous page
       if (filteredAssets.length === 1 && currentPage > 1) {
         setCurrentPage(prev => prev - 1)
@@ -331,9 +310,7 @@ export function MyAssets() {
 
       // 🔥 Refresh storage quota info after deletion (only for videos)
       if (assetType === 'video') {
-        console.log(`📊 Refreshing storage quota after deletion...`)
         await videoContext.refreshQuotaInfo()
-        console.log(`✅ Storage quota refreshed`)
       }
 
     } catch (error) {
@@ -358,7 +335,6 @@ export function MyAssets() {
       toast.error(`Delete failed: ${errorMessage}`)
 
       // 🔥 Reload data to restore correct state
-      console.log(`🔄 Reloading data after deletion failure...`)
       await loadUserData()
       setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
     }
@@ -391,9 +367,7 @@ export function MyAssets() {
         setLoadingState(prev => ({ ...prev, isInitialLoading: false }))
 
         // 🔥 Refresh storage quota info after cleanup
-        console.log(`📊 Refreshing storage quota after cleanup...`)
         await videoContext.refreshQuotaInfo()
-        console.log(`✅ Storage quota refreshed`)
       } else {
         toast.info("No cleanup needed - storage is within limits")
       }

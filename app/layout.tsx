@@ -10,7 +10,14 @@ import { openSans } from "@/lib/fonts"
 import { Toaster } from "react-hot-toast"
 import { StructuredData } from "@/components/seo/structured-data"
 import { getOrganizationSchema, getWebSiteSchema, getSoftwareApplicationSchema } from "@/lib/seo/structured-data"
+import dynamic from 'next/dynamic'
 import "./globals.css"
+
+// 动态导入 ProgressBar，禁用 SSR
+const ProgressBar = dynamic(
+  () => import('next-nprogress-bar').then((mod) => mod.AppProgressBar),
+  { ssr: false }
+)
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'),
@@ -169,6 +176,12 @@ export default function RootLayout({
             <VideoProvider>
               <ImageProvider>
                 {children}
+                <ProgressBar
+                  height="3px"
+                  color="#7c3aed"
+                  options={{ showSpinner: false }}
+                  shallowRouting
+                />
               </ImageProvider>
             </VideoProvider>
             <Toaster

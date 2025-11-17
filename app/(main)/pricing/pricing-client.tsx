@@ -313,7 +313,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Access to HD resolution (up to 720P)</span>
+                    <span className="text-xs text-gray-300">Basic resolution (480p and 720p)</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
@@ -383,6 +383,10 @@ export default function PricingPage() {
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
                     <span className="text-xs text-gray-300">Watermark-free</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">Advanced AI models (veo3-fast)</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />

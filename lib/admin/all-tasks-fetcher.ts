@@ -183,9 +183,19 @@ async function fetchVideoTasks(options: FetchTasksOptions): Promise<FetchTasksRe
     .neq('status', 'deleted') // 排除已删除的视频
     .order('created_at', { ascending: false });
 
-  // 应用邮箱排除过滤（模糊匹配，不区分大小写）
+  // 应用邮箱排除过滤（支持多个关键词，逗号分隔）
+  // 排除所有包含任一关键词的邮箱
   if (excludeEmail && excludeEmail.trim()) {
-    query = query.not('users.email', 'ilike', `%${excludeEmail.trim()}%`);
+    const keywords = excludeEmail
+      .split(',')
+      .map(k => k.trim())
+      .filter(k => k.length > 0);
+
+    // 链式调用 .not() 实现 AND 逻辑
+    // 即：排除包含关键词1的 AND 排除包含关键词2的 ...
+    keywords.forEach(keyword => {
+      query = query.not('users.email', 'ilike', `%${keyword}%`);
+    });
   }
 
   // 应用游标（只获取早于游标时间的任务）
@@ -242,9 +252,19 @@ async function fetchImageTasks(options: FetchTasksOptions): Promise<FetchTasksRe
     .neq('status', 'deleted') // 排除已删除的图片
     .order('created_at', { ascending: false });
 
-  // 应用邮箱排除过滤（模糊匹配，不区分大小写）
+  // 应用邮箱排除过滤（支持多个关键词，逗号分隔）
+  // 排除所有包含任一关键词的邮箱
   if (excludeEmail && excludeEmail.trim()) {
-    query = query.not('users.email', 'ilike', `%${excludeEmail.trim()}%`);
+    const keywords = excludeEmail
+      .split(',')
+      .map(k => k.trim())
+      .filter(k => k.length > 0);
+
+    // 链式调用 .not() 实现 AND 逻辑
+    // 即：排除包含关键词1的 AND 排除包含关键词2的 ...
+    keywords.forEach(keyword => {
+      query = query.not('users.email', 'ilike', `%${keyword}%`);
+    });
   }
 
   // 应用游标（只获取早于游标时间的任务）

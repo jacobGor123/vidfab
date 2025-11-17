@@ -119,7 +119,7 @@ export const CREDITS_CONSUMPTION = {
 
 export const MODEL_ACCESS = {
   free: ['seedance-v1-pro-t2v-480p', 'seedance-v1-pro-t2v-720p', 'video-effects'],
-  lite: ['seedance-v1-pro-t2v', 'video-effects'],
+  lite: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast'],
   pro: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast'],
   premium: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast']
 } as const;

@@ -1,14 +1,15 @@
 /**
  * Users Admin Page
- * Displays all users in a table format
+ * Displays all users in a table format with pagination
  */
 
 import React from 'react';
-import { getUsers } from '@/models/user';
+import { getUsers, getUsersCount } from '@/models/user';
 import TableSlot from '@/components/dashboard/slots/table';
 import { Table as TableSlotType } from '@/types/slots/table';
 import { TableColumn } from '@/types/blocks/table';
 import Image from 'next/image';
+import UsersPagination from '@/components/admin/users-pagination';
 
 // 🔥 Force dynamic rendering - disable caching for admin pages
 export const dynamic = 'force-dynamic';
@@ -16,9 +17,26 @@ export const revalidate = 0;
 
 // Note: Removed edge runtime - NextAuth requires Node.js runtime
 
-export default async function UsersPage() {
+interface UsersPageProps {
+  searchParams: {
+    page?: string;
+  };
+}
+
+export default async function UsersPage({ searchParams }: UsersPageProps) {
+  // 获取当前页码,默认为第1页
+  const currentPage = Number(searchParams.page) || 1;
+  const pageSize = 50; // 每页显示50条
+
+  // 获取总用户数
+  const totalUsers = await getUsersCount();
+  const totalPages = Math.ceil(totalUsers / pageSize);
+
+  // 确保页码在有效范围内
+  const validPage = Math.max(1, Math.min(currentPage, totalPages || 1));
+
   // Fetch users from database
-  const users = await getUsers(1, 100);
+  const users = await getUsers(validPage, pageSize);
 
   if (!users) {
     return (
@@ -155,15 +173,21 @@ export default async function UsersPage() {
 
   // Assemble table slot
   const table: TableSlotType = {
-    title: `All Users (${users.length})`,
-    description: 'Manage and view all registered users',
+    title: `All Users (${totalUsers} total)`,
+    description: `Manage and view all registered users - Page ${validPage} of ${totalPages}`,
     columns,
     data: users,
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <TableSlot {...table} />
+
+      {/* 分页导航 */}
+      <UsersPagination
+        currentPage={validPage}
+        totalPages={totalPages}
+      />
     </div>
   );
 }

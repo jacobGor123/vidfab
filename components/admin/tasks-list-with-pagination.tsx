@@ -444,7 +444,7 @@ export default function TasksListWithPagination({
         <div className="relative flex-1 max-w-md">
           <Input
             type="text"
-            placeholder="Enter email keyword to exclude..."
+            placeholder="Enter keywords to exclude (comma-separated, e.g. teamone, test, example)..."
             value={excludeEmailInput}
             onChange={(e) => setExcludeEmailInput(e.target.value)}
             className="pr-8"
@@ -459,9 +459,18 @@ export default function TasksListWithPagination({
           )}
         </div>
         {excludeEmail && (
-          <span className="text-sm text-gray-500">
-            Excluding emails containing: <span className="font-semibold text-red-600">{excludeEmail}</span>
-          </span>
+          <div className="text-sm text-gray-500 flex items-center gap-2">
+            <span>Excluding:</span>
+            {excludeEmail.split(',').map((keyword, index) => {
+              const trimmed = keyword.trim();
+              if (!trimmed) return null;
+              return (
+                <span key={index} className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-semibold text-xs border border-red-200">
+                  {trimmed}
+                </span>
+              );
+            })}
+          </div>
         )}
         {loading && excludeEmail && (
           <span className="text-sm text-blue-500">Loading...</span>

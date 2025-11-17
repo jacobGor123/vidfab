@@ -23,7 +23,7 @@ export interface GenerationOptions {
 
 // 🎯 Hook选项（兼容组件的期望）
 interface UseVideoGenerationOptions {
-  onSuccess?: (jobId: string) => void
+  onSuccess?: (jobId: string, requestId: string) => void
   onError?: (error: string) => void
   onAuthRequired?: () => void
 }
@@ -164,8 +164,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 调用onSuccess回调，让组件启动轮询
-      hookOptionsRef.current?.onSuccess?.(job.id)
+      // 🔥 调用onSuccess回调，直接传递 requestId，避免状态同步问题
+      hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
 
       return job.id
 
@@ -258,8 +258,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 调用onSuccess回调，让组件启动轮询
-      hookOptionsRef.current?.onSuccess?.(job.id)
+      // 🔥 调用onSuccess回调，直接传递 requestId，避免状态同步问题
+      hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
 
       return job.id
 
@@ -373,8 +373,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 调用onSuccess回调，让组件启动轮询
-      hookOptionsRef.current?.onSuccess?.(job.id)
+      // 🔥 调用onSuccess回调，直接传递 requestId，避免状态同步问题
+      hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
 
       return job.id
 
