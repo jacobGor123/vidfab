@@ -13,9 +13,9 @@ import { getOrganizationSchema, getWebSiteSchema, getSoftwareApplicationSchema }
 import dynamic from 'next/dynamic'
 import "./globals.css"
 
-// 动态导入 ProgressBar，禁用 SSR
+// 动态导入客户端 ProgressBar 包装组件，禁用 SSR
 const ProgressBar = dynamic(
-  () => import('next-nprogress-bar').then((mod) => mod.AppProgressBar),
+  () => import('@/components/progress-bar-wrapper').then((mod) => mod.ProgressBarWrapper),
   { ssr: false }
 )
 
@@ -176,12 +176,7 @@ export default function RootLayout({
             <VideoProvider>
               <ImageProvider>
                 {children}
-                <ProgressBar
-                  height="3px"
-                  color="#7c3aed"
-                  options={{ showSpinner: false }}
-                  shallowRouting
-                />
+                <ProgressBar />
               </ImageProvider>
             </VideoProvider>
             <Toaster
