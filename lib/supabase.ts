@@ -26,7 +26,8 @@ export const supabase = globalThis.supabaseGlobalInstance ?? createClient(supaba
   },
 });
 
-if (process.env.NODE_ENV === 'development') {
+// 🔥 修复：生产环境也需要缓存单例，避免多实例警告
+if (!globalThis.supabaseGlobalInstance) {
   globalThis.supabaseGlobalInstance = supabase
 }
 
@@ -50,7 +51,8 @@ export const supabaseAdmin = globalThis.supabaseAdminGlobalInstance ?? createCli
   }
 );
 
-if (process.env.NODE_ENV === 'development') {
+// 🔥 修复：生产环境也需要缓存单例，避免多实例警告
+if (!globalThis.supabaseAdminGlobalInstance) {
   globalThis.supabaseAdminGlobalInstance = supabaseAdmin
 }
 

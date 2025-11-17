@@ -6,6 +6,9 @@ import { getServiceSchema } from '@/lib/seo/structured-data'
 
 export const metadata: Metadata = textToVideoMetadata
 
+// 🔥 强制动态渲染，避免预渲染时 usePathname 错误
+export const dynamic = 'force-dynamic'
+
 export default function TextToVideoPage() {
   return (
     <>

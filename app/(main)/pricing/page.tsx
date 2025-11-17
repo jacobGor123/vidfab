@@ -6,6 +6,9 @@ import { getFAQSchema, getProductSchema } from '@/lib/seo/structured-data'
 
 export const metadata: Metadata = pricingMetadata
 
+// 🔥 强制动态渲染，避免预渲染时 usePathname 错误
+export const dynamic = 'force-dynamic'
+
 export default function PricingPage() {
   // FAQ structured data for pricing page
   const pricingFAQs = [
