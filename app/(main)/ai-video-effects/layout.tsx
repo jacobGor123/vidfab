@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   description: "Transform your videos with AI-powered effects. Our video generator offers cutting-edge video creation tools for stunning results. Try it free!",
 }
 
+// 🔥 强制动态渲染，避免预渲染时 usePathname 错误
+export const dynamic = 'force-dynamic'
+
 export default function AIVideoEffectsLayout({
   children,
 }: {
