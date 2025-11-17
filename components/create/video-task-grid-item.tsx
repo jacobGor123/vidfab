@@ -263,11 +263,6 @@ export function VideoTaskGridItem({
   // 🔥 处理意外状态：如果任务存在但状态异常，当作处理中状态
   const validStatuses = ['pending', 'generating', 'processing', 'completed', 'failed', 'storing']
   if (job && !validStatuses.includes(job.status)) {
-    console.warn('⚠️ 检测到异常任务状态，当作处理中处理:', {
-      jobId: job.id,
-      status: job.status,
-      validStatuses
-    })
 
     return (
       <Card className="h-full bg-gray-950 border-purple-600/30 relative">

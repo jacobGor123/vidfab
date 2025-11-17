@@ -51,14 +51,14 @@ export async function GET(
       progress: statusResult.data.progress || 0,
       error: statusResult.data.error,
       createdAt: statusResult.data.created_at,
-      updatedAt: statusResult.data.updated_at
+      updatedAt: statusResult.data.updated_at,
+      resultUrl: undefined as string | undefined
     }
 
     // 如果任务完成，添加结果URL
     if (statusResult.data.status === "completed" && statusResult.data.outputs?.length) {
       responseData.resultUrl = statusResult.data.outputs[0]
     }
-
 
     return NextResponse.json({
       success: true,
