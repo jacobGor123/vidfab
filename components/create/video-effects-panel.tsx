@@ -17,7 +17,7 @@ import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIc
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
-import { useVideoPolling } from "@/hooks/use-video-polling"
+import { useVideoPollingV2 } from "@/hooks/use-video-polling-v2"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useRemix } from "@/hooks/use-remix"
@@ -141,8 +141,8 @@ export function VideoEffectsPanel() {
 
   // Video generation
   const videoGeneration = useVideoGeneration({
-    onSuccess: (jobId) => {
-      startPolling(jobId)
+    onSuccess: (jobId, requestId) => {
+      startPolling(jobId, requestId)
     },
     onError: (error) => {
       console.error("Video effects generation failed:", error)
@@ -152,10 +152,9 @@ export function VideoEffectsPanel() {
     }
   })
 
-  // Video polling
-  const videoPolling = useVideoPolling({
+  // Video polling V2
+  const videoPolling = useVideoPollingV2({
     onCompleted: (job, resultUrl) => {
-      console.log('Video effects generation completed:', job.id)
       // 🔥 刷新积分显示，确保前端显示的积分数是最新的
       refreshCredits()
     },
@@ -454,7 +453,6 @@ export function VideoEffectsPanel() {
           setUploadHistory(prev => prev.filter(item => item.id !== imageId))
         }
       } catch (error) {
-        console.warn('⚠️ Failed to delete image from Supabase:', error)
         // Don't throw error, just log warning
       }
     }
@@ -486,7 +484,6 @@ export function VideoEffectsPanel() {
         const oldestItem = sortedCompleted[0]
         // 只从前端预览移除，不删除数据库记录
         videoContext.removeCompletedVideo(oldestItem.id)
-        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
       } else {
         // 如果没有已完成的视频可清理，显示限制提示
         setShowLimitDialog(true)

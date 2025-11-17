@@ -18,7 +18,7 @@ import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Zap, Lock } from "
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
-import { useVideoPolling } from "@/hooks/use-video-polling"
+import { useVideoPollingV2 } from "@/hooks/use-video-polling-v2"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useSimpleSubscription } from "@/hooks/use-subscription-simple"
@@ -94,18 +94,11 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
   } = useSimpleSubscription()
 
   // 🔥 Debug subscription status
-  console.log('🔍 Subscription Debug:', {
-    subscription,
-    isPro: subscription?.is_pro,
-    planType: subscription?.plan_type,
-    credits: subscription?.credits
-  })
 
   // Video generation
-  // Video polling
-  const videoPolling = useVideoPolling({
+  // Video polling V2
+  const videoPolling = useVideoPollingV2({
     onCompleted: (job, resultUrl) => {
-      console.log('Video generation completed:', job.id)
     },
     onFailed: (job, error) => {
       console.error(`Video generation failed: ${job.id}`, error)
@@ -115,9 +108,8 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
   const { startPolling } = videoPolling
 
   const videoGeneration = useVideoGeneration({
-    onSuccess: (jobId) => {
-      console.log('Video generation started successfully:', jobId)
-      startPolling(jobId) // 🔥 启动轮询
+    onSuccess: (jobId, requestId) => {
+      startPolling(jobId, requestId) // 🔥 启动轮询
     },
     onError: (error) => {
       console.error('Video generation failed:', error)
@@ -231,7 +223,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         const oldestItem = sortedCompleted[0]
         // 只从前端预览移除，不删除数据库记录
         videoContext.removeCompletedVideo(oldestItem.id)
-        console.log('🔥 Auto-cleanup: Removed oldest video from preview:', oldestItem.id)
       } else {
         // 如果没有已完成的视频可清理，显示限制提示
         setShowLimitDialog(true)

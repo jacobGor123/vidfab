@@ -7,8 +7,9 @@
 import { useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useImageGeneration } from "./use-image-generation"
-import { useImagePolling } from "./use-image-polling"
 import { useImageContext, ImageTask } from "@/lib/contexts/image-context"
+
+// 🔥 V2 迁移：移除 useImagePolling，轮询现在由父组件统一管理
 
 interface UseImageGenerationManagerOptions {
   maxTasks?: number
@@ -33,41 +34,7 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
     onError?.(errorMessage)
   }, [onError])
 
-  // 🔥 使用 useCallback 包装回调，避免闭包陷阱
-  const handleCompleted = useCallback((requestId: string, imageUrl: string) => {
-    console.log('✅ Image completed:', requestId, imageUrl)
-    // 通过 requestId 查找任务
-    const task = imageContext.tasks.find(t => t.requestId === requestId)
-    if (task) {
-      updateTask(task.id, { status: "completed", imageUrl })
-    } else {
-      console.warn(`⚠️ Task not found for requestId: ${requestId}`)
-    }
-  }, [imageContext.tasks, updateTask])
-
-  const handleFailed = useCallback((requestId: string, failError: string) => {
-    console.error('❌ Image failed:', requestId, failError)
-    // 通过 requestId 查找任务
-    const task = imageContext.tasks.find(t => t.requestId === requestId)
-    if (task) {
-      updateTask(task.id, { status: "failed", error: failError })
-    } else {
-      console.warn(`⚠️ Task not found for requestId: ${requestId}`)
-    }
-  }, [imageContext.tasks, updateTask])
-
-  const handleStored = useCallback((requestId: string, imageId: string) => {
-    console.log('✅ Image stored:', requestId, imageId)
-  }, [])
-
-  // Image polling hook - 包含数据库存储
-  const imagePolling = useImagePolling({
-    userId: session?.user?.uuid,
-    userEmail: session?.user?.email || undefined,
-    onCompleted: handleCompleted,
-    onFailed: handleFailed,
-    onStored: handleStored
-  })
+  // 🔥 V2 迁移：移除轮询相关回调，由父组件处理
 
   // Image generation hook
   const imageGeneration = useImageGeneration({
@@ -114,24 +81,14 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
       }
       addTask(newTask)
 
-      // 启动轮询
-      imagePolling.startPolling(requestId, localId, {
-        userId: session?.user?.uuid,
-        userEmail: session?.user?.email || undefined,
-        prompt,
-        settings: {
-          model,
-          aspectRatio,
-          generationType: 'text-to-image'
-        }
-      })
+      // 🔥 V2 迁移：移除 startPolling 调用，由父组件自动检测并启动轮询
 
       return true
     } catch (err) {
       console.error('Generation error:', err)
       return false
     }
-  }, [session, imageGeneration, imagePolling, maxTasks, handleError])
+  }, [session, imageGeneration, addTask, maxTasks, handleError])
 
   /**
    * 生成图生图
@@ -173,24 +130,14 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
       }
       addTask(newTask)
 
-      // 启动轮询
-      imagePolling.startPolling(requestId, localId, {
-        userId: session?.user?.uuid,
-        userEmail: session?.user?.email || undefined,
-        prompt,
-        settings: {
-          model,
-          generationType: 'image-to-image',
-          sourceImages: images
-        }
-      })
+      // 🔥 V2 迁移：移除 startPolling 调用，由父组件自动检测并启动轮询
 
       return true
     } catch (err) {
       console.error('Generation error:', err)
       return false
     }
-  }, [session, imageGeneration, imagePolling, maxTasks, handleError])
+  }, [session, imageGeneration, addTask, maxTasks, handleError])
 
   /**
    * 清除错误
@@ -218,9 +165,8 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
     tasks,
     error,
     isGenerating: imageGeneration.isGenerating,
-    isPolling: imagePolling.isPolling,
-    pollingCount: imagePolling.pollingCount,
     isAuthenticated: imageGeneration.isAuthenticated,
+    // 🔥 V2 迁移：移除 isPolling 和 pollingCount，由父组件管理
 
     // 方法
     generateTextToImage,

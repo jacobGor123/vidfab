@@ -165,7 +165,6 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
       const existingJob = state.activeJobs.find(job => job.id === id)
 
       if (!existingJob) {
-        console.warn(`🔥 UPDATE_JOB: Job ${id} not found in activeJobs`)
         return state
       }
 
@@ -377,7 +376,6 @@ function saveToStorage<T>(key: string, data: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(data))
   } catch (error) {
-    console.warn(`Failed to save to localStorage (${key}):`, error)
   }
 }
 
@@ -386,7 +384,6 @@ function loadFromStorage<T>(key: string, defaultValue: T): T {
     const stored = localStorage.getItem(key)
     return stored ? JSON.parse(stored) : defaultValue
   } catch (error) {
-    console.warn(`Failed to load from localStorage (${key}):`, error)
     return defaultValue
   }
 }
@@ -485,7 +482,6 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
               throw new Error(`API responded with status: ${response.status}`)
             }
           } catch (apiError) {
-            console.warn('API failed, falling back to direct database access:', apiError)
 
             // 后备方案：直接使用数据库
             const result = await UserVideosDB.getUserVideos(session.user.uuid, {
@@ -808,7 +804,6 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           videoId.startsWith('job_') ||
           videoId.startsWith('temp-') ||
           videoId.startsWith('pred_')) {
-        console.log(`✅ 跳过临时ID的数据库查询: ${videoId}`)
         return
       }
 
@@ -816,12 +811,10 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
       const permanentVideo = await UserVideosDB.getVideoById(videoId, session.user.uuid)
 
       if (!permanentVideo) {
-        console.warn(`⚠️ Video not found in database: ${videoId}`)
         return
       }
 
       if (permanentVideo.status !== 'completed') {
-        console.warn(`⚠️ Video not in completed status: ${videoId}, status: ${permanentVideo.status}`)
         return
       }
 
@@ -832,11 +825,9 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (temporaryVideo) {
-        console.log(`✅ 找到对应的临时视频，移动到永久存储: ${temporaryVideo.id} -> ${permanentVideo.id}`)
         // 移动临时视频到永久存储
         moveTemporaryToPermanent(temporaryVideo.id, permanentVideo)
       } else {
-        console.log(`⚠️ 未找到对应的临时视频，直接添加到永久存储: ${permanentVideo.id}`)
         // 如果没有找到对应的临时视频，直接添加到永久存储（数据库直接创建的情况）
         dispatch({ type: "ADD_PERMANENT_VIDEO", payload: permanentVideo })
       }
