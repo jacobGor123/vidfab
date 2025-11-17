@@ -1,28 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Navbar } from "@/components/navbar"
 import { SpaceBackground } from "@/components/space-background"
 import { LoadingState } from "@/components/loading-state"
 import { SkeletonLoader } from "@/components/skeleton-loader"
 
 export default function TermsOfServicePage() {
   const [loading, setLoading] = useState(true)
-  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-
     const timer = setTimeout(() => {
       setLoading(false)
     }, 1000)
 
     return () => {
-      window.removeEventListener("scroll", handleScroll)
       clearTimeout(timer)
     }
   }, [])
@@ -31,7 +22,6 @@ export default function TermsOfServicePage() {
     return (
       <div className="relative min-h-screen overflow-hidden bg-black text-white">
         <SpaceBackground />
-        <Navbar scrolled={scrolled} />
         <div className="container mx-auto px-4 pt-32 pb-20">
           <div className="max-w-4xl mx-auto">
             <SkeletonLoader type="title" className="mb-6" />
@@ -48,7 +38,6 @@ export default function TermsOfServicePage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <SpaceBackground />
-      <Navbar scrolled={scrolled} />
 
       <main>
         <div className="container mx-auto px-4 pt-32 pb-20">

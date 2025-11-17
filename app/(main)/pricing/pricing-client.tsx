@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { Navbar } from "@/components/navbar"
 import { SpaceBackground } from "@/components/space-background"
 import { LoadingState } from "@/components/loading-state"
 import { SkeletonLoader } from "@/components/skeleton-loader"
@@ -17,7 +16,6 @@ import { trackBeginCheckout, trackBillingToggle, trackCancelSubscription } from 
 
 export default function PricingPage() {
   const [loading, setLoading] = useState(true)
-  const [scrolled, setScrolled] = useState(false)
   const [annual, setAnnual] = useState(false)
   const [subscribing, setSubscribing] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
@@ -26,19 +24,12 @@ export default function PricingPage() {
   const { data: session } = useSession()
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-
     // Simulate loading
     const timer = setTimeout(() => {
       setLoading(false)
     }, 2000)
 
     return () => {
-      window.removeEventListener("scroll", handleScroll)
       clearTimeout(timer)
     }
   }, [])
@@ -226,7 +217,6 @@ export default function PricingPage() {
     return (
       <div className="relative min-h-screen overflow-hidden bg-black text-white">
         <SpaceBackground />
-        <Navbar scrolled={scrolled} />
         <div className="container mx-auto px-4 pt-32 pb-20">
           <div className="max-w-4xl mx-auto">
             <SkeletonLoader type="title" className="mb-6" />
@@ -262,7 +252,6 @@ export default function PricingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <SpaceBackground />
-      <Navbar scrolled={scrolled} />
 
       <main>
         <div className="container mx-auto px-4 pt-32 pb-20">
