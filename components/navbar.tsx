@@ -11,6 +11,7 @@ import Link from "next/link"
 import { UserMenu } from "@/components/user-menu"
 import { GetStartedButton } from "@/components/ui/get-started-button"
 import { CreditsDisplaySimple } from "@/components/credits-display-simple"
+import { isBlackFridayActive } from "@/lib/black-friday/coupons"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -25,6 +26,21 @@ interface NavbarProps {
 }
 
 export function Navbar({ scrolled }: NavbarProps) {
+  // 检测黑五横幅是否显示
+  const [bannerVisible, setBannerVisible] = useState(false)
+
+  useEffect(() => {
+    // 检查黑五活动是否进行中
+    const isActive = isBlackFridayActive()
+    if (!isActive) {
+      setBannerVisible(false)
+      return
+    }
+
+    // 检查用户是否关闭了横幅
+    const dismissed = localStorage.getItem('bf2025_banner_dismissed')
+    setBannerVisible(dismissed !== 'true')
+  }, [])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [subscriptionPlan, setSubscriptionPlan] = useState<string>('free')
   const [isInitialized, setIsInitialized] = useState(false)
@@ -90,7 +106,8 @@ export function Navbar({ scrolled }: NavbarProps) {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed left-0 right-0 z-50 transition-all duration-300",
+        bannerVisible ? "top-[48px]" : "top-0",
         scrolled ? "bg-black/30 backdrop-blur-lg border-b border-white/10" : "bg-transparent",
       )}
     >

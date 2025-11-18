@@ -90,6 +90,7 @@ function VideoItem({ video, rowIndex, index, isMobile }: { video: CommunityVideo
           "w-auto block transition-transform duration-500 group-hover:scale-110",
           isMobile ? "h-[200px] max-w-[280px]" : "h-[300px]"
         )}
+        autoPlay
         loop
         muted
         playsInline

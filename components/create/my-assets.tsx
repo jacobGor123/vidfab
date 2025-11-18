@@ -204,7 +204,7 @@ export function MyAssets() {
       videoContext.refreshQuotaInfo()
         .catch(error => console.error(`❌ Failed to refresh storage quota:`, error))
     }
-  }, [sessionStatus, session?.user?.uuid, videoContext])
+  }, [sessionStatus, session?.user?.uuid, videoContext.refreshQuotaInfo])
 
   // Use all assets without filtering
   const filteredAssets = assets

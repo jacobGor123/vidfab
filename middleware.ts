@@ -25,6 +25,7 @@ const publicRoutes = [
   '/terms-of-service',
   '/support',
   '/admin', // Admin pages (protected by admin layout's isCurrentUserAdmin() check, not by middleware)
+  '/black-friday-sale-2025', // Black Friday 2025 landing page - public access
 ]
 
 // Auth routes that should redirect if already logged in

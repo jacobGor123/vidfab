@@ -145,6 +145,7 @@ export interface CreateCheckoutSessionRequest {
   billing_cycle: BillingCycle;
   success_url?: string;
   cancel_url?: string;
+  coupon_code?: string; // 可选的优惠券码
 }
 
 export interface CreateCheckoutSessionResponse {

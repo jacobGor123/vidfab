@@ -117,6 +117,7 @@ export async function createCheckoutSession({
   cancelUrl,
   userUuid,
   planId,
+  promotionCodeId,
 }: {
   customerId: string;
   planName: string;
@@ -127,8 +128,10 @@ export async function createCheckoutSession({
   cancelUrl: string;
   userUuid: string;
   planId: PlanId;
+  promotionCodeId?: string; // 可选的优惠券 Promotion Code ID
 }): Promise<Stripe.Checkout.Session> {
-  const session = await stripe.checkout.sessions.create({
+  // 构建 session 配置
+  const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
     payment_method_types: ['card'],
     line_items: [
@@ -161,15 +164,98 @@ export async function createCheckoutSession({
       plan_id: planId,
       billing_cycle: billingCycle,
     },
-    allow_promotion_codes: true,
     billing_address_collection: 'auto',
     customer_update: {
       address: 'auto',
       name: 'auto',
     },
-  });
+  };
+
+  // 如果有优惠券码，自动应用；否则显示输入框让用户手动输入
+  if (promotionCodeId) {
+    sessionConfig.discounts = [{
+      promotion_code: promotionCodeId,
+    }];
+  } else {
+    sessionConfig.allow_promotion_codes = true;
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionConfig);
 
   return session;
+}
+
+/**
+ * 验证并获取优惠券码的 Promotion Code ID
+ * @param code - 优惠券码字符串（例如：SUMMER2024）
+ * @returns 验证结果，包含是否有效、Promotion Code ID 和错误信息
+ */
+export async function validateCouponCode(code: string): Promise<{
+  valid: boolean;
+  promotionCodeId?: string;
+  discountAmount?: number;
+  discountPercent?: number;
+  error?: string;
+}> {
+  try {
+    // 查询 Stripe 中的 Promotion Code
+    const promotionCodes = await stripe.promotionCodes.list({
+      code: code,
+      active: true,
+      limit: 1,
+    });
+
+    if (promotionCodes.data.length === 0) {
+      return {
+        valid: false,
+        error: 'Invalid or expired coupon code'
+      };
+    }
+
+    const promotionCode = promotionCodes.data[0];
+
+    // 检查优惠券是否还有使用次数
+    if (promotionCode.max_redemptions &&
+        promotionCode.times_redeemed >= promotionCode.max_redemptions) {
+      return {
+        valid: false,
+        error: 'Coupon code has been fully redeemed'
+      };
+    }
+
+    // 检查优惠券的有效期
+    if (promotionCode.expires_at && promotionCode.expires_at * 1000 < Date.now()) {
+      return {
+        valid: false,
+        error: 'Coupon code has expired'
+      };
+    }
+
+    // 获取折扣信息
+    const coupon = promotionCode.coupon;
+    let discountAmount: number | undefined;
+    let discountPercent: number | undefined;
+
+    if (coupon.amount_off) {
+      discountAmount = coupon.amount_off; // 固定金额折扣（分）
+    }
+    if (coupon.percent_off) {
+      discountPercent = coupon.percent_off; // 百分比折扣
+    }
+
+    return {
+      valid: true,
+      promotionCodeId: promotionCode.id,
+      discountAmount,
+      discountPercent,
+    };
+  } catch (error) {
+    console.error('Error validating coupon code:', error);
+    return {
+      valid: false,
+      error: 'Failed to validate coupon code'
+    };
+  }
 }
 
 /**

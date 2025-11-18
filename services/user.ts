@@ -115,13 +115,40 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
 
       // 🔥 特殊处理：如果是唯一性约束冲突(用户已存在),直接查询返回现有用户
       if (error.code === '23505') {
-        console.warn(`⚠️ User ${userUuid} already exists (constraint conflict), fetching existing user...`);
+        console.warn(`⚠️ Constraint conflict for email ${userData.email}, attempting to fetch existing user...`);
 
-        const { data: existingData, error: fetchError } = await supabaseAdmin
+        // 🔥 关键修复：先尝试用 UUID 查询，如果失败则用 email 查询
+        // 这样可以处理不同登录方式导致的 UUID 不一致问题
+        let existingData = null;
+        let fetchError = null;
+
+        // 尝试 1: 用 UUID 查询（适用于同一登录方式）
+        const uuidResult = await supabaseAdmin
           .from(TABLES.USERS)
           .select('*')
           .eq('uuid', userUuid)
-          .single();
+          .maybeSingle();
+
+        if (uuidResult.data) {
+          existingData = uuidResult.data;
+          console.log(`✅ Found existing user by UUID: ${userUuid}`);
+        } else {
+          // 尝试 2: 用 email 查询（适用于跨登录方式）
+          console.log(`🔍 UUID not found, trying email: ${userData.email}`);
+          const emailResult = await supabaseAdmin
+            .from(TABLES.USERS)
+            .select('*')
+            .eq('email', userData.email.toLowerCase().trim())
+            .maybeSingle();
+
+          if (emailResult.data) {
+            existingData = emailResult.data;
+            fetchError = emailResult.error;
+            console.log(`✅ Found existing user by email with different UUID: ${emailResult.data.uuid}`);
+          } else {
+            fetchError = emailResult.error;
+          }
+        }
 
         if (fetchError || !existingData) {
           console.error('Failed to fetch existing user after conflict:', fetchError);
@@ -129,7 +156,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         }
 
         // 成功获取现有用户,返回
-        console.log(`✅ Successfully fetched existing user: ${userUuid}`);
+        console.log(`✅ Successfully resolved constraint conflict for email: ${userData.email}`);
         return {
           uuid: existingData.uuid,
           email: existingData.email,
