@@ -322,12 +322,10 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
 
   return (
-    <>
-      <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
+    <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>
         {/* 左侧控制面板 */}
-        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
-          <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3">
-            <div className="space-y-6 min-h-[800px]">
+        <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pr-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+          <div className="py-6 space-y-6">
 
               {/* Error display */}
               {(validationErrors.length > 0 || videoGeneration.error) && (
@@ -519,13 +517,12 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                   </div>
                 )}
               </Button>
-            </div>
           </div>
         </div>
 
-        {/* Right preview area - Multi-task Grid Layout */}
-        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
-          <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+      {/* Right preview area - Multi-task Grid Layout */}
+      <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pl-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+        <div className="pt-6 pb-20">
             {/* 显示所有用户的任务（进行中+已完成） */}
             {(allUserItems.length > 0 || userVideos.length > 0) ? (
               <div
@@ -576,7 +573,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                 </CardContent>
               </Card>
             )}
-          </div>
         </div>
       </div>
 
@@ -598,6 +594,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         recommendedPlan="pro"
         context="Unlock advanced models and get more credits for video generation"
       />
-    </>
+    </div>
   )
 }
