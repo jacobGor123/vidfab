@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useCallback, Suspense } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import React, { useState, useEffect, useRef, useCallback, Suspense, useMemo } from "react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { CreateTabs } from "./create-tabs"
 import { CreateContent } from "./create-content"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -15,6 +15,7 @@ type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects
 function CreatePageClientInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
   const isMobile = useIsMobile()
 
   // 🔥 统一轮询管理：在父组件启动轮询，确保切换 tab 时轮询不会停止
@@ -102,27 +103,58 @@ function CreatePageClientInner() {
     })
   }, [imageContext.tasks.length, startImagePolling])
 
-  // 直接从 URL 参数获取当前工具，默认为 "discover"
-  const activeTool = (searchParams.get("tool") as ToolType) || "discover"
+  // 从 pathname 或 searchParams 获取当前工具
+  const activeTool = useMemo(() => {
+    // 优先从 /studio/{tool} pathname 中提取
+    if (pathname.startsWith('/studio/')) {
+      const pathParts = pathname.split('/').filter(Boolean)
+      const toolPath = pathParts[1]
+
+      const toolMap: Record<string, ToolType> = {
+        'discover': 'discover',
+        'text-to-video': 'text-to-video',
+        'image-to-video': 'image-to-video',
+        'ai-video-effects': 'video-effects',
+        'text-to-image': 'text-to-image',
+        'image-to-image': 'image-to-image',
+        'my-assets': 'my-assets',
+        'plans': 'my-profile',
+      }
+
+      return toolMap[toolPath] || 'discover'
+    }
+
+    // 否则从 searchParams 获取 (兼容 /create?tool=xxx)
+    return (searchParams.get("tool") as ToolType) || "discover"
+  }, [pathname, searchParams])
+
   const initialPrompt = searchParams.get("prompt") || ""
 
-  // 如果没有 tool 参数，自动设置为 discover
-  useEffect(() => {
-    if (!searchParams.get("tool")) {
-      const params = new URLSearchParams(searchParams.toString())
-      params.set("tool", "discover")
-      router.replace(`/create?${params.toString()}`)
-    }
-  }, [searchParams, router])
-
   const handleToolChange = (tool: ToolType) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (tool) {
-      params.set("tool", tool)
-    } else {
-      params.delete("tool")
+    // 映射表：tool ID -> /studio 路径
+    const urlMap: Record<string, string> = {
+      'discover': '/studio/discover',
+      'text-to-video': '/studio/text-to-video',
+      'image-to-video': '/studio/image-to-video',
+      'video-effects': '/studio/ai-video-effects',
+      'text-to-image': '/studio/text-to-image',
+      'image-to-image': '/studio/image-to-image',
+      'my-assets': '/studio/my-assets',
+      'my-profile': '/studio/plans',
     }
-    router.push(`/create?${params.toString()}`)
+
+    if (tool && urlMap[tool]) {
+      // 保留原有的 query 参数（如果有的话）
+      const newUrl = urlMap[tool]
+      if (searchParams.toString()) {
+        router.push(`${newUrl}?${searchParams.toString()}`)
+      } else {
+        router.push(newUrl)
+      }
+    } else {
+      // 如果没有匹配的 tool，默认跳转到 discover
+      router.push('/studio/discover')
+    }
   }
 
   return (

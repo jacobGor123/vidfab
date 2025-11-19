@@ -119,6 +119,32 @@ export const AI_VIDEO_EFFECTS_ITEMS: VideoHeroItem[] = [
   }
 ]
 
+// Text-to-Image 专用配置
+export const TEXT_TO_IMAGE_ITEMS: VideoHeroItem[] = [
+  {
+    id: 'text-to-image-hero',
+    title: 'Text to Image',
+    posterUrl: 'https://static.vidfab.ai/public/image/text-to-imagine-banner.webp',
+    videoUrl: 'https://static.vidfab.ai/public/video/text-to-imagine-banner.mp4',
+    typingTexts: [
+      "Transform your words into stunning visuals...",
+    ]
+  }
+]
+
+// Image-to-Image 专用配置
+export const IMAGE_TO_IMAGE_ITEMS: VideoHeroItem[] = [
+  {
+    id: 'image-to-image-hero',
+    title: 'Image to Image',
+    posterUrl: 'https://static.vidfab.ai/public/image/image-to-image-banner.webp',
+    videoUrl: 'https://static.vidfab.ai/public/video/image-to-image-banner.mp4',
+    typingTexts: [
+      "Reimagine your visuals with AI transformation...",
+    ]
+  }
+]
+
 export const PRELOAD_PHASES = {
   PHASE_1: { delay: 0, priority: 'high' as const },
   PHASE_2: { delay: 2000, priority: 'medium' as const },

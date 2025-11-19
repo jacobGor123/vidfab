@@ -109,13 +109,13 @@ export const HeroContent: React.FC<HeroContentProps> = ({
 
     setIsProcessing(true)
 
-    // 跳转到 create 页面，如果有输入则携带 prompt 参数
+    // 跳转到 studio 页面，如果有输入则携带 prompt 参数
     if (query.trim()) {
       const encodedPrompt = encodeURIComponent(query.trim())
-      router.push(`/create?tool=text-to-video&prompt=${encodedPrompt}`)
+      router.push(`/studio/text-to-video?prompt=${encodedPrompt}`)
     } else {
       // 没有输入时直接跳转到 text-to-video 功能
-      router.push('/create?tool=text-to-video')
+      router.push('/studio/text-to-video')
     }
   }
 

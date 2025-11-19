@@ -33,7 +33,7 @@ export default function AboutPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-20">
+    <div className="container mx-auto px-4 pt-32 pb-20">
       <div className="max-w-6xl mx-auto">
         {/* Hero Title with Background */}
         <div className="relative mb-20">
@@ -106,7 +106,7 @@ export default function AboutPage() {
               <div className="bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-300">
                 <h3 className="text-xl font-bold text-white mb-3 flex items-center">
                   <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text mr-3">■</span>
-                  Text-to-Video
+                  Text to Video
                 </h3>
                 <p className="text-gray-300 leading-relaxed ml-7">
                   Turn scripts, articles, or simple prompts into cinematic clips with just a few clicks.
@@ -116,7 +116,7 @@ export default function AboutPage() {
               <div className="bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-300">
                 <h3 className="text-xl font-bold text-white mb-3 flex items-center">
                   <span className="bg-gradient-to-r from-blue-500 to-cyan-400 text-transparent bg-clip-text mr-3">■</span>
-                  Image-to-Video
+                  Image to Video
                 </h3>
                 <p className="text-gray-300 leading-relaxed ml-7">
                   Animate your still photos and bring them to life as dynamic, engaging videos.
@@ -130,6 +130,26 @@ export default function AboutPage() {
                 </h3>
                 <p className="text-gray-300 leading-relaxed ml-7">
                   Enhance your footage with professional-grade filters, seamless transitions, and unique visual styles.
+                </p>
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-300">
+                <h3 className="text-xl font-bold text-white mb-3 flex items-center">
+                  <span className="bg-gradient-to-r from-orange-500 to-yellow-500 text-transparent bg-clip-text mr-3">■</span>
+                  Text to Image
+                </h3>
+                <p className="text-gray-300 leading-relaxed ml-7">
+                  Instantly generate stunning visuals from any text prompt.
+                </p>
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-sm border border-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-300">
+                <h3 className="text-xl font-bold text-white mb-3 flex items-center">
+                  <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-transparent bg-clip-text mr-3">■</span>
+                  Image to Image
+                </h3>
+                <p className="text-gray-300 leading-relaxed ml-7">
+                  Transform existing images with new styles or creative variations.
                 </p>
               </div>
             </div>
@@ -155,7 +175,7 @@ export default function AboutPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="/create"
+                  href="/studio/discover"
                   className="px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 text-white font-semibold rounded-full hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-purple-500/50"
                 >
                   Start Creating Now

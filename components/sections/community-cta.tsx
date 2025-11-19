@@ -188,7 +188,7 @@ export function CommunityCTA({
               className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white hover:opacity-90 transition-opacity"
               asChild
             >
-              <Link href="/create">
+              <Link href="/studio/discover">
                 {ctaText}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

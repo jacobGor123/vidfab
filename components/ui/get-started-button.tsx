@@ -19,7 +19,7 @@ export function GetStartedButton({ className, text = "Start for free" }: GetStar
       )}
       asChild
     >
-      <Link href="/create">
+      <Link href="/studio/discover">
         {text}
       </Link>
     </Button>

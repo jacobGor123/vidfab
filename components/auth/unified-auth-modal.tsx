@@ -135,7 +135,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
   })
 
   const handleAuthSuccess = () => {
-    router.push("/create")
+    router.push("/studio/discover")
   }
 
   const handleAuthError = (error: any) => {

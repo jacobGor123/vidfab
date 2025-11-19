@@ -5,6 +5,7 @@ import dynamic from "next/dynamic"
 import { Hero } from "@/components/hero"
 import { FeatureShowcase } from "@/components/sections/feature-showcase"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
+import { NewReleaseFeatures } from "@/components/sections/new-release-features"
 import { UserTestimonials } from "@/components/sections/user-testimonials"
 import { WhyChooseVidFab } from "@/components/sections/why-choose-vidfab"
 import { PaymentSuccessHandler } from "@/components/payment-success-handler"
@@ -90,6 +91,9 @@ export default function HomeClient() {
               { number: "6", title: "Data Security Guarantee", description: "Your content and data are protected with enterprise-level security" }
             ]}
           />
+
+          {/* New Release: Image Generation Features */}
+          <NewReleaseFeatures />
 
           {/* User Testimonials Carousel */}
           <UserTestimonials

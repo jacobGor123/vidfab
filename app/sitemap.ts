@@ -34,6 +34,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
     {
+      route: '/text-to-image',
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+    {
+      route: '/image-to-image',
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+    {
       route: '/ai-video-effects',
       changeFrequency: 'weekly' as const,
       priority: 0.85,
@@ -59,7 +69,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
-      route: '/create',
+      route: '/studio/discover',
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },

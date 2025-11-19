@@ -92,9 +92,25 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const activeTool = (searchParams.get("tool") as ToolType) || "discover"
 
   const handleToolSelect = (toolId: ToolType) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("tool", toolId)
-    router.push(`/create?${params.toString()}`)
+    // 映射表：tool ID -> /studio 路径
+    const urlMap: Record<ToolType, string> = {
+      'discover': '/studio/discover',
+      'text-to-video': '/studio/text-to-video',
+      'image-to-video': '/studio/image-to-video',
+      'video-effects': '/studio/ai-video-effects',
+      'text-to-image': '/studio/text-to-image',
+      'image-to-image': '/studio/image-to-image',
+      'my-assets': '/studio/my-assets',
+      'my-profile': '/studio/plans',
+    }
+
+    // 保留原有的 query 参数（如果有的话）
+    const newUrl = urlMap[toolId]
+    if (searchParams.toString()) {
+      router.push(`${newUrl}?${searchParams.toString()}`)
+    } else {
+      router.push(newUrl)
+    }
   }
 
   // 在移动端隐藏侧边栏

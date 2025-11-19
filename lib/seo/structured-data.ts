@@ -185,7 +185,7 @@ export function getServiceSchema(service: {
     areaServed: 'Worldwide',
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
-      name: 'AI Video Services',
+      name: 'AI Video & Image Services',
       itemListElement: [
         {
           '@type': 'Offer',
@@ -199,6 +199,20 @@ export function getServiceSchema(service: {
           itemOffered: {
             '@type': 'Service',
             name: 'Image to Video',
+          },
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Text to Image',
+          },
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Image to Image',
           },
         },
         {

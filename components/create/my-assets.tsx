@@ -232,7 +232,7 @@ export function MyAssets() {
     sessionStorage.setItem('vidfab-image-to-video', JSON.stringify(imageToVideoData))
 
     // 跳转到 Image to Video
-    router.push('/create?tool=image-to-video')
+    router.push('/studio/image-to-video')
 
     toast.success('Image ready for video generation')
   }, [router])
@@ -249,7 +249,7 @@ export function MyAssets() {
     sessionStorage.setItem('vidfab-image-to-image', JSON.stringify(imageToImageData))
 
     // 跳转到 Image to Image
-    router.push('/create?tool=image-to-image')
+    router.push('/studio/image-to-image')
 
     toast.success('Image ready for transformation')
   }, [router])
