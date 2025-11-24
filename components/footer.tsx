@@ -19,9 +19,9 @@ export function Footer() {
 
           {/* 右侧：菜单容器 */}
           <div className="flex flex-col sm:flex-row gap-8 lg:gap-16">
-            {/* AI Video 菜单 */}
+            {/* AI Studio 菜单 */}
             <div className="min-w-[140px]">
-              <h3 className="text-white font-semibold mb-6 text-base">AI Video</h3>
+              <h3 className="text-white font-semibold mb-6 text-base">AI Studio</h3>
               <ul className="space-y-3 text-sm">
                 <li>
                   <a href="/text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
@@ -36,6 +36,16 @@ export function Footer() {
                 <li>
                   <a href="/ai-video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     AI Video Effects
+                  </a>
+                </li>
+                <li>
+                  <a href="/text-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                    Text to Image
+                  </a>
+                </li>
+                <li>
+                  <a href="/image-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                    Image to Image
                   </a>
                 </li>
               </ul>

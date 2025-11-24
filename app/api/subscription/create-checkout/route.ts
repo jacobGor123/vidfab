@@ -13,6 +13,7 @@ const createCheckoutSchema = z.object({
   billing_cycle: z.enum(['monthly', 'annual']),
   success_url: z.string().url().optional(),
   cancel_url: z.string().url().optional(),
+  coupon_code: z.string().optional(), // 优惠券码（可选）
 });
 
 const subscriptionService = new SubscriptionService();

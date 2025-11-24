@@ -1,70 +1,47 @@
 /**
  * Middleware for VidFab AI Video Platform
  * Handles authentication - NextAuth 4.x compatible
+ *
+ * 逻辑说明：
+ * - 默认所有页面都是公开的（营销页面、落地页等）
+ * - 只有明确列在 protectedRoutes 中的页面需要登录
+ * - 这样新增落地页时无需修改中间件配置
  */
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-// Public routes that don't require authentication
-const publicRoutes = [
-  '/',
-  '/create',
-  '/login',
-  '/signup',
-  '/pricing',
-  '/features',
-  '/how-it-works',
-  '/text-to-video',
-  '/image-to-video',
-  '/ai-video-effects',
-  '/about',
-  '/contact',
-  '/privacy',
-  '/terms',
-  '/terms-of-service',
-  '/support',
-  '/admin', // Admin pages (protected by admin layout's isCurrentUserAdmin() check, not by middleware)
-]
-
 // Auth routes that should redirect if already logged in
-const authRoutes = ['/login']
+const authRoutes = ['/login', '/signup']
 
-// Protected routes that require authentication
+// Protected routes that require authentication (需要登录才能访问的页面)
 const protectedRoutes = [
   '/profile',
   '/settings',
   '/video',
   '/subscription',
+  // Note: /studio is NOT in this list - it's a public route accessible to all users
   // Note: /admin is NOT in this list - it's protected by admin layout's isCurrentUserAdmin() check
   // This ensures admin auth uses the same method as /debug-admin for consistency
 ]
 
-function isPublicPath(pathname: string): boolean {
-  return (
-    // Check exact matches and path prefixes
-    publicRoutes.some(route => 
-      pathname === route || pathname.startsWith(route + '/')
-    ) ||
-    // API routes (except protected ones)
-    pathname.startsWith('/api/auth') ||
-    pathname.startsWith('/api/auth/send-verification-code') ||
-    pathname.startsWith('/api/auth/verify-code-login') ||
-    // Static assets
-    pathname.startsWith('/_next') ||
-    pathname.includes('.') // files like favicon.ico, images, etc.
-  )
-}
-
 function isAuthPath(pathname: string): boolean {
-  return authRoutes.some(route => 
+  return authRoutes.some(route =>
     pathname === route || pathname.startsWith(route + '/')
   )
 }
 
 function isProtectedPath(pathname: string): boolean {
-  return protectedRoutes.some(route => 
+  return protectedRoutes.some(route =>
     pathname.startsWith(route)
+  )
+}
+
+function isStaticAsset(pathname: string): boolean {
+  return (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/_vercel') ||
+    pathname.includes('.') // files like favicon.ico, images, etc.
   )
 }
 
@@ -73,33 +50,61 @@ export default withAuth(
     const { nextUrl } = req
     const isLoggedIn = !!req.nextauth?.token
 
-    // Skip auth checks for API routes and static files
+    // 1. Skip middleware for API routes and static assets
     if (
       nextUrl.pathname.startsWith('/api/') ||
-      nextUrl.pathname.startsWith('/_next/') ||
-      nextUrl.pathname.includes('.')
+      isStaticAsset(nextUrl.pathname)
     ) {
       return NextResponse.next()
     }
 
-    // Check if it's a public route
-    if (isPublicPath(nextUrl.pathname)) {
-      return NextResponse.next()
+    // 2. URL Rewrite: /studio/{tool} -> /create?tool={tool}
+    // 保持浏览器 URL 为 /studio/{tool}，GA4 可以正确追踪路径
+    if (nextUrl.pathname.startsWith('/studio/')) {
+      // 工具名映射表：URL 路径 -> query 参数值
+      const toolMap: Record<string, string> = {
+        'discover': 'discover',
+        'text-to-video': 'text-to-video',
+        'image-to-video': 'image-to-video',
+        'ai-video-effects': 'video-effects',
+        'text-to-image': 'text-to-image',
+        'image-to-image': 'image-to-image',
+        'my-assets': 'my-assets',
+        'plans': 'my-profile',
+      }
+
+      // 提取工具名: /studio/text-to-video -> text-to-video
+      const pathParts = nextUrl.pathname.split('/').filter(Boolean)
+      const toolPath = pathParts[1] // studio 后面的部分
+      const tool = toolMap[toolPath] || 'discover'
+
+      // 构建 rewrite URL: /create?tool={tool}
+      const rewriteUrl = new URL('/create', nextUrl.origin)
+      rewriteUrl.searchParams.set('tool', tool)
+
+      // 保留原有的 query 参数（如 prompt, model 等）
+      nextUrl.searchParams.forEach((value, key) => {
+        rewriteUrl.searchParams.set(key, value)
+      })
+
+      // 使用 rewrite 而不是 redirect
+      // rewrite: 浏览器 URL 保持 /studio/{tool}，但渲染 /create 的内容
+      return NextResponse.rewrite(rewriteUrl)
     }
 
-    // Check if it's an auth route
+    // 3. Auth pages (login, signup) - redirect if already logged in
     if (isAuthPath(nextUrl.pathname)) {
       if (isLoggedIn) {
-        // Redirect to create page if already logged in
-        return NextResponse.redirect(new URL('/create', nextUrl.origin))
+        // Already logged in, redirect to studio discover page
+        return NextResponse.redirect(new URL('/studio/discover', nextUrl.origin))
       }
       return NextResponse.next()
     }
 
-    // Check if it's a protected route
+    // 4. Protected routes - require authentication
     if (isProtectedPath(nextUrl.pathname)) {
       if (!isLoggedIn) {
-        // Redirect to login with callback URL
+        // Not logged in, redirect to login with callback
         let callbackUrl = nextUrl.pathname
         if (nextUrl.search) {
           callbackUrl += nextUrl.search
@@ -112,20 +117,26 @@ export default withAuth(
       return NextResponse.next()
     }
 
+    // 5. Default: All other routes are public (marketing pages, landing pages, etc.)
     return NextResponse.next()
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        const pathname = req.nextUrl.pathname;
+        const pathname = req.nextUrl.pathname
 
-        // Allow all public routes
-        if (isPublicPath(pathname)) {
+        // Skip authorization for static assets
+        if (isStaticAsset(pathname)) {
           return true
         }
 
-        // Require token for protected routes
-        return !!token;
+        // Protected routes require authentication
+        if (isProtectedPath(pathname)) {
+          return !!token
+        }
+
+        // All other routes are public by default
+        return true
       }
     },
     pages: {

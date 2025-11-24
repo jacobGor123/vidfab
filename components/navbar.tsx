@@ -11,6 +11,7 @@ import Link from "next/link"
 import { UserMenu } from "@/components/user-menu"
 import { GetStartedButton } from "@/components/ui/get-started-button"
 import { CreditsDisplaySimple } from "@/components/credits-display-simple"
+import { isBlackFridayActive } from "@/lib/black-friday/coupons"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -25,6 +26,21 @@ interface NavbarProps {
 }
 
 export function Navbar({ scrolled }: NavbarProps) {
+  // 检测黑五横幅是否显示
+  const [bannerVisible, setBannerVisible] = useState(false)
+
+  useEffect(() => {
+    // 检查黑五活动是否进行中
+    const isActive = isBlackFridayActive()
+    if (!isActive) {
+      setBannerVisible(false)
+      return
+    }
+
+    // 检查用户是否关闭了横幅
+    const dismissed = localStorage.getItem('bf2025_banner_dismissed')
+    setBannerVisible(dismissed !== 'true')
+  }, [])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [subscriptionPlan, setSubscriptionPlan] = useState<string>('free')
   const [isInitialized, setIsInitialized] = useState(false)
@@ -72,8 +88,8 @@ export function Navbar({ scrolled }: NavbarProps) {
   }, [session?.user?.uuid, status])
 
   // 判断是否显示按钮
-  // 规则：非create页面时都显示，登录/订阅用户显示"My Studio"，其他显示"Start for free"
-  const isCreatePage = pathname?.startsWith('/create') || false
+  // 规则：非create/studio页面时都显示，登录/订阅用户显示"My Studio"，其他显示"Start for free"
+  const isCreatePage = pathname?.startsWith('/create') || pathname?.startsWith('/studio') || false
   const isSubscribed = subscriptionPlan !== 'free'
 
   // 严格的显示条件：所有状态都必须稳定
@@ -90,7 +106,8 @@ export function Navbar({ scrolled }: NavbarProps) {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed left-0 right-0 z-50 transition-all duration-300",
+        bannerVisible ? "top-[48px]" : "top-0",
         scrolled ? "bg-black/30 backdrop-blur-lg border-b border-white/10" : "bg-transparent",
       )}
     >
@@ -126,34 +143,77 @@ export function Navbar({ scrolled }: NavbarProps) {
                   <NavigationMenuList>
                     <NavigationMenuItem>
                       <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                        AI Video
+                        AI Studio
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <div className="grid w-[200px] gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href="/text-to-video"
-                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                            >
-                              <div className="text-sm font-medium leading-none text-white">Text to Video</div>
-                            </Link>
-                          </NavigationMenuLink>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href="/image-to-video"
-                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                            >
-                              <div className="text-sm font-medium leading-none text-white">Image to Video</div>
-                            </Link>
-                          </NavigationMenuLink>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href="/ai-video-effects"
-                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                            >
-                              <div className="text-sm font-medium leading-none text-white">AI Video Effects</div>
-                            </Link>
-                          </NavigationMenuLink>
+                        <div className="grid grid-cols-2 gap-6 p-4 w-[420px] bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
+                          {/* AI Video Section */}
+                          <div className="min-w-0">
+                            <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider mb-3 px-3">
+                              AI Video
+                            </div>
+                            <div className="space-y-1">
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/text-to-video"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
+                                    Text to Video
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/image-to-video"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
+                                    Image to Video
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/ai-video-effects"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
+                                    AI Video Effects
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                            </div>
+                          </div>
+
+                          {/* AI Image Section */}
+                          <div className="min-w-0">
+                            <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider mb-3 px-3">
+                              AI Image
+                            </div>
+                            <div className="space-y-1">
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/text-to-image"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
+                                    Text to Image
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/image-to-image"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
+                                    Image to Image
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                            </div>
+                          </div>
                         </div>
                       </NavigationMenuContent>
                     </NavigationMenuItem>
@@ -255,31 +315,60 @@ export function Navbar({ scrolled }: NavbarProps) {
                   Home
                 </Link>
 
-                {/* AI Video Section */}
-                <div className="space-y-2">
-                  <div className="py-2 text-base font-heading text-white font-medium">AI Video</div>
-                  <div className="ml-4 space-y-2">
-                    <Link
-                      href="/text-to-video"
-                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Text to Video
-                    </Link>
-                    <Link
-                      href="/image-to-video"
-                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Image to Video
-                    </Link>
-                    <Link
-                      href="/ai-video-effects"
-                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      AI Video Effects
-                    </Link>
+                {/* AI Studio Section */}
+                <div className="space-y-3 border border-white/10 rounded-lg p-3">
+                  <div className="text-base font-heading text-white font-medium">AI Studio</div>
+
+                  {/* AI Video */}
+                  <div className="space-y-2">
+                    <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider">AI Video</div>
+                    <div className="ml-3 space-y-1">
+                      <Link
+                        href="/text-to-video"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Text to Video
+                      </Link>
+                      <Link
+                        href="/image-to-video"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Image to Video
+                      </Link>
+                      <Link
+                        href="/ai-video-effects"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        AI Video Effects
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                  {/* AI Image */}
+                  <div className="space-y-2">
+                    <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider">AI Image</div>
+                    <div className="ml-3 space-y-1">
+                      <Link
+                        href="/text-to-image"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-pink-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Text to Image
+                      </Link>
+                      <Link
+                        href="/image-to-image"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-pink-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Image to Image
+                      </Link>
+                    </div>
                   </div>
                 </div>
 
