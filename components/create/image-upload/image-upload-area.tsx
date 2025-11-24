@@ -9,6 +9,8 @@ interface ImageUploadAreaProps {
   disabled?: boolean
   onFilesSelected: (files: File[]) => void
   multiple?: boolean
+  maxFiles?: number  // 最大上传数量限制
+  currentCount?: number  // 当前已上传数量
   isDragging: boolean
   onDragOver: (e: React.DragEvent) => void
   onDragLeave: (e: React.DragEvent) => void
@@ -19,6 +21,8 @@ export function ImageUploadArea({
   disabled = false,
   onFilesSelected,
   multiple = true,
+  maxFiles,
+  currentCount = 0,
   isDragging,
   onDragOver,
   onDragLeave,
@@ -63,7 +67,15 @@ export function ImageUploadArea({
           {isDragging ? 'Drop images here' : 'Click to upload or drag & drop'}
         </p>
         <p className="text-xs text-gray-500">
-          JPEG, PNG, WebP (max 10MB each) • {multiple ? 'Multiple images supported' : 'Single image'}
+          JPEG, PNG, WebP (max 10MB each) • {
+            maxFiles === 1
+              ? 'Single image'
+              : maxFiles
+                ? `Max ${maxFiles} images (${currentCount}/${maxFiles})`
+                : multiple
+                  ? 'Multiple images supported'
+                  : 'Single image'
+          }
         </p>
       </label>
     </div>

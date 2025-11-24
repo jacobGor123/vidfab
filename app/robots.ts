@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           '/private/',       // Disallow private routes
           '/(auth)/',        // Disallow auth routes
           '/subscription/',  // Disallow subscription internal routes
+          '/create',         // Disallow old create route (now using /studio/*)
           '/*.ico',          // Disallow favicon files
           '/site.webmanifest', // Disallow PWA manifest
           '/fonts/',         // Disallow font files
@@ -51,12 +52,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/', '/*.ico', '/site.webmanifest', '/fonts/'],
+        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/', '/create', '/*.ico', '/site.webmanifest', '/fonts/'],
       },
       {
         userAgent: 'Bingbot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/', '/*.ico', '/site.webmanifest', '/fonts/'],
+        disallow: ['/api/', '/admin/', '/_next/', '/private/', '/(auth)/', '/create', '/*.ico', '/site.webmanifest', '/fonts/'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

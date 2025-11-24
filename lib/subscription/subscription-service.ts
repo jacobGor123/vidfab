@@ -12,6 +12,7 @@ import {
   cancelSubscription,
   getSubscriptionDetails,
   createCustomerPortalSession,
+  validateCouponCode,
 } from './stripe-config';
 import { SUBSCRIPTION_PLANS, getPlanConfig } from './pricing-config';
 import type {
@@ -39,7 +40,7 @@ export class SubscriptionService {
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
     try {
-      const { plan_id, billing_cycle, success_url, cancel_url } = request;
+      const { plan_id, billing_cycle, success_url, cancel_url, coupon_code } = request;
 
       // 验证计划
       if (plan_id === 'free') {
@@ -54,6 +55,30 @@ export class SubscriptionService {
         return {
           success: false,
           error: 'Invalid plan selected',
+        };
+      }
+
+      // 验证优惠券码（如果提供）
+      let promotionCodeId: string | undefined;
+      let couponInfo: {
+        code: string;
+        discountAmount?: number;
+        discountPercent?: number;
+      } | undefined;
+
+      if (coupon_code) {
+        const couponValidation = await validateCouponCode(coupon_code);
+        if (!couponValidation.valid) {
+          return {
+            success: false,
+            error: couponValidation.error || 'Invalid coupon code',
+          };
+        }
+        promotionCodeId = couponValidation.promotionCodeId;
+        couponInfo = {
+          code: coupon_code,
+          discountAmount: couponValidation.discountAmount,
+          discountPercent: couponValidation.discountPercent,
         };
       }
 
@@ -98,6 +123,7 @@ export class SubscriptionService {
             plan_name: planConfig.name,
             dynamic_product_name: planName,
             amount_cents: amount,
+            ...(couponInfo && { coupon: couponInfo }), // 记录优惠券信息
           },
         })
         .select()
@@ -118,10 +144,11 @@ export class SubscriptionService {
         amount,
         currency: 'usd',
         billingCycle: billing_cycle,
-        successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/create?tool=my-profile&payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}`,
+        successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/studio/plans?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}`,
         cancelUrl: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
         userUuid,
         planId: plan_id,
+        promotionCodeId, // 传递优惠券 Promotion Code ID
       });
 
       // 更新订单记录

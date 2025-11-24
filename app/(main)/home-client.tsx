@@ -5,6 +5,7 @@ import dynamic from "next/dynamic"
 import { Hero } from "@/components/hero"
 import { FeatureShowcase } from "@/components/sections/feature-showcase"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
+import { NewReleaseFeatures } from "@/components/sections/new-release-features"
 import { UserTestimonials } from "@/components/sections/user-testimonials"
 import { WhyChooseVidFab } from "@/components/sections/why-choose-vidfab"
 import { PaymentSuccessHandler } from "@/components/payment-success-handler"
@@ -48,7 +49,7 @@ export default function HomeClient() {
             categoryText="Text to Video"
             categoryLink="/text-to-video"
             ctaText="Try it now"
-            ctaLink="/text-to-video"
+            ctaLink="/studio/text-to-video"
           />
 
           <FeatureShowcase
@@ -60,7 +61,7 @@ export default function HomeClient() {
             categoryText="Image to Video"
             categoryLink="/image-to-video"
             ctaText="Try it now"
-            ctaLink="/image-to-video"
+            ctaLink="/studio/image-to-video"
           />
 
           <FeatureShowcase
@@ -72,7 +73,7 @@ export default function HomeClient() {
             categoryText="AI Video Effects"
             categoryLink="/ai-video-effects"
             ctaText="Try it now"
-            ctaLink="/ai-video-effects"
+            ctaLink="/studio/ai-video-effects"
           />
 
           {/* Amazing Features Grid */}
@@ -90,6 +91,9 @@ export default function HomeClient() {
               { number: "6", title: "Data Security Guarantee", description: "Your content and data are protected with enterprise-level security" }
             ]}
           />
+
+          {/* New Release: Image Generation Features */}
+          <NewReleaseFeatures />
 
           {/* User Testimonials Carousel */}
           <UserTestimonials

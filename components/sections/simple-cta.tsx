@@ -17,7 +17,7 @@ export function SimpleCTA({
   title,
   description,
   ctaText,
-  ctaLink = "/create",
+  ctaLink = "/studio/discover",
   className
 }: SimpleCTAProps) {
   return (

@@ -42,8 +42,8 @@ function ImageToVideoHero() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Video Background */}
+    <div className="relative min-h-[70vh] md:min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Video Background for Desktop / Poster for Mobile */}
       {isDesktop && shouldShowVideoBackground ? (
         <VideoBackground
           items={IMAGE_TO_VIDEO_ITEMS}
@@ -52,11 +52,21 @@ function ImageToVideoHero() {
           onVideoCanPlay={() => {}}
         />
       ) : (
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black via-brand-gray-900 to-black" />
+        <>
+          {/* Mobile: Show poster image as background */}
+          <div
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url(${IMAGE_TO_VIDEO_ITEMS[0].posterUrl})`,
+            }}
+          />
+          {/* Overlay gradient for better text readability */}
+          <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+        </>
       )}
 
       {/* Hero Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center py-20 md:py-0">
         <div className="max-w-6xl mx-auto w-full">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-extrabold mb-8 sm:mb-12 text-gradient-brand leading-tight">
             {translations?.hero?.title || "From Still to Motion: Transform Images Into Videos Instantly"}
@@ -64,7 +74,7 @@ function ImageToVideoHero() {
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="/create?tool=image-to-video"
+              href="/studio/image-to-video"
               className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-brand-purple to-brand-pink rounded-full hover:opacity-90 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
             >
               {translations?.hero?.cta || "Generate Your First Video for Free"}
@@ -161,6 +171,7 @@ export default function ImageToVideoPage() {
               subtitle=""
               description="Transform your photos into stunning videos with VidFab. Forget complicated operation — our AI video generator simplifies the process for you."
               ctaText="Start Your Free Trial Today"
+              ctaLink="/studio/image-to-video"
               getInspiredText=""
               showVideos={false}
             />

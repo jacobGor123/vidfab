@@ -142,6 +142,39 @@ export const imageToVideoMetadata: Metadata = generatePageMetadata({
 })
 
 /**
+ * Text to Image Page Metadata
+ */
+export const textToImageMetadata: Metadata = generatePageMetadata({
+  title: 'Text to Image - Generate Images from Text with AI',
+  description: 'Transform your text prompts into stunning images using AI. Simply describe what you want, and VidFab will create unique visuals instantly.',
+  path: '/text-to-image',
+  keywords: [
+    'text to image',
+    'AI text to image',
+    'generate image from text',
+    'text image generator',
+    'AI art generator',
+    'prompt to picture',
+  ],
+})
+
+/**
+ * Image to Image Page Metadata
+ */
+export const imageToImageMetadata: Metadata = generatePageMetadata({
+  title: 'Image to Image - Transform Images with AI',
+  description: 'Reimagine your visuals with AI-powered image transformation. Upload your images and let VidFab create new artistic variations instantly.',
+  path: '/image-to-image',
+  keywords: [
+    'image to image',
+    'AI image transformation',
+    'image reimagine',
+    'AI image editor',
+    'image style transfer',
+  ],
+})
+
+/**
  * AI Video Effects Page Metadata
  */
 export const aiVideoEffectsMetadata: Metadata = generatePageMetadata({

@@ -88,7 +88,7 @@ export function WhyChooseVidFab({
             {/* CTA Button */}
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
               <Link
-                href="/create"
+                href="/studio/discover"
                 className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#8A2BE2] to-[#00E5E5] text-white text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 <Sparkles className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />

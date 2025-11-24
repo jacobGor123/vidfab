@@ -161,7 +161,7 @@ export default function ContactPage() {
                 Start your journey with VidFab AI Video Generator today.
               </p>
               <a
-                href="/create"
+                href="/studio/discover"
                 className="inline-block px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 text-white font-semibold rounded-full hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-purple-500/50"
               >
                 Get Started

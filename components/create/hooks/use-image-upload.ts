@@ -12,6 +12,7 @@ import { ImageProcessor } from '@/lib/image-processor'
  */
 export interface UseImageUploadOptions {
   uploadMode: 'local' | 'url'
+  maxFiles?: number  // 最大上传数量限制（1=单图, 3=最多3张, undefined=无限制）
   onAuthRequired?: () => Promise<boolean>
 }
 
@@ -46,7 +47,7 @@ export function useImageUpload(
   options: UseImageUploadOptions,
   onImageSelected?: (imageUrl: string) => void
 ): UseImageUploadReturn {
-  const { uploadMode, onAuthRequired } = options
+  const { uploadMode, maxFiles, onAuthRequired } = options
 
   // 🔥 使用 ref 作为唯一数据源,避免竞态条件
   const uploadTasksRef = useRef<Map<string, UploadTask>>(new Map())
@@ -198,6 +199,15 @@ export function useImageUpload(
   const uploadImage = useCallback(async (file: File) => {
     if (!file) return
 
+    // 🔥 检查是否超过上传数量限制
+    if (maxFiles !== undefined) {
+      const currentUploadCount = uploadTasksRef.current.size
+      if (currentUploadCount >= maxFiles) {
+        console.warn(`⚠️ Upload limit reached: ${maxFiles} files`)
+        throw new Error(`Maximum ${maxFiles} image${maxFiles > 1 ? 's' : ''} allowed`)
+      }
+    }
+
     // 检查用户认证状态
     if (onAuthRequired) {
       const authSuccess = await onAuthRequired()
@@ -207,7 +217,7 @@ export function useImageUpload(
     }
 
     await uploadImageFile(file)
-  }, [uploadImageFile, onAuthRequired])
+  }, [uploadImageFile, onAuthRequired, maxFiles])
 
   /**
    * 上传多个图片
@@ -223,9 +233,26 @@ export function useImageUpload(
       }
     }
 
+    // 🔥 检查是否超过上传数量限制
+    if (maxFiles !== undefined) {
+      const currentUploadCount = uploadTasksRef.current.size
+      const remainingSlots = maxFiles - currentUploadCount
+
+      if (remainingSlots <= 0) {
+        console.warn(`⚠️ Upload limit reached: ${maxFiles} files`)
+        throw new Error(`Maximum ${maxFiles} image${maxFiles > 1 ? 's' : ''} allowed`)
+      }
+
+      // 如果选择的文件数超过剩余空位,只上传前 N 个
+      if (files.length > remainingSlots) {
+        console.warn(`⚠️ Can only upload ${remainingSlots} more file(s)`)
+        files = files.slice(0, remainingSlots)
+      }
+    }
+
     // 🔥 并发上传所有图片
     await Promise.all(files.map(file => uploadImageFile(file)))
-  }, [uploadImageFile, onAuthRequired])
+  }, [uploadImageFile, onAuthRequired, maxFiles])
 
   /**
    * 删除单个上传任务

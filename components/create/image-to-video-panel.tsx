@@ -65,10 +65,11 @@ export function ImageToVideoPanelEnhanced() {
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
 
-  // 🔥 多图上传 Hook
+  // 🔥 多图上传 Hook (image-to-video 只允许 1 张图片)
   const imageUpload = useImageUpload(
     {
       uploadMode: params.uploadMode,
+      maxFiles: 1,  // 🔥 限制为 1 张图片
       onAuthRequired: async () => {
         return await authModal.requireAuth(async () => {
           // 认证成功后继续上传
@@ -225,7 +226,6 @@ export function ImageToVideoPanelEnhanced() {
           return
         }
 
-
         const data = JSON.parse(stored)
 
         // Check if data is fresh (within 5 minutes)
@@ -236,19 +236,30 @@ export function ImageToVideoPanelEnhanced() {
           return
         }
 
-        // 标记为已加载
-        imageToVideoLoadedRef.current = true
-
+        console.log('📥 Loading image-to-video data from sessionStorage:', {
+          imageUrl: data.imageUrl,
+          promptLength: data.prompt?.length || 0,
+          age: `${Math.round(age / 1000)}s`
+        })
 
         // 🔥 Download image from URL and upload
         const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(data.imageUrl)}`
+        console.log('🔄 Proxying image:', proxyUrl)
+
         const response = await fetch(proxyUrl)
 
         if (!response.ok) {
-          throw new Error('Failed to fetch image')
+          const errorText = await response.text()
+          console.error('❌ Proxy failed:', response.status, errorText)
+          throw new Error(`Failed to fetch image: ${response.status} ${errorText}`)
         }
 
         const blob = await response.blob()
+        console.log('✅ Image downloaded:', {
+          size: `${(blob.size / 1024).toFixed(2)}KB`,
+          type: blob.type
+        })
+
         const fileName = data.imageUrl.split('/').pop() || 'image-to-video.jpg'
 
         // 🔥 根据文件扩展名推断正确的 MIME 类型
@@ -259,7 +270,11 @@ export function ImageToVideoPanelEnhanced() {
                          blob.type || 'image/jpeg' // 默认使用 blob.type 或 image/jpeg
 
         const file = new File([blob], fileName, { type: mimeType })
-
+        console.log('📦 Created File object:', {
+          name: file.name,
+          type: file.type,
+          size: `${(file.size / 1024).toFixed(2)}KB`
+        })
 
         // Set prompt
         setParams(prev => ({
@@ -269,20 +284,27 @@ export function ImageToVideoPanelEnhanced() {
         }))
 
         // Upload image
+        console.log('📤 Uploading image to Supabase...')
         await imageUpload.uploadImage(file)
+        console.log('✅ Image upload completed')
 
+        // 🔥 只有在所有操作成功后才标记为已加载
+        imageToVideoLoadedRef.current = true
 
         // Clear sessionStorage
         sessionStorage.removeItem('vidfab-image-to-video')
+        console.log('✅ Image-to-video data loaded and cleared from sessionStorage')
 
       } catch (error) {
         console.error('❌ Failed to load image-to-video data:', error)
+        // 🔥 失败时不标记为已加载，允许重试
+        // imageToVideoLoadedRef.current 保持为 false
         sessionStorage.removeItem('vidfab-image-to-video')
       }
     }
 
     checkImageToVideoData()
-  }, [imageUpload]) // 🔥 依赖 imageUpload，当它可用时执行
+  }, [imageUpload.uploadImage, setParams]) // 🔥 使用更稳定的依赖
 
   // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
@@ -491,12 +513,10 @@ export function ImageToVideoPanelEnhanced() {
 
 
   return (
-    <>
-      <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
+    <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>
         {/* 左侧控制面板 */}
-        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
-          <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3">
-            <div className="space-y-6 min-h-[1180px]">
+        <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pr-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+          <div className="py-6 space-y-6">
 
               {/* Error display */}
               {(validationErrors.length > 0 || videoGeneration.error) && (
@@ -551,7 +571,9 @@ export function ImageToVideoPanelEnhanced() {
                       <ImageUploadArea
                         disabled={videoGeneration.isGenerating}
                         onFilesSelected={imageUpload.uploadMultiple}
-                        multiple={true}
+                        multiple={false}  // 🔥 单图模式
+                        maxFiles={1}  // 🔥 限制为 1 张
+                        currentCount={imageUpload.uploadTasks.size}
                         isDragging={imageUpload.isDragging}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
@@ -779,13 +801,12 @@ export function ImageToVideoPanelEnhanced() {
                   </div>
                 )}
               </Button>
-            </div>
           </div>
         </div>
 
-        {/* Right preview area - Multi-task Grid Layout */}
-        <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
-          <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+      {/* Right preview area - Multi-task Grid Layout */}
+      <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pl-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+        <div className="pt-6 pb-20">
             {/* 显示所有用户的任务（进行中+已完成） */}
             {(allUserItems.length > 0 || userVideos.length > 0) ? (
               <div
@@ -834,7 +855,6 @@ export function ImageToVideoPanelEnhanced() {
                 </CardContent>
               </Card>
             )}
-          </div>
         </div>
       </div>
 
@@ -856,6 +876,6 @@ export function ImageToVideoPanelEnhanced() {
         recommendedPlan="pro"
         context="Unlock advanced models and get more credits for image-to-video generation"
       />
-    </>
+    </div>
   )
 }

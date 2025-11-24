@@ -35,10 +35,11 @@ export function ImageToImagePanel() {
   // 🔥 认证弹框 Hook
   const authModal = useAuthModal()
 
-  // 🔥 多图上传 Hook
+  // 🔥 多图上传 Hook (image-to-image 最多 3 张图片)
   const imageUpload = useImageUpload(
     {
       uploadMode: 'local',
+      maxFiles: 3,  // 🔥 限制为最多 3 张图片
       onAuthRequired: async () => {
         return await authModal.requireAuth(async () => {
           // 认证成功后继续上传
@@ -194,11 +195,10 @@ export function ImageToImagePanel() {
   }, [imageUpload]) // 🔥 依赖 imageUpload，当它可用时执行
 
   return (
-    <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
+    <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>
       {/* 左侧控制面板 */}
-      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full`}>
-        <div className="h-full overflow-y-auto custom-scrollbar pt-12 pb-20 px-6 pr-3">
-          <div className="space-y-6">
+      <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pr-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+        <div className="py-6 space-y-6">
             {/* 错误提示 */}
             {error && (
               <Alert className="border-red-800 bg-red-900/20">
@@ -215,7 +215,9 @@ export function ImageToImagePanel() {
                 <ImageUploadArea
                   disabled={isGenerating}
                   onFilesSelected={imageUpload.uploadMultiple}
-                  multiple={true}
+                  multiple={true}  // 🔥 多图模式
+                  maxFiles={3}  // 🔥 限制为最多 3 张
+                  currentCount={imageUpload.uploadTasks.size}
                   isDragging={imageUpload.isDragging}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -295,11 +297,10 @@ export function ImageToImagePanel() {
             </Button>
           </div>
         </div>
-      </div>
 
       {/* 右侧预览区域 */}
-      <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full overflow-hidden`}>
-        <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+      <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pl-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+        <div className="pt-6 pb-20">
           {tasks.length > 0 ? (
             <div className={`grid gap-4 ${tasks.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {tasks.map((task) => (

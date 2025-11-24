@@ -72,7 +72,7 @@ export function UserMenu() {
 
   const handleProfileClick = () => {
     setIsOpen(false)
-    router.push('/create?tool=my-profile')
+    router.push('/studio/plans')
   }
 
   if (status === "loading") {
