@@ -167,6 +167,7 @@ export default function AIVideoEffectsPage() {
               subtitle=""
               description="Create amazing videos with stunning AI effects. Forget complicated editing — our AI video generator makes it easy."
               ctaText="Start Your Free Trial Today"
+              ctaLink="/studio/ai-video-effects"
               getInspiredText=""
               showVideos={false}
             />

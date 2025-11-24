@@ -24,14 +24,18 @@ export function NewReleaseFeatures({ className }: NewReleaseFeaturesProps) {
             <div className="mx-auto text-center mb-12">
               {/* 主标题 - 使用统一样式 */}
               <h2 className="text-4xl md:text-5xl font-heading font-extrabold text-white">
-                Enhanced Video Creation with Integrated Image Generation!
+                Enhanced Video Creation with Integrated{" "}
+                <Link href="/text-to-image" className="text-gradient-brand hover:opacity-80 transition-opacity">
+                  Image
+                </Link>{" "}
+                Generation!
               </h2>
             </div>
 
             {/* 功能卡片区域 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               {/* Text to Image 卡片 */}
-              <div className="group relative bg-brand-gray-900/50 backdrop-blur-md border border-brand-gray-700 rounded-xl p-6 md:p-8 transition-all duration-300 ease-apple hover:border-brand-purple-DEFAULT/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02]">
+              <div className="group relative bg-brand-gray-900/50 backdrop-blur-md border border-brand-purple-DEFAULT/40 rounded-xl p-6 md:p-8 transition-all duration-300 ease-apple hover:border-brand-purple-DEFAULT/70 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] shadow-[0_0_15px_rgba(168,85,247,0.2)]">
                 {/* Icon */}
                 <div className="mb-6 p-3 rounded-full w-fit bg-gradient-to-br from-brand-purple-DEFAULT/20 to-brand-pink-DEFAULT/20">
                   <Image
@@ -44,25 +48,27 @@ export function NewReleaseFeatures({ className }: NewReleaseFeaturesProps) {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-2xl font-heading font-bold mb-4 text-white">
-                  Text to Image
-                </h3>
+                <Link href="/text-to-image">
+                  <h3 className="text-2xl font-heading font-bold mb-4 text-white hover:text-brand-purple-DEFAULT transition-colors">
+                    Text to Image
+                  </h3>
+                </Link>
                 <p className="text-gray-300 text-base leading-relaxed mb-6">
                   Create high-quality visuals from text prompts in seconds, perfect for concepts and creative projects.
                 </p>
 
                 {/* CTA Button */}
                 <Link
-                  href="/text-to-image"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white font-semibold text-sm transition-all duration-300 ease-apple hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] hover:scale-105 group/btn"
+                  href="/studio/text-to-image"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#8A2BE2] to-[#6A1DAD] hover:from-[#9D3FF5] hover:to-[#7B2EBE] text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl group/btn"
                 >
                   Try it now
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                  <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </Link>
               </div>
 
               {/* Image to Image 卡片 */}
-              <div className="group relative bg-brand-gray-900/50 backdrop-blur-md border border-brand-gray-700 rounded-xl p-6 md:p-8 transition-all duration-300 ease-apple hover:border-brand-purple-DEFAULT/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02]">
+              <div className="group relative bg-brand-gray-900/50 backdrop-blur-md border border-brand-purple-DEFAULT/40 rounded-xl p-6 md:p-8 transition-all duration-300 ease-apple hover:border-brand-purple-DEFAULT/70 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] shadow-[0_0_15px_rgba(168,85,247,0.2)]">
                 {/* Icon */}
                 <div className="mb-6 p-3 rounded-full w-fit bg-gradient-to-br from-brand-pink-DEFAULT/20 to-brand-purple-DEFAULT/20">
                   <Image
@@ -75,20 +81,22 @@ export function NewReleaseFeatures({ className }: NewReleaseFeaturesProps) {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-2xl font-heading font-bold mb-4 text-white">
-                  Image to Image
-                </h3>
+                <Link href="/image-to-image">
+                  <h3 className="text-2xl font-heading font-bold mb-4 text-white hover:text-brand-purple-DEFAULT transition-colors">
+                    Image to Image
+                  </h3>
+                </Link>
                 <p className="text-gray-300 text-base leading-relaxed mb-6">
                   Reimagine your images with AI—apply new styles, enhance details, or generate fresh variations effortlessly.
                 </p>
 
                 {/* CTA Button */}
                 <Link
-                  href="/image-to-image"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white font-semibold text-sm transition-all duration-300 ease-apple hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] hover:scale-105 group/btn"
+                  href="/studio/image-to-image"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#8A2BE2] to-[#6A1DAD] hover:from-[#9D3FF5] hover:to-[#7B2EBE] text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl group/btn"
                 >
                   Try it now
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                  <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </Link>
               </div>
             </div>

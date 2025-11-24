@@ -49,7 +49,7 @@ export default function HomeClient() {
             categoryText="Text to Video"
             categoryLink="/text-to-video"
             ctaText="Try it now"
-            ctaLink="/text-to-video"
+            ctaLink="/studio/text-to-video"
           />
 
           <FeatureShowcase
@@ -61,7 +61,7 @@ export default function HomeClient() {
             categoryText="Image to Video"
             categoryLink="/image-to-video"
             ctaText="Try it now"
-            ctaLink="/image-to-video"
+            ctaLink="/studio/image-to-video"
           />
 
           <FeatureShowcase
@@ -73,7 +73,7 @@ export default function HomeClient() {
             categoryText="AI Video Effects"
             categoryLink="/ai-video-effects"
             ctaText="Try it now"
-            ctaLink="/ai-video-effects"
+            ctaLink="/studio/ai-video-effects"
           />
 
           {/* Amazing Features Grid */}

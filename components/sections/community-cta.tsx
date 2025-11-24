@@ -16,6 +16,7 @@ interface CommunityCTAProps {
   subtitle: string
   description: string
   ctaText: string
+  ctaLink?: string // 自定义 CTA 链接，默认 /studio/discover
   getInspiredText: string
   videos?: CommunityVideo[]
   className?: string
@@ -126,6 +127,7 @@ export function CommunityCTA({
   subtitle,
   description,
   ctaText,
+  ctaLink = "/studio/discover",
   getInspiredText,
   videos = defaultVideos,
   className,
@@ -168,8 +170,8 @@ export function CommunityCTA({
     <section className={cn("py-20 relative overflow-hidden", className)}>
       <div className="container mx-auto px-4">
         {/* Title Section - Centered */}
-        <div className="text-center mb-12 max-w-4xl mx-auto relative z-10">
-          <h2 className="text-4xl md:text-5xl font-heading font-extrabold mb-6 text-gradient-brand">
+        <div className="text-center mb-12 max-w-5xl mx-auto relative z-10">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold mb-6 text-gradient-brand">
             {title}
           </h2>
           {subtitle && (
@@ -188,7 +190,7 @@ export function CommunityCTA({
               className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white hover:opacity-90 transition-opacity"
               asChild
             >
-              <Link href="/studio/discover">
+              <Link href={ctaLink}>
                 {ctaText}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

@@ -7,12 +7,8 @@ import { FAQSection } from "@/components/sections/faq-section"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
 import { LoadingState } from "@/components/loading-state"
 import { usePageTranslation } from "@/lib/i18n"
-import { VideoBackground } from "@/components/video-hero/video-background"
 import { TEXT_TO_IMAGE_ITEMS } from "@/components/video-hero/config/video-hero.config"
-import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
-import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
-import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
-import Link from "next/link"
+import { HeroContent } from "@/components/video-hero/hero-content"
 import { Type, MousePointerClick, Sparkles, Download } from "lucide-react"
 
 // 动态导入 CommunityCTA - 非首屏内容延迟加载
@@ -26,73 +22,36 @@ const CommunityCTA = dynamic(
 
 function TextToImageHero() {
   const { translations } = usePageTranslation('text-to-image')
-  const { isDesktop } = useMobileDetection()
-  const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
-
-  const { state, controls } = useVideoCarousel({
-    items: TEXT_TO_IMAGE_ITEMS,
-    onIndexChange: () => {},
-    autoPlay: isDesktop && !isSlowConnection
-  })
-
-  const handleVideoEnd = () => {
-    if (TEXT_TO_IMAGE_ITEMS.length > 1) {
-      controls.goToNext()
-    }
-  }
+  const currentItem = TEXT_TO_IMAGE_ITEMS[0]
 
   return (
     <div className="relative min-h-[70vh] md:min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Video Background for Desktop / Poster for Mobile */}
-      {isDesktop && shouldShowVideoBackground ? (
-        <VideoBackground
-          items={TEXT_TO_IMAGE_ITEMS}
-          currentIndex={state.currentIndex}
-          onVideoEnd={handleVideoEnd}
-          onVideoCanPlay={() => {}}
-        />
-      ) : (
-        <>
-          {/* Mobile: Show poster image as background */}
-          <div
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url(${TEXT_TO_IMAGE_ITEMS[0].posterUrl})`,
-            }}
-          />
-          {/* Overlay gradient for better text readability */}
-          <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
-        </>
-      )}
+      {/* Static Image Background */}
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${currentItem.posterUrl})`,
+        }}
+      />
+      {/* Overlay gradient for better text readability */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
 
-      {/* Hero Content */}
+      {/* Hero Title */}
       <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center py-20 md:py-0">
         <div className="max-w-6xl mx-auto w-full">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-extrabold mb-8 sm:mb-12 text-gradient-brand leading-tight">
             {translations?.hero?.title || "From Prompt to Picture: Create Images With Just Text"}
           </h1>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              href="/studio/text-to-image"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-brand-purple to-brand-pink rounded-full hover:opacity-90 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
-            >
-              {translations?.hero?.cta || "Generate Your First Image for Free"}
-              <svg
-                className="ml-2 w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </Link>
-          </div>
+          {/* Typewriter Input + CTA Button from HeroContent */}
+          <HeroContent
+            currentItem={currentItem}
+            targetPath="/studio/text-to-image"
+            buttonText="Create Image"
+            showTitle={false}
+            showFeatureTags={false}
+            className="!min-h-0 !py-0"
+          />
         </div>
       </div>
     </div>
@@ -230,6 +189,7 @@ export default function TextToImageClient() {
               subtitle=""
               description="VidFab makes it simple to generate captivating images from your words. Stop struggling with complex design software — our AI image generator does all the creative work for you."
               ctaText="Generate Your First Image for Free"
+              ctaLink="/studio/text-to-image"
               getInspiredText=""
               showVideos={false}
             />

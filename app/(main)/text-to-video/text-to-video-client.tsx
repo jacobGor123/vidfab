@@ -176,6 +176,7 @@ export default function TextToVideoPage() {
               subtitle=""
               description="VidFab makes it simple to create engaging videos from text. Don't waste time with complicated tools — our AI video generator does the heavy lifting for you."
               ctaText="Generate Your First Video for Free"
+              ctaLink="/studio/text-to-video"
               getInspiredText=""
               showVideos={false}
             />

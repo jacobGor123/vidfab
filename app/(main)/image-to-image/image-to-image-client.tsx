@@ -1,18 +1,14 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState, useEffect, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
 import { LoadingState } from "@/components/loading-state"
 import { usePageTranslation } from "@/lib/i18n"
-import { VideoBackground } from "@/components/video-hero/video-background"
 import { IMAGE_TO_IMAGE_ITEMS } from "@/components/video-hero/config/video-hero.config"
-import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
-import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
-import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
-import Link from "next/link"
+import { HeroContent } from "@/components/video-hero/hero-content"
 import { Upload, FileEdit, Sparkles, Download } from "lucide-react"
 
 // 动态导入 CommunityCTA - 非首屏内容延迟加载
@@ -24,74 +20,72 @@ const CommunityCTA = dynamic(
   }
 )
 
+// 图片轮播间隔时间（毫秒）
+const IMAGE_CAROUSEL_INTERVAL = 5000
+
 function ImageToImageHero() {
   const { translations } = usePageTranslation('image-to-image')
-  const { isDesktop } = useMobileDetection()
-  const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
+  const [currentIndex, setCurrentIndex] = useState(0)
 
-  const { state, controls } = useVideoCarousel({
-    items: IMAGE_TO_IMAGE_ITEMS,
-    onIndexChange: () => {},
-    autoPlay: isDesktop && !isSlowConnection
-  })
+  // 自动轮播图片
+  const goToNext = useCallback(() => {
+    setCurrentIndex(prev => (prev + 1) % IMAGE_TO_IMAGE_ITEMS.length)
+  }, [])
 
-  const handleVideoEnd = () => {
-    if (IMAGE_TO_IMAGE_ITEMS.length > 1) {
-      controls.goToNext()
-    }
-  }
+  useEffect(() => {
+    const timer = setInterval(goToNext, IMAGE_CAROUSEL_INTERVAL)
+    return () => clearInterval(timer)
+  }, [goToNext])
+
+  const currentItem = IMAGE_TO_IMAGE_ITEMS[currentIndex]
 
   return (
     <div className="relative min-h-[70vh] md:min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Video Background for Desktop / Poster for Mobile */}
-      {isDesktop && shouldShowVideoBackground ? (
-        <VideoBackground
-          items={IMAGE_TO_IMAGE_ITEMS}
-          currentIndex={state.currentIndex}
-          onVideoEnd={handleVideoEnd}
-          onVideoCanPlay={() => {}}
+      {/* Image Carousel Background */}
+      {IMAGE_TO_IMAGE_ITEMS.map((item, index) => (
+        <div
+          key={item.id}
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
+          style={{
+            backgroundImage: `url(${item.posterUrl})`,
+            opacity: index === currentIndex ? 1 : 0,
+          }}
         />
-      ) : (
-        <>
-          {/* Mobile: Show poster image as background */}
-          <div
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url(${IMAGE_TO_IMAGE_ITEMS[0].posterUrl})`,
-            }}
-          />
-          {/* Overlay gradient for better text readability */}
-          <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
-        </>
-      )}
+      ))}
+      {/* Overlay gradient for better text readability */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
 
-      {/* Hero Content */}
+      {/* Hero Title + Typewriter Input */}
       <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center py-20 md:py-0">
         <div className="max-w-6xl mx-auto w-full">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-extrabold mb-8 sm:mb-12 text-gradient-brand leading-tight">
             {translations?.hero?.title || "From Image to Masterpiece: Reimagine Your Visuals with AI"}
           </h1>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              href="/studio/image-to-image"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-brand-purple to-brand-pink rounded-full hover:opacity-90 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
-            >
-              {translations?.hero?.cta || "Transform Your First Image for Free"}
-              <svg
-                className="ml-2 w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </Link>
+          {/* Typewriter Input + CTA Button - synced with image carousel */}
+          <HeroContent
+            currentItem={currentItem}
+            targetPath="/studio/image-to-image"
+            buttonText="Transform"
+            showTitle={false}
+            showFeatureTags={false}
+            className="!min-h-0 !py-0"
+          />
+
+          {/* Carousel Indicators */}
+          <div className="mt-8 flex justify-center gap-2">
+            {IMAGE_TO_IMAGE_ITEMS.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === currentIndex
+                    ? 'bg-white w-6'
+                    : 'bg-white/40 hover:bg-white/60'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -230,6 +224,7 @@ export default function ImageToImageClient() {
               subtitle=""
               description="VidFab makes it simple to turn your existing pictures into new works of art. Stop struggling with complicated editing software—our AI image generator unlocks new creative possibilities for you."
               ctaText="Generate Your First Image for Free"
+              ctaLink="/studio/image-to-image"
               getInspiredText=""
               showVideos={false}
             />

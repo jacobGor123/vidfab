@@ -171,6 +171,7 @@ export default function ImageToVideoPage() {
               subtitle=""
               description="Transform your photos into stunning videos with VidFab. Forget complicated operation — our AI video generator simplifies the process for you."
               ctaText="Start Your Free Trial Today"
+              ctaLink="/studio/image-to-video"
               getInspiredText=""
               showVideos={false}
             />

@@ -124,23 +124,50 @@ export const TEXT_TO_IMAGE_ITEMS: VideoHeroItem[] = [
   {
     id: 'text-to-image-hero',
     title: 'Text to Image',
-    posterUrl: 'https://static.vidfab.ai/public/image/text-to-imagine-banner.webp',
-    videoUrl: 'https://static.vidfab.ai/public/video/text-to-imagine-banner.mp4',
+    posterUrl: 'https://static.vidfab.ai/public/image/text-image-hero.webp',
+    videoUrl: '', // 无视频，使用静态图片背景
     typingTexts: [
-      "Transform your words into stunning visuals...",
+      "A girl stands in the bustling city center at night, surrounded by neon lights and towering skyscrapers...",
     ]
   }
 ]
 
-// Image-to-Image 专用配置
+// Image-to-Image 专用配置 - 4 张图片轮播，每张对应不同的 prompt
 export const IMAGE_TO_IMAGE_ITEMS: VideoHeroItem[] = [
   {
-    id: 'image-to-image-hero',
-    title: 'Image to Image',
-    posterUrl: 'https://static.vidfab.ai/public/image/image-to-image-banner.webp',
-    videoUrl: 'https://static.vidfab.ai/public/video/image-to-image-banner.mp4',
+    id: 'image-to-image-hero-1',
+    title: 'Realistic Style',
+    posterUrl: 'https://static.vidfab.ai/public/image/image-image-hero-1.webp',
+    videoUrl: '',
     typingTexts: [
-      "Reimagine your visuals with AI transformation...",
+      "Realistic style...",
+    ]
+  },
+  {
+    id: 'image-to-image-hero-2',
+    title: 'Science Fiction Style',
+    posterUrl: 'https://static.vidfab.ai/public/image/image-image-hero-2.webp',
+    videoUrl: '',
+    typingTexts: [
+      "Science fiction style...",
+    ]
+  },
+  {
+    id: 'image-to-image-hero-3',
+    title: 'Illustration Style',
+    posterUrl: 'https://static.vidfab.ai/public/image/image-image-hero-3.webp',
+    videoUrl: '',
+    typingTexts: [
+      "Illustration style...",
+    ]
+  },
+  {
+    id: 'image-to-image-hero-4',
+    title: 'Animation Style',
+    posterUrl: 'https://static.vidfab.ai/public/image/image-image-hero-4.webp',
+    videoUrl: '',
+    typingTexts: [
+      "Animation style...",
     ]
   }
 ]

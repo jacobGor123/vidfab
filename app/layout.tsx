@@ -5,7 +5,7 @@ import { SessionProvider } from "@/components/auth/session-provider"
 import { VideoProvider } from "@/lib/contexts/video-context"
 import { ImageProvider } from "@/lib/contexts/image-context"
 import { WebVitals } from "@/components/web-vitals"
-import { BlackFridayBanner } from "@/components/black-friday/BlackFridayBanner"
+// import { BlackFridayBanner } from "@/components/black-friday/BlackFridayBanner"
 import { cn } from "@/lib/utils"
 import { openSans } from "@/lib/fonts"
 import { Toaster } from "react-hot-toast"
@@ -172,7 +172,7 @@ export default function RootLayout({
         </noscript>
         {/* End Google Tag Manager (noscript) */}
         <WebVitals />
-        <BlackFridayBanner />
+        {/* <BlackFridayBanner /> */}
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <VideoProvider>
