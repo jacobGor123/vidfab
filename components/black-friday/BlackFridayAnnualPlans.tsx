@@ -59,13 +59,12 @@ export function BlackFridayAnnualPlans() {
   const liteSavings = calculateSavings(liteAnnualOriginal, liteDiscount)
   const liteFeatures: PlanFeature[] = [
     { text: '300 credits/month', included: true },
-    { text: 'Credits delivered every month', included: true },
     { text: 'Watermark-free', included: true },
     { text: 'Advanced AI models (veo3-fast)', included: true },
+    { text: 'Faster generations', included: true },
     { text: 'Access to HD resolution (up to 1080P)', included: true },
     { text: '4 concurrent generation', included: true },
     { text: 'Email support', included: true },
-    { text: 'Cancel at anytime', included: true },
   ]
 
   // Pro Plan (20% OFF for annual)
@@ -76,14 +75,13 @@ export function BlackFridayAnnualPlans() {
   const proSavings = calculateSavings(proAnnualOriginal, proDiscount)
   const proFeatures: PlanFeature[] = [
     { text: '1000 credits/month', included: true },
-    { text: 'Credits delivered every month', included: true },
     { text: 'Watermark-free', included: true },
     { text: 'Advanced AI models', included: true },
     { text: 'Advanced effects library', included: true },
+    { text: 'Faster generations', included: true },
     { text: 'Access to HD resolution (up to 1080P)', included: true },
     { text: '4 concurrent generation', included: true },
     { text: 'Priority support', included: true },
-    { text: 'Cancel at anytime', included: true },
   ]
 
   // Premium Plan (20% OFF for annual)
@@ -94,27 +92,37 @@ export function BlackFridayAnnualPlans() {
   const premiumSavings = calculateSavings(premiumAnnualOriginal, premiumDiscount)
   const premiumFeatures: PlanFeature[] = [
     { text: '2000 credits/month', included: true },
-    { text: 'Credits delivered every month', included: true },
     { text: 'Watermark-free', included: true },
     { text: 'Advanced AI models', included: true },
     { text: 'Advanced effects library', included: true },
+    { text: 'Faster generations', included: true },
     { text: 'Access to HD resolution (up to 1080P)', included: true },
     { text: '4 concurrent generation', included: true },
     { text: 'Dedicated support', included: true },
-    { text: 'Cancel at anytime', included: true },
   ]
 
+  // 折扣图片 CDN 基础路径
+  const cdnBase = 'https://static.vidfab.ai/public/activity/black-friday-sale-2025'
+
   return (
-    <section id="annual-plans" className="py-20 relative">
+    <section id="annual-plans" className="py-10 md:py-20 relative">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
+        {/* Section Header - 使用图片 */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
-              20% OFF For All Annual Plans!
-            </span>
-          </h2>
-          <p className="text-xl text-gray-300">
+          {/* 桌面端标题图片 */}
+          <img
+            src={`${cdnBase}/annual-plan-card.webp`}
+            alt="20% OFF For All Annual Plans!"
+            className="mx-auto mb-6 max-w-full h-auto hidden md:block"
+            style={{ maxHeight: '260px' }}
+          />
+          {/* 移动端标题图片 */}
+          <img
+            src={`${cdnBase}/annual-plan-card-mb.webp`}
+            alt="20% OFF For All Annual Plans!"
+            className="mx-auto mb-6 w-full max-w-[560px] h-auto md:hidden"
+          />
+          <p className="text-lg md:text-xl text-gray-300">
             Biggest Savings for Your AI Creations
           </p>
         </div>
@@ -149,7 +157,9 @@ export function BlackFridayAnnualPlans() {
             features={proFeatures}
             annualTotal={proAnnualDiscounted}
             annualSavings={proSavings}
+            highlighted
             themeColor="purple"
+            discountImage={`${cdnBase}/pricing-card-discount-year.webp`}
             onCheckout={handleCheckout}
           />
 

@@ -47,6 +47,9 @@ export function Navbar({ scrolled }: NavbarProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
 
+  // 检测是否是黑五页面
+  const isBlackFridayPage = pathname === '/black-friday-sale-2025'
+
   // Fetch user subscription status
   useEffect(() => {
     // 重置状态，避免状态混乱
@@ -106,9 +109,14 @@ export function Navbar({ scrolled }: NavbarProps) {
   return (
     <header
       className={cn(
-        "fixed left-0 right-0 z-50 transition-all duration-300",
-        bannerVisible ? "top-[48px]" : "top-0",
-        scrolled ? "bg-black/30 backdrop-blur-lg border-b border-white/10" : "bg-transparent",
+        "left-0 right-0 z-50 transition-all duration-300",
+        isBlackFridayPage
+          ? "relative bg-[#0a0a1a] border-b border-purple-500/30"
+          : cn(
+              "fixed",
+              bannerVisible ? "top-[48px]" : "top-0",
+              scrolled ? "bg-black/30 backdrop-blur-lg border-b border-white/10" : "bg-transparent"
+            ),
       )}
     >
       <div className="mx-auto px-4">

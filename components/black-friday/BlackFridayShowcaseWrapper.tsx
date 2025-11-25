@@ -32,7 +32,7 @@ export function BlackFridayShowcaseWrapper() {
       subtitle="Trusted by 10,000+ creators worldwide"
       description=""
       ctaText="Generate Your First Video for Free"
-      getInspiredText="Get Inspired"
+      getInspiredText=""
       videos={blackFridayVideos}
     />
   )

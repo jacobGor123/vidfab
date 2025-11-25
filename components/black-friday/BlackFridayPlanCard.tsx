@@ -25,6 +25,7 @@ export interface PlanCardProps {
   annualTotal?: number  // 年付总价（仅年付）
   annualSavings?: number  // 年付节省（仅年付）
   themeColor?: string  // 主题颜色
+  discountImage?: string  // 右上角折扣图片 URL
   onCheckout: (planId: 'lite' | 'pro' | 'premium', billingCycle: 'monthly' | 'annual', couponCode: string) => Promise<void>
 }
 
@@ -41,6 +42,7 @@ export function BlackFridayPlanCard({
   annualTotal,
   annualSavings,
   themeColor = 'blue',
+  discountImage,
   onCheckout
 }: PlanCardProps) {
   const [loading, setLoading] = useState(false)
@@ -68,28 +70,32 @@ export function BlackFridayPlanCard({
           border: 'border-blue-500/30 hover:border-blue-500/50',
           gradient: 'from-blue-500 to-blue-600',
           check: 'text-blue-500',
-          badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+          badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+          saveBadge: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50'
         }
       case 'purple':
         return {
           border: 'border-purple-500/30 hover:border-purple-500/70',
           gradient: 'from-pink-500 to-purple-500',
           check: 'text-purple-500',
-          badge: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+          badge: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+          saveBadge: 'bg-pink-500/20 text-pink-400 border-pink-500/50'
         }
       case 'cyan':
         return {
           border: 'border-cyan-400/30 hover:border-cyan-400/50',
           gradient: 'from-cyan-400 to-cyan-600',
           check: 'text-cyan-400',
-          badge: 'bg-cyan-400/20 text-cyan-400 border-cyan-400/30'
+          badge: 'bg-cyan-400/20 text-cyan-400 border-cyan-400/30',
+          saveBadge: 'bg-cyan-400/20 text-cyan-400 border-cyan-400/50'
         }
       default:
         return {
           border: 'border-white/10 hover:border-white/20',
           gradient: 'from-gray-500 to-gray-600',
           check: 'text-gray-400',
-          badge: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+          badge: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+          saveBadge: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
         }
     }
   }
@@ -99,78 +105,74 @@ export function BlackFridayPlanCard({
   return (
     <div
       className={cn(
-        'relative bg-white/5 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-300',
-        colors.border,
-        highlighted ? 'scale-105 z-10' : ''
+        'relative backdrop-blur-sm border-2 rounded-xl overflow-hidden transition-all duration-300 flex flex-col h-full',
+        highlighted
+          ? 'border-purple-500/70 shadow-lg shadow-purple-500/20 z-10'
+          : cn('border', colors.border, 'bg-white/5')
       )}
+      style={highlighted ? {
+        background: 'linear-gradient(170deg, #1C104A 6.73%, #290C6C 98.63%)'
+      } : undefined}
     >
-      {/* BEST CHOICE 标签 */}
-      {highlighted && (
-        <div className="absolute top-0 right-0 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold px-4 py-1.5 rounded-bl-lg">
-          BEST CHOICE
-        </div>
+      {/* 右上角折扣图片 */}
+      {discountImage && (
+        <img
+          src={discountImage}
+          alt={`${discount}% OFF`}
+          className="absolute top-2 right-2 w-20 h-auto z-10"
+        />
       )}
 
       <div className="p-6 border-b border-white/10">
         {/* 套餐名称 */}
-        <h3 className={cn(
-          'text-xl font-bold mb-3',
-          highlighted ? 'bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent' : ''
-        )}>
+        <h3
+          className={cn(
+            'text-xl font-bold mb-2',
+            highlighted && 'bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent'
+          )}
+        >
           {planName}
         </h3>
 
-        {/* 折扣标签 */}
-        <Badge variant="outline" className={cn('mb-4', colors.badge)}>
-          {discount}% OFF
-        </Badge>
+        {/* 徽章区域 - 固定高度确保对齐 */}
+        <div className="h-6 mb-1">
+          {billingCycle === 'annual' && annualSavings && (
+            <Badge
+              variant="outline"
+              className={cn('text-xs font-semibold', colors.saveBadge)}
+            >
+              Save ${formatPrice(annualSavings)}/yr!
+            </Badge>
+          )}
+        </div>
 
-        {/* 价格 */}
-        <div className="space-y-2">
-          {/* 原价（划线） */}
-          <div className="flex items-baseline gap-2">
-            <span className="text-gray-500 line-through text-lg">
-              ${formatPrice(originalPrice)}
-            </span>
-            <span className="text-sm text-gray-400">/mo</span>
-          </div>
-
+        {/* 价格区域 - 固定高度确保对齐 */}
+        <div className="space-y-1 min-h-[72px]">
           {/* 折扣价 */}
           <div className="flex items-baseline">
             <span className="text-4xl font-bold">${formatPrice(discountedPrice)}</span>
             <span className="text-gray-400 ml-2">/month</span>
           </div>
 
+          {/* 月付划线原价 */}
+          {billingCycle === 'monthly' && (
+            <p className="text-sm text-gray-500 line-through">
+              ${formatPrice(originalPrice)} /month
+            </p>
+          )}
+
           {/* 年付额外信息 */}
           {billingCycle === 'annual' && annualTotal && (
-            <div className="space-y-1">
-              <p className="text-sm text-gray-400">
-                Billed annually (${formatPrice(annualTotal)})
-              </p>
-              {annualSavings && (
-                <p className="text-sm font-semibold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                  Save ${formatPrice(annualSavings)}/yr!
-                </p>
-              )}
-            </div>
+            <p className="text-sm text-gray-400">
+              Billed yearly as ${formatPrice(annualTotal)}
+            </p>
           )}
         </div>
       </div>
 
-      <div className="p-6">
-        {/* Credits */}
-        <div className="mb-6">
-          <p className="text-lg font-semibold text-white mb-1">
-            {credits} credits/month
-          </p>
-          {billingCycle === 'annual' && (
-            <p className="text-xs text-gray-400">Credits delivered every month</p>
-          )}
-          <p className="text-xs text-gray-400 mt-1">Cancel at anytime</p>
-        </div>
-
-        {/* Features */}
-        <ul className="space-y-3 mb-6">
+      <div className="p-6 flex flex-col flex-grow">
+        {/* Features - 固定最小高度确保按钮对齐 */}
+        <ul className="space-y-3 flex-grow min-h-[280px]">
           {features.map((feature, index) => (
             <li key={index} className="flex items-start">
               <Check className={cn('h-4 w-4 mr-2 shrink-0 mt-0.5', colors.check)} />
@@ -184,7 +186,7 @@ export function BlackFridayPlanCard({
           onClick={handleCheckout}
           disabled={loading}
           className={cn(
-            'w-full text-white font-semibold transition-all duration-300',
+            'w-full text-white font-semibold transition-all duration-300 mt-6',
             highlighted
               ? `bg-gradient-to-r ${colors.gradient} hover:opacity-90 hover:scale-105`
               : `bg-${themeColor}-600 hover:bg-${themeColor}-700`
