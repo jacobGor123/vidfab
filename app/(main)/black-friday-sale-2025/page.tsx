@@ -7,7 +7,7 @@ import { BlackFridayShowcaseWrapper } from '@/components/black-friday/BlackFrida
 
 export const metadata: Metadata = {
   title: 'Black Friday Sale 2025 - Save up to 20% OFF | VidFab AI',
-  description: 'Don\'t miss out on our Black Friday sale! Get up to 20% OFF on all VidFab AI video creation plans. Limited time offer. Create stunning AI-powered videos with advanced features and HD quality.',
+  description: 'Black Friday Sale - Get up to 20% OFF on all VidFab AI video creation plans. Limited time offer. Create stunning AI-powered videos today!',
   keywords: ['black friday', 'cyber monday', 'ai video', 'video generation', 'discount', 'sale', 'vidfab'],
   openGraph: {
     title: 'Black Friday Magic - Save up to 20% on AI Video Creation!',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: 'Create stunning AI videos with VidFab. Black Friday special - Save up to 20%!',
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
   }
 }
