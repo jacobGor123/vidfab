@@ -76,7 +76,9 @@ export async function GET(request: NextRequest) {
       'static.vidfab.ai',
       'vidfab.ai',
       'd1q7bp5vjyehc.cloudfront.net', // 🔥 CloudFront CDN for image generation (corrected)
-      'cloudfront.net' // 🔥 Generic CloudFront domain
+      'cloudfront.net', // 🔥 Generic CloudFront domain
+      'supabase.co', // 🔥 Supabase Storage domain
+      'supabase.com' // 🔥 Alternative Supabase domain
     ]
     if (!allowedDomains.some(domain => imageUrl.hostname.endsWith(domain))) {
       console.warn('[Image Proxy] Domain not allowed:', imageUrl.hostname)
