@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { FileText, ChevronLeft, ChevronRight } from "lucide-react"
+import { FileText, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,13 +10,15 @@ import type { SubscriptionOrder } from "@/lib/subscription/types"
 
 interface OrdersHistoryListProps {
   onError?: (error: string) => void
+  onSuccess?: (message: string) => void
 }
 
-export function OrdersHistoryList({ onError }: OrdersHistoryListProps) {
+export function OrdersHistoryList({ onError, onSuccess }: OrdersHistoryListProps) {
   const [orders, setOrders] = useState<SubscriptionOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchOrders()
@@ -63,6 +65,33 @@ export function OrdersHistoryList({ onError }: OrdersHistoryListProps) {
     return `$${(cents / 100).toFixed(2)}`
   }
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm('Are you sure you want to cancel this order?')) {
+      return
+    }
+
+    try {
+      setCancellingOrderId(orderId)
+      const response = await fetch(`/api/subscription/orders/${orderId}/cancel`, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        onSuccess?.('Order cancelled successfully')
+        // 刷新订单列表
+        await fetchOrders()
+      } else {
+        onError?.(data.error || 'Failed to cancel order')
+      }
+    } catch (error: any) {
+      onError?.(error.message || 'Network error')
+    } finally {
+      setCancellingOrderId(null)
+    }
+  }
+
   return (
     <Card className="bg-gray-900/50 border-gray-800 h-full flex flex-col">
       <CardHeader className="flex-shrink-0">
@@ -100,9 +129,27 @@ export function OrdersHistoryList({ onError }: OrdersHistoryListProps) {
                       </span>
                       {getStatusBadge(order.status)}
                     </div>
-                    <span className="text-lg font-bold text-white">
-                      {formatAmount(order.amount_cents)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-white">
+                        {formatAmount(order.amount_cents)}
+                      </span>
+                      {order.status === 'pending' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCancelOrder(order.id)}
+                          disabled={cancellingOrderId === order.id}
+                          className="h-8 px-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          title="Cancel order"
+                        >
+                          {cancellingOrderId === order.id ? (
+                            <span className="text-xs">Cancelling...</span>
+                          ) : (
+                            <X className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-400">
                     <span>{order.billing_cycle === 'annual' ? 'Annual' : 'Monthly'} Subscription</span>
