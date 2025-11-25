@@ -48,7 +48,7 @@ export function MyProfilePanel() {
             You need to sign in to view your profile and subscription details.
           </p>
           <Button
-            onClick={() => router.push('/auth/signin')}
+            onClick={() => router.push('/login')}
             className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:opacity-90"
           >
             Sign In
