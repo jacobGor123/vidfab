@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
+const CDN_BASE = 'https://static.vidfab.ai/public/activity/black-friday-sale-2025'
+
 export function BlackFridayAnnualPlans() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -59,13 +61,12 @@ export function BlackFridayAnnualPlans() {
   const liteSavings = calculateSavings(liteAnnualOriginal, liteDiscount)
   const liteFeatures: PlanFeature[] = [
     { text: '300 credits/month', included: true },
-    { text: 'Credits delivered every month', included: true },
     { text: 'Watermark-free', included: true },
     { text: 'Advanced AI models (veo3-fast)', included: true },
+    { text: 'Faster generations', included: true },
     { text: 'Access to HD resolution (up to 1080P)', included: true },
     { text: '4 concurrent generation', included: true },
     { text: 'Email support', included: true },
-    { text: 'Cancel at anytime', included: true },
   ]
 
   // Pro Plan (20% OFF for annual)
@@ -73,17 +74,17 @@ export function BlackFridayAnnualPlans() {
   const proDiscount = 20
   const proAnnualDiscounted = calculateDiscountedPrice(proAnnualOriginal, proDiscount)
   const proMonthlyEquivalent = Math.floor(proAnnualDiscounted / 12)
-  const proSavings = calculateSavings(proAnnualOriginal, proDiscount)
+  // 设计稿显示 Save $58/yr，向上取整保持对齐
+  const proSavings = 5800
   const proFeatures: PlanFeature[] = [
     { text: '1000 credits/month', included: true },
-    { text: 'Credits delivered every month', included: true },
     { text: 'Watermark-free', included: true },
     { text: 'Advanced AI models', included: true },
     { text: 'Advanced effects library', included: true },
+    { text: 'Faster generations', included: true },
     { text: 'Access to HD resolution (up to 1080P)', included: true },
     { text: '4 concurrent generation', included: true },
     { text: 'Priority support', included: true },
-    { text: 'Cancel at anytime', included: true },
   ]
 
   // Premium Plan (20% OFF for annual)
@@ -91,83 +92,104 @@ export function BlackFridayAnnualPlans() {
   const premiumDiscount = 20
   const premiumAnnualDiscounted = calculateDiscountedPrice(premiumAnnualOriginal, premiumDiscount)
   const premiumMonthlyEquivalent = Math.floor(premiumAnnualDiscounted / 12)
-  const premiumSavings = calculateSavings(premiumAnnualOriginal, premiumDiscount)
+  // 设计稿显示 Save $197.97/yr，直接按设计稿金额展示
+  const premiumSavings = 19797
   const premiumFeatures: PlanFeature[] = [
     { text: '2000 credits/month', included: true },
-    { text: 'Credits delivered every month', included: true },
     { text: 'Watermark-free', included: true },
     { text: 'Advanced AI models', included: true },
     { text: 'Advanced effects library', included: true },
+    { text: 'Faster generations', included: true },
     { text: 'Access to HD resolution (up to 1080P)', included: true },
     { text: '4 concurrent generation', included: true },
     { text: 'Dedicated support', included: true },
-    { text: 'Cancel at anytime', included: true },
   ]
 
   return (
-    <section id="annual-plans" className="py-20 relative">
+    <section id="annual-plans" className="py-10 md:py-20 relative">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
-              20% OFF For All Annual Plans!
-            </span>
-          </h2>
+          {/* 桌面版标题图片 */}
+          <div className="hidden md:block mx-auto mb-4" style={{ maxWidth: '1100px' }}>
+            <img
+              src={`${CDN_BASE}/annual-plan-card.webp`}
+              alt="Annual Plans"
+              className="mx-auto h-auto w-full"
+            />
+          </div>
+
+          {/* 移动版标题图片 */}
+          <div className="md:hidden mx-auto mb-4" style={{ maxWidth: '520px' }}>
+            <img
+              src={`${CDN_BASE}/annual-plan-card-mb.webp`}
+              alt="Annual Plans"
+              className="mx-auto h-auto w-full px-4"
+            />
+          </div>
+
           <p className="text-xl text-gray-300">
-            Biggest Savings for Your AI Creations
+            Best Chance to Unlock VidFab Advanced Features!
           </p>
         </div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">
           {/* Lite Plan */}
           <BlackFridayPlanCard
-            planId="lite"
-            planName="Lite"
-            originalPrice={liteMonthlyEquivalent}
-            discountedPrice={liteMonthlyEquivalent}
-            discount={liteDiscount}
-            billingCycle="annual"
-            credits={SUBSCRIPTION_PLANS.lite.credits}
-            features={liteFeatures}
-            annualTotal={liteAnnualDiscounted}
-            annualSavings={liteSavings}
-            themeColor="blue"
-            onCheckout={handleCheckout}
-          />
+            // Lite 卡片不展示右上角折扣角标
+              planId="lite"
+              planName="Lite"
+              originalPrice={liteMonthlyEquivalent}
+              discountedPrice={liteMonthlyEquivalent}
+              discount={liteDiscount}
+              billingCycle="annual"
+              credits={SUBSCRIPTION_PLANS.lite.credits}
+              features={liteFeatures}
+              annualTotal={liteAnnualDiscounted}
+              annualSavings={liteSavings}
+              themeColor="cyan"
+              saveColor="cyan"
+              onCheckout={handleCheckout}
+            />
 
           {/* Pro Plan */}
           <BlackFridayPlanCard
-            planId="pro"
-            planName="Pro"
-            originalPrice={proMonthlyEquivalent}
-            discountedPrice={proMonthlyEquivalent}
-            discount={proDiscount}
-            billingCycle="annual"
-            credits={SUBSCRIPTION_PLANS.pro.credits}
-            features={proFeatures}
-            annualTotal={proAnnualDiscounted}
-            annualSavings={proSavings}
-            themeColor="purple"
-            onCheckout={handleCheckout}
-          />
+            // Pro 保留右上角折扣角标（喇叭）
+              discountBadgeUrl={`${CDN_BASE}/pricing-card-discount-year.webp`}
+              planId="pro"
+              planName="Pro"
+              originalPrice={proMonthlyEquivalent}
+              discountedPrice={proMonthlyEquivalent}
+              discount={proDiscount}
+              billingCycle="annual"
+              credits={SUBSCRIPTION_PLANS.pro.credits}
+              features={proFeatures}
+              annualTotal={proAnnualDiscounted}
+              annualSavings={proSavings}
+              highlighted
+              themeColor="purple"
+              saveColor="pink"
+              onCheckout={handleCheckout}
+            />
 
           {/* Premium Plan */}
           <BlackFridayPlanCard
-            planId="premium"
-            planName="Premium"
-            originalPrice={premiumMonthlyEquivalent}
-            discountedPrice={premiumMonthlyEquivalent}
-            discount={premiumDiscount}
-            billingCycle="annual"
-            credits={SUBSCRIPTION_PLANS.premium.credits}
-            features={premiumFeatures}
-            annualTotal={premiumAnnualDiscounted}
-            annualSavings={premiumSavings}
-            themeColor="cyan"
-            onCheckout={handleCheckout}
-          />
+            // Premium 卡片不展示右上角折扣角标
+              planId="premium"
+              planName="Premium"
+              originalPrice={premiumMonthlyEquivalent}
+              discountedPrice={premiumMonthlyEquivalent}
+              discount={premiumDiscount}
+              billingCycle="annual"
+              credits={SUBSCRIPTION_PLANS.premium.credits}
+              features={premiumFeatures}
+              annualTotal={premiumAnnualDiscounted}
+              annualSavings={premiumSavings}
+              themeColor="cyan"
+              saveColor="cyan"
+              onCheckout={handleCheckout}
+            />
         </div>
       </div>
     </section>
