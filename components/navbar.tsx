@@ -114,10 +114,14 @@ export function Navbar({ scrolled }: NavbarProps) {
           ? "relative bg-[#0a0a1a] border-b border-purple-500/30"
           : cn(
               "fixed",
-              bannerVisible ? "top-[48px]" : "top-0",
               scrolled ? "bg-black/30 backdrop-blur-lg border-b border-white/10" : "bg-transparent"
             ),
       )}
+      style={
+        !isBlackFridayPage && bannerVisible
+          ? { top: 'var(--bf-banner-height, 0px)' }
+          : undefined
+      }
     >
       <div className="mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
