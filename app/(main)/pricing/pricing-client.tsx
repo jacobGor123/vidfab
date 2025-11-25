@@ -155,7 +155,7 @@ export default function PricingPage() {
   const handleSubscribe = async (planId: 'lite' | 'pro' | 'premium') => {
     if (!session) {
       // Redirect to login if not authenticated
-      window.location.href = '/auth/signin'
+      window.location.href = '/login'
       return
     }
 
@@ -199,7 +199,7 @@ export default function PricingPage() {
         // 🔥 处理认证错误
         if (response.status === 401) {
           alert('Please log in again to continue with the subscription. Your session has expired.');
-          window.location.href = '/auth/signin';
+          window.location.href = '/login';
           return;
         }
 
