@@ -95,29 +95,19 @@ export function BlackFridayMonthlyPlans() {
     { text: 'Dedicated support', included: true },
   ]
 
-  // 折扣图片 CDN 基础路径
-  const cdnBase = 'https://static.vidfab.ai/public/activity/black-friday-sale-2025'
-
   return (
-    <section id="monthly-plans" className="py-10 md:py-20 relative">
+    <section id="monthly-plans" className="py-20 relative">
       <div className="container mx-auto px-4">
-        {/* Section Header - 使用图片 */}
+        {/* Section Header */}
         <div className="text-center mb-12">
-          {/* 桌面端标题图片 */}
-          <img
-            src={`${cdnBase}/monthly-plan-card.webp`}
-            alt="Up to 20% OFF for Monthly Plans"
-            className="mx-auto mb-6 max-w-full h-auto hidden md:block"
-            style={{ maxHeight: '260px' }}
-          />
-          {/* 移动端标题图片 */}
-          <img
-            src={`${cdnBase}/monthly-plan-card-mb.webp`}
-            alt="Up to 20% OFF for Monthly Plans"
-            className="mx-auto mb-6 w-full max-w-[560px] h-auto md:hidden"
-          />
-          <p className="text-lg md:text-xl text-gray-300">
-            Best Chance to Unlock VidFab Advanced Features!
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent">
+              Up to 20% OFF
+            </span>{' '}
+            to Unlock VidFab Advanced Features!
+          </h2>
+          <p className="text-xl text-gray-300">
+            Let's Experience the Power of AI Now!
           </p>
         </div>
 
@@ -134,7 +124,6 @@ export function BlackFridayMonthlyPlans() {
             credits={SUBSCRIPTION_PLANS.lite.credits}
             features={liteFeatures}
             themeColor="blue"
-            discountImage={`${cdnBase}/pricing-card-discount-ten.webp`}
             onCheckout={handleCheckout}
           />
 
@@ -150,7 +139,6 @@ export function BlackFridayMonthlyPlans() {
             features={proFeatures}
             highlighted
             themeColor="purple"
-            discountImage={`${cdnBase}/pricing-card-discount-twenty.webp`}
             onCheckout={handleCheckout}
           />
 
@@ -165,7 +153,6 @@ export function BlackFridayMonthlyPlans() {
             credits={SUBSCRIPTION_PLANS.premium.credits}
             features={premiumFeatures}
             themeColor="cyan"
-            discountImage={`${cdnBase}/pricing-card-discount-ten.webp`}
             onCheckout={handleCheckout}
           />
         </div>
