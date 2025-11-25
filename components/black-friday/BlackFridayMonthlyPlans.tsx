@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
+const CDN_BASE = 'https://static.vidfab.ai/public/activity/black-friday-sale-2025'
+
 export function BlackFridayMonthlyPlans() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -96,65 +98,83 @@ export function BlackFridayMonthlyPlans() {
   ]
 
   return (
-    <section id="monthly-plans" className="py-20 relative">
+    <section id="monthly-plans" className="py-10 md:py-20 relative">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent">
-              Up to 20% OFF
-            </span>{' '}
-            to Unlock VidFab Advanced Features!
-          </h2>
+          {/* 桌面版标题图片 */}
+          <div className="hidden md:block mx-auto mb-4" style={{ maxWidth: '1100px' }}>
+            <img
+              src={`${CDN_BASE}/monthly-plan-card.webp`}
+              alt="Monthly Plans"
+              className="mx-auto h-auto w-full"
+            />
+          </div>
+
+          {/* 移动版标题图片 */}
+          <div className="md:hidden mx-auto mb-4" style={{ maxWidth: '520px' }}>
+            <img
+              src={`${CDN_BASE}/monthly-plan-card-mb.webp`}
+              alt="Monthly Plans"
+              className="mx-auto h-auto w-full px-4"
+            />
+          </div>
+
           <p className="text-xl text-gray-300">
-            Let's Experience the Power of AI Now!
+            Best Chance to Unlock VidFab Advanced Features!
           </p>
         </div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">
           {/* Lite Plan */}
           <BlackFridayPlanCard
-            planId="lite"
-            planName="Lite"
-            originalPrice={liteOriginalPrice}
-            discountedPrice={liteDiscountedPrice}
-            discount={liteDiscount}
-            billingCycle="monthly"
-            credits={SUBSCRIPTION_PLANS.lite.credits}
-            features={liteFeatures}
-            themeColor="blue"
-            onCheckout={handleCheckout}
-          />
+            discountBadgeUrl={`${CDN_BASE}/pricing-card-discount-ten.webp`}
+              planId="lite"
+              planName="Lite"
+              originalPrice={liteOriginalPrice}
+              discountedPrice={liteDiscountedPrice}
+              discount={liteDiscount}
+              billingCycle="monthly"
+              credits={SUBSCRIPTION_PLANS.lite.credits}
+              features={liteFeatures}
+              themeColor="cyan"
+              saveColor="cyan"
+              onCheckout={handleCheckout}
+            />
 
           {/* Pro Plan - BEST CHOICE */}
           <BlackFridayPlanCard
-            planId="pro"
-            planName="Pro"
-            originalPrice={proOriginalPrice}
-            discountedPrice={proDiscountedPrice}
-            discount={proDiscount}
-            billingCycle="monthly"
-            credits={SUBSCRIPTION_PLANS.pro.credits}
-            features={proFeatures}
-            highlighted
-            themeColor="purple"
-            onCheckout={handleCheckout}
-          />
+            discountBadgeUrl={`${CDN_BASE}/pricing-card-discount-twenty.webp`}
+              planId="pro"
+              planName="Pro"
+              originalPrice={proOriginalPrice}
+              discountedPrice={proDiscountedPrice}
+              discount={proDiscount}
+              billingCycle="monthly"
+              credits={SUBSCRIPTION_PLANS.pro.credits}
+              features={proFeatures}
+              highlighted
+              themeColor="purple"
+              saveColor="pink"
+              onCheckout={handleCheckout}
+            />
 
           {/* Premium Plan */}
           <BlackFridayPlanCard
-            planId="premium"
-            planName="Premium"
-            originalPrice={premiumOriginalPrice}
-            discountedPrice={premiumDiscountedPrice}
-            discount={premiumDiscount}
-            billingCycle="monthly"
-            credits={SUBSCRIPTION_PLANS.premium.credits}
-            features={premiumFeatures}
-            themeColor="cyan"
-            onCheckout={handleCheckout}
-          />
+            discountBadgeUrl={`${CDN_BASE}/pricing-card-discount-ten.webp`}
+              planId="premium"
+              planName="Premium"
+              originalPrice={premiumOriginalPrice}
+              discountedPrice={premiumDiscountedPrice}
+              discount={premiumDiscount}
+              billingCycle="monthly"
+              credits={SUBSCRIPTION_PLANS.premium.credits}
+              features={premiumFeatures}
+              themeColor="cyan"
+              saveColor="cyan"
+              onCheckout={handleCheckout}
+            />
         </div>
       </div>
     </section>

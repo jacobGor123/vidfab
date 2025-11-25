@@ -171,20 +171,20 @@ export function CommunityCTA({
       <div className="container mx-auto px-4">
         {/* Title Section - Centered */}
         <div className="text-center mb-12 max-w-5xl mx-auto relative z-10">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold mb-6 text-gradient-brand">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold mb-4 md:mb-5 text-gradient-brand">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-xl md:text-2xl font-medium mb-4 text-gray-200">
+            <p className="text-xl md:text-2xl font-medium mt-4 md:mt-6 mb-10 text-gray-200">
               {subtitle}
             </p>
           )}
           {description && (
-            <p className="text-base md:text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-gray-400 mb-6 max-w-2xl mx-auto">
               {description}
             </p>
           )}
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4 mt-4">
             <Button
               size="lg"
               className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white hover:opacity-90 transition-opacity"
@@ -195,18 +195,6 @@ export function CommunityCTA({
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            {getInspiredText && (
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-brand-purple-DEFAULT text-brand-purple-DEFAULT hover:bg-brand-purple-DEFAULT hover:text-white transition-all"
-                asChild
-              >
-                <Link href="/discover">
-                  {getInspiredText}
-                </Link>
-              </Button>
-            )}
           </div>
         </div>
 
