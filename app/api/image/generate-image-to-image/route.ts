@@ -1,16 +1,15 @@
 /**
  * Image-to-Image Generation API Route
- * 处理图生图请求，验证用户登录状态，调用 Wavespeed API
+ * 处理图生图请求，验证用户登录状态，调用 BytePlus Seedream API
  */
 
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
-import {
-  submitImageGeneration,
-  WavespeedImageAPIError
-} from "@/lib/services/wavespeed-image-api"
+import { submitImageGeneration } from "@/lib/services/byteplus/image/seedream-api"
+import { BytePlusAPIError } from "@/lib/services/byteplus/core/errors"
 import { ImageGenerationRequest, getImageGenerationType } from "@/lib/types/image"
 import { checkImageGenerationCredits, deductUserCredits, IMAGE_GENERATION_CREDITS } from "@/lib/simple-credits-check"
+import { supabaseAdmin, TABLES } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   try {
@@ -137,7 +136,19 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Image-to-image 积分扣除成功: ${IMAGE_GENERATION_CREDITS} 积分，剩余: ${deductResult.newBalance}`)
 
-    // 调用 Wavespeed API
+    // 🔥 根据用户订阅状态设置水印（付费用户关闭，免费用户开启）
+    const { data: userData } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('subscription_plan')
+      .eq('uuid', session.user.uuid)
+      .single()
+
+    const isFreeUser = !userData || userData.subscription_plan === 'free'
+    body.watermark = isFreeUser  // 免费用户开启水印，付费用户关闭
+
+    console.log(`🎨 水印设置: ${isFreeUser ? '开启' : '关闭'} (用户套餐: ${userData?.subscription_plan || 'free'})`)
+
+    // 调用 BytePlus Seedream API（同步返回）
     let result
     try {
       result = await submitImageGeneration(body)
@@ -154,14 +165,48 @@ export async function POST(request: NextRequest) {
       throw imageError
     }
 
-    // 返回成功响应
+    const localId = `img_i2i_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+    // BytePlus 同步返回图片 URL，立即存储到数据库
+    console.log('💾 Storing image to database...')
+    try {
+      const storeResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/image/store`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: session.user.uuid,
+          userEmail: session.user.email || 'unknown@vidfab.ai',
+          wavespeedRequestId: result.data.id,
+          originalUrl: result.imageUrl,
+          settings: {
+            prompt: body.prompt,
+            model: body.model,
+            aspectRatio: body.aspectRatio,
+            generationType: 'image-to-image',
+            sourceImages: body.images
+          }
+        })
+      })
+
+      if (storeResponse.ok) {
+        const storeData = await storeResponse.json()
+        console.log(`✅ Image stored successfully: ${storeData.data?.imageId}`)
+      } else {
+        console.error('⚠️ Image storage failed, but continuing (image URL still available)')
+      }
+    } catch (storeError) {
+      console.error('⚠️ Image storage error:', storeError)
+      // 不抛出错误，因为图片已生成成功
+    }
+
+    // BytePlus 同步返回图片 URL，直接返回
     return NextResponse.json({
       success: true,
       data: {
         requestId: result.data.id,
-        localId: `img_i2i_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        localId: localId,
         userId: session.user.uuid,
-        estimatedTime: "30-60 seconds",
+        imageUrl: result.imageUrl,  // 直接包含图片 URL
         generationType: "image-to-image",
         creditsDeducted: IMAGE_GENERATION_CREDITS
       }
@@ -170,8 +215,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("❌ Image-to-image generation request failed:", error)
 
-    // 处理 Wavespeed API 错误
-    if (error instanceof WavespeedImageAPIError) {
+    // 处理 BytePlus API 错误
+    if (error instanceof BytePlusAPIError) {
       return NextResponse.json(
         {
           error: error.message,

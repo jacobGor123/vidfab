@@ -15,16 +15,6 @@ import { ImagePreviewDialog } from "./image-preview-dialog"
 import { useImageContext } from "@/lib/contexts/image-context"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 
 interface ImageTaskGridItemProps {
   id: string
@@ -48,7 +38,6 @@ export function ImageTaskGridItem({
   onDownload
 }: ImageTaskGridItemProps) {
   const [showPreview, setShowPreview] = useState(false)
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const imageContext = useImageContext()
   const router = useRouter()
 
@@ -56,11 +45,10 @@ export function ImageTaskGridItem({
   const isCompleted = status === "completed"
   const isFailed = status === "failed"
 
-  // 取消任务
+  // 🔥 直接取消任务（无需确认）
   const handleCancelTask = useCallback(() => {
     imageContext.removeTask(id)
-    toast.success('Task cancelled successfully')
-    setShowCancelConfirm(false)
+    toast.success('Task closed')
   }, [id, imageContext])
 
   const handleDownload = () => {
@@ -120,22 +108,20 @@ export function ImageTaskGridItem({
         isCompleted && "border-green-800/50",
         isFailed && "border-red-800/50"
       )}>
-        {/* 🔥 取消按钮 - 仅在处理中时显示 */}
-        {isProcessing && (
-          <button
-            onClick={() => setShowCancelConfirm(true)}
-            className="absolute top-2 left-2 z-10 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all"
-            title="Cancel task"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-
         <CardContent className="p-0">
           {/* 图片区域 */}
           <div className="relative aspect-square bg-gray-900">
             {isProcessing && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/95">
+                {/* 🔥 关闭按钮 - 在轮询动画内部，确保在最上层 */}
+                <button
+                  onClick={handleCancelTask}
+                  className="absolute top-2 right-2 z-50 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all shadow-lg backdrop-blur-sm border border-gray-700"
+                  title="Close this task"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
                 {/* 🔥 统一为 Video 风格的旋转动画 */}
                 <div className="relative mb-4">
                   <div className="w-16 h-16 border-4 border-primary/30 rounded-full animate-spin">
@@ -257,29 +243,6 @@ export function ImageTaskGridItem({
         </div>
       </CardContent>
     </Card>
-
-    {/* 🔥 取消确认对话框 */}
-    <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
-      <AlertDialogContent className="bg-gray-900 border-gray-700">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">Cancel Image Generation?</AlertDialogTitle>
-          <AlertDialogDescription className="text-gray-400">
-            This will stop the image generation process. This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700 border-gray-600">
-            Keep Generating
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleCancelTask}
-            className="bg-red-600 text-white hover:bg-red-700"
-          >
-            Cancel Task
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   </>
   )
 }

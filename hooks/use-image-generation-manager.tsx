@@ -8,6 +8,7 @@ import { useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useImageGeneration } from "./use-image-generation"
 import { useImageContext, ImageTask } from "@/lib/contexts/image-context"
+import { emitCreditsUpdated } from "@/lib/events/credits-events"
 
 // 🔥 V2 迁移：移除 useImagePolling，轮询现在由父组件统一管理
 
@@ -77,16 +78,29 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
         model,
         aspectRatio,
         status: "processing",
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        generationType: 'text-to-image'  // 🔥 标记为文生图
       }
       addTask(newTask)
 
       // 🔥 V2 迁移：移除 startPolling 调用，由父组件自动检测并启动轮询
 
-      return true
+      // 🔥 触发积分更新事件 (生成开始时API已经扣除积分)
+      emitCreditsUpdated('text-to-image-started')
+
+      // 🔥 返回详细信息用于事件追踪
+      return {
+        success: true,
+        requestId,
+        localId
+      }
     } catch (err) {
       console.error('Generation error:', err)
-      return false
+      return {
+        success: false,
+        requestId: '',
+        localId: ''
+      }
     }
   }, [session, imageGeneration, addTask, maxTasks, handleError])
 
@@ -126,16 +140,29 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
         model,
         status: "processing",
         sourceImages: images,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        generationType: 'image-to-image'  // 🔥 标记为图生图
       }
       addTask(newTask)
 
       // 🔥 V2 迁移：移除 startPolling 调用，由父组件自动检测并启动轮询
 
-      return true
+      // 🔥 触发积分更新事件 (生成开始时API已经扣除积分)
+      emitCreditsUpdated('image-to-image-started')
+
+      // 🔥 返回详细信息用于事件追踪
+      return {
+        success: true,
+        requestId,
+        localId
+      }
     } catch (err) {
       console.error('Generation error:', err)
-      return false
+      return {
+        success: false,
+        requestId: '',
+        localId: ''
+      }
     }
   }, [session, imageGeneration, addTask, maxTasks, handleError])
 
