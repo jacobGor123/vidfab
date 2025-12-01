@@ -12,6 +12,7 @@ export interface BaseVideoGenerationRequest {
   aspectRatio: string  // "16:9", "9:16", "1:1"
   seed?: number
   cameraFixed?: boolean
+  watermark?: boolean  // 是否添加水印（默认 false）
 }
 
 // 扩展支持image参数的视频生成请求

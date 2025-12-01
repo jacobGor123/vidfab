@@ -22,6 +22,8 @@ import { VideoJob } from "@/lib/types/video"
 import { VIDEO_POLLING_CONFIG, type PollingConfig } from "@/lib/polling/polling-config"
 import { useUnifiedPolling, type PollingStatusResponse } from "./use-unified-polling"
 import { createPollingError, type PollingError } from "@/lib/polling/polling-errors"
+import { GenerationAnalytics, type GenerationType } from "@/lib/analytics/generation-events"
+import { emitCreditsUpdated } from "@/lib/events/credits-events"
 
 /**
  * 视频任务数据
@@ -215,6 +217,15 @@ export function useVideoPollingV2(
       return
     }
 
+    // 🔥 事件: 生成成功 (只在任务还在处理状态时触发,避免重复)
+    if (job.status === 'processing' || job.status === 'queued') {
+      GenerationAnalytics.trackGenerationSuccess({
+        generationType: (job.generationType || job.settings?.generationType || 'text-to-video') as GenerationType,
+        jobId: job.id,
+        requestId: job.requestId,
+        modelType: job.settings?.model,
+      })
+    }
 
     // 构造 VideoResult 对象
     const videoResult = {
@@ -228,6 +239,9 @@ export function useVideoPollingV2(
 
     // 更新 context
     videoContext.completeJob(job.id, videoResult)
+
+    // 🔥 触发积分更新事件
+    emitCreditsUpdated('video-completed')
 
     // 触发用户回调
     onCompleted?.(job, output)
@@ -245,6 +259,16 @@ export function useVideoPollingV2(
     }
 
     console.error(`❌ Video ${job.id} failed:`, error.getUserMessage())
+
+    // 🔥 事件: 生成失败
+    GenerationAnalytics.trackGenerationFailed({
+      generationType: (job.generationType || job.settings?.generationType || 'text-to-video') as GenerationType,
+      jobId: job.id,
+      requestId: job.requestId,
+      errorType: error.code,
+      errorMessage: error.getUserMessage(),
+      modelType: job.settings?.model,
+    })
 
     // 更新 context
     videoContext.failJob(job.id, error.getUserMessage())
@@ -326,6 +350,9 @@ export function useVideoPollingV2(
     }
 
     unifiedPolling.startPolling(requestId, jobId, jobData)
+
+    // 🔥 生成开始时立即刷新积分 (因为API在开始时就扣除了积分)
+    emitCreditsUpdated('video-started')
   }, [videoContext.activeJobs, unifiedPolling])
 
   /**

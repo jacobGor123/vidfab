@@ -85,7 +85,15 @@ function CreatePageClientInner() {
         !imagePollingStartedRef.current.has(task.requestId)
       ) {
         imagePollingStartedRef.current.add(task.requestId)
-        startImagePolling(task.requestId, task.id)
+        // 🔥 传递任务数据用于事件追踪
+        startImagePolling(task.requestId, task.id, {
+          prompt: task.prompt,
+          settings: {
+            model: task.model,
+            aspectRatio: task.aspectRatio
+          },
+          generationType: task.generationType || 'text-to-image'  // 🔥 传递 generationType
+        })
       }
     })
 

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
+import { VideoStorageManager } from '@/lib/storage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -165,30 +166,60 @@ async function processImageStorage(userId: string, userEmail: string, data: {
       })
     }
 
-    // 🔥 简化方案：直接使用 Wavespeed URL，不下载到 Supabase Storage
-    // 原因：图片 URL 通常较小且稳定，无需额外存储开销
-    console.log(`💾 Creating image metadata in database`)
+    // 🔥 下载图片并上传到 Supabase Storage（永久存储）
+    console.log(`💾 Downloading and uploading image to Supabase Storage...`)
 
-    // 🔥 获取图片文件大小
+    let supabaseImageUrl: string | null = null
+    let storagePath: string | null = null
     let fileSize: number | null = null
+
     try {
-      console.log(`📏 Fetching image size from: ${originalUrl}`)
-      const response = await fetch(originalUrl, { method: 'HEAD' })
-      const contentLength = response.headers.get('content-length')
-      if (contentLength) {
-        fileSize = parseInt(contentLength, 10)
-        console.log(`✅ Image size: ${(fileSize / 1024).toFixed(2)} KB`)
-      } else {
-        console.warn(`⚠️ No content-length header, fetching full image...`)
-        // Fallback: 如果没有 content-length,下载图片获取大小
-        const fullResponse = await fetch(originalUrl)
-        const blob = await fullResponse.blob()
-        fileSize = blob.size
-        console.log(`✅ Image size (from blob): ${(fileSize / 1024).toFixed(2)} KB`)
+      // 下载图片
+      console.log(`📥 Downloading image from: ${originalUrl.substring(0, 80)}...`)
+      const imageResponse = await fetch(originalUrl)
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch image: ${imageResponse.statusText}`)
       }
-    } catch (error) {
-      console.error(`❌ Failed to get image size:`, error)
-      // 继续执行,但 file_size 为 null
+
+      const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
+      fileSize = imageBuffer.length
+      console.log(`✅ Downloaded image: ${(fileSize / 1024).toFixed(2)} KB`)
+
+      // 确定图片格式
+      const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
+
+      // 生成唯一的图片ID（使用 wavespeedRequestId）
+      const imageId = wavespeedRequestId.replace(/[^a-zA-Z0-9]/g, '_')
+
+      // 上传到 Supabase Storage
+      console.log(`📤 Uploading to Supabase Storage...`)
+      const uploadResult = await VideoStorageManager.uploadImage(
+        userId,
+        imageId,
+        imageBuffer,
+        contentType
+      )
+
+      supabaseImageUrl = uploadResult.url
+      storagePath = uploadResult.path
+      console.log(`✅ Image uploaded to Supabase: ${storagePath}`)
+    } catch (uploadError) {
+      console.error(`⚠️ Failed to upload to Supabase Storage:`, uploadError)
+      // 如果上传失败，回退到使用原始 URL
+      supabaseImageUrl = null
+      storagePath = null
+      // 仍然尝试获取文件大小
+      if (!fileSize) {
+        try {
+          const response = await fetch(originalUrl, { method: 'HEAD' })
+          const contentLength = response.headers.get('content-length')
+          if (contentLength) {
+            fileSize = parseInt(contentLength, 10)
+          }
+        } catch (error) {
+          console.error(`❌ Failed to get file size:`, error)
+        }
+      }
     }
 
     const { data: imageData, error: dbError } = await supabaseAdmin
@@ -196,24 +227,26 @@ async function processImageStorage(userId: string, userEmail: string, data: {
       .insert({
         user_id: userId,
         wavespeed_request_id: wavespeedRequestId,
-        original_url: originalUrl,
-        storage_url: originalUrl, // 直接使用原始 URL
-        storage_path: null, // 不使用 Supabase Storage
+        original_url: originalUrl,  // BytePlus 原始 URL（24小时过期）
+        storage_url: supabaseImageUrl || originalUrl,  // 优先使用 Supabase 永久 URL
+        storage_path: storagePath,  // Supabase Storage 路径
         prompt: settings.prompt || 'Generated image',
         model: settings.model,
         aspect_ratio: settings.aspectRatio || null,
         generation_type: settings.generationType || 'text-to-image',
         source_images: settings.sourceImages || null,
         status: 'completed',
-        file_size: fileSize, // 🔥 记录文件大小
+        file_size: fileSize,
         metadata: {
           settings: settings,
           stored_at: new Date().toISOString(),
           user_email: userEmail,
-          file_size_bytes: fileSize
+          file_size_bytes: fileSize,
+          uploaded_to_supabase: !!supabaseImageUrl,  // 标记是否上传到 Supabase
+          storage_path: storagePath
         }
       })
-      .select('id, storage_url, file_size')
+      .select('id, storage_url, file_size, storage_path')
       .single()
 
     if (dbError) {
@@ -221,7 +254,13 @@ async function processImageStorage(userId: string, userEmail: string, data: {
       throw new Error(`Database insert failed: ${dbError.message}`)
     }
 
-    console.log(`✅ Image stored successfully: ${imageData.id}, size: ${fileSize ? (fileSize / 1024).toFixed(2) + ' KB' : 'unknown'}`)
+    const isSupabaseStored = !!supabaseImageUrl
+    console.log(`✅ Image stored successfully: ${imageData.id}`)
+    console.log(`   - File size: ${fileSize ? (fileSize / 1024).toFixed(2) + ' KB' : 'unknown'}`)
+    console.log(`   - Supabase Storage: ${isSupabaseStored ? '✅ Yes' : '⚠️ No (using original URL)'}`)
+    if (storagePath) {
+      console.log(`   - Storage path: ${storagePath}`)
+    }
 
     return NextResponse.json({
       success: true,
@@ -229,8 +268,12 @@ async function processImageStorage(userId: string, userEmail: string, data: {
         imageId: imageData.id,
         status: 'completed',
         storageUrl: imageData.storage_url,
+        storagePath: imageData.storage_path,
         fileSize: imageData.file_size,
-        message: 'Image saved successfully',
+        uploadedToSupabase: isSupabaseStored,
+        message: isSupabaseStored
+          ? 'Image saved to Supabase Storage (permanent)'
+          : 'Image metadata saved (using original URL)',
         userEmail
       }
     })

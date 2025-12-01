@@ -7,7 +7,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import Image from "next/image"
 
@@ -87,30 +87,44 @@ const menuCategories = [
 export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const isMobile = useIsMobile()
-  // 默认为 "discover"，与页面逻辑保持一致
-  const activeTool = (searchParams.get("tool") as ToolType) || "discover"
+
+  // 映射表：tool ID -> /studio 路径（统一管理）
+  const urlMap: Record<ToolType, string> = {
+    'discover': '/studio/discover',
+    'text-to-video': '/studio/text-to-video',
+    'image-to-video': '/studio/image-to-video',
+    'video-effects': '/studio/ai-video-effects',
+    'text-to-image': '/studio/text-to-image',
+    'image-to-image': '/studio/image-to-image',
+    'my-assets': '/studio/my-assets',
+    'my-profile': '/studio/plans',
+  }
+
+  // 根据路径判断当前激活的工具（自动反向匹配）
+  const getActiveToolFromPath = (): ToolType => {
+    // 从路径匹配工具（反向查找）
+    for (const [toolId, url] of Object.entries(urlMap)) {
+      if (pathname.includes(url)) {
+        return toolId as ToolType
+      }
+    }
+
+    // 兼容旧的 /create?tool=xxx 格式
+    const toolParam = searchParams.get("tool") as ToolType
+    if (toolParam) return toolParam
+
+    // 默认为 discover
+    return 'discover'
+  }
+
+  const activeTool = getActiveToolFromPath()
 
   const handleToolSelect = (toolId: ToolType) => {
-    // 映射表：tool ID -> /studio 路径
-    const urlMap: Record<ToolType, string> = {
-      'discover': '/studio/discover',
-      'text-to-video': '/studio/text-to-video',
-      'image-to-video': '/studio/image-to-video',
-      'video-effects': '/studio/ai-video-effects',
-      'text-to-image': '/studio/text-to-image',
-      'image-to-image': '/studio/image-to-image',
-      'my-assets': '/studio/my-assets',
-      'my-profile': '/studio/plans',
-    }
-
-    // 保留原有的 query 参数（如果有的话）
     const newUrl = urlMap[toolId]
-    if (searchParams.toString()) {
-      router.push(`${newUrl}?${searchParams.toString()}`)
-    } else {
-      router.push(newUrl)
-    }
+    // 直接跳转，不保留 query 参数
+    router.push(newUrl)
   }
 
   // 在移动端隐藏侧边栏
