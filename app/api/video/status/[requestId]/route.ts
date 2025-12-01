@@ -1,14 +1,19 @@
 /**
  * Video Status Check API Route
- * 轮询视频生成状态，查询Wavespeed API
+ * 轮询视频生成状态，支持 BytePlus/Wavespeed 灰度切换
  */
 
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import {
-  checkVideoStatus,
+  checkVideoStatus as checkWavespeedStatus,
   WavespeedAPIError
 } from "@/lib/services/wavespeed-api"
+import { checkVideoStatus as checkBytePlusStatus } from "@/lib/services/byteplus/video/seedance-api"
+
+const USE_BYTEPLUS = process.env.USE_BYTEPLUS
+  ? process.env.USE_BYTEPLUS !== 'false'
+  : true // 默认启用 BytePlus，除非明确设置为 'false'
 
 interface RouteParams {
   params: {
@@ -40,9 +45,12 @@ export async function GET(
       )
     }
 
+    const useBytePlus = USE_BYTEPLUS || process.env.NODE_ENV === 'development'
 
-    // 查询 Wavespeed API 状态
-    const statusResult = await checkVideoStatus(requestId)
+    // 查询状态
+    const statusResult = useBytePlus
+      ? await checkBytePlusStatus(requestId)
+      : await checkWavespeedStatus(requestId)
 
     // 构建响应数据
     const responseData = {
@@ -92,11 +100,35 @@ export async function GET(
       )
     }
 
+    // 处理 BytePlus API 错误
+    if ((error as any)?.name === 'BytePlusAPIError') {
+      const status = (error as any).status || 500
+      // 404 时同样返回 not found
+      if (status === 404) {
+        return NextResponse.json(
+          {
+            error: "Video generation request not found or expired",
+            code: "REQUEST_NOT_FOUND"
+          },
+          { status: 404 }
+        )
+      }
+
+      return NextResponse.json(
+        {
+          error: (error as any).message,
+          code: (error as any).code,
+          status
+        },
+        { status: status >= 500 ? 500 : 400 }
+      )
+    }
+
     // 处理其他错误
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
       },
       { status: 500 }
     )

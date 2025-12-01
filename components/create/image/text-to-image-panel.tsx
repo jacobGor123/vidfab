@@ -5,7 +5,7 @@
  * 文生图面板主组件（重构版 - 使用共享 Hook）
  */
 
-import { useState } from "react"
+import { useState, useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,6 +20,7 @@ import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"  // 🔥 订阅弹框
 import { IMAGE_GENERATION_CREDITS } from "@/lib/simple-credits-check"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { GenerationAnalytics, debounce } from "@/lib/analytics/generation-events"
 
 export function TextToImagePanel() {
   const isMobile = useIsMobile()
@@ -27,6 +28,24 @@ export function TextToImagePanel() {
   const [model, setModel] = useState("seedream-v4")
   const [aspectRatio, setAspectRatio] = useState("1:1")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)  // 🔥 订阅弹框状态
+
+  // 用于去重的 Ref：记录上次输入的 prompt
+  const lastPromptRef = useRef<string>("")
+
+  // 防抖的 input_prompt 事件追踪
+  const debouncedTrackPrompt = useMemo(
+    () =>
+      debounce((prompt: string) => {
+        if (prompt !== lastPromptRef.current) {
+          lastPromptRef.current = prompt
+          GenerationAnalytics.trackInputPrompt({
+            generationType: 'text-to-image',
+            promptLength: prompt.length,
+          })
+        }
+      }, 2000),
+    []
+  )
 
   // 🔥 认证弹框 Hook
   const authModal = useAuthModal()
@@ -52,8 +71,31 @@ export function TextToImagePanel() {
 
   // 生成图片 - 使用 requireAuth 包装
   const handleGenerate = async () => {
+    // 🔥 事件1: 点击生成按钮
+    GenerationAnalytics.trackClickGenerate({
+      generationType: 'text-to-image',
+      modelType: model,
+      aspectRatio: aspectRatio,
+      hasPrompt: !!prompt.trim(),
+      promptLength: prompt.trim().length,
+      creditsRequired: IMAGE_GENERATION_CREDITS,
+    })
+
     await authModal.requireAuth(async () => {
-      await generateTextToImage(prompt, model, aspectRatio)
+      const result = await generateTextToImage(prompt, model, aspectRatio)
+
+      // 🔥 事件2: 后端开始生成 (仅在API成功返回时触发)
+      // useImageGenerationManager 返回 { success, requestId, localId }
+      if (result?.success && result.requestId && result.localId) {
+        GenerationAnalytics.trackGenerationStarted({
+          generationType: 'text-to-image',
+          jobId: result.localId,
+          requestId: result.requestId,
+          modelType: model,
+          aspectRatio: aspectRatio,
+          creditsRequired: IMAGE_GENERATION_CREDITS,
+        })
+      }
     })
   }
 
@@ -79,7 +121,12 @@ export function TextToImagePanel() {
                 <Textarea
                   placeholder="A serene mountain landscape at sunset, with vibrant colors and dramatic clouds..."
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => {
+                    const newValue = e.target.value
+                    setPrompt(newValue)
+                    // 🔥 防抖触发 input_prompt 事件
+                    debouncedTrackPrompt(newValue)
+                  }}
                   className="min-h-[120px] bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-none focus:border-purple-500 focus:ring-purple-500"
                   maxLength={1000}
                   disabled={isGenerating}
@@ -156,6 +203,7 @@ export function TextToImagePanel() {
               ))}
             </div>
           ) : (
+            // 空状态
             <Card className="h-full bg-transparent border-none">
               <CardContent className="h-full flex flex-col items-center justify-center">
                 <div className="flex items-center justify-center flex-col">

@@ -5,7 +5,7 @@
  * 图生图面板主组件（重构版 - 使用 useImageUpload Hook）
  */
 
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,6 +24,7 @@ import { ImageUploadArea } from "../image-upload/image-upload-area"
 import { ImageUploadGrid } from "../image-upload/image-upload-grid"
 import toast from "react-hot-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { GenerationAnalytics, debounce } from "@/lib/analytics/generation-events"
 
 export function ImageToImagePanel() {
   const isMobile = useIsMobile()
@@ -31,6 +32,24 @@ export function ImageToImagePanel() {
   const [model, setModel] = useState("seedream-v4")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const imageToImageLoadedRef = useRef(false)
+
+  // 用于去重的 Ref：记录上次输入的 prompt
+  const lastPromptRef = useRef<string>("")
+
+  // 防抖的 input_prompt 事件追踪
+  const debouncedTrackPrompt = useMemo(
+    () =>
+      debounce((prompt: string) => {
+        if (prompt !== lastPromptRef.current) {
+          lastPromptRef.current = prompt
+          GenerationAnalytics.trackInputPrompt({
+            generationType: 'image-to-image',
+            promptLength: prompt.length,
+          })
+        }
+      }, 2000),
+    []
+  )
 
   // 🔥 认证弹框 Hook
   const authModal = useAuthModal()
@@ -49,6 +68,14 @@ export function ImageToImagePanel() {
     (imageUrl: string) => {
       // 当图片被选中时的回调（可选）
       console.log('Selected image:', imageUrl)
+
+      // 🔥 事件: 上传图片成功
+      const completedImages = imageUpload.getCompletedImages()
+      GenerationAnalytics.trackUploadImage({
+        generationType: 'image-to-image',
+        uploadMode: 'local',
+        imageCount: completedImages.length,
+      })
     }
   )
 
@@ -96,16 +123,38 @@ export function ImageToImagePanel() {
 
   // 生成图片 - 使用 requireAuth 包装
   const handleGenerate = useCallback(async () => {
-    await authModal.requireAuth(async () => {
-      // 🔥 从 imageUpload Hook 获取所有已完成上传的图片 URL
-      const completedImages = imageUpload.getCompletedImages()
-      const imageUrls = completedImages.map(task => task.resultUrl).filter(Boolean) as string[]
+    // 🔥 从 imageUpload Hook 获取所有已完成上传的图片 URL
+    const completedImages = imageUpload.getCompletedImages()
+    const imageUrls = completedImages.map(task => task.resultUrl).filter(Boolean) as string[]
 
+    // 🔥 事件1: 点击生成按钮
+    GenerationAnalytics.trackClickGenerate({
+      generationType: 'image-to-image',
+      modelType: model,
+      hasPrompt: !!prompt.trim(),
+      promptLength: prompt.trim().length,
+      imageCount: imageUrls.length,
+      creditsRequired: IMAGE_GENERATION_CREDITS,
+    })
+
+    await authModal.requireAuth(async () => {
       if (imageUrls.length === 0) {
         throw new Error('Please upload at least one image')
       }
 
-      await generateImageToImage(imageUrls, prompt, model)
+      const result = await generateImageToImage(imageUrls, prompt, model)
+
+      // 🔥 事件2: 后端开始生成 (仅在API成功返回时触发)
+      if (result?.success && result.requestId && result.localId) {
+        GenerationAnalytics.trackGenerationStarted({
+          generationType: 'image-to-image',
+          jobId: result.localId,
+          requestId: result.requestId,
+          modelType: model,
+          imageCount: imageUrls.length,
+          creditsRequired: IMAGE_GENERATION_CREDITS,
+        })
+      }
     })
   }, [prompt, model, imageUpload, generateImageToImage, authModal])
 
@@ -241,7 +290,12 @@ export function ImageToImagePanel() {
                 <Textarea
                   placeholder="Transform the image into a watercolor painting style with vibrant colors..."
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => {
+                    const newValue = e.target.value
+                    setPrompt(newValue)
+                    // 🔥 防抖触发 input_prompt 事件
+                    debouncedTrackPrompt(newValue)
+                  }}
                   className="min-h-[120px] bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-none focus:border-purple-500 focus:ring-purple-500"
                   maxLength={1000}
                   disabled={isGenerating}

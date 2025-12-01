@@ -29,6 +29,7 @@ import { VideoTaskGridItem } from "./video-task-grid-item"
 import { VideoLimitDialog } from "./video-limit-dialog"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 import { CREDITS_CONSUMPTION } from "@/lib/subscription/pricing-config"
+import { GenerationAnalytics } from "@/lib/analytics/generation-events"
 
 // Video Effects Components
 import { EffectSelector } from "./effect-selector"
@@ -379,6 +380,13 @@ export function VideoEffectsPanel() {
         uploadMode: 'local'
       }))
 
+      // 🔥 事件: 上传图片成功
+      GenerationAnalytics.trackUploadImage({
+        generationType: 'video-effects',
+        uploadMode: 'local',
+        imageCount: 1,
+      })
+
       // Add to upload history with original file size
       const historyItem = {
         id: data.data.id || Date.now().toString(),
@@ -466,6 +474,15 @@ export function VideoEffectsPanel() {
 
   // Generate video effects
   const handleGenerate = useCallback(async () => {
+    // 🔥 事件1: 点击生成按钮
+    GenerationAnalytics.trackClickGenerate({
+      generationType: 'video-effects',
+      effectId: params.selectedEffect?.id,
+      effectName: params.selectedEffect?.name,
+      uploadMode: params.uploadMode,
+      creditsRequired: CREDITS_CONSUMPTION['video-effects'],
+    })
+
     // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
       // 找到所有已完成的视频（不包括处理中、失败等状态）
@@ -550,11 +567,23 @@ export function VideoEffectsPanel() {
       }
 
       // Call the video effects generation
-      await videoGeneration.generateVideoEffects({
+      const result = await videoGeneration.generateVideoEffects({
         image: imageUrl,
         effectId: params.selectedEffect?.id || '',
         effectName: params.selectedEffect?.name
       })
+
+      // 🔥 事件2: 后端开始生成 (仅在API成功返回时触发)
+      if (result?.success && result.jobId && result.requestId) {
+        GenerationAnalytics.trackGenerationStarted({
+          generationType: 'video-effects',
+          jobId: result.jobId,
+          requestId: result.requestId,
+          effectId: params.selectedEffect?.id,
+          effectName: params.selectedEffect?.name,
+          creditsRequired: CREDITS_CONSUMPTION['video-effects'],
+        })
+      }
     } catch (error) {
       console.error('视频特效生成失败:', error)
       // 🔥 视频生成失败时不显示技术性错误信息，直接引导用户升级或重试

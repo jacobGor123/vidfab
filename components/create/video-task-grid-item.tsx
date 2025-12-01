@@ -291,37 +291,6 @@ export function VideoTaskGridItem({
     )
   }
 
-  // 骨架屏动画状态 - 当没有任务信息时显示
-
-  return (
-    <Card className="h-full bg-gray-950 border-gray-800 overflow-hidden">
-      <CardContent className="h-full p-0">
-        <div className="relative h-full flex flex-col">
-          {/* 模拟视频缩略图区域 */}
-          <div className="flex-1 bg-gray-900 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 animate-pulse" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/20 to-transparent animate-shimmer" />
-
-            {/* 模拟播放按钮 */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-gray-800/80 animate-pulse" />
-            </div>
-          </div>
-
-          {/* 模拟进度条 */}
-          <div className="px-3 py-2 bg-gray-950">
-            <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-purple-600/30 rounded-full animate-pulse" />
-            </div>
-          </div>
-
-          {/* 模拟文本内容 */}
-          <div className="px-3 py-2 space-y-2">
-            <div className="h-3 bg-gray-800 rounded animate-pulse" />
-            <div className="h-2 bg-gray-800/60 rounded w-2/3 animate-pulse" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+  // 🔥 骨架屏已删除 - 不显示占位动画，等待真正的任务数据
+  return null
 }

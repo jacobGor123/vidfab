@@ -14,9 +14,11 @@
  * 5. 智能存储重试
  */
 
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useRef, useEffect } from "react"
 import { IMAGE_POLLING_CONFIG, type PollingConfig } from "@/lib/polling/polling-config"
 import { useUnifiedPolling, type PollingStatusResponse } from "./use-unified-polling"
+import { GenerationAnalytics, type GenerationType } from "@/lib/analytics/generation-events"
+import { emitCreditsUpdated } from "@/lib/events/credits-events"
 
 /**
  * 图片任务数据
@@ -26,6 +28,8 @@ interface ImageJobData {
   userEmail?: string
   prompt?: string
   settings?: any
+  generationType?: GenerationType  // 🔥 添加 generationType 用于事件追踪
+  localId?: string  // 🔥 添加 localId 用于关联
 }
 
 /**
@@ -73,6 +77,7 @@ interface UseImagePollingV2Return {
     userEmail?: string
     prompt?: string
     settings?: any
+    generationType?: GenerationType  // 🔥 添加 generationType
   }) => void
 
   /** 停止轮询 */
@@ -198,10 +203,26 @@ export function useImagePollingV2(
     }
   }, [defaultUserId, defaultUserEmail])
 
+  // 通过 ref 避免在回调中访问尚未初始化的 unifiedPolling（TDZ）
+  const unifiedPollingRef = useRef<ReturnType<typeof useUnifiedPolling<ImageJobData>>>()
+
   /**
    * 完成回调处理
    */
   const handleCompleted = useCallback((requestId: string, output: string) => {
+    const pollingJob = unifiedPollingRef.current?.jobs?.find((j: any) => j.requestId === requestId)
+    if (pollingJob?.data) {
+      GenerationAnalytics.trackGenerationSuccess({
+        generationType: pollingJob.data.generationType || 'text-to-image',
+        jobId: pollingJob.data.localId || pollingJob.localId,
+        requestId: requestId,
+        modelType: pollingJob.data.settings?.model,
+      })
+    }
+
+    // 🔥 触发积分更新事件
+    emitCreditsUpdated('image-completed')
+
     onCompleted?.(requestId, output)
   }, [onCompleted])
 
@@ -210,6 +231,18 @@ export function useImagePollingV2(
    */
   const handleFailed = useCallback((requestId: string, error: any) => {
     console.error(`❌ Image ${requestId} failed:`, error.getUserMessage?.() || error.message)
+
+    const pollingJob = unifiedPollingRef.current?.jobs?.find((j: any) => j.requestId === requestId)
+    if (pollingJob?.data) {
+      GenerationAnalytics.trackGenerationFailed({
+        generationType: pollingJob.data.generationType || 'text-to-image',
+        jobId: pollingJob.data.localId || pollingJob.localId,
+        requestId: requestId,
+        errorMessage: error.getUserMessage?.() || error.message || 'Unknown error',
+        modelType: pollingJob.data.settings?.model,
+      })
+    }
+
     onFailed?.(requestId, error.getUserMessage?.() || error.message || 'Unknown error')
   }, [onFailed])
 
@@ -231,6 +264,11 @@ export function useImagePollingV2(
     onStored: handleStored
   })
 
+  // 将实例写入 ref，供回调访问
+  useEffect(() => {
+    unifiedPollingRef.current = unifiedPolling
+  }, [unifiedPolling])
+
   /**
    * 开始轮询
    */
@@ -242,6 +280,7 @@ export function useImagePollingV2(
       userEmail?: string
       prompt?: string
       settings?: any
+      generationType?: GenerationType  // 🔥 接收 generationType
     }
   ) => {
 
@@ -249,22 +288,27 @@ export function useImagePollingV2(
       userId: jobData?.userId,
       userEmail: jobData?.userEmail,
       prompt: jobData?.prompt,
-      settings: jobData?.settings
+      settings: jobData?.settings,
+      generationType: jobData?.generationType,  // 🔥 传递 generationType
+      localId: localId  // 🔥 传递 localId 用于事件追踪
     }
 
-    unifiedPolling.startPolling(requestId, localId, imageJobData)
-  }, [unifiedPolling])
+    unifiedPollingRef.current?.startPolling(requestId, localId, imageJobData)
+
+    // 🔥 生成开始时立即刷新积分 (因为API在开始时就扣除了积分)
+    emitCreditsUpdated('image-started')
+  }, [])
 
   /**
    * 停止轮询
    */
   const stopPolling = useCallback((requestId?: string) => {
     if (requestId) {
-      unifiedPolling.stopPolling(requestId)
+      unifiedPollingRef.current?.stopPolling(requestId)
     } else {
-      unifiedPolling.stopAllPolling()
+      unifiedPollingRef.current?.stopAllPolling()
     }
-  }, [unifiedPolling])
+  }, [])
 
   return {
     isPolling: unifiedPolling.isPolling,

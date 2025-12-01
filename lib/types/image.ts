@@ -17,6 +17,7 @@ export interface BaseImageGenerationRequest {
 export interface ImageGenerationRequest extends BaseImageGenerationRequest {
   images?: string[]  // 图片 URL 数组，用于 image-to-image（最多3张）
   generationType?: ImageGenerationType
+  watermark?: boolean  // 是否添加水印（默认 false）
 }
 
 // 图片生成响应

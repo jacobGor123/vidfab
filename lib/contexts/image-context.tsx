@@ -27,6 +27,7 @@ export interface ImageTask {
   error?: string
   sourceImages?: string[]
   createdAt: number
+  generationType?: 'text-to-image' | 'image-to-image'  // 🔥 用于事件追踪
 }
 
 // Storage keys

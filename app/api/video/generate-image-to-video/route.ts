@@ -1,6 +1,6 @@
 /**
  * Image-to-Video Generation API Route
- * 处理image-to-video请求，完全复用text-to-video的架构模式
+ * 处理image-to-video请求，支持 BytePlus/Wavespeed 灰度切换
  */
 
 import { NextRequest, NextResponse } from "next/server"
@@ -10,8 +10,14 @@ import {
   validateVideoRequest,
   WavespeedAPIError
 } from "@/lib/services/wavespeed-api"
+import { submitVideoGeneration as submitBytePlusVideoGeneration } from "@/lib/services/byteplus/video/seedance-api"
 import { VideoGenerationRequest, getGenerationType } from "@/lib/types/video"
 import { checkUserCredits, deductUserCredits } from "@/lib/simple-credits-check"
+import { supabaseAdmin, TABLES } from "@/lib/supabase"
+
+const USE_BYTEPLUS = process.env.USE_BYTEPLUS
+  ? process.env.USE_BYTEPLUS !== 'false'
+  : true // 默认启用 BytePlus，除非明确设置为 'false'
 
 export async function POST(request: NextRequest) {
   try {
@@ -143,10 +149,28 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Image-to-Video 积分扣除成功: ${creditsCheck.requiredCredits} 积分，剩余: ${deductResult.newBalance}`)
 
-    // 调用Wavespeed Image-to-Video API
+    const useBytePlus = USE_BYTEPLUS || process.env.NODE_ENV === 'development'
+
+    // 🔥 根据用户订阅状态设置水印（付费用户关闭，免费用户开启）
+    const { data: userData } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('subscription_plan')
+      .eq('uuid', session.user.uuid)
+      .single()
+
+    const isFreeUser = !userData || userData.subscription_plan === 'free'
+    body.watermark = isFreeUser  // 免费用户开启水印，付费用户关闭
+
+    console.log(`🎨 水印设置: ${isFreeUser ? '开启' : '关闭'} (用户套餐: ${userData?.subscription_plan || 'free'})`)
+
+    // 调用对应的 API
     let result
     try {
-      result = await submitImageToVideoGeneration(body)
+      if (useBytePlus) {
+        result = await submitBytePlusVideoGeneration(body)
+      } else {
+        result = await submitImageToVideoGeneration(body)
+      }
     } catch (videoError) {
       // 🔥 视频生成失败时恢复积分
       console.log('❌ Image-to-Video API 调用失败，恢复积分...')
@@ -189,11 +213,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 处理 BytePlus API 错误
+    if ((error as any)?.name === 'BytePlusAPIError') {
+      const status = (error as any).status || 500
+      return NextResponse.json(
+        {
+          error: (error as any).message,
+          code: (error as any).code,
+          status
+        },
+        { status: status >= 500 ? 500 : 400 }
+      )
+    }
+
     // 处理其他错误
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
       },
       { status: 500 }
     )
