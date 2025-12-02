@@ -29,23 +29,32 @@ function CreatePageClientInner() {
   // 使用 ref 追踪已启动轮询的任务，避免重复启动
   const pollingStartedRef = useRef<Set<string>>(new Set())
 
+  // 🔥 使用 ref 保持最新的 activeJobs 引用，避免闭包问题
+  const activeJobsRef = useRef(videoContext.activeJobs)
+  activeJobsRef.current = videoContext.activeJobs
+
   useEffect(() => {
-    videoContext.activeJobs.forEach(job => {
-      // 只对有 requestId 且状态为 processing/queued/created 的任务启动轮询
+    // 🔥 使用 ref 获取最新的 activeJobs
+    const jobs = activeJobsRef.current
+
+    jobs.forEach(job => {
+      // 🔥 增强验证：确保 job 对象完整且有效
       if (
+        job &&
+        job.id &&
         job.requestId &&
         (job.status === 'processing' || job.status === 'queued' || job.status === 'created') &&
         !pollingStartedRef.current.has(job.requestId)  // 避免重复启动
       ) {
         pollingStartedRef.current.add(job.requestId)
-        startPolling(job.id, job.requestId)
+        startPolling(job)  // 🔥 修复：直接传递 job 对象，避免状态查找失败
       }
     })
 
     // 清理已完成/失败任务的追踪记录
     const activeRequestIds = new Set(
-      videoContext.activeJobs
-        .filter(j => j.requestId)
+      jobs
+        .filter(j => j && j.requestId)
         .map(j => j.requestId!)
     )
 
@@ -54,7 +63,7 @@ function CreatePageClientInner() {
         pollingStartedRef.current.delete(requestId)
       }
     })
-  }, [videoContext.activeJobs.length, startPolling]) // 只监听数量变化，不监听整个数组
+  }, [videoContext.activeJobs, startPolling]) // 🔥 监听整个数组，确保 requestId 更新也能触发
 
   // 🔥 图片轮询管理：同样的逻辑应用到图片任务
   const imageContext = useImageContext()
