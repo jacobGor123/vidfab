@@ -29,9 +29,22 @@ import { GenerationAnalytics, debounce } from "@/lib/analytics/generation-events
 export function ImageToImagePanel() {
   const isMobile = useIsMobile()
   const [prompt, setPrompt] = useState("")
-  const [model, setModel] = useState("seedream-v4")
+  const [model, setModelState] = useState("seedream-v4")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const imageToImageLoadedRef = useRef(false)
+
+  // 🔥 Analytics: 包装 model setter 来追踪切换事件
+  const setModel = (newValue: string) => {
+    const oldValue = model
+    if (oldValue !== newValue) {
+      GenerationAnalytics.trackChangeModel({
+        generationType: 'image-to-image',
+        oldValue,
+        newValue,
+      })
+    }
+    setModelState(newValue)
+  }
 
   // 用于去重的 Ref：记录上次输入的 prompt
   const lastPromptRef = useRef<string>("")
