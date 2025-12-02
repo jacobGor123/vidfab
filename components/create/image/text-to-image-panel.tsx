@@ -25,9 +25,36 @@ import { GenerationAnalytics, debounce } from "@/lib/analytics/generation-events
 export function TextToImagePanel() {
   const isMobile = useIsMobile()
   const [prompt, setPrompt] = useState("")
-  const [model, setModel] = useState("seedream-v4")
-  const [aspectRatio, setAspectRatio] = useState("1:1")
+  const [model, setModelState] = useState("seedream-v4")
+  const [aspectRatio, setAspectRatioState] = useState("1:1")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)  // 🔥 订阅弹框状态
+
+  // 🔥 Analytics: 包装 model setter 来追踪切换事件
+  const setModel = (newValue: string) => {
+    const oldValue = model
+    if (oldValue !== newValue) {
+      GenerationAnalytics.trackChangeModel({
+        generationType: 'text-to-image',
+        oldValue,
+        newValue,
+      })
+    }
+    setModelState(newValue)
+  }
+
+  // 🔥 Analytics: 包装 aspectRatio setter 来追踪切换事件
+  const setAspectRatio = (newValue: string) => {
+    const oldValue = aspectRatio
+    if (oldValue !== newValue) {
+      GenerationAnalytics.trackChangeRatio({
+        generationType: 'text-to-image',
+        oldValue,
+        newValue,
+        modelType: model,
+      })
+    }
+    setAspectRatioState(newValue)
+  }
 
   // 用于去重的 Ref：记录上次输入的 prompt
   const lastPromptRef = useRef<string>("")
