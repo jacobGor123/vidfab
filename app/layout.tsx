@@ -131,6 +131,18 @@ export default function RootLayout({
               })(window,document,'script','dataLayer','GTM-KHJSNV42');`
           }}
         />
+        {/* 初始化 gtag 函数 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
+              gtag('js', new Date());
+              gtag('config', 'GTM-KHJSNV42');
+            `
+          }}
+        />
         {/* 字体预加载 - 提高 FCP */}
         <link
           rel="preload"
