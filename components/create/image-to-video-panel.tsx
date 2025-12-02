@@ -30,6 +30,7 @@ import { VideoTaskGridItem } from "./video-task-grid-item"
 import { VideoLimitDialog } from "./video-limit-dialog"
 import { calculateCreditsRequired } from "@/lib/subscription/pricing-config"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
+import { GenerationAnalytics, debounce } from "@/lib/analytics/generation-events"
 
 // Types
 import { VideoGenerationRequest, DURATION_MAP } from "@/lib/types/video"
@@ -61,6 +62,23 @@ export function ImageToVideoPanelEnhanced() {
   // 🔥 追踪是否已经加载过 image-to-video 数据
   const imageToVideoLoadedRef = useRef(false)
 
+  // 🔥 Analytics: 防抖追踪 input_prompt 事件
+  const lastPromptRef = useRef<string>("")
+
+  useEffect(() => {
+    const debouncedTrack = debounce(() => {
+      if (params.prompt && params.prompt !== lastPromptRef.current && params.prompt.length > 5) {
+        GenerationAnalytics.trackInputPrompt({
+          generationType: 'image-to-video',
+          promptLength: params.prompt.length,
+        })
+        lastPromptRef.current = params.prompt
+      }
+    }, 2000)
+
+    debouncedTrack()
+  }, [params.prompt])
+
   // Context and hooks
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
@@ -83,6 +101,13 @@ export function ImageToVideoPanelEnhanced() {
         imageFile: null,
         image: imageUrl
       }))
+
+      // 🔥 Analytics: 追踪图片上传成功
+      GenerationAnalytics.trackUploadImage({
+        generationType: 'image-to-video',
+        uploadMode: params.uploadMode,
+        imageCount: 1,
+      })
     }
   )
   const { getRemixData, clearRemixData } = useRemix()
@@ -112,6 +137,18 @@ export function ImageToVideoPanelEnhanced() {
   // Video generation
   const videoGeneration = useVideoGeneration({
     onSuccess: (jobId, requestId) => {
+      // 🔥 Analytics: 追踪后端开始生成
+      GenerationAnalytics.trackGenerationStarted({
+        generationType: 'image-to-video',
+        jobId,
+        requestId,
+        modelType: params.model,
+        duration: params.duration,
+        aspectRatio: params.aspectRatio,
+        resolution: params.resolution,
+        creditsRequired: getCreditsRequired(),
+      })
+
       startPolling(jobId, requestId) // 🔥 启动轮询
     },
     onError: (error) => {
@@ -412,6 +449,19 @@ export function ImageToVideoPanelEnhanced() {
       return
     }
 
+    // 🔥 Analytics: 追踪点击生成按钮
+    GenerationAnalytics.trackClickGenerate({
+      generationType: 'image-to-video',
+      modelType: params.model,
+      duration: params.duration,
+      aspectRatio: params.aspectRatio,
+      resolution: params.resolution,
+      hasPrompt: !!params.prompt.trim(),
+      promptLength: params.prompt.trim().length,
+      uploadMode: params.uploadMode,
+      creditsRequired: getCreditsRequired(),
+    })
+
     // 权限和Credits检查
     if (session?.user?.uuid) {
       try {
@@ -491,7 +541,37 @@ export function ImageToVideoPanelEnhanced() {
 
   // Update form parameters
   const updateParam = useCallback((key: keyof ImageToVideoParams, value: string) => {
-    setParams(prev => ({ ...prev, [key]: value }))
+    setParams(prev => {
+      const oldValue = prev[key]
+
+      // 🔥 Analytics: 追踪参数切换事件
+      if (oldValue !== value) {
+        if (key === 'model') {
+          GenerationAnalytics.trackChangeModel({
+            generationType: 'image-to-video',
+            oldValue: oldValue as string,
+            newValue: value,
+          })
+        } else if (key === 'duration') {
+          GenerationAnalytics.trackChangeDuration({
+            generationType: 'image-to-video',
+            oldValue: oldValue as string,
+            newValue: value,
+            modelType: prev.model,
+          })
+        } else if (key === 'aspectRatio') {
+          GenerationAnalytics.trackChangeRatio({
+            generationType: 'image-to-video',
+            oldValue: oldValue as string,
+            newValue: value,
+            modelType: prev.model,
+          })
+        }
+      }
+
+      return { ...prev, [key]: value }
+    })
+
     // Clear related validation errors
     if (validationErrors.length > 0) {
       setValidationErrors([])
