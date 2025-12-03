@@ -86,11 +86,6 @@ export class GenerationAnalytics {
       effect_name: params.effectName,
       credits_required: params.creditsRequired,
     })
-
-    console.log('[Analytics] click_generate', {
-      generation_type: params.generationType,
-      model_type: params.modelType,
-    })
   }
 
   /**
@@ -109,12 +104,6 @@ export class GenerationAnalytics {
       resolution: params.resolution,
       credits_required: params.creditsRequired,
     })
-
-    console.log('[Analytics] generation_started', {
-      generation_type: params.generationType,
-      job_id: params.jobId,
-      request_id: params.requestId,
-    })
   }
 
   /**
@@ -128,12 +117,6 @@ export class GenerationAnalytics {
       job_id: params.jobId,
       request_id: params.requestId,
       model_type: params.modelType,
-    })
-
-    console.log('[Analytics] generation_success', {
-      generation_type: params.generationType,
-      job_id: params.jobId,
-      request_id: params.requestId,
     })
   }
 
@@ -151,12 +134,6 @@ export class GenerationAnalytics {
       error_message: params.errorMessage,
       model_type: params.modelType,
     })
-
-    console.log('[Analytics] generation_failed', {
-      generation_type: params.generationType,
-      job_id: params.jobId,
-      error_type: params.errorType,
-    })
   }
 
   /**
@@ -166,12 +143,6 @@ export class GenerationAnalytics {
     if (!this.isGtagAvailable()) return
 
     window.gtag('event', 'upload_image', {
-      generation_type: params.generationType,
-      upload_mode: params.uploadMode,
-      image_count: params.imageCount,
-    })
-
-    console.log('[Analytics] upload_image', {
       generation_type: params.generationType,
       upload_mode: params.uploadMode,
       image_count: params.imageCount,
@@ -196,11 +167,6 @@ export class GenerationAnalytics {
       generation_type: params.generationType,
       prompt_length: params.promptLength,
     })
-
-    console.log('[Analytics] input_prompt', {
-      generation_type: params.generationType,
-      prompt_length: params.promptLength,
-    })
   }
 
   /**
@@ -210,12 +176,6 @@ export class GenerationAnalytics {
     if (!this.isGtagAvailable()) return
 
     window.gtag('event', 'change_model', {
-      generation_type: params.generationType,
-      old_value: params.oldValue,
-      new_value: params.newValue,
-    })
-
-    console.log('[Analytics] change_model', {
       generation_type: params.generationType,
       old_value: params.oldValue,
       new_value: params.newValue,
@@ -234,12 +194,6 @@ export class GenerationAnalytics {
       new_value: params.newValue,
       model_type: params.modelType,
     })
-
-    console.log('[Analytics] change_duration', {
-      generation_type: params.generationType,
-      old_value: params.oldValue,
-      new_value: params.newValue,
-    })
   }
 
   /**
@@ -253,12 +207,6 @@ export class GenerationAnalytics {
       old_value: params.oldValue,
       new_value: params.newValue,
       model_type: params.modelType,
-    })
-
-    console.log('[Analytics] change_ratio', {
-      generation_type: params.generationType,
-      old_value: params.oldValue,
-      new_value: params.newValue,
     })
   }
 }

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { SUBSCRIPTION_PLANS, getAnnualDiscount } from "@/lib/subscription/pricing-config"
 import toast from "react-hot-toast"
-import { trackBeginCheckout, trackBillingToggle, trackCancelSubscription } from "@/lib/analytics/gtm"
+import { trackBeginCheckout, trackBillingToggle, trackCancelSubscription, trackViewPricingPage } from "@/lib/analytics/gtm"
 
 export default function PricingPage() {
   const [loading, setLoading] = useState(true)
@@ -22,6 +22,11 @@ export default function PricingPage() {
   const [currentPlan, setCurrentPlan] = useState<string>('free') // 🔥 用户当前套餐状态
   const [planLoading, setPlanLoading] = useState(true) // 🔥 套餐状态加载中
   const { data: session } = useSession()
+
+  // 🔥 GTM 访问价格页事件跟踪
+  useEffect(() => {
+    trackViewPricingPage()
+  }, [])
 
   useEffect(() => {
     // Simulate loading
@@ -164,7 +169,7 @@ export default function PricingPage() {
     // 🔥 GTM 开始结账事件跟踪
     const plan = SUBSCRIPTION_PLANS[planId]
     const value = annual ? plan.price.annual / 100 : plan.price.monthly / 100
-    trackBeginCheckout(planId, annual ? 'annual' : 'monthly', value)
+    trackBeginCheckout(planId, annual ? 'annual' : 'monthly', value, 'pricing_page')
 
     try {
       // 使用环境变量控制是否使用测试模式，而不是自动检测开发环境

@@ -76,7 +76,7 @@ interface UseVideoPollingV2Return {
   pollingCount: number
 
   /** 开始轮询 */
-  startPolling: (jobId: string, requestId: string) => void
+  startPolling: (job: VideoJob) => void
 
   /** 停止轮询 */
   stopPolling: (jobId?: string) => void
@@ -102,8 +102,8 @@ interface UseVideoPollingV2Return {
  *   }
  * })
  *
- * // 开始轮询
- * videoPolling.startPolling(job.id)
+ * // 开始轮询 - 传入完整的 VideoJob 对象
+ * videoPolling.startPolling(job)
  *
  * // 停止轮询
  * videoPolling.stopPolling(job.id)
@@ -320,22 +320,19 @@ export function useVideoPollingV2(
   /**
    * 开始轮询
    *
-   * 🎯 直接使用传入的 requestId，避免 React 状态同步问题
+   * 🎯 直接接受 VideoJob 对象，避免 React 状态同步和查找失败问题
    */
-  const startPolling = useCallback((jobId: string, requestId: string) => {
-
-    if (!requestId) {
-      console.error(`❌ [V2] requestId is required for polling`)
+  const startPolling = useCallback((job: VideoJob) => {
+    // 🔥 增强验证：确保 job 对象完整有效
+    if (!job || !job.id) {
+      console.error(`❌ [V2] Invalid job object:`, job)
       return
     }
 
-    const job = videoContext.activeJobs.find(j => j.id === jobId)
-
-    if (!job) {
-      console.error(`❌ [V2] Job ${jobId} not found in activeJobs, cannot start polling`)
+    if (!job.requestId) {
+      console.warn(`⚠️ [V2] Job ${job.id} missing requestId, skipping polling (this is expected if job is still being created)`)
       return
     }
-
 
     // 准备任务数据
     const jobData: VideoJobData = {
@@ -349,11 +346,11 @@ export function useVideoPollingV2(
       settings: job.settings
     }
 
-    unifiedPolling.startPolling(requestId, jobId, jobData)
+    unifiedPolling.startPolling(job.requestId, job.id, jobData)
 
     // 🔥 生成开始时立即刷新积分 (因为API在开始时就扣除了积分)
     emitCreditsUpdated('video-started')
-  }, [videoContext.activeJobs, unifiedPolling])
+  }, [unifiedPolling])
 
   /**
    * 停止轮询
@@ -377,11 +374,14 @@ export function useVideoPollingV2(
 
     // 重新启动所有应该轮询的任务
     videoContext.activeJobs.forEach(job => {
+      // 🔥 增强验证：确保 job 对象完整有效
       if (
+        job &&
+        job.id &&
         job.requestId &&
         (job.status === 'processing' || job.status === 'queued' || job.status === 'created')
       ) {
-        startPolling(job.id, job.requestId)
+        startPolling(job)
       }
     })
   }, [videoContext.activeJobs, unifiedPolling, startPolling])
