@@ -30,6 +30,7 @@ import { VideoLimitDialog } from "./video-limit-dialog"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 import { CREDITS_CONSUMPTION } from "@/lib/subscription/pricing-config"
 import { GenerationAnalytics } from "@/lib/analytics/generation-events"
+import { trackApplyAiEffect } from "@/lib/analytics/gtm"
 
 // Video Effects Components
 import { EffectSelector } from "./effect-selector"
@@ -610,6 +611,9 @@ export function VideoEffectsPanel() {
 
   // Handle effect selection
   const handleEffectSelect = (effect: VideoEffect) => {
+    // 🔥 GTM 使用AI特效事件跟踪
+    trackApplyAiEffect(effect.id)
+
     setParams(prev => ({ ...prev, selectedEffect: effect }))
     setShowEffectsModal(false)
   }

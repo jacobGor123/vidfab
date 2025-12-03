@@ -90,11 +90,13 @@ export function trackLogin(method: 'email' | 'google') {
  * @param planId 套餐ID
  * @param billingCycle 计费周期
  * @param value 预计金额
+ * @param source 触发来源 (pricing_page, credit_insufficient, etc.)
  */
 export function trackBeginCheckout(
   planId: string,
   billingCycle: 'monthly' | 'annual',
-  value: number
+  value: number,
+  source: string = 'unknown'
 ) {
   if (typeof window !== 'undefined' && window.gtag) {
     // GA4 标准 begin_checkout 事件
@@ -112,13 +114,15 @@ export function trackBeginCheckout(
       ],
       // 自定义维度
       plan_id: planId,
-      billing_cycle: billingCycle
+      billing_cycle: billingCycle,
+      source: source
     });
 
     console.log('✅ GTM Begin Checkout Event Tracked:', {
       planId,
       billingCycle,
-      value
+      value,
+      source
     });
   }
 }
@@ -191,5 +195,110 @@ export function trackPageView(pageTitle: string, pagePath: string) {
     });
 
     console.log('✅ GTM Page View Event Tracked:', { pageTitle, pagePath });
+  }
+}
+
+/**
+ * 访问价格页事件
+ */
+export function trackViewPricingPage() {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'view_pricing_page', {});
+
+    console.log('✅ GTM View Pricing Page Event Tracked');
+  }
+}
+
+/**
+ * 点击升级按钮事件
+ * @param planFrom 当前套餐 (free, lite, pro)
+ */
+export function trackUpgradeClick(planFrom: string) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'upgrade_click', {
+      plan_from: planFrom
+    });
+
+    console.log('✅ GTM Upgrade Click Event Tracked:', { planFrom });
+  }
+}
+
+/**
+ * 点击进入文生视频功能
+ */
+export function trackUseTextToVideo() {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'use_text_to_video', {});
+
+    console.log('✅ GTM Use Text-to-Video Event Tracked');
+  }
+}
+
+/**
+ * 点击进入图生视频功能
+ */
+export function trackUseImageToVideo() {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'use_image_to_video', {});
+
+    console.log('✅ GTM Use Image-to-Video Event Tracked');
+  }
+}
+
+/**
+ * 点击进入文生图片功能
+ */
+export function trackUseTextToImage() {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'use_text_to_image', {});
+
+    console.log('✅ GTM Use Text-to-Image Event Tracked');
+  }
+}
+
+/**
+ * 点击进入图生图片功能
+ */
+export function trackUseImageToImage() {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'use_image_to_image', {});
+
+    console.log('✅ GTM Use Image-to-Image Event Tracked');
+  }
+}
+
+/**
+ * 点击进入AI特效模板功能
+ */
+export function trackUseAiEffect() {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'use_ai_effect', {});
+
+    console.log('✅ GTM Use AI Effect Event Tracked');
+  }
+}
+
+/**
+ * 使用AI特效模板事件
+ * @param effectId 特效ID
+ */
+export function trackApplyAiEffect(effectId: string) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'apply_ai_effect', {
+      effect_id: effectId
+    });
+
+    console.log('✅ GTM Apply AI Effect Event Tracked:', { effectId });
+  }
+}
+
+/**
+ * 点击查看套餐事件
+ */
+export function trackViewSubscription() {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'view_subscription', {});
+
+    console.log('✅ GTM View Subscription Event Tracked');
   }
 }

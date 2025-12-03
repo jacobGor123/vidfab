@@ -26,6 +26,7 @@ import {
 import { useSubscription } from "@/hooks/use-subscription"
 import { SUBSCRIPTION_PLANS, MODEL_ACCESS } from "@/lib/subscription/pricing-config"
 import type { PlanId } from "@/lib/subscription/types"
+import { trackBeginCheckout } from "@/lib/analytics/gtm"
 
 interface UpgradeDialogProps {
   open: boolean
@@ -54,6 +55,11 @@ export function UpgradeDialog({
 
     setIsUpgrading(true)
     try {
+      // 🔥 GTM 开始结账事件跟踪
+      const plan = SUBSCRIPTION_PLANS[planId]
+      const value = billingCycle === 'annual' ? plan.price.annual / 100 : plan.price.monthly / 100
+      trackBeginCheckout(planId, billingCycle, value, 'upgrade_dialog')
+
       await upgradeSubscription(planId, billingCycle)
       // 升级成功后会跳转到Stripe结账页面
     } catch (error: any) {

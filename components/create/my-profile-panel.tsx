@@ -12,6 +12,7 @@ import { SubscriptionInfoCard } from "./subscription-info-card"
 import { CreditsBalanceCard } from "./credits-balance-card"
 import { OrdersHistoryList } from "./orders-history-list"
 import toast from "react-hot-toast"
+import { trackUpgradeClick } from "@/lib/analytics/gtm"
 
 export function MyProfilePanel() {
   const router = useRouter()
@@ -59,6 +60,8 @@ export function MyProfilePanel() {
   }
 
   const handleUpgrade = () => {
+    // 🔥 GTM 升级按钮点击事件跟踪
+    trackUpgradeClick(subscription?.plan_id || 'free')
     router.push('/pricing')
   }
 
