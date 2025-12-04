@@ -4,9 +4,6 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable standalone output for Docker
-  output: 'standalone',
-
   // Optimize for production hydration
   swcMinify: true,
   compress: true,

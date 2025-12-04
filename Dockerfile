@@ -59,15 +59,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy all necessary files for production
 COPY --from=builder /app/public ./public
-
-# Copy Next.js build output - try standalone first, fallback to full build
-RUN echo "Checking available .next outputs..."
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Create missing manifest files if they don't exist
+# Create missing manifest files if they don't exist (for error tolerance)
 RUN if [ ! -f ./.next/prerender-manifest.json ]; then echo '{"version":4,"routes":{},"dynamicRoutes":{},"notFoundRoutes":[],"preview":{"previewModeId":"","previewModeSigningKey":"","previewModeEncryptionKey":""}}' > ./.next/prerender-manifest.json; fi
 RUN if [ ! -f ./.next/routes-manifest.json ]; then echo '{"version":3,"pages404":false,"basePath":"","redirects":[],"rewrites":{"beforeFiles":[],"afterFiles":[],"fallback":[]},"headers":[]}' > ./.next/routes-manifest.json; fi
 RUN if [ ! -f ./.next/BUILD_ID ]; then echo "production-build-$(date +%s)" > ./.next/BUILD_ID; fi
@@ -76,7 +74,7 @@ USER nextjs
 
 # Server configuration - support environment variables
 ENV PORT=3000
-ENV HOST=0.0.0.0
+ENV HOSTNAME=0.0.0.0
 
 EXPOSE $PORT
 
