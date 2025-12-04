@@ -25,8 +25,8 @@ export function generatePageMetadata({
   description,
   path,
   keywords = [],
-  ogImage = '/og-image.jpg',
-  twitterImage = '/twitter-image.jpg',
+  ogImage = '/og-image.webp',
+  twitterImage = '/twitter-image.webp',
 }: PageMetadataProps): Metadata {
   const url = `${baseUrl}${path}`
 

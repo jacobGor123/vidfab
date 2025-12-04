@@ -218,6 +218,7 @@ export const TABLES = {
   USER_STORAGE_QUOTAS: 'user_storage_quotas',
   SUBSCRIPTIONS: 'subscriptions',
   PAYMENTS: 'payments',
+  BLOG_POSTS: 'blog_posts', // Blog posts table
 } as const;
 
 // Helper function to handle Supabase errors

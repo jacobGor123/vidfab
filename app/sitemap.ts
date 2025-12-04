@@ -6,8 +6,9 @@
  */
 
 import { MetadataRoute } from 'next'
+import { getBlogPosts } from '@/models/blog'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
   const currentDate = new Date()
 
@@ -73,6 +74,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },
+    {
+      route: '/blog',
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    },
   ]
 
   const staticRoutes = staticPages.map(page => ({
@@ -82,18 +88,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: page.priority,
   }))
 
-  // Future: Add dynamic content here
-  // Example: Blog posts, user profiles, etc.
-  /*
-  const dynamicRoutes = await getDynamicContent().then(items =>
-    items.map(item => ({
-      url: `${baseUrl}${item.path}`,
-      lastModified: new Date(item.updatedAt),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
-  )
-  */
+  // Blog posts - Dynamic content
+  let blogRoutes: MetadataRoute.Sitemap = []
+  try {
+    const blogPosts = await getBlogPosts({
+      status: 'published',
+    })
 
-  return [...staticRoutes]
+    if (blogPosts && blogPosts.length > 0) {
+      blogRoutes = blogPosts.map(post => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: post.updated_at ? new Date(post.updated_at) : post.published_at ? new Date(post.published_at) : currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch blog posts for sitemap:', error)
+  }
+
+  return [...staticRoutes, ...blogRoutes]
 }
