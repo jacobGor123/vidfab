@@ -308,12 +308,14 @@ export class VideoStorageManager {
 
   /**
    * Upload image for image-to-video feature
+   * 包含重试机制,处理临时网络错误
    */
   static async uploadImage(
     userId: string,
     imageId: string,
     file: File | Buffer,
-    contentType?: string
+    contentType?: string,
+    maxRetries: number = 3
   ): Promise<StorageUploadResult> {
     // Determine file extension from content type or file name
     let extension = 'jpg'
@@ -342,23 +344,55 @@ export class VideoStorageManager {
       throw new Error(`Unsupported image format: ${contentType}`)
     }
 
-    const { data, error } = await supabaseAdmin.storage
-      .from(STORAGE_CONFIG.buckets.images)
-      .upload(path, file, {
-        cacheControl: '3600',
-        upsert: true,
-        contentType: contentType || 'image/jpeg',
-      })
+    // 重试机制:最多尝试 maxRetries 次
+    let lastError: any = null
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const { data, error } = await supabaseAdmin.storage
+          .from(STORAGE_CONFIG.buckets.images)
+          .upload(path, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: contentType || 'image/jpeg',
+          })
 
-    if (error) {
-      console.error('Image upload error:', error)
-      throw new Error(`Failed to upload image: ${error.message}`)
+        if (error) {
+          lastError = error
+          console.warn(`⚠️  Image upload attempt ${attempt}/${maxRetries} failed:`, error.message)
+
+          // 如果不是最后一次尝试,等待后重试
+          if (attempt < maxRetries) {
+            const waitTime = attempt * 2000 // 递增等待时间: 2s, 4s, 6s
+            console.log(`   → 等待 ${waitTime / 1000}s 后重试...`)
+            await new Promise(resolve => setTimeout(resolve, waitTime))
+            continue
+          }
+        } else {
+          // 上传成功
+          if (attempt > 1) {
+            console.log(`✅ Image upload succeeded on attempt ${attempt}/${maxRetries}`)
+          }
+          return {
+            path: data.path,
+            url: this.getImageUrl(userId, imageId, extension)
+          }
+        }
+      } catch (exception: any) {
+        lastError = exception
+        console.warn(`⚠️  Image upload attempt ${attempt}/${maxRetries} exception:`, exception.message)
+
+        if (attempt < maxRetries) {
+          const waitTime = attempt * 2000
+          console.log(`   → 等待 ${waitTime / 1000}s 后重试...`)
+          await new Promise(resolve => setTimeout(resolve, waitTime))
+          continue
+        }
+      }
     }
 
-    return {
-      path: data.path,
-      url: this.getImageUrl(userId, imageId, extension)
-    }
+    // 所有重试都失败
+    console.error('❌ Image upload failed after all retries:', lastError)
+    throw new Error(`Failed to upload image after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`)
   }
 
   /**

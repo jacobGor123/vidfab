@@ -44,8 +44,13 @@ RUN npm run build; EXIT_CODE=$?; if [ $EXIT_CODE -eq 0 ]; then echo "Build succe
 FROM base AS runner
 WORKDIR /app
 
-# Install curl for healthcheck and ffmpeg for video compression
-RUN apk add --no-cache curl ffmpeg
+# Install curl for healthcheck, ffmpeg for video compression, and tzdata for timezone support
+RUN apk add --no-cache curl ffmpeg tzdata
+
+# Set timezone to Asia/Shanghai (Beijing Time)
+# If you want to keep UTC and just adjust cron expression, comment out these lines
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Let .env.local control NODE_ENV - don't force production at runtime
 # Uncomment the following line in case you want to disable telemetry during runtime.

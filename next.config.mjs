@@ -65,6 +65,8 @@ const nextConfig = {
   experimental: {
     // Add experimental features here if needed
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // Enable instrumentation for blog cron jobs
+    instrumentationHook: true,
   },
 
   // Production build configuration

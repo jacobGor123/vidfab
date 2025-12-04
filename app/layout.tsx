@@ -79,7 +79,7 @@ export const metadata: Metadata = {
     description: 'Transform your videos with cutting-edge AI technology. Create, enhance, and convert videos effortlessly with our powerful AI video platform.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.webp',
         width: 1200,
         height: 630,
         alt: 'VidFab AI Video Platform',
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VidFab - AI Video Platform',
     description: 'Transform your videos with cutting-edge AI technology. Generate videos from text, images, or apply stunning AI effects.',
-    images: ['/twitter-image.jpg'],
+    images: ['/twitter-image.webp'],
     creator: '@vidfab',
   },
 
