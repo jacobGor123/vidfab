@@ -239,6 +239,13 @@ export function Navbar({ scrolled }: NavbarProps) {
                   Pricing
                 </Link>
 
+                <Link
+                  href="/blog"
+                  className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
+                >
+                  Blog
+                </Link>
+
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
@@ -390,6 +397,14 @@ export function Navbar({ scrolled }: NavbarProps) {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Pricing
+                </Link>
+
+                <Link
+                  href="/blog"
+                  className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Blog
                 </Link>
 
                 {/* Support Section */}

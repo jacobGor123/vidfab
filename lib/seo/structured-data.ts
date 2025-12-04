@@ -120,7 +120,7 @@ export function getSoftwareApplicationSchema() {
     },
     description: 'AI-powered video creation and transformation platform',
     url: baseUrl,
-    screenshot: `${baseUrl}/og-image.jpg`,
+    screenshot: `${baseUrl}/og-image.webp`,
   }
 }
 
@@ -257,5 +257,158 @@ export function getVideoObjectSchema(video: {
         url: `${baseUrl}/logo/vidfab-logo.png`,
       },
     },
+  }
+}
+
+/**
+ * BlogPosting Schema - For individual blog posts
+ */
+export function getBlogPostingSchema(post: {
+  title: string
+  excerpt?: string
+  content: string
+  slug: string
+  author_name?: string
+  published_at?: string
+  updated_at?: string
+  featured_image_url?: string
+  category?: string
+  tags?: string[]
+  keywords?: string[]
+}) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const postUrl = `${baseUrl}/blog/${post.slug}`
+
+  const schema: any = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt || post.title,
+    url: postUrl,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': postUrl,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'VidFab',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/logo/vidfab-logo.png`,
+      },
+    },
+  }
+
+  // Add author if available
+  if (post.author_name) {
+    schema.author = {
+      '@type': 'Person',
+      name: post.author_name,
+    }
+  }
+
+  // Add published date
+  if (post.published_at) {
+    schema.datePublished = post.published_at
+  }
+
+  // Add modified date (fallback to published date)
+  schema.dateModified = post.updated_at || post.published_at || new Date().toISOString()
+
+  // Add featured image
+  if (post.featured_image_url) {
+    schema.image = {
+      '@type': 'ImageObject',
+      url: post.featured_image_url,
+      width: 1200,
+      height: 630,
+    }
+  }
+
+  // Add keywords
+  if (post.keywords && post.keywords.length > 0) {
+    schema.keywords = post.keywords.join(', ')
+  } else if (post.tags && post.tags.length > 0) {
+    schema.keywords = post.tags.join(', ')
+  }
+
+  // Add article section (category)
+  if (post.category) {
+    schema.articleSection = post.category
+  }
+
+  // Add word count (approximate from content)
+  const wordCount = post.content.split(/\s+/).length
+  schema.wordCount = wordCount
+
+  return schema
+}
+
+/**
+ * Blog Schema - For blog listing page
+ */
+export function getBlogSchema(posts?: Array<{
+  title: string
+  slug: string
+  excerpt?: string
+  published_at?: string
+}>) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+
+  const schema: any = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'VidFab AI Blog',
+    description: 'Latest AI video generation tutorials, product updates, and creative guides',
+    url: `${baseUrl}/blog`,
+    publisher: {
+      '@type': 'Organization',
+      name: 'VidFab',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/logo/vidfab-logo.png`,
+      },
+    },
+  }
+
+  // Add blog posts if provided
+  if (posts && posts.length > 0) {
+    schema.blogPost = posts.map(post => ({
+      '@type': 'BlogPosting',
+      headline: post.title,
+      description: post.excerpt || post.title,
+      url: `${baseUrl}/blog/${post.slug}`,
+      datePublished: post.published_at,
+    }))
+  }
+
+  return schema
+}
+
+/**
+ * ItemList Schema - For blog post listing
+ */
+export function getItemListSchema(posts: Array<{
+  title: string
+  slug: string
+  excerpt?: string
+  featured_image_url?: string
+}>) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: posts.map((post, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'BlogPosting',
+        headline: post.title,
+        url: `${baseUrl}/blog/${post.slug}`,
+        description: post.excerpt || post.title,
+        image: post.featured_image_url,
+      },
+    })),
   }
 }
