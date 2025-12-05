@@ -87,6 +87,18 @@ export async function GET(request: NextRequest) {
     const orderDirection = (searchParams.get("orderDirection") || "desc") as "asc" | "desc"
     const search = searchParams.get("search") || undefined
 
+    // 🔥 详细的调试日志
+    console.log('🔍 [API] /api/user/videos called with:', {
+      userId,
+      email: session.user.email,
+      page,
+      limit,
+      status,
+      orderBy,
+      orderDirection,
+      search
+    })
+
     // 参数验证
     if (page < 1 || limit < 1 || limit > 100) {
       return NextResponse.json(
@@ -97,6 +109,7 @@ export async function GET(request: NextRequest) {
 
 
     // 获取用户视频
+    console.log('🔍 [API] Calling UserVideosDB.getUserVideos with userId:', userId)
     const result = await UserVideosDB.getUserVideos(userId, {
       page,
       limit,
@@ -104,6 +117,14 @@ export async function GET(request: NextRequest) {
       orderBy,
       orderDirection,
       search
+    })
+
+    console.log('🔍 [API] UserVideosDB.getUserVideos result:', {
+      videoCount: result.videos.length,
+      total: result.total,
+      hasMore: result.hasMore,
+      page: result.page,
+      limit: result.limit
     })
 
 

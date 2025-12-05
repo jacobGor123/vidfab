@@ -1,0 +1,70 @@
+{
+  "hero": {
+    "title": "From Still to Motion: Transform Images Into Videos Instantly",
+    "subtitle": "Upload a single image and let our AI transform it into a smooth, cinematic video. Perfect for marketing, social media, storytelling, or creative projects — no animation skills required.",
+    "cta": "Generate Your First Video for Free"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Create professional videos in four simple steps",
+    "steps": [
+      {
+        "number": "1",
+        "title": "Upload the image and describe what you want to create",
+        "description": "Select your image and provide a detailed description of the video you want to create. Our AI will use both to generate the perfect video."
+      },
+      {
+        "number": "2",
+        "title": "Click the button to generate",
+        "description": "Hit the generate button and let our AI start transforming your image into dynamic video content."
+      },
+      {
+        "number": "3",
+        "title": "Process with AI",
+        "description": "Our advanced AI models analyze your image and apply cinematic motion effects to bring it to life."
+      },
+      {
+        "number": "4",
+        "title": "View the video online and download for use",
+        "description": "Watch your animated video, make any adjustments, and download it in high quality for your projects."
+      }
+    ]
+  },
+  "faq": {
+    "title": "FAQ",
+    "subtitle": "Frequently Asked Questions",
+    "items": [
+      {
+        "question": "How does VidFab AI generate videos automatically?",
+        "answer": "It transforms written prompts or scripts into moving visuals by using powerful AI models. The system interprets your text, generates frames that match your description, and ensures motion consistency."
+      },
+      {
+        "question": "Is VidFab AI Video Generator beginner-friendly?",
+        "answer": "Absolutely! Anyone from a beginner to an expert can create videos on VidFab. You can create explainer videos, marketing videos, promo videos & many more using VidFab."
+      },
+      {
+        "question": "What languages are supported for text input?",
+        "answer": "We currently support multiple languages including English, Japanese, Spanish, and more. Support for additional languages is being added regularly."
+      },
+      {
+        "question": "Do I need to download any software to use VidFab AI video generator?",
+        "answer": "No downloads are needed to generate videos using VidFab. It is a web-based tool, and it works well on all popular browsers such as Safari, Google Chrome, and others on all devices from mobile to desktops."
+      },
+      {
+        "question": "Can I use VidFab for commercial purposes?",
+        "answer": "Yes, our service supports both personal and commercial purposes. However, please ensure compliance with our terms of use."
+      },
+      {
+        "question": "Can I use VidFab AI Video Generator for Free?",
+        "answer": "Yes. VidFab will provide 50 credits, allowing you to try generating videos initially."
+      }
+    ]
+  },
+  "community": {
+    "title": "Find More Inspirations in VidFab",
+    "subtitle": "Find your inspiration in a sea of creativity",
+    "description": "Explore unlimited inspiration alongside other VidFab users. Let creativity be inspired by shared excitement and collaborative genius.",
+    "cta": "Discover Now",
+    "getInspiredButton": "Get Inspired"
+  }
+}

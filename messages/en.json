@@ -17,7 +17,7 @@
     "logout": "Logout"
   },
   "auth": {
-    "welcomeBack": "Welcome Back",
+    "welcomeBack": "Welcome to VidFab!",
     "welcomeToVidFab": "Welcome to VidFab",
     "signInDescription": "Sign in to start creating amazing AI-powered videos",
     "signUpDescription": "Join thousands of creators using AI to transform their videos",

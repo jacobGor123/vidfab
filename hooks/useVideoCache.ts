@@ -286,12 +286,14 @@ export function useVideoCache(config: Partial<VideoCacheConfig> = {}): UseVideoC
       const dbResult = await indexedDBCache.current.get(key)
 
       if (dbResult) {
-        // 将数据重新加载到内存缓存
-        const response = await fetch(dbResult.url)
-        const blob = await response.blob()
-        await memoryCache.current.set(id, quality, blob)
-        setStats(memoryCache.current.getStats())
-        return memoryCache.current.get(id, quality)
+        // 🔥 修复：直接使用存储的Blob，而不是fetch Blob URL
+        const blob = dbResult.blob
+        if (blob) {
+          // 将数据重新加载到内存缓存
+          await memoryCache.current.set(id, quality, blob)
+          setStats(memoryCache.current.getStats())
+          return memoryCache.current.get(id, quality)
+        }
       }
     }
 
@@ -319,9 +321,10 @@ export function useVideoCache(config: Partial<VideoCacheConfig> = {}): UseVideoC
       await memoryCache.current.set(id, quality, blob)
 
       // 可选：存储到IndexedDB
+      // 🔥 修复：直接存储 Blob，而不是 Blob URL，避免内存泄露
       if (indexedDBCache.current) {
         const key = `${id}_${quality}`
-        await indexedDBCache.current.set(key, { url: URL.createObjectURL(blob) })
+        await indexedDBCache.current.set(key, { blob })
       }
 
       setStats(memoryCache.current.getStats())

@@ -4,10 +4,11 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { trackSignUp, trackLogin } from "@/lib/analytics/gtm";
 
 interface GoogleLoginButtonProps {
   onSuccess?: () => void;
@@ -80,6 +81,12 @@ export function GoogleLoginButton({
 
       if (result?.ok) {
         console.log('✅ Google sign-in successful');
+
+        // 🔥 GTM 事件跟踪 - 检查用户账户创建时间判断是否为新用户
+        // 注意: 这里我们触发 login 事件,因为无法直接判断是新注册还是登录
+        // 如果需要区分,需要在后端返回 isNewUser 标识
+        trackLogin('google');
+
         onSuccess?.();
 
         // Handle redirect with better Docker support

@@ -53,7 +53,22 @@ export const useNetworkAware = () => {
   }
 
   const shouldShowVideoBackground = () => {
-    return loadingStrategy.type !== 'poster-only'
+    // 省流量模式下不显示视频背景
+    if (networkInfo.saveData) return false
+    // 慢速连接不显示视频背景
+    if (loadingStrategy.type === 'poster-only') return false
+
+    // 如果检测不到网络信息,默认信任并显示视频(兼容指纹浏览器等特殊环境)
+    if (!networkInfo.type || networkInfo.type === 'unknown') return true
+
+    // 只屏蔽 2G 及以下网络,允许 3G 及以上(2025年 3G 已足够播放视频)
+    if (['slow-2g', '2g'].includes(networkInfo.type)) return false
+    return true
+  }
+
+  const isSlowConnection = () => {
+    return networkInfo.saveData ||
+           ['slow-2g', '2g'].includes(networkInfo.type || '')
   }
 
   return {
@@ -62,6 +77,6 @@ export const useNetworkAware = () => {
     shouldPreloadVideos: shouldPreloadVideos(),
     maxConcurrentLoads: getMaxConcurrentLoads(),
     shouldShowVideoBackground: shouldShowVideoBackground(),
-    isSlowConnection: networkInfo.type === 'slow-2g' || networkInfo.type === '2g'
+    isSlowConnection: isSlowConnection()
   }
 }

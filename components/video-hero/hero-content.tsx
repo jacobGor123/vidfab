@@ -7,15 +7,20 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Sparkles, BookOpen, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 import type { VideoHeroItem } from './types/video-hero.types'
 
 interface HeroContentProps {
   currentItem: VideoHeroItem | null
-  onQuerySubmit: (query: string) => void
+  onQuerySubmit?: (query: string) => void
   className?: string
+  targetPath?: string // 跳转目标路径，默认 /studio/text-to-video
+  buttonText?: string // 按钮文字，默认 Create Video
+  showTitle?: boolean // 是否显示标题和副标题，默认 true
+  showFeatureTags?: boolean // 是否显示底部特性标签，默认 true
 }
 
-const useTypingAnimation = (texts: string[], resetKey?: string) => {
+const useTypingAnimation = (texts: string[], resetKey?: string, maxLength = 60) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0)
   const [currentText, setCurrentText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
@@ -36,19 +41,25 @@ const useTypingAnimation = (texts: string[], resetKey?: string) => {
     if (texts.length === 0 || isFocused) return
 
     const targetText = texts[currentTextIndex]
-    
+    // 限制最大长度，超过则截断并加省略号
+    const displayLimit = Math.min(targetText.length, maxLength)
+
     const timeout = setTimeout(() => {
       if (isDeleting) {
         setCurrentText(prev => prev.slice(0, -1))
-        
+
         if (currentText === '') {
           setIsDeleting(false)
           setCurrentTextIndex(prev => (prev + 1) % texts.length)
         }
       } else {
-        setCurrentText(targetText.slice(0, currentText.length + 1))
-        
-        if (currentText === targetText) {
+        const nextLength = currentText.length + 1
+        if (nextLength <= displayLimit) {
+          setCurrentText(targetText.slice(0, nextLength))
+        }
+
+        // 到达限制长度时停止
+        if (currentText.length >= displayLimit - 1) {
           // 对于单个文本，不删除，保持显示
           if (texts.length === 1) {
             return
@@ -57,10 +68,10 @@ const useTypingAnimation = (texts: string[], resetKey?: string) => {
           return
         }
       }
-    }, isDeleting ? 50 : 100)
+    }, isDeleting ? 30 : 40) // 加快打字速度：40ms per char
 
     return () => clearTimeout(timeout)
-  }, [currentText, currentTextIndex, isDeleting, texts, isFocused])
+  }, [currentText, currentTextIndex, isDeleting, texts, isFocused, maxLength])
 
   const handleFocus = () => {
     setIsFocused(true)
@@ -74,8 +85,12 @@ const useTypingAnimation = (texts: string[], resetKey?: string) => {
     }
   }
 
+  // 计算当前文本是否需要省略号（文本超过 maxLength 或原始文本长度）
+  const targetText = texts[currentTextIndex] || ''
+  const needsEllipsis = targetText.length > maxLength && currentText.length >= maxLength
+
   return {
-    animatedPlaceholder: isFocused ? '' : currentText,
+    animatedPlaceholder: isFocused ? '' : (needsEllipsis ? currentText + '...' : currentText),
     isAnimating: !isFocused && currentText.length > 0,
     onFocus: handleFocus,
     onBlur: handleBlur
@@ -85,14 +100,19 @@ const useTypingAnimation = (texts: string[], resetKey?: string) => {
 export const HeroContent: React.FC<HeroContentProps> = ({
   currentItem,
   onQuerySubmit,
-  className = ""
+  className = "",
+  targetPath = "/studio/text-to-video",
+  buttonText,
+  showTitle = true,
+  showFeatureTags = true
 }) => {
   const [query, setQuery] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
+  const { translations } = useTranslation('en')
 
   const typingTexts = currentItem?.typingTexts || ["Create amazing videos with AI..."]
-  
+
   const {
     animatedPlaceholder,
     isAnimating,
@@ -107,13 +127,13 @@ export const HeroContent: React.FC<HeroContentProps> = ({
 
     setIsProcessing(true)
 
-    // 跳转到 create 页面，如果有输入则携带 prompt 参数
+    // 跳转到目标页面，如果有输入则携带 prompt 参数
     if (query.trim()) {
       const encodedPrompt = encodeURIComponent(query.trim())
-      router.push(`/create?tool=text-to-video&prompt=${encodedPrompt}`)
+      router.push(`${targetPath}?prompt=${encodedPrompt}`)
     } else {
-      // 没有输入时直接跳转到 text-to-video 功能
-      router.push('/create?tool=text-to-video')
+      // 没有输入时直接跳转到目标功能
+      router.push(targetPath)
     }
   }
 
@@ -125,6 +145,10 @@ export const HeroContent: React.FC<HeroContentProps> = ({
     }
   )
 
+  // 默认按钮文字
+  const defaultButtonText = buttonText || "Create Video"
+  const shortButtonText = buttonText ? buttonText.split(' ').slice(0, 2).join(' ') : "Create"
+
   return (
     <div className={cn(
       "relative z-10 flex flex-col items-center justify-center min-h-screen",
@@ -132,14 +156,17 @@ export const HeroContent: React.FC<HeroContentProps> = ({
       className
     )}>
       <div className="max-w-6xl mx-auto w-full">
-        <h1 className="text-5xl md:text-7xl font-heading font-extrabold mb-8 text-gradient-brand leading-tight">
-          Words In, Videos Out | VidFab
-        </h1>
+        {showTitle && (
+          <>
+            <h1 className="text-5xl md:text-7xl font-heading font-extrabold mb-8 text-gradient-brand leading-tight">
+              {translations?.homepage?.hero?.title || "VidFab AI Video Generator"}
+            </h1>
 
-        <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-        What used to take days now takes minutes. AI video generation that
-        actually works.
-        </p>
+            <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+              {translations?.homepage?.hero?.subtitle || "Make Video Creation Easier"}
+            </p>
+          </>
+        )}
 
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto relative">
           <div className="relative flex items-center">
@@ -174,8 +201,8 @@ export const HeroContent: React.FC<HeroContentProps> = ({
               ) : (
                 <>
                   <Zap className="h-4 w-4 md:h-5 md:w-5 mr-0 md:mr-2 transition-transform duration-300 ease-apple group-hover:scale-110" />
-                  <span className="hidden md:inline">Create Video</span>
-                  <span className="md:hidden">Create</span>
+                  <span className="hidden md:inline">{defaultButtonText}</span>
+                  <span className="md:hidden">{shortButtonText}</span>
                 </>
               )}
             </Button>
@@ -199,21 +226,23 @@ export const HeroContent: React.FC<HeroContentProps> = ({
           )}
         </form>
 
-        <div className="mt-12 flex flex-wrap justify-center gap-x-6 gap-y-3">
-          {[
-            { text: "AI-Powered Creation", icon: Sparkles, color: "text-brand-pink-DEFAULT" },
-            { text: "Instant Generation", icon: Zap, color: "text-brand-purple-DEFAULT" },
-            { text: "Professional Quality", icon: BookOpen, color: "text-brand-cyan-DEFAULT" },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="flex items-center bg-brand-gray-800/70 backdrop-blur-md px-4 py-2.5 rounded-full shadow-apple-soft transition-all duration-300 ease-apple hover:bg-brand-gray-700/80 hover:scale-105"
-            >
-              <item.icon className={`h-4 w-4 ${item.color} mr-2.5`} />
-              <span className="text-sm text-gray-300">{item.text}</span>
-            </div>
-          ))}
-        </div>
+        {showFeatureTags && (
+          <div className="mt-12 flex flex-wrap justify-center gap-x-6 gap-y-3">
+            {[
+              { text: "AI-Powered Creation", icon: Sparkles, color: "text-brand-pink-DEFAULT" },
+              { text: "Instant Generation", icon: Zap, color: "text-brand-purple-DEFAULT" },
+              { text: "Professional Quality", icon: BookOpen, color: "text-brand-cyan-DEFAULT" },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center bg-brand-gray-800/70 backdrop-blur-md px-4 py-2.5 rounded-full shadow-apple-soft transition-all duration-300 ease-apple hover:bg-brand-gray-700/80 hover:scale-105"
+              >
+                <item.icon className={`h-4 w-4 ${item.color} mr-2.5`} />
+                <span className="text-sm text-gray-300">{item.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

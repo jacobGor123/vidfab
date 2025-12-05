@@ -5,54 +5,60 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   ChevronLeft,
-  ChevronRight,
-  Video,
-  Image,
-  Search,
-  FolderOpen,
-  Type,
-  ImageIcon,
-  Sparkles
+  ChevronRight
 } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { useIsMobile } from "@/hooks/use-mobile"
+import Image from "next/image"
 
 interface CreateSidebarProps {
   isOpen: boolean
   onToggle: () => void
 }
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets"
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile"
 
 // Discover 单独菜单项
 const discoverItem = {
   id: "discover" as ToolType,
   label: "Discover",
-  icon: Search,
-  description: "Browse video templates and inspiration"
+  iconPath: "/logo/discover.svg"
 }
 
 // 其他分类菜单项
 const menuCategories = [
   {
-    category: "Tools",
+    category: "AI Video",
     items: [
       {
         id: "text-to-video" as ToolType,
         label: "Text to Video",
-        icon: Type,
-        description: "Generate videos from text descriptions"
+        iconPath: "/logo/text-to-video.svg"
       },
       {
         id: "image-to-video" as ToolType,
         label: "Image to Video",
-        icon: ImageIcon,
-        description: "Convert images to video sequences"
+        iconPath: "/logo/image-to-video.svg"
       },
       {
         id: "video-effects" as ToolType,
         label: "Video Effects",
-        icon: Sparkles,
-        description: "Apply stunning effects to your images"
+        iconPath: "/logo/video-effects.svg"
+      }
+    ]
+  },
+  {
+    category: "AI Image",
+    items: [
+      {
+        id: "text-to-image" as ToolType,
+        label: "Text to Image",
+        iconPath: "/logo/text-to-image.svg"
+      },
+      {
+        id: "image-to-image" as ToolType,
+        label: "Image to Image",
+        iconPath: "/logo/image-to-image.svg"
       }
     ]
   },
@@ -62,8 +68,17 @@ const menuCategories = [
       {
         id: "my-assets" as ToolType,
         label: "My Assets",
-        icon: FolderOpen,
-        description: "Manage your video creations"
+        iconPath: "/logo/my-assets.svg"
+      }
+    ]
+  },
+  {
+    category: "Account",
+    items: [
+      {
+        id: "my-profile" as ToolType,
+        label: "Plans & Billing",
+        iconPath: "/logo/plans-&-billing.svg"
       }
     ]
   }
@@ -72,13 +87,49 @@ const menuCategories = [
 export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  // 默认为 "discover"，与页面逻辑保持一致
-  const activeTool = (searchParams.get("tool") as ToolType) || "discover"
+  const pathname = usePathname()
+  const isMobile = useIsMobile()
+
+  // 映射表：tool ID -> /studio 路径（统一管理）
+  const urlMap: Record<ToolType, string> = {
+    'discover': '/studio/discover',
+    'text-to-video': '/studio/text-to-video',
+    'image-to-video': '/studio/image-to-video',
+    'video-effects': '/studio/ai-video-effects',
+    'text-to-image': '/studio/text-to-image',
+    'image-to-image': '/studio/image-to-image',
+    'my-assets': '/studio/my-assets',
+    'my-profile': '/studio/plans',
+  }
+
+  // 根据路径判断当前激活的工具（自动反向匹配）
+  const getActiveToolFromPath = (): ToolType => {
+    // 从路径匹配工具（反向查找）
+    for (const [toolId, url] of Object.entries(urlMap)) {
+      if (pathname.includes(url)) {
+        return toolId as ToolType
+      }
+    }
+
+    // 兼容旧的 /create?tool=xxx 格式
+    const toolParam = searchParams.get("tool") as ToolType
+    if (toolParam) return toolParam
+
+    // 默认为 discover
+    return 'discover'
+  }
+
+  const activeTool = getActiveToolFromPath()
 
   const handleToolSelect = (toolId: ToolType) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("tool", toolId)
-    router.push(`/create?${params.toString()}`)
+    const newUrl = urlMap[toolId]
+    // 直接跳转，不保留 query 参数
+    router.push(newUrl)
+  }
+
+  // 在移动端隐藏侧边栏
+  if (isMobile) {
+    return null
   }
 
   return (
@@ -111,8 +162,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
           <div className="mb-6">
             {(() => {
               const isActive = activeTool === discoverItem.id
-              const Icon = discoverItem.icon
-              
+
               return (
                 <button
                   key={discoverItem.id}
@@ -120,19 +170,26 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                   className={cn(
                     "w-full flex items-center text-left px-4 py-3 text-sm transition-all duration-200",
                     "hover:bg-gray-800",
-                    isActive 
-                      ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600" 
+                    isActive
+                      ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600"
                       : "text-gray-300"
                   )}
                 >
-                  <Icon className={cn(
-                    "h-5 w-5 flex-shrink-0",
-                    isActive ? "text-purple-600" : "text-gray-400"
-                  )} />
+                  <div className={cn(
+                    "h-5 w-5 flex-shrink-0 relative",
+                    isActive ? "opacity-100" : "opacity-60"
+                  )}>
+                    <Image
+                      src={discoverItem.iconPath}
+                      alt={discoverItem.label}
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />
+                  </div>
                   {isOpen && (
                     <div className="ml-3 flex-1 min-w-0">
                       <div className="font-medium truncate">{discoverItem.label}</div>
-                      <div className="text-xs text-gray-500 truncate">{discoverItem.description}</div>
                     </div>
                   )}
                 </button>
@@ -152,9 +209,8 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
               )}
               <div className="space-y-1">
                 {category.items.map((item) => {
-                  const Icon = item.icon
                   const isActive = activeTool === item.id
-                  
+
                   return (
                     <button
                       key={item.id}
@@ -162,19 +218,26 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                       className={cn(
                         "w-full flex items-center text-left px-4 py-3 text-sm transition-all duration-200",
                         "hover:bg-gray-800",
-                        isActive 
-                          ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600" 
+                        isActive
+                          ? "bg-gradient-to-r from-purple-600/20 to-cyan-500/20 text-white border-r-2 border-purple-600"
                           : "text-gray-300"
                       )}
                     >
-                      <Icon className={cn(
-                        "h-5 w-5 flex-shrink-0",
-                        isActive ? "text-purple-600" : "text-gray-400"
-                      )} />
+                      <div className={cn(
+                        "h-5 w-5 flex-shrink-0 relative",
+                        isActive ? "opacity-100" : "opacity-60"
+                      )}>
+                        <Image
+                          src={item.iconPath}
+                          alt={item.label}
+                          width={20}
+                          height={20}
+                          className="object-contain"
+                        />
+                      </div>
                       {isOpen && (
                         <div className="ml-3 flex-1 min-w-0">
                           <div className="font-medium truncate">{item.label}</div>
-                          <div className="text-xs text-gray-500 truncate">{item.description}</div>
                         </div>
                       )}
                     </button>

@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { calculateRequiredCredits, hasEnoughCredits, type VideoModel } from '@/lib/credits-calculator'
+import { onCreditsUpdated } from '@/lib/events/credits-events'
 
 // 简化的用户积分信息
 interface UserCreditsInfo {
@@ -208,19 +209,18 @@ export function useSimpleSubscription(): UseSimpleSubscriptionReturn {
     }
   }, [session?.user?.uuid, fetchCreditsInfo])
 
-  // 🔥 监听积分更新事件（视频完成时自动刷新积分）
+  // 🔥 监听积分更新事件（生成完成时自动刷新积分）
   useEffect(() => {
-    const handleCreditsUpdate = () => {
-      console.log('🔄 收到积分更新事件，刷新积分信息')
+    // 使用新的事件系统监听积分更新
+    const unsubscribe = onCreditsUpdated((detail) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[useSimpleSubscription] Credits update detected:', detail?.reason)
+      }
       refreshCredits()
-    }
+    })
 
-    // 监听 credits-updated 事件
-    window.addEventListener('credits-updated', handleCreditsUpdate)
-
-    return () => {
-      window.removeEventListener('credits-updated', handleCreditsUpdate)
-    }
+    // 返回清理函数
+    return unsubscribe
   }, [refreshCredits])
 
   return {

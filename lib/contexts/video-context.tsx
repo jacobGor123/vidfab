@@ -165,7 +165,6 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
       const existingJob = state.activeJobs.find(job => job.id === id)
 
       if (!existingJob) {
-        console.warn(`🔥 UPDATE_JOB: Job ${id} not found in activeJobs`)
         return state
       }
 
@@ -377,7 +376,6 @@ function saveToStorage<T>(key: string, data: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(data))
   } catch (error) {
-    console.warn(`Failed to save to localStorage (${key}):`, error)
   }
 }
 
@@ -386,7 +384,6 @@ function loadFromStorage<T>(key: string, defaultValue: T): T {
     const stored = localStorage.getItem(key)
     return stored ? JSON.parse(stored) : defaultValue
   } catch (error) {
-    console.warn(`Failed to load from localStorage (${key}):`, error)
     return defaultValue
   }
 }
@@ -417,31 +414,26 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize data from localStorage and database on mount
   useEffect(() => {
-    if (typeof window === "undefined" || isInitializedRef.current) return
+    if (typeof window === "undefined") return
 
+    // 只在 sessionStatus 从 loading → authenticated 时执行一次
+    if (sessionStatus !== 'authenticated') return
+    if (!session?.user?.uuid) return
+    if (isInitializedRef.current) return
 
-    // 等待session加载完成
-    if (sessionStatus === "loading") {
-      return
-    }
+    // 立即标记为已初始化,防止重复执行
+    isInitializedRef.current = true
 
     const initializeData = async () => {
 
       try {
-        console.log('🔥 VideoContext - Starting initialization...')
-        console.log('🔥 VideoContext - sessionStatus:', sessionStatus)
-        console.log('🔥 VideoContext - session:', session)
-        console.log('🔥 VideoContext - session.user.uuid:', session?.user?.uuid)
-
         dispatch({ type: "SET_LOADING", payload: true })
 
-        // Clear any existing data first to prevent flicker
-        dispatch({ type: "RESTORE_STATE", payload: { activeJobs: [], failedJobs: [] } })
+        // 移除清空数据的操作,避免导致闪烁
+        // dispatch({ type: "RESTORE_STATE", payload: { activeJobs: [], failedJobs: [] } })
 
         // Only load data if user is logged in
-
         if (session?.user?.uuid) {
-          console.log('🔥 VideoContext - User authenticated, proceeding with data loading...')
           // Restore active jobs from localStorage (temporary state) and filter immediately
           const allActiveJobs = loadFromStorage(STORAGE_KEYS.ACTIVE_JOBS, [])
           const allFailedJobs = loadFromStorage(STORAGE_KEYS.FAILED_JOBS, [])
@@ -490,7 +482,6 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
               throw new Error(`API responded with status: ${response.status}`)
             }
           } catch (apiError) {
-            console.warn('API failed, falling back to direct database access:', apiError)
 
             // 后备方案：直接使用数据库
             const result = await UserVideosDB.getUserVideos(session.user.uuid, {
@@ -524,12 +515,10 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
           // Load quota information
           try {
-            console.log('🔥 About to fetch quota for user:', session.user.uuid)
             const quotaInfo = await fetchUserQuota(session.user.uuid)
-            console.log('🔥 Successfully received quota:', quotaInfo)
             dispatch({ type: "SET_QUOTA_INFO", payload: quotaInfo })
           } catch (quotaError) {
-            console.error('🔥 Error fetching quota:', quotaError)
+            console.error('Error fetching quota:', quotaError)
             dispatch({ type: "SET_QUOTA_INFO", payload: null })
           }
 
@@ -544,17 +533,14 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           })
 
         } else {
-          console.log('🔥 VideoContext - No authenticated user, skipping data loading')
-          console.log('🔥 VideoContext - session?.user?.uuid:', session?.user?.uuid)
           dispatch({ type: "SET_QUOTA_INFO", payload: null })
         }
       } catch (error) {
-        console.error('🔥 Failed to initialize video context:', error)
+        console.error('Failed to initialize video context:', error)
         dispatch({ type: "SET_ERROR", payload: "Failed to load video data" })
       } finally {
-        console.log('🔥 VideoContext - Initialization complete')
         dispatch({ type: "SET_LOADING", payload: false })
-        isInitializedRef.current = true
+        // isInitializedRef.current 已在 useEffect 开头设置,无需重复
       }
     }
 
@@ -813,9 +799,11 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
     try {
 
-      // 🔥 检查是否是临时记录ID，如果是则跳过数据库查询
-      if (videoId.startsWith('00000000-0000-4000-8000-')) {
-        // 临时记录已经通过completeJob添加到内存中，这里只需要标记存储完成
+      // 🔥 改进：检查是否是各种临时ID格式
+      if (videoId.startsWith('00000000-0000-4000-8000-') ||
+          videoId.startsWith('job_') ||
+          videoId.startsWith('temp-') ||
+          videoId.startsWith('pred_')) {
         return
       }
 
@@ -823,24 +811,17 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
       const permanentVideo = await UserVideosDB.getVideoById(videoId, session.user.uuid)
 
       if (!permanentVideo) {
-        console.warn(`⚠️ Video not found in database: ${videoId}`)
         return
       }
 
       if (permanentVideo.status !== 'completed') {
-        console.warn(`⚠️ Video not in completed status: ${videoId}, status: ${permanentVideo.status}`)
         return
       }
 
-      // 🔥 查找对应的临时视频
+      // 🔥 改进：通过videoUrl匹配临时视频（因为VideoResult没有wavespeed_request_id字段）
       const temporaryVideo = state.temporaryVideos.find(video => {
-        // 可能通过多种方式匹配：
-        // 1. 直接ID匹配
-        // 2. 通过wavespeed_request_id匹配
-        // 3. 通过original_url匹配
-        return video.id === videoId ||
-               (video as any).wavespeed_request_id === permanentVideo.wavespeed_request_id ||
-               (video as VideoResult).videoUrl === permanentVideo.original_url
+        // 通过original_url/videoUrl匹配（最可靠的方式）
+        return video.videoUrl === permanentVideo.original_url
       })
 
       if (temporaryVideo) {

@@ -40,10 +40,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 🔥 简单查询用户积分信息（仿照参考项目）
+    // 🔥 强制刷新查询用户积分信息（避免缓存问题）
     const { data: user, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .select('credits_remaining, subscription_plan, subscription_status')
+      .select('credits_remaining, subscription_plan, subscription_status, updated_at')
       .eq('uuid', userId)
       .single()
 

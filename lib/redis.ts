@@ -10,6 +10,10 @@ const getRedisConfig = () => {
   // Support both REDIS_URL and individual config
   if (process.env.REDIS_URL) {
     return {
+      // 🔥 Support REDIS_PASSWORD even when using REDIS_URL
+      // This allows REDIS_URL without password and separate REDIS_PASSWORD
+      password: process.env.REDIS_PASSWORD || undefined,
+      db: parseInt(process.env.REDIS_DB || '0'),
       retryDelayOnFailover: 100,
       enableReadyCheck: false,
       maxRetriesPerRequest: null,

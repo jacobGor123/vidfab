@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { VideoStorageManager } from '@/lib/storage'
+import { supabaseAdmin, TABLES } from '@/lib/supabase'
 // 移除对浏览器API图片处理器的依赖
 import { v4 as uuidv4 } from 'uuid'
 
@@ -39,11 +40,12 @@ function validateImageFile(file: {
 
 export async function POST(request: NextRequest) {
   try {
-    // NextAuth 4.x 认证方式
+    console.log('🔵 Image upload request received')
+
+    // 认证检查
     const session = await getServerSession(authConfig)
 
-
-    if (!session?.user?.uuid) {
+    if (!session?.user) {
       console.error('❌ Image upload: Authentication failed')
       return NextResponse.json(
         { error: 'Unauthorized access' },
@@ -51,12 +53,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 获取用户ID
+    let userId = session.user.uuid || session.user.id
+
+    if (!userId) {
+      console.error('❌ Image upload: User UUID/ID missing')
+      return NextResponse.json(
+        { error: 'User UUID missing' },
+        { status: 401 }
+      )
+    }
+
+    console.log(`✅ User authenticated: ${userId}`)
+
     // Parse form data
     const formData = await request.formData()
     const fileEntry = formData.get('file')
     const quality = formData.get('quality') as string || 'STANDARD'
 
+    console.log('📦 FormData entries:', Array.from(formData.keys()))
+
     if (!fileEntry || typeof fileEntry === 'string') {
+      console.error('❌ No file in FormData or file is string:', typeof fileEntry)
       return NextResponse.json(
         { error: 'No file uploaded' },
         { status: 400 }
@@ -66,6 +84,12 @@ export async function POST(request: NextRequest) {
     // In Node.js environment, this will be a File-like object
     const file = fileEntry as File
 
+    console.log('📄 File info:', {
+      name: file.name,
+      type: file.type,
+      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+    })
+
     // 服务器端验证文件类型和大小
     const validation = validateImageFile({
       type: file.type,
@@ -73,24 +97,31 @@ export async function POST(request: NextRequest) {
       name: file.name
     })
     if (!validation.valid) {
+      console.error('❌ File validation failed:', validation.error)
       return NextResponse.json(
         { error: validation.error },
         { status: 400 }
       )
     }
 
+    console.log('✅ File validation passed')
+
     // 转换文件为Buffer (服务器端处理)
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
+    console.log(`📤 Uploading to Supabase Storage...`)
+
     // 上传到Supabase Storage
     const imageId = uuidv4()
     const uploadResult = await VideoStorageManager.uploadImage(
-      session.user.uuid,
+      userId,
       imageId,
       buffer,
       file.type
     )
+
+    console.log(`✅ Upload completed:`, uploadResult.url)
 
     // 返回上传结果
     return NextResponse.json({
@@ -116,14 +147,24 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // NextAuth 4.x 认证方式
+    // 认证检查
     const session = await getServerSession(authConfig)
 
-
-    if (!session?.user?.uuid) {
+    if (!session?.user) {
       console.error('❌ Image delete: Authentication failed')
       return NextResponse.json(
         { error: 'Unauthorized access' },
+        { status: 401 }
+      )
+    }
+
+    // 获取用户ID
+    let userId = session.user.uuid || session.user.id
+
+    if (!userId) {
+      console.error('❌ Image delete: User UUID/ID missing')
+      return NextResponse.json(
+        { error: 'User UUID missing' },
         { status: 401 }
       )
     }
@@ -139,7 +180,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 删除图片文件
-    const imagePath = `images/${session.user.uuid}/${imageId}`
+    const imagePath = `images/${userId}/${imageId}`
     await VideoStorageManager.deleteFile(imagePath)
 
     return NextResponse.json({

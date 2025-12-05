@@ -23,7 +23,7 @@ export interface GenerationOptions {
 
 // 🎯 Hook选项（兼容组件的期望）
 interface UseVideoGenerationOptions {
-  onSuccess?: (jobId: string) => void
+  onSuccess?: (jobId: string, requestId: string) => void
   onError?: (error: string) => void
   onAuthRequired?: () => void
 }
@@ -114,7 +114,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         prompt,
         settings: {
           generationType: 'text-to-video',
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -135,9 +135,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           prompt,
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
@@ -153,6 +154,12 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
+      // 🔥 第1层防护：验证 requestId 是否存在
+      if (!data.data?.requestId) {
+        videoContext.removeJob(job.id)
+        throw new Error('API response is missing requestId')
+      }
+
       // 🔥 更新job的requestId和reservationId
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
@@ -163,8 +170,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 调用onSuccess回调，让组件启动轮询
-      hookOptionsRef.current?.onSuccess?.(job.id)
+      // 🔥 第3层防护：延迟回调，确保 React 状态更新完成
+      queueMicrotask(() => {
+        hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
+      })
 
       return job.id
 
@@ -209,7 +218,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         settings: {
           generationType: 'image-to-video',
           imageUrl,
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'
@@ -228,10 +237,11 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           image: imageUrl,
           prompt: prompt || 'Convert image to video',
-          model: settings.model || 'vidu-q1',
+          model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9'
@@ -246,6 +256,12 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
+      // 🔥 第1层防护：验证 requestId 是否存在
+      if (!data.data?.requestId) {
+        videoContext.removeJob(job.id)
+        throw new Error('API response is missing requestId')
+      }
+
       // 🔥 更新job的requestId和reservationId
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
@@ -256,8 +272,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 调用onSuccess回调，让组件启动轮询
-      hookOptionsRef.current?.onSuccess?.(job.id)
+      // 🔥 第3层防护：延迟回调，确保 React 状态更新完成
+      queueMicrotask(() => {
+        hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
+      })
 
       return job.id
 
@@ -353,11 +371,15 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         if (data.code === 'AUTH_REQUIRED') {
           throw new Error('Authentication required')
         }
+        // 🔥 API失败时，移除已创建的本地job
+        videoContext.removeJob(job.id)
         throw new Error(data.error || `API error: ${response.status}`)
       }
 
+      // 🔥 第1层防护：验证 requestId 是否存在
       if (!data.success || !data.data?.requestId) {
-        throw new Error('API response error')
+        videoContext.removeJob(job.id)
+        throw new Error('API response is missing requestId')
       }
 
       // 3. 更新任务状态为processing，这会自动触发轮询
@@ -371,8 +393,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 调用onSuccess回调，让组件启动轮询
-      hookOptionsRef.current?.onSuccess?.(job.id)
+      // 🔥 第3层防护：延迟回调，确保 React 状态更新完成
+      queueMicrotask(() => {
+        hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
+      })
 
       return job.id
 

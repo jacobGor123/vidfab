@@ -64,10 +64,24 @@ export class ImageProcessor {
   static validateImage(file: File): { valid: boolean; error?: string } {
     // 检查文件类型
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
+    let fileType = file.type
+
+    // 🔥 处理 binary/octet-stream 的情况，根据文件扩展名推断类型
+    if (fileType === 'binary/octet-stream' || fileType === 'application/octet-stream' || !fileType) {
+      const ext = file.name.toLowerCase().split('.').pop()
+      if (ext === 'jpg' || ext === 'jpeg') {
+        fileType = 'image/jpeg'
+      } else if (ext === 'png') {
+        fileType = 'image/png'
+      } else if (ext === 'webp') {
+        fileType = 'image/webp'
+      }
+    }
+
+    if (!allowedTypes.includes(fileType)) {
       return {
         valid: false,
-        error: `不支持的图片格式: ${file.type}。支持的格式: JPG, PNG, WebP`
+        error: `Unsupported image format: ${file.type}. Supported formats: JPG, PNG, WebP`
       }
     }
 
@@ -76,7 +90,7 @@ export class ImageProcessor {
     if (file.size > maxSize) {
       return {
         valid: false,
-        error: `图片文件过大。最大支持: ${maxSize / (1024 * 1024)}MB，当前: ${(file.size / (1024 * 1024)).toFixed(2)}MB`
+        error: `Image file too large. Max: ${maxSize / (1024 * 1024)}MB, Current: ${(file.size / (1024 * 1024)).toFixed(2)}MB`
       }
     }
 
@@ -91,25 +105,25 @@ export class ImageProcessor {
       // 检查URL格式
       const urlObj = new URL(url)
       if (!['http:', 'https:'].includes(urlObj.protocol)) {
-        return { valid: false, error: '只支持HTTP/HTTPS协议的图片URL' }
+        return { valid: false, error: 'Only HTTP/HTTPS protocols are supported' }
       }
 
       // 尝试加载图片获取元数据
       const response = await fetch(url, { method: 'HEAD' })
       if (!response.ok) {
-        return { valid: false, error: '无法访问该图片URL' }
+        return { valid: false, error: 'Unable to access the image URL' }
       }
 
       const contentType = response.headers.get('content-type')
       const contentLength = response.headers.get('content-length')
 
       if (!contentType || !contentType.startsWith('image/')) {
-        return { valid: false, error: '该URL不是有效的图片资源' }
+        return { valid: false, error: 'URL does not point to a valid image resource' }
       }
 
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
       if (!allowedTypes.includes(contentType)) {
-        return { valid: false, error: `不支持的图片格式: ${contentType}` }
+        return { valid: false, error: `Unsupported image format: ${contentType}` }
       }
 
       // 检查文件大小
@@ -119,7 +133,7 @@ export class ImageProcessor {
         if (size > maxSize) {
           return {
             valid: false,
-            error: `图片文件过大。最大支持: ${maxSize / (1024 * 1024)}MB，当前: ${(size / (1024 * 1024)).toFixed(2)}MB`
+            error: `Image file too large. Max: ${maxSize / (1024 * 1024)}MB, Current: ${(size / (1024 * 1024)).toFixed(2)}MB`
           }
         }
       }
@@ -148,7 +162,7 @@ export class ImageProcessor {
       })
 
     } catch (error) {
-      return { valid: false, error: '无效的URL格式' }
+      return { valid: false, error: 'Invalid URL format' }
     }
   }
 

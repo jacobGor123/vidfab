@@ -1,9 +1,16 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Type, ImageIcon, Search, FolderOpen, Sparkles } from "lucide-react"
+import { Type, ImageIcon, Search, FolderOpen, Sparkles, User, Video, Image, Palette } from "lucide-react"
+import {
+  trackUseTextToVideo,
+  trackUseImageToVideo,
+  trackUseTextToImage,
+  trackUseImageToImage,
+  trackUseAiEffect
+} from "@/lib/analytics/gtm"
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "my-assets" | null
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile" | null
 
 interface CreateTabsProps {
   activeTool: ToolType
@@ -21,13 +28,13 @@ const tabs = [
     id: "text-to-video" as ToolType,
     label: "Text to Video",
     icon: Type,
-    shortLabel: "Text"
+    shortLabel: "T2V"
   },
   {
     id: "image-to-video" as ToolType,
     label: "Image to Video",
-    icon: ImageIcon,
-    shortLabel: "Image"
+    icon: Video,
+    shortLabel: "I2V"
   },
   {
     id: "video-effects" as ToolType,
@@ -36,30 +43,73 @@ const tabs = [
     shortLabel: "Effects"
   },
   {
+    id: "text-to-image" as ToolType,
+    label: "Text to Image",
+    icon: Image,
+    shortLabel: "T2I"
+  },
+  {
+    id: "image-to-image" as ToolType,
+    label: "Image to Image",
+    icon: Palette,
+    shortLabel: "I2I"
+  },
+  {
     id: "my-assets" as ToolType,
     label: "My Assets",
     icon: FolderOpen,
     shortLabel: "Assets"
+  },
+  {
+    id: "my-profile" as ToolType,
+    label: "Plans & Billing",
+    icon: User,
+    shortLabel: "Billing"
   }
 ]
 
 export function CreateTabs({ activeTool, onToolChange }: CreateTabsProps) {
+  // 🔥 GTM 功能使用事件追踪
+  const handleToolClick = (toolId: ToolType) => {
+    // 根据不同的工具触发相应的事件
+    switch (toolId) {
+      case 'text-to-video':
+        trackUseTextToVideo()
+        break
+      case 'image-to-video':
+        trackUseImageToVideo()
+        break
+      case 'text-to-image':
+        trackUseTextToImage()
+        break
+      case 'image-to-image':
+        trackUseImageToImage()
+        break
+      case 'video-effects':
+        trackUseAiEffect()
+        break
+    }
+
+    // 调用原始的 onToolChange 回调
+    onToolChange(toolId)
+  }
+
   return (
     <div className="bg-gray-950 border-b border-gray-800">
       <div className="flex">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTool === tab.id
-          
+
           return (
             <button
               key={tab.id}
-              onClick={() => onToolChange(tab.id)}
+              onClick={() => handleToolClick(tab.id)}
               className={cn(
                 "flex-1 flex flex-col items-center justify-center py-3 px-2 text-xs transition-all duration-200",
                 "hover:bg-gray-800",
-                isActive 
-                  ? "text-white bg-gradient-to-b from-purple-600/20 to-cyan-500/20 border-b-2 border-purple-600" 
+                isActive
+                  ? "text-white bg-gradient-to-b from-purple-600/20 to-cyan-500/20 border-b-2 border-purple-600"
                   : "text-gray-400"
               )}
             >

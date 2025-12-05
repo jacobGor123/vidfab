@@ -17,17 +17,20 @@ import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIc
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
-import { useVideoPolling } from "@/hooks/use-video-polling"
+import { useVideoPollingV2 } from "@/hooks/use-video-polling-v2"
 import { useVideoGenerationAuth } from "@/hooks/use-auth-modal"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useRemix } from "@/hooks/use-remix"
 import { useSimpleSubscription } from "@/hooks/use-subscription-simple"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 import { VideoResult } from "./video-result-enhanced"
 import { VideoTaskGridItem } from "./video-task-grid-item"
 import { VideoLimitDialog } from "./video-limit-dialog"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 import { CREDITS_CONSUMPTION } from "@/lib/subscription/pricing-config"
+import { GenerationAnalytics } from "@/lib/analytics/generation-events"
+import { trackApplyAiEffect } from "@/lib/analytics/gtm"
 
 // Video Effects Components
 import { EffectSelector } from "./effect-selector"
@@ -108,6 +111,7 @@ interface VideoEffectsParams {
 }
 
 export function VideoEffectsPanel() {
+  const isMobile = useIsMobile()
   const [params, setParams] = useState<VideoEffectsParams>({
     image: "",
     imageFile: null,
@@ -139,8 +143,8 @@ export function VideoEffectsPanel() {
 
   // Video generation
   const videoGeneration = useVideoGeneration({
-    onSuccess: (jobId) => {
-      startPolling(jobId)
+    onSuccess: (jobId, requestId) => {
+      startPolling(jobId, requestId)
     },
     onError: (error) => {
       console.error("Video effects generation failed:", error)
@@ -150,10 +154,9 @@ export function VideoEffectsPanel() {
     }
   })
 
-  // Video polling
-  const videoPolling = useVideoPolling({
+  // Video polling V2
+  const videoPolling = useVideoPollingV2({
     onCompleted: (job, resultUrl) => {
-      console.log('Video effects generation completed:', job.id)
       // 🔥 刷新积分显示，确保前端显示的积分数是最新的
       refreshCredits()
     },
@@ -378,6 +381,13 @@ export function VideoEffectsPanel() {
         uploadMode: 'local'
       }))
 
+      // 🔥 事件: 上传图片成功
+      GenerationAnalytics.trackUploadImage({
+        generationType: 'video-effects',
+        uploadMode: 'local',
+        imageCount: 1,
+      })
+
       // Add to upload history with original file size
       const historyItem = {
         id: data.data.id || Date.now().toString(),
@@ -452,7 +462,6 @@ export function VideoEffectsPanel() {
           setUploadHistory(prev => prev.filter(item => item.id !== imageId))
         }
       } catch (error) {
-        console.warn('⚠️ Failed to delete image from Supabase:', error)
         // Don't throw error, just log warning
       }
     }
@@ -466,10 +475,38 @@ export function VideoEffectsPanel() {
 
   // Generate video effects
   const handleGenerate = useCallback(async () => {
-    // Check if user has reached the limit
+    // 🔥 事件1: 点击生成按钮
+    GenerationAnalytics.trackClickGenerate({
+      generationType: 'video-effects',
+      effectId: params.selectedEffect?.id,
+      effectName: params.selectedEffect?.name,
+      uploadMode: params.uploadMode,
+      creditsRequired: CREDITS_CONSUMPTION['video-effects'],
+    })
+
+    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      setShowLimitDialog(true)
-      return
+      // 找到所有已完成的视频（不包括处理中、失败等状态）
+      const completedItems = allUserItems.filter(item =>
+        item.status === 'completed' && item.resultUrl
+      )
+
+      if (completedItems.length > 0) {
+        // 按创建时间排序，找到最旧的
+        const sortedCompleted = completedItems.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeA - timeB // 升序，最旧的在前
+        })
+
+        const oldestItem = sortedCompleted[0]
+        // 只从前端预览移除，不删除数据库记录
+        videoContext.removeCompletedVideo(oldestItem.id)
+      } else {
+        // 如果没有已完成的视频可清理，显示限制提示
+        setShowLimitDialog(true)
+        return
+      }
     }
 
     // Form validation
@@ -531,11 +568,23 @@ export function VideoEffectsPanel() {
       }
 
       // Call the video effects generation
-      await videoGeneration.generateVideoEffects({
+      const result = await videoGeneration.generateVideoEffects({
         image: imageUrl,
         effectId: params.selectedEffect?.id || '',
         effectName: params.selectedEffect?.name
       })
+
+      // 🔥 事件2: 后端开始生成 (仅在API成功返回时触发)
+      if (result?.success && result.jobId && result.requestId) {
+        GenerationAnalytics.trackGenerationStarted({
+          generationType: 'video-effects',
+          jobId: result.jobId,
+          requestId: result.requestId,
+          effectId: params.selectedEffect?.id,
+          effectName: params.selectedEffect?.name,
+          creditsRequired: CREDITS_CONSUMPTION['video-effects'],
+        })
+      }
     } catch (error) {
       console.error('视频特效生成失败:', error)
       // 🔥 视频生成失败时不显示技术性错误信息，直接引导用户升级或重试
@@ -545,7 +594,7 @@ export function VideoEffectsPanel() {
         setValidationErrors(['视频生成失败，请稍后重试'])
       }
     }
-  }, [params, validateForm, videoGeneration, userJobs.length, canAccessModel, checkCreditsAvailability])
+  }, [params, validateForm, videoGeneration, userJobs.length, canAccessModel, checkCreditsAvailability, allUserItems, videoContext])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof VideoEffectsParams, value: any) => {
@@ -562,15 +611,18 @@ export function VideoEffectsPanel() {
 
   // Handle effect selection
   const handleEffectSelect = (effect: VideoEffect) => {
+    // 🔥 GTM 使用AI特效事件跟踪
+    trackApplyAiEffect(effect.id)
+
     setParams(prev => ({ ...prev, selectedEffect: effect }))
     setShowEffectsModal(false)
   }
 
   return (
-    <div className="h-screen flex">
+    <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>
       {/* Left control panel - 50% width */}
-      <div className="w-1/2 h-full min-h-[1180px]">
-        <div className="h-full overflow-y-auto custom-scrollbar py-12 px-6 pr-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+      <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pr-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+        <div className="py-6 space-y-6">
 
           {/* Image upload section */}
           <Card className="bg-gray-950 border-gray-800 pt-6">
@@ -806,12 +858,12 @@ export function VideoEffectsPanel() {
               </div>
             )}
           </Button>
+          </div>
         </div>
-      </div>
 
       {/* Right preview area - Multi-task Grid Layout */}
-      <div className="w-1/2 h-full overflow-hidden">
-        <div className="h-full overflow-y-auto pt-6 px-6 pb-20 pl-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+      <div className={`${isMobile ? 'w-full h-1/2' : 'w-1/2 h-full'} min-h-0 overflow-y-auto px-6 pl-3`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 #1f2937' }}>
+        <div className="pt-6 pb-20">
           {/* Display all user tasks (in progress + completed) */}
           {(allUserItems.length > 0 || userVideos.length > 0) ? (
             <div
@@ -841,18 +893,6 @@ export function VideoEffectsPanel() {
                     key={job.id}
                     job={job}
                     completedVideo={completedVideo}
-                    onRegenerateClick={() => {
-                      // One-click reuse settings
-                      if (job.sourceImage) {
-                        setParams(prev => ({
-                          ...prev,
-                          image: job.sourceImage!,
-                          selectedEffect: job.effectId
-                            ? { id: job.effectId, name: job.effectName || 'Unknown Effect', posterUrl: '', videoUrl: '', apiEndpoint: job.effectId }
-                            : DEFAULT_EFFECT
-                        }))
-                      }
-                    }}
                   />
                 )
               })}

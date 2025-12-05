@@ -151,8 +151,11 @@ export const authConfig: NextAuthConfig = {
   },
   trustHost: true, // Required for Docker and production environments
   debug: process.env.NODE_ENV === 'development',
-  // Added for Docker environment compatibility
-  useSecureCookies: process.env.NODE_ENV === 'production' && !process.env.DOCKER_ENVIRONMENT,
+  // Cookie security configuration
+  // Allow NEXTAUTH_COOKIE_SECURE env var to override for production environments with proxies
+  useSecureCookies: process.env.NEXTAUTH_COOKIE_SECURE === 'false'
+    ? false
+    : (process.env.NODE_ENV === 'production' && !process.env.DOCKER_ENVIRONMENT),
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
@@ -160,7 +163,10 @@ export const authConfig: NextAuthConfig = {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === 'production' && !process.env.DOCKER_ENVIRONMENT,
+        // Allow NEXTAUTH_COOKIE_SECURE env var to override for production environments with proxies
+        secure: process.env.NEXTAUTH_COOKIE_SECURE === 'false'
+          ? false
+          : (process.env.NODE_ENV === 'production' && !process.env.DOCKER_ENVIRONMENT),
         domain: process.env.DOCKER_ENVIRONMENT ? undefined : undefined
       },
     },

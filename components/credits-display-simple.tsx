@@ -77,11 +77,11 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
               )}
             </div>
 
-            {/* Vidu Q1 模型消耗表 */}
+            {/* VidFab Q1 模型消耗表 */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-white flex items-center">
                 <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                Vidu Q1 (Standard Model)
+                VidFab Q1 (Standard Model)
               </h3>
               <div className="bg-gray-900 rounded-lg overflow-hidden">
                 <table className="w-full">
@@ -97,12 +97,12 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
                       <td className="p-3">480p</td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '480p', '5')} Credits
+                          {getCreditsForConfig('vidfab-q1', '480p', '5')} Credits
                         </Badge>
                       </td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '480p', '10')} Credits
+                          {getCreditsForConfig('vidfab-q1', '480p', '10')} Credits
                         </Badge>
                       </td>
                     </tr>
@@ -110,12 +110,12 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
                       <td className="p-3">720p HD</td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '720p', '5')} Credits
+                          {getCreditsForConfig('vidfab-q1', '720p', '5')} Credits
                         </Badge>
                       </td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '720p', '10')} Credits
+                          {getCreditsForConfig('vidfab-q1', '720p', '10')} Credits
                         </Badge>
                       </td>
                     </tr>
@@ -123,12 +123,12 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
                       <td className="p-3">1080p Full HD</td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '1080p', '5')} Credits
+                          {getCreditsForConfig('vidfab-q1', '1080p', '5')} Credits
                         </Badge>
                       </td>
                       <td className="p-3">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                          {getCreditsForConfig('vidu-q1', '1080p', '10')} Credits
+                          {getCreditsForConfig('vidfab-q1', '1080p', '10')} Credits
                         </Badge>
                       </td>
                     </tr>
@@ -137,16 +137,11 @@ export function CreditsDisplaySimple({ className }: CreditsDisplayProps) {
               </div>
             </div>
 
-            {/* Vidfab Pro 模型消耗表 */}
+            {/* VidFab Pro 模型消耗表 */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-white flex items-center">
                 <span className="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
-                Vidfab Pro (Advanced Model)
-                {!creditsInfo?.is_pro && (
-                  <Badge variant="outline" className="ml-2 bg-purple-400/20 text-purple-300 border-purple-600 text-xs">
-                    Pro Only
-                  </Badge>
-                )}
+                VidFab Pro (Advanced Model)
               </h3>
               <div className="bg-gray-900 rounded-lg overflow-hidden">
                 <table className="w-full">

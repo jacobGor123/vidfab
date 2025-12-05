@@ -55,6 +55,57 @@
   h5,
   h6 {
     @apply font-heading;
+    line-height: 1.2; /* 确保所有标题的 line-height 至少为 1.2 */
+  }
+
+  /* 覆盖 Tailwind 大字号的默认 line-height */
+  .text-5xl,
+  .text-6xl,
+  .text-7xl,
+  .text-8xl,
+  .text-9xl {
+    line-height: 1.2 !important;
+  }
+
+  /* 响应式断点也要覆盖 */
+  @media (min-width: 640px) {
+    .sm\:text-5xl,
+    .sm\:text-6xl,
+    .sm\:text-7xl,
+    .sm\:text-8xl,
+    .sm\:text-9xl {
+      line-height: 1.2 !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .md\:text-5xl,
+    .md\:text-6xl,
+    .md\:text-7xl,
+    .md\:text-8xl,
+    .md\:text-9xl {
+      line-height: 1.2 !important;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .lg\:text-5xl,
+    .lg\:text-6xl,
+    .lg\:text-7xl,
+    .lg\:text-8xl,
+    .lg\:text-9xl {
+      line-height: 1.2 !important;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .xl\:text-5xl,
+    .xl\:text-6xl,
+    .xl\:text-7xl,
+    .xl\:text-8xl,
+    .xl\:text-9xl {
+      line-height: 1.2 !important;
+    }
   }
 }
 
@@ -101,5 +152,95 @@
 
   .animate-shimmer {
     animation: shimmer 2s infinite linear;
+  }
+
+  /* AOS Animation Custom Styles */
+  [data-aos] {
+    transition-property: opacity, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-aos][data-aos][data-aos-duration="400"] {
+    transition-duration: 400ms;
+  }
+
+  [data-aos][data-aos][data-aos-duration="600"] {
+    transition-duration: 600ms;
+  }
+
+  [data-aos][data-aos][data-aos-duration="800"] {
+    transition-duration: 800ms;
+  }
+
+  [data-aos][data-aos][data-aos-delay="100"] {
+    transition-delay: 100ms;
+  }
+
+  [data-aos][data-aos][data-aos-delay="200"] {
+    transition-delay: 200ms;
+  }
+
+  [data-aos][data-aos][data-aos-delay="300"] {
+    transition-delay: 300ms;
+  }
+
+  /* Fade animations */
+  [data-aos="fade"] {
+    opacity: 0;
+  }
+
+  [data-aos="fade"].aos-animate {
+    opacity: 1;
+  }
+
+  [data-aos="fade-up"] {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  [data-aos="fade-up"].aos-animate {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-aos="fade-down"] {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  [data-aos="fade-down"].aos-animate {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-aos="fade-left"] {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  [data-aos="fade-left"].aos-animate {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  [data-aos="fade-right"] {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  [data-aos="fade-right"].aos-animate {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Zoom animations */
+  [data-aos="zoom-in"] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  [data-aos="zoom-in"].aos-animate {
+    opacity: 1;
+    transform: scale(1);
   }
 }

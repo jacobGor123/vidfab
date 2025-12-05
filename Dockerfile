@@ -1,5 +1,5 @@
 # Multi-stage build for Next.js application
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -35,7 +35,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Next.js telemetry
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build with error tolerance - continue even if prerendering fails
 RUN npm run build; EXIT_CODE=$?; if [ $EXIT_CODE -eq 0 ]; then echo "Build successful"; else echo "Build completed with prerender warnings - continuing deployment"; fi
@@ -44,26 +44,28 @@ RUN npm run build; EXIT_CODE=$?; if [ $EXIT_CODE -eq 0 ]; then echo "Build succe
 FROM base AS runner
 WORKDIR /app
 
+# Install curl for healthcheck, ffmpeg for video compression, and tzdata for timezone support
+RUN apk add --no-cache curl ffmpeg tzdata
+
+# Set timezone to Asia/Shanghai (Beijing Time)
+# If you want to keep UTC and just adjust cron expression, comment out these lines
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Let .env.local control NODE_ENV - don't force production at runtime
 # Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy all necessary files for production
 COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Copy Next.js build output - try standalone first, fallback to full build
-RUN echo "Checking available .next outputs..."
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Create missing manifest files if they don't exist
+# Create missing manifest files if they don't exist (for error tolerance)
 RUN if [ ! -f ./.next/prerender-manifest.json ]; then echo '{"version":4,"routes":{},"dynamicRoutes":{},"notFoundRoutes":[],"preview":{"previewModeId":"","previewModeSigningKey":"","previewModeEncryptionKey":""}}' > ./.next/prerender-manifest.json; fi
 RUN if [ ! -f ./.next/routes-manifest.json ]; then echo '{"version":3,"pages404":false,"basePath":"","redirects":[],"rewrites":{"beforeFiles":[],"afterFiles":[],"fallback":[]},"headers":[]}' > ./.next/routes-manifest.json; fi
 RUN if [ ! -f ./.next/BUILD_ID ]; then echo "production-build-$(date +%s)" > ./.next/BUILD_ID; fi
@@ -71,8 +73,8 @@ RUN if [ ! -f ./.next/BUILD_ID ]; then echo "production-build-$(date +%s)" > ./.
 USER nextjs
 
 # Server configuration - support environment variables
-ENV PORT 3000
-ENV HOST 0.0.0.0
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 EXPOSE $PORT
 

@@ -1,6 +1,6 @@
 /**
  * Video Generation API Route
- * 处理视频生成请求，验证用户登录状态，调用Wavespeed API
+ * 处理视频生成请求，验证用户登录状态，调用BytePlus API
  */
 
 import { NextRequest, NextResponse } from "next/server"
@@ -10,9 +10,14 @@ import {
   validateVideoRequest,
   WavespeedAPIError
 } from "@/lib/services/wavespeed-api"
+import { submitVideoGeneration as submitBytePlusVideoGeneration } from "@/lib/services/byteplus/video/seedance-api"
 import { VideoGenerationRequest, getGenerationType } from "@/lib/types/video"
 import { checkUserCredits, deductUserCredits } from "@/lib/simple-credits-check"
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
+
+const USE_BYTEPLUS = process.env.USE_BYTEPLUS
+  ? process.env.USE_BYTEPLUS !== 'false'
+  : true // 默认启用 BytePlus，除非明确设置为 'false'
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,10 +104,10 @@ export async function POST(request: NextRequest) {
     const duration = body.duration ? (typeof body.duration === 'number' ? `${body.duration}s` : body.duration) : '5s'
 
     // 映射前端模型名称到积分计算名称
-    const modelForCredits = originalModel === 'vidu-q1' ? 'vidu-q1' :
+    const modelForCredits = originalModel === 'vidfab-q1' ? 'vidfab-q1' :
                            originalModel === 'vidfab-pro' ? 'vidfab-pro' :
                            originalModel === 'video-effects' ? 'video-effects' :
-                           'vidu-q1'
+                           'vidfab-q1'
 
     // 检查用户积分
     const creditsCheck = await checkUserCredits(
@@ -154,13 +159,31 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Text-to-Video 积分扣除成功: ${creditsCheck.requiredCredits} 积分，剩余: ${deductResult.newBalance}`)
 
+    const useBytePlus = USE_BYTEPLUS || process.env.NODE_ENV === 'development'
+
+    // 🔥 根据用户订阅状态设置水印（付费用户关闭，免费用户开启）
+    const { data: userData } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('subscription_plan')
+      .eq('uuid', session.user.uuid)
+      .single()
+
+    const isFreeUser = !userData || userData.subscription_plan === 'free'
+    body.watermark = isFreeUser  // 免费用户开启水印，付费用户关闭
+
+    console.log(`🎨 水印设置: ${isFreeUser ? '开启' : '关闭'} (用户套餐: ${userData?.subscription_plan || 'free'})`)
+
     // 调用统一的视频生成API（自动处理text-to-video和image-to-video）
     let result
     try {
-      result = await submitVideoGeneration(body)
+      if (useBytePlus) {
+        result = await submitBytePlusVideoGeneration(body)
+      } else {
+        result = await submitVideoGeneration(body)
+      }
     } catch (videoError) {
       // 🔥 视频生成失败时恢复积分
-      console.log('❌ Text-to-Video API 调用失败，恢复积分...')
+      console.log('❌ Video API 调用失败，恢复积分...')
       const restoreResult = await deductUserCredits(session.user.uuid, -creditsCheck.requiredCredits)
       if (restoreResult.success) {
         console.log(`✅ 积分已恢复: +${creditsCheck.requiredCredits}, 新余额: ${restoreResult.newBalance}`)
@@ -199,11 +222,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 处理 BytePlus API 错误
+    if ((error as any)?.name === 'BytePlusAPIError') {
+      const status = (error as any).status || 500
+      return NextResponse.json(
+        {
+          error: (error as any).message,
+          code: (error as any).code,
+          status
+        },
+        { status: status >= 500 ? 500 : 400 }
+      )
+    }
+
     // 处理其他错误
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
       },
       { status: 500 }
     )

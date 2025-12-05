@@ -3,13 +3,15 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Copy, Play } from "lucide-react"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { useRemix } from "@/hooks/use-remix"
-import { videoTemplatesData, discoverCategories } from "@/data/video-templates"
-import { demoVideoTemplatesData, demoCategoriesData } from "@/data/demo-video-templates"
+import useSWR from 'swr'
+import { transformDiscoverListToVideoData } from '@/lib/discover/transform'
+import type { VideoData } from '@/types/video-optimization'
+
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 interface VideoCardProps {
-  video: typeof videoTemplatesData[0]
+  video: VideoData
   onCreateSimilar: (videoId: string | number) => void
 }
 
@@ -202,18 +204,7 @@ function VideoCard({ video, onCreateSimilar }: VideoCardProps) {
         isHovered ? 'opacity-100' : 'opacity-0'
       }`} />
 
-      {/* User Info - Bottom Left */}
-      <div className="absolute bottom-3 left-3 flex items-center space-x-2">
-        <Avatar className="w-6 h-6 border border-white/20">
-          <AvatarImage src={video.user.avatar} alt={video.user.name} />
-          <AvatarFallback className="bg-gray-600 text-white text-xs">
-            {video.user.name[0]?.toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <span className="text-white text-sm font-medium drop-shadow-lg">
-          {video.user.name}
-        </span>
-      </div>
+      {/* User Info - Hidden */}
 
       {/* Remix Button - Bottom Right */}
       <div className="absolute bottom-3 right-3">
@@ -247,14 +238,23 @@ function VideoCard({ video, onCreateSimilar }: VideoCardProps) {
 
 export function TemplateGallery() {
   const [activeCategory, setActiveCategory] = useState("All")
-  const [useDemoData, setUseDemoData] = useState(false)
-  const [showDebugPanel, setShowDebugPanel] = useState(false)
 
   const { remixVideo } = useRemix()
 
-  // 选择数据源：如果启用演示模式或原始数据无法访问，使用演示数据
-  const currentData = useDemoData ? demoVideoTemplatesData : videoTemplatesData
-  const currentCategories = useDemoData ? demoCategoriesData : discoverCategories
+  // 从 API 获取 Discover 数据（默认获取所有 active 数据，最多 1000 条）
+  const { data: apiData, error: apiError, isLoading } = useSWR('/api/discover', fetcher)
+
+  // 处理 API 数据
+  const currentData = useMemo(() => {
+    if (!apiData?.success || !apiData?.data) return []
+    return transformDiscoverListToVideoData(apiData.data)
+  }, [apiData])
+
+  // 从 API 获取分类统计
+  const { data: categoriesData } = useSWR('/api/discover/categories', fetcher)
+  const currentCategories = useMemo(() => {
+    return categoriesData?.data || []
+  }, [categoriesData])
 
   // Filter videos by category
   const filteredVideos = useMemo(() => {
@@ -279,51 +279,72 @@ export function TemplateGallery() {
 
   return (
     <>
-      <div className="h-screen overflow-y-auto p-6 custom-scrollbar">
+      <div className="h-screen overflow-y-auto p-6 custom-scrollbar relative">
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-gray-600 border-t-purple-500 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-blue-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+            </div>
+            <div className="text-white text-lg font-medium">Loading Discover...</div>
+            <div className="text-gray-400 text-sm">Fetching creative inspirations</div>
+          </div>
+        </div>
+      )}
 
-      {/* Categories */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {currentCategories.map((category) => (
-          <button
-            key={category.name}
-            onClick={() => setActiveCategory(category.name)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              activeCategory === category.name
-                ? "bg-primary text-primary-foreground"
-                : "bg-gray-800 text-gray-300 hover:bg-primary hover:text-primary-foreground"
-            }`}
-          >
-            {category.name} ({category.count})
-          </button>
-        ))}
-      </div>
+      {/* Categories - 已隐藏 */}
+      {false && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {currentCategories.map((category) => (
+            <button
+              key={category.name}
+              onClick={() => setActiveCategory(category.name)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                activeCategory === category.name
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-gray-800 text-gray-300 hover:bg-primary hover:text-primary-foreground"
+              }`}
+            >
+              {category.name} ({category.count})
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Masonry Layout using CSS columns */}
-      <div
-        className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4"
-        style={{ columnFill: 'balance' }}
-      >
-        {filteredVideos.map((video) => (
-          <VideoCard
-            key={video.id}
-            video={video}
-            onCreateSimilar={handleCreateSimilar}
-          />
-        ))}
-      </div>
+      {!isLoading && filteredVideos.length === 0 && (
+        <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+          <div className="text-gray-500 text-6xl">🎬</div>
+          <div className="text-gray-400 text-lg font-medium">No videos found</div>
+          <div className="text-gray-500 text-sm">Check back later for new creative content</div>
+        </div>
+      )}
+
+      {!isLoading && filteredVideos.length > 0 && (
+        <div
+          className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4"
+          style={{ columnFill: 'balance' }}
+        >
+          {filteredVideos.map((video) => (
+            <VideoCard
+              key={video.id}
+              video={video}
+              onCreateSimilar={handleCreateSimilar}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Load More - Show total count and performance metrics */}
-      <div className="text-center mt-8">
-        <div className="text-gray-400 text-sm mb-4">
-          <div>Showing {filteredVideos.length} / {currentData.length} videos</div>
+      {!isLoading && filteredVideos.length > 0 && (
+        <div className="text-center mt-8">
+          <div className="text-gray-400 text-sm mb-4">
+            <div>Showing {filteredVideos.length} / {currentData.length} videos</div>
+          </div>
         </div>
-        <Button
-          variant="outline"
-          className="border-gray-700 text-gray-300 hover:bg-gray-800 px-8"
-        >
-          Load More
-        </Button>
-      </div>
+      )}
       </div>
     </>
   )

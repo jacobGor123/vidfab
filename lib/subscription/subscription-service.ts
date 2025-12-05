@@ -12,6 +12,7 @@ import {
   cancelSubscription,
   getSubscriptionDetails,
   createCustomerPortalSession,
+  validateCouponCode,
 } from './stripe-config';
 import { SUBSCRIPTION_PLANS, getPlanConfig } from './pricing-config';
 import type {
@@ -39,7 +40,7 @@ export class SubscriptionService {
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
     try {
-      const { plan_id, billing_cycle, success_url, cancel_url } = request;
+      const { plan_id, billing_cycle, success_url, cancel_url, coupon_code } = request;
 
       // 验证计划
       if (plan_id === 'free') {
@@ -54,6 +55,30 @@ export class SubscriptionService {
         return {
           success: false,
           error: 'Invalid plan selected',
+        };
+      }
+
+      // 验证优惠券码（如果提供）
+      let promotionCodeId: string | undefined;
+      let couponInfo: {
+        code: string;
+        discountAmount?: number;
+        discountPercent?: number;
+      } | undefined;
+
+      if (coupon_code) {
+        const couponValidation = await validateCouponCode(coupon_code);
+        if (!couponValidation.valid) {
+          return {
+            success: false,
+            error: couponValidation.error || 'Invalid coupon code',
+          };
+        }
+        promotionCodeId = couponValidation.promotionCodeId;
+        couponInfo = {
+          code: coupon_code,
+          discountAmount: couponValidation.discountAmount,
+          discountPercent: couponValidation.discountPercent,
         };
       }
 
@@ -98,6 +123,7 @@ export class SubscriptionService {
             plan_name: planConfig.name,
             dynamic_product_name: planName,
             amount_cents: amount,
+            ...(couponInfo && { coupon: couponInfo }), // 记录优惠券信息
           },
         })
         .select()
@@ -118,10 +144,11 @@ export class SubscriptionService {
         amount,
         currency: 'usd',
         billingCycle: billing_cycle,
-        successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}`,
+        successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/studio/plans?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}`,
         cancelUrl: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
         userUuid,
         planId: plan_id,
+        promotionCodeId, // 传递优惠券 Promotion Code ID
       });
 
       // 更新订单记录
@@ -204,6 +231,7 @@ export class SubscriptionService {
           subscription_status: 'active',
           subscription_stripe_id: stripeSubscriptionId,
           credits_remaining: newCreditsBalance, // ✅ 使用累加后的积分
+          credits_monthly_total: newCreditsBalance, // ✅ 设置本月开始时的总积分
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', userUuid);
@@ -271,6 +299,7 @@ export class SubscriptionService {
 
   /**
    * 处理订阅取消
+   * ✅ 修复：取消订阅时保留用户已购买的积分，不重置
    */
   async handleSubscriptionCanceled(stripeSubscriptionId: string): Promise<void> {
     try {
@@ -286,19 +315,21 @@ export class SubscriptionService {
         return;
       }
 
-      // 更新用户状态为免费计划
+      const currentCredits = user.credits_remaining || 0;
+
+      // ✅ 修复：只更新订阅状态，保留用户已购买的积分
       await supabaseAdmin
         .from(TABLES.USERS)
         .update({
           subscription_plan: 'free',
-          subscription_status: 'cancelled',
+          subscription_status: 'canceled', // 统一使用 'canceled' 而非 'cancelled'
           subscription_stripe_id: null,
-          credits_remaining: 50, // 重置为免费计划积分
+          // ❌ 删除：credits_remaining: 50, // 不再重置积分！
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', user.uuid);
 
-      // 记录订阅变更
+      // ✅ 修复：记录订阅变更时，积分保持不变
       await supabaseAdmin
         .from('subscription_changes')
         .insert({
@@ -306,16 +337,17 @@ export class SubscriptionService {
           from_plan: user.subscription_plan,
           to_plan: 'free',
           change_type: 'cancellation',
-          credits_before: user.credits_remaining,
-          credits_after: 50,
-          credits_adjustment: 50 - user.credits_remaining,
-          reason: 'Subscription canceled',
+          credits_before: currentCredits,
+          credits_after: currentCredits, // ✅ 积分保持不变
+          credits_adjustment: 0, // ✅ 没有积分调整
+          reason: 'Subscription canceled - credits retained',
           metadata: {
             canceled_subscription_id: stripeSubscriptionId,
+            credits_retained: currentCredits,
           },
         });
 
-      console.log(`Subscription canceled for user ${user.uuid}`);
+      console.log(`✅ Subscription canceled for user ${user.uuid} - Credits retained: ${currentCredits}`);
 
     } catch (error: any) {
       console.error('Error handling subscription cancellation:', error);
@@ -364,6 +396,7 @@ export class SubscriptionService {
         .update({
           subscription_plan: planId,
           credits_remaining: newCreditsBalance,
+          credits_monthly_total: newCreditsBalance, // ✅ 更新本月总积分
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', user.uuid);
@@ -416,7 +449,7 @@ export class SubscriptionService {
       // ✅ 简化1: 直接获取用户完整信息（参考iMideo设计）
       const { data: user, error } = await supabaseAdmin
         .from(TABLES.USERS)
-        .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining')
+        .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_total')
         .eq('uuid', userUuid)
         .single();
 
@@ -432,10 +465,28 @@ export class SubscriptionService {
 
       // ✅ 简化3: 验证订阅是否仍然有效（参考iMideo的getUserActiveSubscription）
       let isActive = false;
-      if (user.subscription_stripe_id && subscriptionStatus === 'active') {
-        // 简化版本：如果有Stripe ID且状态为active，就认为是活跃的
-        // 复杂的过期检查可以通过定时任务或其他webhook处理
+      let autoRenew = true; // 默认开启自动续订
+
+      // 判断订阅是否活跃的逻辑：
+      // 1. 如果有积分且是付费套餐，应该是活跃的
+      // 2. 如果有Stripe ID且状态为active，是活跃的
+      // 3. 如果状态明确为active，是活跃的
+      if (currentPlan !== 'free' && creditsRemaining > 0) {
+        // 付费套餐且还有积分，认为是活跃的
         isActive = true;
+        autoRenew = !user.subscription_stripe_id; // 没有Stripe ID的情况下默认不自动续订
+      } else if (user.subscription_stripe_id && subscriptionStatus === 'active') {
+        // 有Stripe订阅且状态为active
+        isActive = true;
+        autoRenew = true;
+      } else if (subscriptionStatus === 'active' && currentPlan !== 'free') {
+        // 状态明确为active的付费套餐
+        isActive = true;
+        autoRenew = false;
+      } else if (subscriptionStatus === 'cancelled') {
+        // 已取消的订阅
+        isActive = false;
+        autoRenew = false;
       }
 
       // ✅ 简化4: 构建响应（参考iMideo的getUserCurrentPlan）
@@ -443,14 +494,15 @@ export class SubscriptionService {
       const subscription: UserSubscription = {
         uuid: user.uuid,
         plan_id: currentPlan,
-        status: isActive ? 'active' : 'expired',
+        status: isActive ? 'active' : (subscriptionStatus === 'cancelled' ? 'cancelled' : 'expired'),
         billing_cycle: 'monthly', // 简化：默认月付，可以从Stripe获取详细信息
         credits_remaining: creditsRemaining,
         credits_total: planConfig.credits,
+        credits_monthly_total: user.credits_monthly_total, // 本月可用总积分
         period_start: user.created_at,
         period_end: user.updated_at,
         stripe_subscription_id: user.subscription_stripe_id,
-        auto_renew: isActive,
+        auto_renew: autoRenew,
         created_at: user.created_at,
         updated_at: user.updated_at,
       };
@@ -524,41 +576,177 @@ export class SubscriptionService {
 
   /**
    * 取消用户订阅
+   * ✅ 修复：无论立即取消还是期末取消，都等待 webhook 处理状态更新
    */
   async cancelUserSubscription(
     userUuid: string,
     cancelAtPeriodEnd: boolean = true
-  ): Promise<{ success: boolean; error?: string }> {
+  ): Promise<{ success: boolean; error?: string; cleaned?: boolean }> {
     try {
       const { data: user, error } = await supabaseAdmin
         .from(TABLES.USERS)
-        .select('subscription_stripe_id')
+        .select('subscription_stripe_id, subscription_plan, subscription_status')
         .eq('uuid', userUuid)
         .single();
 
-      if (error || !user || !user.subscription_stripe_id) {
+      if (error || !user) {
         return {
           success: false,
-          error: 'No active subscription found',
+          error: 'User not found',
         };
       }
 
-      // 取消Stripe订阅
-      await cancelSubscription(user.subscription_stripe_id, cancelAtPeriodEnd);
-
-      if (!cancelAtPeriodEnd) {
-        // 立即取消，更新用户状态
-        await this.handleSubscriptionCanceled(user.subscription_stripe_id);
+      // 🔥 检查用户是否已经是免费计划
+      if (user.subscription_plan === 'free' || user.subscription_status === 'cancelled') {
+        console.log(`⚠️ User ${userUuid} is already on free plan or cancelled`);
+        return {
+          success: true, // ✅ 改为 true，因为目标状态已达成
+          error: 'You are already on the free plan',
+          cleaned: true,
+        };
       }
 
-      return { success: true };
+      if (!user.subscription_stripe_id) {
+        console.log(`⚠️ User ${userUuid} has no subscription_stripe_id but plan is ${user.subscription_plan}`);
+        // 🔥 数据不一致：有付费计划但没有 Stripe ID，直接清理
+        await this.cleanupOrphanedSubscription(userUuid);
+        return {
+          success: true, // ✅ 改为 true，因为已成功清理
+          error: 'Invalid subscription state detected and fixed. Your account has been reset to free plan.',
+          cleaned: true,
+        };
+      }
+
+      console.log(`🔄 Canceling subscription for user ${userUuid}: ${user.subscription_stripe_id}`);
+
+      try {
+        // 🔥 关键修复：只调用 Stripe API，不直接修改数据库
+        // 让 Stripe webhook 来处理状态更新，避免竞态条件
+        await cancelSubscription(user.subscription_stripe_id, cancelAtPeriodEnd);
+
+        console.log(`✅ Stripe cancellation request sent successfully`);
+        console.log(`⏳ Waiting for webhook to update user status...`);
+
+        return { success: true };
+
+      } catch (stripeError: any) {
+        console.error('Stripe API error:', stripeError);
+
+        // 🔥 如果 Stripe 中找不到订阅，说明是孤儿数据，直接清理
+        if (stripeError.code === 'resource_missing' || stripeError.statusCode === 404) {
+          console.log(`⚠️ Subscription ${user.subscription_stripe_id} not found in Stripe, cleaning up orphaned data`);
+          await this.cleanupOrphanedSubscription(userUuid);
+          return {
+            success: true, // ✅ 改为 true，因为已成功清理
+            error: 'Subscription not found in Stripe. Your account has been reset to free plan.',
+            cleaned: true,
+          };
+        }
+
+        throw stripeError;
+      }
 
     } catch (error: any) {
       console.error('Error canceling subscription:', error);
+
       return {
         success: false,
-        error: error.message,
+        error: error.message || 'Failed to cancel subscription',
       };
+    }
+  }
+
+  /**
+   * 清理孤儿订阅数据（数据库有记录但 Stripe 中不存在）
+   */
+  private async cleanupOrphanedSubscription(userUuid: string): Promise<void> {
+    try {
+      console.log(`🧹 [CLEANUP] Starting cleanup for user ${userUuid}`);
+
+      const { getIsoTimestr } = await import('@/lib/time');
+
+      // 🔍 步骤1: 获取当前用户状态
+      const { data: user, error: fetchError } = await supabaseAdmin
+        .from(TABLES.USERS)
+        .select('subscription_plan, subscription_status, subscription_stripe_id, credits_remaining')
+        .eq('uuid', userUuid)
+        .single();
+
+      if (fetchError) {
+        console.error(`❌ [CLEANUP] Failed to fetch user:`, fetchError);
+        throw fetchError;
+      }
+
+      if (!user) {
+        console.error(`❌ [CLEANUP] User not found: ${userUuid}`);
+        throw new Error(`User not found: ${userUuid}`);
+      }
+
+      console.log(`📊 [CLEANUP] Current user state:`, {
+        plan: user.subscription_plan,
+        status: user.subscription_status,
+        stripeId: user.subscription_stripe_id,
+        credits: user.credits_remaining,
+      });
+
+      // 🔍 步骤2: 更新用户状态为免费计划
+      const { data: updateResult, error: updateError } = await supabaseAdmin
+        .from(TABLES.USERS)
+        .update({
+          subscription_plan: 'free',
+          subscription_status: 'cancelled', // ✅ 修复：使用 'cancelled' (双L) 以匹配数据库约束
+          subscription_stripe_id: null,
+          updated_at: getIsoTimestr(),
+        })
+        .eq('uuid', userUuid)
+        .select(); // ✅ 添加 select() 以返回更新后的数据
+
+      if (updateError) {
+        console.error(`❌ [CLEANUP] Failed to update user:`, updateError);
+        throw updateError;
+      }
+
+      if (!updateResult || updateResult.length === 0) {
+        console.error(`❌ [CLEANUP] Update returned no rows for user: ${userUuid}`);
+        throw new Error(`Failed to update user ${userUuid}`);
+      }
+
+      console.log(`✅ [CLEANUP] User updated successfully:`, updateResult[0]);
+
+      // 🔍 步骤3: 记录变更到 subscription_changes 表
+      try {
+        const { error: changeError } = await supabaseAdmin
+          .from('subscription_changes')
+          .insert({
+            user_uuid: userUuid,
+            from_plan: user.subscription_plan,
+            to_plan: 'free',
+            change_type: 'cancellation', // ✅ 修复：使用 'cancellation' 以匹配数据库约束
+            credits_before: user.credits_remaining || 0,
+            credits_after: user.credits_remaining || 0,
+            credits_adjustment: 0,
+            reason: 'Cleaned up orphaned subscription data (not found in Stripe)',
+            metadata: {
+              cleanup_reason: 'stripe_subscription_not_found',
+              previous_stripe_id: user.subscription_stripe_id,
+            },
+          });
+
+        if (changeError) {
+          console.error(`⚠️ [CLEANUP] Failed to record change (non-critical):`, changeError);
+          // 不抛出错误，因为主要更新已经成功
+        } else {
+          console.log(`✅ [CLEANUP] Change recorded successfully`);
+        }
+      } catch (changeErr) {
+        console.error(`⚠️ [CLEANUP] Exception recording change (non-critical):`, changeErr);
+      }
+
+      console.log(`🎉 [CLEANUP] Cleanup completed successfully for user ${userUuid}`);
+
+    } catch (error: any) {
+      console.error(`💥 [CLEANUP] Critical error during cleanup for user ${userUuid}:`, error);
+      throw error;
     }
   }
 

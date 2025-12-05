@@ -11,7 +11,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Download,
   Share2,
-  RotateCcw,
   Play,
   Pause,
   Volume2,
@@ -36,7 +35,6 @@ interface VideoResultProps {
     aspectRatio: string
     style?: string
   }
-  onRegenerateClick: () => void
   videoId?: string
   // Database video data
   video?: UserVideo
@@ -48,7 +46,6 @@ export function VideoResult({
   thumbnailUrl,
   prompt,
   settings,
-  onRegenerateClick,
   videoId,
   video,
   isFromDatabase = false
@@ -344,7 +341,9 @@ export function VideoResult({
             </div>
             <div className="flex flex-wrap gap-2 text-sm text-gray-400">
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.model}</span>
-              <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.duration}</span>
+              <span className="px-2 py-1 bg-gray-800 rounded text-xs">
+                {typeof settings.duration === 'number' ? `${settings.duration}s` : settings.duration}
+              </span>
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.resolution}</span>
               <span className="px-2 py-1 bg-gray-800 rounded text-xs">{settings.aspectRatio}</span>
               {settings.style && (
@@ -369,14 +368,6 @@ export function VideoResult({
               title="Share"
             >
               <Share2 className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={onRegenerateClick}
-              className="p-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors"
-              title="Regenerate"
-            >
-              <RotateCcw className="w-5 h-5" />
             </button>
           </div>
         </div>

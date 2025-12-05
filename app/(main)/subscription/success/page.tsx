@@ -3,32 +3,20 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { Navbar } from "@/components/navbar"
 import { SpaceBackground } from "@/components/space-background"
 import { Check, Zap, Crown, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
+import { trackPurchase } from "@/lib/analytics/gtm"
+import { SUBSCRIPTION_PLANS } from "@/lib/subscription/pricing-config"
 
 function SubscriptionSuccessPageInner() {
-  const [scrolled, setScrolled] = useState(false)
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
   const { data: session } = useSession()
   const sessionId = searchParams.get('session_id')
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
 
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
@@ -40,6 +28,25 @@ function SubscriptionSuccessPageInner() {
 
         if (data.success) {
           setSubscriptionDetails(data)
+
+          // 🔥 GTM 购买转化事件跟踪
+          const planId = data.subscription?.plan_id
+          const billingCycle = data.subscription?.billing_cycle || 'monthly'
+
+          if (planId && ['lite', 'pro', 'premium'].includes(planId)) {
+            const plan = SUBSCRIPTION_PLANS[planId as 'lite' | 'pro' | 'premium']
+            const value = billingCycle === 'annual'
+              ? plan.price.annual / 100
+              : plan.price.monthly / 100
+
+            // 触发 GA4 purchase 事件
+            trackPurchase(
+              planId,
+              billingCycle as 'monthly' | 'annual',
+              value,
+              sessionId || `sub_${Date.now()}`
+            )
+          }
         }
       } catch (error) {
         console.error('Error fetching subscription status:', error)
@@ -52,12 +59,11 @@ function SubscriptionSuccessPageInner() {
     const timer = setTimeout(fetchSubscriptionStatus, 3000)
 
     return () => clearTimeout(timer)
-  }, [session])
+  }, [session, sessionId])
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <SpaceBackground />
-      <Navbar scrolled={scrolled} />
 
       <main className="container mx-auto px-4 pt-32 pb-20">
         <div className="max-w-3xl mx-auto text-center">
@@ -156,8 +162,8 @@ function SubscriptionSuccessPageInner() {
                 Jump into the video creation studio and start making amazing AI-powered videos with your new credits.
               </p>
               <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                <Link href="/create">
-                  Create Video
+                <Link href="/studio/plans">
+                  View My Profile
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>

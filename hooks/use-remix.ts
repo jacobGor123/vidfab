@@ -40,7 +40,7 @@ export function useRemix() {
       const promptCopied = await copyToClipboard(data.prompt)
 
       // Navigate to Image-to-Video page
-      router.push('/create?tool=image-to-video')
+      router.push('/studio/image-to-video')
 
       // Show success toast
       toast({

@@ -17,7 +17,11 @@ import {
 } from "@/lib/types/video"
 
 const WAVESPEED_BASE_URL = "https://api.wavespeed.ai/api/v3"
-const WAVESPEED_API_KEY = "a329907377c20848f126692adb8cd0594e1a1ebef19140b7369b79a69c800929"
+const WAVESPEED_API_KEY = process.env.WAVESPEED_API_KEY || ""
+
+if (!WAVESPEED_API_KEY) {
+  console.error("⚠️ WAVESPEED_API_KEY is not configured in environment variables")
+}
 
 // Rate limiting and retry configuration
 const MAX_RETRIES = 3
@@ -244,10 +248,8 @@ async function submitGeneralVideoGeneration(
       seed: request.seed ?? -1,
     }
 
-    // 对于text-to-video添加aspect_ratio
-    if (generationType === "text-to-video") {
-      apiRequest.aspect_ratio = request.aspectRatio
-    }
+    // 添加 aspect_ratio 参数（text-to-video 和 image-to-video 都需要）
+    apiRequest.aspect_ratio = request.aspectRatio
 
     // 对于image-to-video添加image参数
     if (generationType === "image-to-video" && request.image) {
@@ -344,8 +346,8 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
         errors.push("Text-to-Video Vidfab Pro supports 16:9 and 9:16 aspect ratios")
       }
     } else if (generationType === "image-to-video") {
-      if (request.aspectRatio !== "16:9") {
-        errors.push("Image-to-Video Vidfab Pro only supports 16:9 aspect ratio")
+      if (!["16:9", "9:16"].includes(request.aspectRatio)) {
+        errors.push("Image-to-Video Vidfab Pro supports 16:9 and 9:16 aspect ratios")
       }
     }
   }

@@ -30,8 +30,18 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-*log
-
-# logs directory
-logs/
+# logs - 所有日志文件
 *.log
+*log
+logs/
+**/*.log
+
+# Docker logs
+docker-*.log
+
+# 临时文件
+tmp/
+queue-worker.js
+
+# Playwright 测试截图和临时文件
+.playwright-mcp/

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LogOut, User, ChevronDown, Crown } from "lucide-react"
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils"
  */
 export function UserMenu() {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [subscriptionPlan, setSubscriptionPlan] = useState<string>('free')
   const menuRef = useRef<HTMLDivElement>(null)
@@ -66,6 +68,11 @@ export function UserMenu() {
       callbackUrl: "/",
       redirect: true,
     })
+  }
+
+  const handleProfileClick = () => {
+    setIsOpen(false)
+    router.push('/studio/plans')
   }
 
   if (status === "loading") {
@@ -156,13 +163,13 @@ export function UserMenu() {
 
           {/* Menu Items */}
           <div className="py-2">
-            {/* Profile (disabled for now) */}
+            {/* Plans & Billing */}
             <button
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors cursor-not-allowed opacity-50"
-              disabled
+              onClick={handleProfileClick}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
             >
               <User className="h-4 w-4 mr-3" />
-              Profile (Coming Soon)
+              Plans & Billing
             </button>
 
             {/* Sign Out */}

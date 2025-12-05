@@ -119,7 +119,7 @@ export const CREDITS_CONSUMPTION = {
 
 export const MODEL_ACCESS = {
   free: ['seedance-v1-pro-t2v-480p', 'seedance-v1-pro-t2v-720p', 'video-effects'],
-  lite: ['seedance-v1-pro-t2v', 'video-effects'],
+  lite: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast'],
   pro: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast'],
   premium: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast']
 } as const;
@@ -156,20 +156,22 @@ export function getPlanConfig(planId: keyof typeof SUBSCRIPTION_PLANS) {
 // 前端模型名称到积分配置模型名称的映射
 const MODEL_NAME_MAPPING: Record<string, string> = {
   // Text-to-Video 映射
-  'vidu-q1': 'seedance-v1-pro-t2v',
   'vidfab-q1': 'seedance-v1-pro-t2v',
   'vidfab-pro': 'veo3-fast',
   'veo3-fast-t2v': 'veo3-fast',
   'default': 'seedance-v1-pro-t2v',
 
   // Image-to-Video 映射
-  'vidu-q1-i2v': 'seedance-v1-pro-t2v',
   'vidfab-q1-i2v': 'seedance-v1-pro-t2v',
   'vidfab-pro-i2v': 'veo3-fast',
   'veo3-fast-i2v': 'veo3-fast',
 
   // Video Effects 映射
   'video-effects': 'video-effects',
+
+  // 向后兼容映射（处理历史数据中的旧模型名称）
+  'vidu-q1': 'seedance-v1-pro-t2v',
+  'vidu-q1-i2v': 'seedance-v1-pro-t2v',
 
   // 直接映射（兼容已有的正确名称）
   'seedance-v1-pro-t2v': 'seedance-v1-pro-t2v',

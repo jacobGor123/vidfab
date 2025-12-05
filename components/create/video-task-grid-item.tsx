@@ -12,7 +12,7 @@ import { VideoResult } from "./video-result-enhanced"
 import { VideoJob, VideoResult as VideoResultType } from "@/lib/contexts/video-context"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { cn } from "@/lib/utils"
-import { X, AlertTriangle, Sparkles } from "lucide-react"
+import { X, AlertTriangle } from "lucide-react"
 import toast from "react-hot-toast"
 import {
   AlertDialog,
@@ -90,13 +90,11 @@ function getFriendlyErrorMessage(error: string): string {
 interface VideoTaskGridItemProps {
   job?: VideoJob
   completedVideo?: VideoResultType
-  onRegenerateClick?: () => void
 }
 
 export function VideoTaskGridItem({
   job,
-  completedVideo,
-  onRegenerateClick
+  completedVideo
 }: VideoTaskGridItemProps) {
   const [progress, setProgress] = useState(0)
   const [animatedProgress, setAnimatedProgress] = useState(0)
@@ -134,109 +132,32 @@ export function VideoTaskGridItem({
     return () => clearInterval(interval)
   }, [job, estimatedDuration])
 
-  // Delete video task
-  const handleDelete = useCallback(async () => {
+  // Cancel processing task
+  const handleCancelTask = useCallback(() => {
+    if (!job?.id) return
 
-    try {
-      let deleted = false
-
-      // Get the ID to delete (either from job or completedVideo)
-      const deleteId = job?.id || completedVideo?.id
-
-      if (!deleteId) {
-        toast.error('No video found to delete.')
-        setShowDeleteConfirm(false)
-        return
-      }
-
-      // Always try to remove from both places for completed videos
-      if (job?.status === "completed" || completedVideo) {
-        // Remove from activeJobs (if it exists there)
-        videoContext.removeJob(deleteId)
-        // Remove from completedVideos (if it exists there)
-        videoContext.removeCompletedVideo(deleteId)
-      }
-      // For processing jobs, only remove from activeJobs
-      else if (job?.status === "processing") {
-        videoContext.removeJob(deleteId)
-      }
-      // Fallback: try both just in case
-      else {
-        videoContext.removeJob(deleteId)
-        videoContext.removeCompletedVideo(deleteId)
-      }
-
-      // Handle database deletion for UUID videos
-      if (completedVideo?.id) {
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(completedVideo.id)
-        if (isUUID) {
-          await videoContext.deleteVideo(completedVideo.id)
-        }
-      }
-
-      deleted = true
-      toast.success('Video deleted successfully!')
-
-    } catch (error) {
-      toast.error('Failed to delete video. Please try again.')
-    }
-
+    // Simply remove the job from active jobs list (cancels polling)
+    videoContext.removeJob(job.id)
+    toast.success('Task cancelled successfully')
     setShowDeleteConfirm(false)
-  }, [job, completedVideo, videoContext])
+  }, [job?.id, videoContext])
 
   // 🔥 关键修复：优先检查job的completed状态，确保轮询更新能立即显示
   if (completedVideo || (job?.status === "completed" && job.resultUrl)) {
-
-    const showDelete = true // Allow deleting completed videos
     const videoUrl = completedVideo?.videoUrl || job?.resultUrl!
     const prompt = completedVideo?.prompt || job?.prompt!
     const settings = completedVideo?.settings || job?.settings!
 
     return (
-      <div className="relative">
-        {/* Delete button */}
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all"
-          title="Delete video"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <VideoResult
+      <VideoResult
         videoUrl={videoUrl}
         thumbnailUrl={completedVideo?.thumbnailUrl}
         prompt={prompt}
         settings={settings}
-        onRegenerateClick={onRegenerateClick || (() => {})}
         video={completedVideo as any}
         isFromDatabase={!!completedVideo}
         videoId={completedVideo?.id || job?.id}
-        />
-
-        {/* Delete confirmation dialog */}
-        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-          <AlertDialogContent className="bg-gray-900 border-gray-800">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-white">Delete Video</AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-400">
-                This action will permanently delete this video and cannot be undone. Are you sure you want to continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-700">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                Confirm Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      />
     )
   }
 
@@ -245,7 +166,7 @@ export function VideoTaskGridItem({
 
     return (
       <Card className="h-full bg-gray-950 border-gray-800 relative">
-        {/* Delete button */}
+        {/* Cancel button */}
         <button
           onClick={() => setShowDeleteConfirm(true)}
           className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all"
@@ -287,13 +208,13 @@ export function VideoTaskGridItem({
           </div>
         </CardContent>
 
-        {/* Delete confirmation dialog */}
+        {/* Cancel confirmation dialog */}
         <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
           <AlertDialogContent className="bg-gray-900 border-gray-800">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-white">Cancel Task</AlertDialogTitle>
               <AlertDialogDescription className="text-gray-400">
-                This action will cancel the current video generation task. Are you sure you want to continue?
+                This will stop the video generation process. Are you sure you want to cancel?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -301,7 +222,7 @@ export function VideoTaskGridItem({
                 Keep Processing
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleDelete}
+                onClick={handleCancelTask}
                 className="bg-red-600 text-white hover:bg-red-700"
               >
                 Cancel Task
@@ -318,15 +239,6 @@ export function VideoTaskGridItem({
 
     return (
       <Card className="h-full bg-gray-950 border-red-800/30 relative">
-        {/* Delete button */}
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-gray-900/90 hover:bg-red-600 text-gray-400 hover:text-white transition-all"
-          title="Remove failed task"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
         <CardContent className="h-full flex flex-col items-center justify-center p-6">
           <div className="flex items-center justify-center flex-col w-full text-center">
             {/* Error icon */}
@@ -341,54 +253,16 @@ export function VideoTaskGridItem({
             <p className="text-xs text-gray-400 mb-4 max-w-[200px] text-center">
               {getFriendlyErrorMessage(job.error || "Video generation failed")}
             </p>
-
-            {/* Retry button */}
-            <Button
-              onClick={onRegenerateClick}
-              size="sm"
-              variant="outline"
-              className="text-red-300 border-red-300/30 hover:bg-red-500/10 hover:border-red-300"
-              disabled={!onRegenerateClick}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Try Again
-            </Button>
           </div>
         </CardContent>
-
-        {/* Delete confirmation dialog */}
-        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-          <AlertDialogContent className="bg-gray-900 border-gray-800">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-white">Remove Failed Task</AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-400">
-                This action will remove this failed video generation task. You can try generating again with different settings. Are you sure you want to continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-700">
-                Keep Task
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                Remove Task
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </Card>
     )
   }
 
 
   // 🔥 处理意外状态：如果任务存在但状态异常，当作处理中状态
-  if (job && !['processing', 'queued', 'completed', 'failed', 'pending'].includes(job.status)) {
-    console.warn('⚠️ 检测到异常任务状态，当作处理中处理:', {
-      jobId: job.id,
-      status: job.status
-    })
+  const validStatuses = ['pending', 'generating', 'processing', 'completed', 'failed', 'storing']
+  if (job && !validStatuses.includes(job.status)) {
 
     return (
       <Card className="h-full bg-gray-950 border-purple-600/30 relative">
@@ -417,37 +291,6 @@ export function VideoTaskGridItem({
     )
   }
 
-  // 骨架屏动画状态 - 当没有任务信息时显示
-
-  return (
-    <Card className="h-full bg-gray-950 border-gray-800 overflow-hidden">
-      <CardContent className="h-full p-0">
-        <div className="relative h-full flex flex-col">
-          {/* 模拟视频缩略图区域 */}
-          <div className="flex-1 bg-gray-900 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 animate-pulse" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-700/20 to-transparent animate-shimmer" />
-
-            {/* 模拟播放按钮 */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-gray-800/80 animate-pulse" />
-            </div>
-          </div>
-
-          {/* 模拟进度条 */}
-          <div className="px-3 py-2 bg-gray-950">
-            <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-purple-600/30 rounded-full animate-pulse" />
-            </div>
-          </div>
-
-          {/* 模拟文本内容 */}
-          <div className="px-3 py-2 space-y-2">
-            <div className="h-3 bg-gray-800 rounded animate-pulse" />
-            <div className="h-2 bg-gray-800/60 rounded w-2/3 animate-pulse" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+  // 🔥 骨架屏已删除 - 不显示占位动画，等待真正的任务数据
+  return null
 }

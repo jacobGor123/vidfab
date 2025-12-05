@@ -23,12 +23,15 @@ export function VideoLimitDialog({ open, onOpenChange }: VideoLimitDialogProps) 
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-gray-900 border-gray-800">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">视频数量已达上限</AlertDialogTitle>
+          <AlertDialogTitle className="text-white">Video Limit Reached</AlertDialogTitle>
           <AlertDialogDescription className="text-gray-400">
-            您已经创建了20个视频，这是当前的最大限制。
+            You have reached the maximum limit of 20 videos in the preview area.
             <br />
             <br />
-            请删除一些旧视频后再继续创建新视频。点击任意视频右上角的 × 按钮即可删除。
+            To continue creating new videos, please delete some old videos by clicking the × button at the top-right corner of any video card.
+            <br />
+            <br />
+            Note: All your videos are safely stored and can be accessed in the "My Assets" section.
           </AlertDialogDescription>
         </AlertDialogHeader>
       </AlertDialogContent>
