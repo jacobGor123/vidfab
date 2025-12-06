@@ -65,8 +65,12 @@ export function mergeAssets(videos: UserVideo[], images: UserImage[]): UnifiedAs
     id: v.id,
     type: 'video' as AssetType,
     prompt: v.prompt,
+    // 🔄 CLOUD NATIVE MIGRATION: 处理缩略图 URL
+    // thumbnail_path 可能是完整 URL（视频 URL）或相对路径（图片路径）
     previewUrl: v.thumbnail_path
-      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/video-thumbnails/${v.thumbnail_path}`
+      ? (v.thumbnail_path.startsWith('http://') || v.thumbnail_path.startsWith('https://'))
+        ? v.thumbnail_path  // 完整 URL（临时方案：视频 URL）
+        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/video-thumbnails/${v.thumbnail_path}`  // 相对路径（真实缩略图）
       : v.storage_path
       ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/user-videos/${v.storage_path}`
       : v.original_url || '',

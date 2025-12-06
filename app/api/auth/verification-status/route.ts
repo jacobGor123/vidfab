@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisVerificationCodeManager } from '@/lib/redis-verification-codes';
 import { emailService } from '@/lib/email-service';
-import { checkRedisHealth } from '@/lib/redis';
+import { checkRedisHealth } from '@/lib/redis-upstash';
 
 export async function GET(request: NextRequest) {
   try {

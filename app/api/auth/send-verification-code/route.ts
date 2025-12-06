@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { redisVerificationCodeManager } from '@/lib/redis-verification-codes';
 import { sendVerificationEmail } from '@/lib/email-service';
-import { checkRedisHealth } from '@/lib/redis';
+import { checkRedisHealth } from '@/lib/redis-upstash';
 
 const sendCodeSchema = z.object({
   email: z.string().email('Invalid email address'),

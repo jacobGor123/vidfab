@@ -633,11 +633,26 @@ export function MyAssets() {
                         // 🔥 Video preview
                         <>
                           {asset.previewUrl ? (
-                            <img
-                              src={asset.previewUrl}
-                              alt={asset.prompt || 'Video thumbnail'}
-                              className="w-full h-full object-cover"
-                            />
+                            // 🔄 判断是视频 URL 还是图片缩略图
+                            asset.type === 'video' && (
+                              asset.previewUrl.includes('.mp4') ||
+                              asset.previewUrl.includes('user-videos') ||
+                              asset.previewUrl.includes('wavespeed')
+                            ) ? (
+                              <video
+                                src={asset.previewUrl}
+                                className="w-full h-full object-cover"
+                                preload="metadata"
+                                muted
+                                playsInline
+                              />
+                            ) : (
+                              <img
+                                src={asset.previewUrl}
+                                alt={asset.prompt || 'Thumbnail'}
+                                className="w-full h-full object-cover"
+                              />
+                            )
                           ) : (
                             <Play className="w-5 h-5 text-gray-500" />
                           )}

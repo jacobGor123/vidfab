@@ -223,9 +223,18 @@ export function VideoResult({
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.storage_path}`
     : videoUrl
 
-  const actualThumbnailUrl = video?.thumbnail_path
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.thumbnail_path}`
-    : thumbnailUrl
+  // 🔄 CLOUD NATIVE MIGRATION: 处理缩略图 URL
+  // thumbnail_path 可能是:
+  // 1. 完整视频 URL (临时方案) - 不使用 poster,让浏览器自动显示第一帧
+  // 2. Supabase 图片相对路径 - 拼接完整 URL 用作 poster
+  const isVideoUrl = video?.thumbnail_path?.startsWith('http') &&
+    (video.thumbnail_path.includes('.mp4') || video.thumbnail_path.includes('video'))
+
+  const actualThumbnailUrl = video?.thumbnail_path && !isVideoUrl
+    ? (video.thumbnail_path.startsWith('http://') || video.thumbnail_path.startsWith('https://'))
+      ? video.thumbnail_path // 完整图片 URL
+      : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/video-thumbnails/${video.thumbnail_path}` // 相对路径
+    : (thumbnailUrl && !thumbnailUrl.includes('.mp4') ? thumbnailUrl : undefined) // 如果是视频 URL,不使用 poster
 
 
   return (

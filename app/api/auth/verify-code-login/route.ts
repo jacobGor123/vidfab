@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { redisVerificationCodeManager } from '@/lib/redis-verification-codes';
 import { generateRandomString } from '@/lib/hash';
 import { getClientIp } from '@/lib/ip';
-import { checkRedisHealth } from '@/lib/redis';
+import { checkRedisHealth } from '@/lib/redis-upstash';
 
 const verifyCodeSchema = z.object({
   email: z.string().email('Invalid email address'),

@@ -1,4 +1,5 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import { withAxiom } from 'next-axiom';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
@@ -146,4 +147,5 @@ const nextConfig = {
   },
 }
 
-export default withNextIntl(nextConfig);
+// Apply plugins in order: Axiom -> NextIntl
+export default withNextIntl(withAxiom(nextConfig));

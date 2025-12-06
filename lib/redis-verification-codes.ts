@@ -2,7 +2,7 @@
  * Redis-based Verification Code Management for VidFab AI Video Platform
  * Docker环境下的生产就绪验证码系统
  */
-import { RedisCache } from '@/lib/redis';
+import { RedisCache } from '@/lib/redis-upstash';
 import { generateVerificationCode } from '@/lib/hash';
 
 // Redis key prefixes for different types of data

@@ -8,7 +8,7 @@ import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { UserVideosDB } from '@/lib/database/user-videos'
 import { supabaseAdmin } from '@/lib/supabase'
-import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
+// import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail' // 已禁用: Vercel 无 ffmpeg
 
 export async function POST(request: NextRequest) {
   try {
@@ -138,43 +138,16 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
         fileSize = 10 * 1024 * 1024 // 默认 10MB
       }
 
-      // 生成并上传缩略图
-      let thumbnailPath: string | null = null
-      try {
-        const videoResponse = await fetch(originalUrl)
-        if (!videoResponse.ok) {
-          throw new Error(`Failed to fetch video: ${videoResponse.statusText}`)
-        }
-        const videoBuffer = Buffer.from(await videoResponse.arrayBuffer())
+      // 🔄 CLOUD NATIVE MIGRATION: 缩略图策略
+      // 方案 B: 直接使用视频 URL 作为缩略图路径
+      // 前端会使用 <video> 标签自动显示第一帧作为封面
+      // TODO Phase 3: 集成 Supabase Edge Functions + ffmpeg 或第三方截图服务
+      let thumbnailPath: string | null = originalUrl
 
-        const thumbnailResult = await extractVideoThumbnail(videoBuffer, {
-          timestamp: 0.1,
-          format: 'webp',
-          maxWidth: 1280,
-          maxHeight: 720,
-          quality: 85,
-          targetSizeKB: 100
-        })
+      console.log('ℹ️  Using video URL as thumbnail (browser renders first frame)')
 
-        if (thumbnailResult.success && thumbnailResult.buffer) {
-          const thumbnailFileName = `${userId}/${newVideo.id}-thumbnail.webp`
-          const { error: uploadError } = await supabaseAdmin
-            .storage
-            .from('video-thumbnails')
-            .upload(thumbnailFileName, thumbnailResult.buffer, {
-              contentType: 'image/webp',
-              upsert: true
-            })
-
-          if (uploadError) {
-            console.error('Thumbnail upload failed:', uploadError)
-          } else {
-            thumbnailPath = thumbnailFileName
-          }
-        }
-      } catch (thumbnailError) {
-        console.error('Thumbnail generation failed:', thumbnailError)
-      }
+      // NOTE: Inngest thumbnail generation 已禁用,因为 Vercel 环境没有 ffmpeg
+      // 等 Phase 3 迁移到 Supabase Edge Functions 时再启用
 
       // 更新视频状态
       try {
