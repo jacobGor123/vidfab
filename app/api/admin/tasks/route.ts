@@ -10,6 +10,9 @@ import { requireAdmin } from '@/lib/admin/auth';
 
 // Note: Removed edge runtime - NextAuth requires Node.js runtime
 
+// 标记为动态路由（使用 requireAdmin 需要 headers 和 searchParams）
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Verify admin access

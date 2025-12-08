@@ -8,6 +8,9 @@ import { getServerSession } from "next-auth"
 import { authConfig } from "@/auth/config"
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
 
+// 标记为动态路由（使用 getServerSession 需要 headers）
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authConfig)

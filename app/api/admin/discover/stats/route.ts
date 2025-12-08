@@ -8,6 +8,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { DiscoverCategory, DiscoverStatus } from '@/types/discover'
 
+// 标记为动态路由（使用 requireAdmin 需要 headers）
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/admin/discover/stats
  * 获取 Discover 视频统计信息

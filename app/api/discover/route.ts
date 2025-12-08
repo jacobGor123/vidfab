@@ -7,6 +7,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+// 标记为动态路由（使用 request.url 和 searchParams）
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/discover
  * 获取公开的 Discover 视频列表（仅返回 active 状态）
