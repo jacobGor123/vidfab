@@ -11,7 +11,7 @@ import Link from "next/link"
 import { UserMenu } from "@/components/user-menu"
 import { GetStartedButton } from "@/components/ui/get-started-button"
 import { CreditsDisplaySimple } from "@/components/credits-display-simple"
-import { isBlackFridayActive } from "@/lib/black-friday/coupons"
+// import { isBlackFridayActive } from "@/lib/black-friday/coupons" // 黑五活动已结束
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -27,7 +27,7 @@ interface NavbarProps {
 
 export function Navbar({ scrolled }: NavbarProps) {
   // 黑五横幅是否显示
-  const [bannerVisible, setBannerVisible] = useState(false)
+  // const [bannerVisible, setBannerVisible] = useState(false) // 黑五活动已结束
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [subscriptionPlan, setSubscriptionPlan] = useState<string>('free')
   const [isInitialized, setIsInitialized] = useState(false)
@@ -35,20 +35,18 @@ export function Navbar({ scrolled }: NavbarProps) {
   const pathname = usePathname()
 
   // 检测是否是黑五页面
-  const isBlackFridayPage = pathname === '/black-friday-sale-2025'
+  // const isBlackFridayPage = pathname === '/black-friday-sale-2025' // 黑五活动已结束
 
-  useEffect(() => {
-    // 检查黑五活动是否进行中
-    const isActive = isBlackFridayActive()
-    if (!isActive) {
-      setBannerVisible(false)
-      return
-    }
-
-    // 检查用户是否关闭了横幅
-    const dismissed = localStorage.getItem('bf2025_banner_dismissed')
-    setBannerVisible(dismissed !== 'true')
-  }, [])
+  // 黑五活动相关逻辑已移除
+  // useEffect(() => {
+  //   const isActive = isBlackFridayActive()
+  //   if (!isActive) {
+  //     setBannerVisible(false)
+  //     return
+  //   }
+  //   const dismissed = localStorage.getItem('bf2025_banner_dismissed')
+  //   setBannerVisible(dismissed !== 'true')
+  // }, [])
 
   // Fetch user subscription status
   useEffect(() => {
@@ -109,19 +107,9 @@ export function Navbar({ scrolled }: NavbarProps) {
   return (
     <header
       className={cn(
-        "left-0 right-0 z-50 transition-all duration-300",
-        isBlackFridayPage
-          ? "relative bg-[#0a0a1a] border-b border-purple-500/30"
-          : cn(
-              "fixed",
-              scrolled ? "bg-black/30 backdrop-blur-lg border-b border-white/10" : "bg-transparent"
-            ),
+        "fixed left-0 right-0 z-50 transition-all duration-300",
+        scrolled ? "bg-black/30 backdrop-blur-lg border-b border-white/10" : "bg-transparent"
       )}
-      style={
-        !isBlackFridayPage && bannerVisible
-          ? { top: 'var(--bf-banner-height, 0px)' }
-          : undefined
-      }
     >
       <div className="mx-auto px-4">
         <div className="flex h-16 items-center justify-between">

@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar" // Corrected path
 import { Footer } from "@/components/footer" // Corrected path
 import { SpaceBackground } from "@/components/space-background" // Corrected path
 import { AOSInit } from "@/components/aos-init"
-import { BlackFridayBanner } from "@/components/black-friday/BlackFridayBanner"
+// import { BlackFridayBanner } from "@/components/black-friday/BlackFridayBanner" // 黑五活动已结束
 import { useState, useEffect } from "react"
 
 /**
@@ -33,7 +33,7 @@ export default function MainLayout({
     <div className="relative flex flex-col min-h-screen overflow-hidden bg-brand-gray-900 text-white">
       <AOSInit />
       <SpaceBackground />
-      <BlackFridayBanner />
+      {/* <BlackFridayBanner /> */}
       <Navbar scrolled={scrolled} />
       <main className="flex-grow">{children}</main>
       <Footer />
