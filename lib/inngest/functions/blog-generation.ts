@@ -5,6 +5,10 @@
 
 import { inngest } from '../client'
 import { logger } from '@/lib/logger'
+import {
+  sendBlogSuccessNotification,
+  sendBlogFailureNotification,
+} from '@/lib/blog/email-notifier'
 
 /**
  * Generate Blog Article Function
@@ -20,12 +24,16 @@ export const generateBlogArticle = inngest.createFunction(
   { event: 'blog/generate.requested' },
   async ({ event, step }) => {
     const { force = false } = event.data
+    const startTime = Date.now()
 
     logger.info('Blog generation started', { force })
 
+    // 在 try 外声明 topic，以便在 catch 中访问
+    let topic: any = undefined
+
     try {
       // Step 1: AI Topic Selection
-      const topic = await step.run('select-topic', async () => {
+      topic = await step.run('select-topic', async () => {
         const { selectNextTopic, validateTopic } = await import(
           '@/lib/blog/ai-topic-selector'
         )
@@ -153,14 +161,57 @@ export const generateBlogArticle = inngest.createFunction(
         wordCount: article.htmlContent.length,
       })
 
-      return {
+      const result = {
         success: true,
         postId: publishResult.postId,
         slug: publishResult.slug,
         url: `https://vidfab.ai/blog/${publishResult.slug}`,
       }
+
+      // 发送成功通知邮件
+      await step.run('send-success-notification', async () => {
+        const endTime = Date.now()
+        await sendBlogSuccessNotification({
+          postId: publishResult.postId!,
+          title: article.title,
+          slug: publishResult.slug!,
+          url: result.url,
+          duration: endTime - startTime,
+          topic,
+        })
+      })
+
+      return result
     } catch (error) {
       logger.error('Blog generation failed', error)
+
+      // 发送失败通知邮件
+      try {
+        // 确定失败阶段
+        let stage: 'select-topic' | 'create-draft' | 'generate-content' | 'publish-article' | 'revalidate-cache' = 'select-topic'
+
+        // 尝试从错误消息推断阶段
+        const errorMsg = error instanceof Error ? error.message : String(error)
+        if (errorMsg.includes('draft') || errorMsg.includes('placeholder')) {
+          stage = 'create-draft'
+        } else if (errorMsg.includes('content') || errorMsg.includes('generate') || errorMsg.includes('validation')) {
+          stage = 'generate-content'
+        } else if (errorMsg.includes('publish')) {
+          stage = 'publish-article'
+        } else if (errorMsg.includes('cache') || errorMsg.includes('revalidate')) {
+          stage = 'revalidate-cache'
+        }
+
+        await sendBlogFailureNotification({
+          stage,
+          error: errorMsg,
+          errorStack: error instanceof Error ? error.stack : undefined,
+          topic, // topic 可能为 undefined（在 select-topic 阶段失败）
+        })
+      } catch (emailError) {
+        logger.error('Failed to send failure notification email', emailError)
+      }
+
       throw error
     }
   }
