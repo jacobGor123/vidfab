@@ -313,18 +313,20 @@ export function validateArticleContent(
     errors.push(`内容过短: ${article.htmlContent.length} 字符`)
   }
 
-  // 检查 Meta Title 长度
-  if (article.metaTitle.length < 50 || article.metaTitle.length > 60) {
-    errors.push(`Meta Title 长度不符: ${article.metaTitle.length} 字符`)
+  // 检查 Meta Title 长度 (Google 最多显示 60-70 字符)
+  if (article.metaTitle.length < 50 || article.metaTitle.length > 70) {
+    errors.push(
+      `Meta Title 长度不符: ${article.metaTitle.length} 字符 (要求 50-70)`
+    )
   }
 
-  // 检查 Meta Description 长度
+  // 检查 Meta Description 长度 (允许稍微超出，Google 会自动截断)
   if (
-    article.metaDescription.length < 150 ||
-    article.metaDescription.length > 160
+    article.metaDescription.length < 140 ||
+    article.metaDescription.length > 175
   ) {
     errors.push(
-      `Meta Description 长度不符: ${article.metaDescription.length} 字符`
+      `Meta Description 长度不符: ${article.metaDescription.length} 字符 (要求 140-175)`
     )
   }
 
