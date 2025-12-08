@@ -5,8 +5,7 @@
 
 import Anthropic from '@anthropic-ai/sdk'
 import { getBlogPosts } from '@/models/blog'
-import fs from 'fs'
-import path from 'path'
+import { blogContentStrategy } from './embedded-docs'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -49,21 +48,10 @@ export async function selectNextTopic(): Promise<TopicSelection> {
 
   console.log(`  ✓ 找到 ${publishedData.length} 篇已有文章 (包括草稿)`)
 
-  // 2. 读取选题策略文档
+  // 2. 读取选题策略文档（从嵌入的文档中读取）
   console.log('  → 读取选题策略文档...')
-  const strategyPath = path.join(
-    process.cwd(),
-    'docs',
-    'blog-create',
-    'blog-content-strategy-2025-12-03.md'
-  )
-
-  if (!fs.existsSync(strategyPath)) {
-    throw new Error(`选题策略文档不存在: ${strategyPath}`)
-  }
-
-  const strategyDoc = fs.readFileSync(strategyPath, 'utf-8')
-  console.log(`  ✓ 策略文档已读取 (${strategyDoc.length} 字符)`)
+  const strategyDoc = blogContentStrategy.content
+  console.log(`  ✓ 策略文档已读取 (${strategyDoc.length} 字符) - 来自: ${blogContentStrategy.path}`)
 
   // 3. 调用 Claude API 选题
   console.log('  → 调用 Claude API 分析选题...')

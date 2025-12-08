@@ -5,10 +5,10 @@
 
 import Anthropic from '@anthropic-ai/sdk'
 import { getBlogPosts } from '@/models/blog'
-import fs from 'fs'
 import fsPromises from 'fs/promises'
 import path from 'path'
 import type { TopicSelection } from './ai-topic-selector'
+import { articleCreationGuide, productConstraints } from './embedded-docs'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -52,37 +52,15 @@ export async function generateArticleContent(
   console.log('\n✍️  开始 AI 内容生成...')
   console.log(`  → 主题: ${topic.title}`)
 
-  // 1. 读取创作规范
+  // 1. 读取创作规范（从嵌入的文档中读取）
   console.log('  → 读取创作规范...')
-  const guidePath = path.join(
-    process.cwd(),
-    'docs',
-    'blog-create',
-    '03-article-creation.md'
-  )
+  const guideDoc = articleCreationGuide.content
+  console.log(`  ✓ 创作规范已读取 (${guideDoc.length} 字符) - 来自: ${articleCreationGuide.path}`)
 
-  if (!fs.existsSync(guidePath)) {
-    throw new Error(`创作规范文档不存在: ${guidePath}`)
-  }
-
-  const guideDoc = fs.readFileSync(guidePath, 'utf-8')
-  console.log(`  ✓ 创作规范已读取 (${guideDoc.length} 字符)`)
-
-  // 1.5. 读取产品约束文档
+  // 1.5. 读取产品约束文档（从嵌入的文档中读取）
   console.log('  → 读取产品约束文档...')
-  const constraintsPath = path.join(
-    process.cwd(),
-    'docs',
-    'blog-create',
-    'product-constraints.md'
-  )
-
-  if (!fs.existsSync(constraintsPath)) {
-    throw new Error(`产品约束文档不存在: ${constraintsPath}`)
-  }
-
-  const constraintsDoc = fs.readFileSync(constraintsPath, 'utf-8')
-  console.log(`  ✓ 产品约束已读取 (${constraintsDoc.length} 字符)`)
+  const constraintsDoc = productConstraints.content
+  console.log(`  ✓ 产品约束已读取 (${constraintsDoc.length} 字符) - 来自: ${productConstraints.path}`)
 
   // 2. 获取已发布文章（用于生成内链）
   console.log('  → 查询已发布文章（用于内链）...')

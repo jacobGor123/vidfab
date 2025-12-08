@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/generate-embedded-docs.mjs",
     "build": "next build",
     "dev": "next dev -p 3000",
     "lint": "next lint",
