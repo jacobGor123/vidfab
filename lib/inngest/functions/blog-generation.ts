@@ -47,6 +47,32 @@ export const generateBlogArticle = inngest.createFunction(
         return selectedTopic
       })
 
+      // Step 1.5: Create Draft Placeholder (防止并发时重复选题)
+      const placeholderPost = await step.run('create-draft-placeholder', async () => {
+        const { createBlogPost } = await import('@/models/blog')
+
+        const placeholder = await createBlogPost({
+          title: topic.title,
+          slug: topic.slug,
+          content: '(内容生成中...)',
+          excerpt: topic.reason,
+          status: 'draft',
+          category: topic.category || 'guide',
+          tags: topic.targetKeywords,
+        })
+
+        if (!placeholder) {
+          throw new Error('Failed to create draft placeholder')
+        }
+
+        logger.info('Draft placeholder created', {
+          postId: placeholder.id,
+          slug: placeholder.slug,
+        })
+
+        return placeholder
+      })
+
       // Step 2: Generate Article Content
       const article = await step.run('generate-content', async () => {
         const {
@@ -66,27 +92,40 @@ export const generateBlogArticle = inngest.createFunction(
         // Validate content quality
         const contentValidation = validateArticleContent(generatedArticle)
         if (!contentValidation.valid) {
+          // 记录验证失败的详细信息
+          logger.warn('Content validation failed', {
+            errors: contentValidation.errors,
+            title: generatedArticle.title,
+          })
           throw new Error(
             `Content validation failed: ${contentValidation.errors.join(', ')}`
           )
         }
 
+        logger.info('Content validation passed')
         return generatedArticle
       })
 
-      // Step 3: Publish Article
+      // Step 3: Publish Article (更新已有草稿)
       const publishResult = await step.run('publish-article', async () => {
         const { publishAIArticle } = await import('@/lib/blog/ai-publisher')
 
+        const adminEmail = process.env.ADMIN_EMAILS?.split(',')[0]?.trim() || 'auto@vidfab.ai'
+
         const result = await publishAIArticle(article, {
           status: 'published',
-          authorEmail:
-            process.env.ADMIN_EMAILS?.split(',')[0] || 'auto@vidfab.ai',
+          authorEmail: adminEmail,
+          existingPostId: placeholderPost.id, // 更新已创建的草稿
         })
 
         if (!result.success) {
           throw new Error(result.error || 'Failed to publish article')
         }
+
+        logger.info('Article published successfully', {
+          postId: result.postId,
+          slug: result.slug,
+        })
 
         return result
       })

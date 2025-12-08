@@ -45,12 +45,26 @@ export async function GET(
       )
     }
 
-    const useBytePlus = USE_BYTEPLUS || process.env.NODE_ENV === 'development'
+    // 🔥 检查 requestId 前缀，判断使用哪个 API
+    let actualRequestId = requestId
+    let useWavespeed = false
+
+    if (requestId.startsWith('wavespeed:')) {
+      useWavespeed = true
+      actualRequestId = requestId.substring('wavespeed:'.length)
+    } else if (requestId.startsWith('byteplus:')) {
+      useWavespeed = false
+      actualRequestId = requestId.substring('byteplus:'.length)
+    } else {
+      // 没有前缀，使用默认逻辑
+      const useBytePlus = USE_BYTEPLUS || process.env.NODE_ENV === 'development'
+      useWavespeed = !useBytePlus
+    }
 
     // 查询状态
-    const statusResult = useBytePlus
-      ? await checkBytePlusStatus(requestId)
-      : await checkWavespeedStatus(requestId)
+    const statusResult = useWavespeed
+      ? await checkWavespeedStatus(actualRequestId)
+      : await checkBytePlusStatus(actualRequestId)
 
     // 构建响应数据
     const responseData = {

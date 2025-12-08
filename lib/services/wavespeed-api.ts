@@ -168,14 +168,15 @@ export async function submitVideoEffectsGeneration(
 ): Promise<VideoGenerationResponse> {
   // 🔥 将视频特效请求转换为通用请求格式
   const videoRequest: VideoGenerationRequest = {
-    prompt: `${request.effectName || request.effectId} Effect`, // 使用特效名称作为提示
+    prompt: `${request.effectName || request.effectId} Effect`, // 使用特效名称作为提示（内部用，不传给API）
     image: request.image,
     effectId: request.effectId,
     effectName: request.effectName,
     generationType: 'video-effects',
     model: 'video-effects', // 固定模型
-    resolution: '720p', // 视频特效的默认分辨率
-    duration: '5s' // 视频特效固定5秒（API最低要求）
+    resolution: '720p', // Pixverse V5 Effects 默认分辨率
+    duration: '5s', // 视频特效固定5秒
+    aspectRatio: '16:9' // 默认宽高比
   }
 
   return submitGeneralVideoGeneration(videoRequest)
@@ -206,20 +207,17 @@ async function submitGeneralVideoGeneration(
   let endpoint: string
 
   if (generationType === "video-effects") {
-    // 🔥 视频特效暂时使用图片转视频的端点，加上特效参数
+    // 🔥 视频特效使用独立的 video-effects API
+    // 每个特效都有独立的端点：POST /api/v3/video-effects/{effectId}
     apiRequest = {
-      prompt: request.prompt || `Apply ${request.effectName || request.effectId} effect to the image`,
-      image: request.image,
-      duration: 5,  // 视频特效固定5秒（API最低要求）
-      camera_fixed: true,  // 特效通常需要固定镜头
-      seed: -1,
-      // 特效相关的额外参数（将来可能会用到）
-      effect_id: request.effectId,
-      effect_name: request.effectName
+      image: request.image,  // 必需：图片 URL 或 base64
+      bgm: true  // 可选：是否带背景音乐，默认 true
     }
 
-    // 🔥 暂时使用 bytedance i2v 端点，将来需要替换为真实的视频特效端点
-    endpoint = "/bytedance/seedance-v1-pro-i2v-720p"
+    // 使用特效的 apiEndpoint 构建端点
+    // 例如：/video-effects/squid-game, /video-effects/kiss-me-ai
+    const effectEndpoint = request.effectId || request.effectName?.toLowerCase().replace(/\s+/g, '-')
+    endpoint = `/video-effects/${effectEndpoint}`
 
   } else if (isVeo3Model) {
     // veo3 API 参数格式
@@ -259,7 +257,10 @@ async function submitGeneralVideoGeneration(
     endpoint = `/bytedance/${apiModel}`
   }
 
-  console.log(`🚀 Submitting ${generationType} request to ${isVeo3Model ? 'veo3' : 'bytedance'} (${apiModel}):`, {
+  // 确定提供商名称
+  const providerName = generationType === "video-effects" ? 'pixverse' : (isVeo3Model ? 'veo3' : 'bytedance')
+
+  console.log(`🚀 Submitting ${generationType} request to ${providerName} (${apiModel}):`, {
     endpoint,
     ...apiRequest,
     image: apiRequest.image ? `[IMAGE_URL: ${apiRequest.image.substring(0, 50)}...]` : undefined  // 显示图片URL的前50个字符

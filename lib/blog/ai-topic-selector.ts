@@ -53,7 +53,8 @@ export async function selectNextTopic(): Promise<TopicSelection> {
   console.log('  → 读取选题策略文档...')
   const strategyPath = path.join(
     process.cwd(),
-    'discuss',
+    'docs',
+    'blog-create',
     'blog-content-strategy-2025-12-03.md'
   )
 

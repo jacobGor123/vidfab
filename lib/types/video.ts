@@ -125,7 +125,7 @@ export const MODEL_API_MAP: Record<string, string> = {
   // Vidfab Pro (veo3) models - Image-to-Video
   "vidfab-pro-i2v-720p": "veo3-fast-i2v",
   "vidfab-pro-i2v-1080p": "veo3-fast-i2v",
-  // Video Effects models - 视频特效不依赖分辨率，使用固定映射
+  // Video Effects models - 独立端点，不需要映射
   "video-effects": "video-effects-api"
 }
 

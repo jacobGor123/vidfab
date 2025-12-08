@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        requestId: wavespeedResponse.data.id,
+        requestId: `wavespeed:${wavespeedResponse.data.id}`, // 🔥 添加提供商前缀
         estimatedTime: 120, // Default 2 minutes for video effects
         creditsDeducted: creditsCheck.requiredCredits // 🔥 记录已扣除的积分数量
       }
