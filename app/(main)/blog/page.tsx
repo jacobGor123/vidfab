@@ -84,7 +84,7 @@ export default async function BlogPage() {
       {/* Structured Data for SEO */}
       <StructuredData data={itemListSchema ? [blogSchema, itemListSchema] : [blogSchema]} />
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 overflow-hidden">
+      <section className="relative py-8 pt-32 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             {/* Icon */}
