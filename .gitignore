@@ -16,12 +16,19 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files - 所有环境变量文件都不应提交
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.product
+.env.prod
+.env.staging
+.env.*.local
+.env*.local
+*.env
+*.env.local
 
 # vercel
 .vercel
@@ -45,3 +52,109 @@ queue-worker.js
 
 # Playwright 测试截图和临时文件
 .playwright-mcp/
+
+# ===================================
+# IDE 和编辑器配置文件
+# ===================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===================================
+# 操作系统生成的文件
+# ===================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===================================
+# 敏感数据和凭证
+# ===================================
+# SSH keys
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_dsa
+
+# API keys 和 secrets
+secrets/
+credentials/
+*.secret
+*.credentials
+
+# 证书文件
+*.crt
+*.cer
+*.der
+
+# ===================================
+# 数据库和备份文件
+# ===================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+dump.sql
+*.backup
+*.bak
+
+# ===================================
+# 缓存和临时文件
+# ===================================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.pid
+*.seed
+*.pid.lock
+
+# ===================================
+# 测试覆盖率报告
+# ===================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ===================================
+# 构建产物（额外）
+# ===================================
+dist/
+.turbo/
+.swc/
+
+# ===================================
+# 其他敏感文件
+# ===================================
+# 包含密钥的配置文件
+*-key.json
+serviceAccountKey.json
+firebase-adminsdk-*.json
+
+# 环境变量备份
+.env.backup
+.env.bak
+.env.save
