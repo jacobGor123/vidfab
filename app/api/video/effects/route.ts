@@ -129,7 +129,8 @@ export async function POST(request: NextRequest) {
     try {
       wavespeedResponse = await submitVideoEffectsGeneration({
         image: body.image,
-        effectId: body.effectId
+        effectId: body.effectId,
+        effectName: body.effectName // 🔥 传递特效名称用于显示
       })
     } catch (videoError) {
       // 🔥 视频生成失败时恢复积分
