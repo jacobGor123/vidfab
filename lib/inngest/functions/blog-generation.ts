@@ -20,6 +20,12 @@ export const generateBlogArticle = inngest.createFunction(
     name: 'Generate and Publish Blog Article',
     retries: 2,
     timeout: '5m',
+    // 🔒 并发控制：同一时间只允许一个任务运行
+    concurrency: {
+      limit: 1,
+    },
+    // 🔒 去重控制：相同的事件在5分钟内只执行一次
+    idempotency: '5m',
   },
   { event: 'blog/generate.requested' },
   async ({ event, step }) => {
