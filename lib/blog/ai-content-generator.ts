@@ -55,7 +55,9 @@ export async function generateArticleContent(
   // 1. 读取创作规范
   console.log('  → 读取创作规范...')
   const guidePath = path.join(
-    '/Users/jacob/Downloads/博客系统&自动化文章发布',
+    process.cwd(),
+    'docs',
+    'blog-create',
     '03-article-creation.md'
   )
 
@@ -65,6 +67,22 @@ export async function generateArticleContent(
 
   const guideDoc = fs.readFileSync(guidePath, 'utf-8')
   console.log(`  ✓ 创作规范已读取 (${guideDoc.length} 字符)`)
+
+  // 1.5. 读取产品约束文档
+  console.log('  → 读取产品约束文档...')
+  const constraintsPath = path.join(
+    process.cwd(),
+    'docs',
+    'blog-create',
+    'product-constraints.md'
+  )
+
+  if (!fs.existsSync(constraintsPath)) {
+    throw new Error(`产品约束文档不存在: ${constraintsPath}`)
+  }
+
+  const constraintsDoc = fs.readFileSync(constraintsPath, 'utf-8')
+  console.log(`  ✓ 产品约束已读取 (${constraintsDoc.length} 字符)`)
 
   // 2. 获取已发布文章（用于生成内链）
   console.log('  → 查询已发布文章（用于内链）...')
@@ -108,6 +126,16 @@ ${JSON.stringify(topic, null, 2)}
 
 ## 创作规范（必须严格遵守）
 ${guideDoc}
+
+## 产品功能约束（极其重要！必须严格遵守！）
+${constraintsDoc}
+
+**⚠️ 关键要求**:
+1. 只提及实际存在的功能，严禁捏造功能
+2. 特效数量: 说"60+ AI effects"或"62 AI effects"，不要说"65+"
+3. 最高分辨率: 1080p，不要提2K/4K
+4. 最长时长: 10秒，不要提15秒以上
+5. 不要提及视频编辑、字幕生成、API等不存在的功能
 
 ## 已发布文章（用于生成内链）
 ${JSON.stringify(recentPosts, null, 2)}
