@@ -41,6 +41,7 @@ const eventData = {
   name: 'blog/generate.requested',
   data: {
     force: false,
+    source: 'manual', // 🔒 Required: 明确标识触发源
     test: true,
     manualTrigger: true,
     timestamp: new Date().toISOString(),

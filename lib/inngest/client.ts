@@ -45,6 +45,8 @@ export type InngestEvents = {
   'blog/generate.requested': {
     data: {
       force?: boolean
+      source: 'cron' | 'manual' // 🔒 Required: 必须明确指定触发源
+      triggeredBy?: string // Optional: 手动触发时的用户邮箱
     }
   }
 }

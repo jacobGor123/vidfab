@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
       name: 'blog/generate.requested',
       data: {
         force: false,
+        source: 'cron', // 🔒 明确标识：Vercel Cron 触发
       },
     })
 

@@ -29,10 +29,26 @@ export const generateBlogArticle = inngest.createFunction(
   },
   { event: 'blog/generate.requested' },
   async ({ event, step }) => {
-    const { force = false } = event.data
+    const { force = false, source } = event.data
     const startTime = Date.now()
 
-    logger.info('Blog generation started', { force })
+    // 🔒 安全检查：必须明确指定触发源
+    // 防止在部署、同步等非预期场景下执行
+    const validSources = ['cron', 'manual']
+    if (!source || !validSources.includes(source)) {
+      logger.warn('Blog generation skipped: missing or invalid source', {
+        receivedSource: source,
+        validSources,
+        eventData: event.data,
+      })
+      return {
+        success: false,
+        skipped: true,
+        reason: `Invalid or missing source. Must be one of: ${validSources.join(', ')}`,
+      }
+    }
+
+    logger.info('Blog generation started', { force, source, eventData: event.data })
 
     // 在 try 外声明 topic，以便在 catch 中访问
     let topic: any = undefined

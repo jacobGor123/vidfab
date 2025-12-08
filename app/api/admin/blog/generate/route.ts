@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       name: 'blog/generate.requested',
       data: {
         force: true, // 强制生成,即使已有今天的文章
+        source: 'manual', // 🔒 明确标识：管理员手动触发
         triggeredBy: user.email,
       }
     })
