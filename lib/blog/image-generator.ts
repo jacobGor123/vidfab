@@ -9,7 +9,11 @@ import path from 'path'
 const KIE_API_KEY = process.env.KIE_API_KEY || ''
 const KIE_API_URL = 'https://api.kie.ai/api/v1/jobs'
 
-const TMP_DIR = path.join(process.cwd(), 'tmp', 'blog-images')
+// Vercel Serverless Functions 只能写入 /tmp 目录
+const TMP_DIR =
+  process.env.VERCEL || process.env.NODE_ENV === 'production'
+    ? '/tmp/blog-images'
+    : path.join(process.cwd(), 'tmp', 'blog-images')
 
 export interface BlogImageOptions {
   prompt: string

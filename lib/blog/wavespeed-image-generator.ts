@@ -9,7 +9,11 @@ import path from 'path'
 const WAVESPEED_API_KEY = process.env.WAVESPEED_API_KEY || ''
 const WAVESPEED_BASE_URL = 'https://api.wavespeed.ai/api/v3'
 
-const TMP_DIR = path.join(process.cwd(), 'tmp', 'blog-images')
+// Vercel Serverless Functions 只能写入 /tmp 目录
+const TMP_DIR =
+  process.env.VERCEL || process.env.NODE_ENV === 'production'
+    ? '/tmp/blog-images'
+    : path.join(process.cwd(), 'tmp', 'blog-images')
 
 export interface BlogImageOptions {
   prompt: string

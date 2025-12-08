@@ -7,7 +7,11 @@ import sharp from 'sharp'
 import fs from 'fs/promises'
 import path from 'path'
 
-const COMPRESSED_DIR = path.join(process.cwd(), 'tmp', 'blog-images', 'compressed')
+// Vercel Serverless Functions 只能写入 /tmp 目录
+const COMPRESSED_DIR =
+  process.env.VERCEL || process.env.NODE_ENV === 'production'
+    ? '/tmp/blog-images/compressed'
+    : path.join(process.cwd(), 'tmp', 'blog-images', 'compressed')
 
 export interface OptimizedImages {
   original: string      // 1200x630 JPEG (85%)
