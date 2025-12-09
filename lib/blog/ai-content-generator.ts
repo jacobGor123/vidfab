@@ -159,21 +159,21 @@ ${JSON.stringify(recentPosts, null, 2)}
 
 ## CTA 按钮模板
 
-**Free Sign-up CTA**:
+**Free Text-to-Video CTA**:
 \`\`\`html
 <div class="cta-box">
-  <h3>🎁 Try VidFab AI for Free</h3>
-  <p>Create your first AI video in minutes – no credit card required!</p>
-  <a href="/signup" class="cta-button">Start Creating Free →</a>
+  <h3>🎁 Try Text-to-Video for Free</h3>
+  <p>Create your first AI video from text in minutes – no credit card required!</p>
+  <a href="/text-to-video" class="cta-button">Start Creating Free →</a>
 </div>
 \`\`\`
 
-**Demo Request CTA**:
+**Free Image-to-Video CTA**:
 \`\`\`html
 <div class="cta-box">
-  <h3>🎬 See VidFab AI in Action</h3>
-  <p>Watch a live demo and discover how VidFab AI transforms your ideas into videos.</p>
-  <a href="/demo" class="cta-button">Book a Demo →</a>
+  <h3>🎬 Transform Images into Videos</h3>
+  <p>Upload your image and watch VidFab AI bring it to life with motion.</p>
+  <a href="/image-to-video" class="cta-button">Try Image to Video →</a>
 </div>
 \`\`\`
 

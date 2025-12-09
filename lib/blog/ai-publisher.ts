@@ -193,9 +193,9 @@ export async function publishAIArticle(
     console.log('\n  → 在文章底部添加 CTA...')
     const ctaHtml = `
 <div class="cta-box">
-  <h3>🎁 Try VidFab AI for Free</h3>
-  <p>Create your first AI video in minutes – no credit card required!</p>
-  <a href="/signup" class="cta-button">Start Creating Free →</a>
+  <h3>🎁 Try Text-to-Video for Free</h3>
+  <p>Create your first AI video from text in minutes – no credit card required!</p>
+  <a href="/text-to-video" class="cta-button">Start Creating Free →</a>
 </div>
 `
     finalContent = finalContent + ctaHtml
