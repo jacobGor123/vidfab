@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function CreateBlogPage() {
   // 验证管理员权限
-  const { isAdmin } = await isCurrentUserAdmin();
+  const isAdmin = await isCurrentUserAdmin();
   if (!isAdmin) {
     redirect('/');
   }
