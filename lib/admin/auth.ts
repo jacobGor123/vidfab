@@ -54,6 +54,13 @@ export async function getCurrentUser() {
 export async function isCurrentUserAdmin(): Promise<boolean> {
   const user = await getCurrentUser();
 
+  console.log('[Admin Auth] isCurrentUserAdmin check:', {
+    hasUser: !!user,
+    email: user?.email,
+    adminEmails: ADMIN_EMAILS,
+    isAdmin: user?.email ? isAdminEmail(user.email) : false
+  });
+
   if (!user || !user.email) {
     return false;
   }
