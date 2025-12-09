@@ -6,6 +6,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useVideoContext } from '@/lib/contexts/video-context'
+import { GenerationAnalytics, type GenerationType } from '@/lib/analytics/generation-events'
 
 // 🎯 生成状态
 export interface VideoGenerationState {
@@ -181,6 +182,14 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('VideoGeneration: 文本转视频失败:', errorMessage)
 
+      // 🔥 事件: 生成失败 (API 调用阶段失败)
+      GenerationAnalytics.trackGenerationFailed({
+        generationType: 'text-to-video',
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+        errorMessage: errorMessage,
+        modelType: settings.model || 'vidfab-q1',
+      })
+
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
 
@@ -281,6 +290,14 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
+
+      // 🔥 事件: 生成失败 (API 调用阶段失败)
+      GenerationAnalytics.trackGenerationFailed({
+        generationType: 'image-to-video',
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+        errorMessage: errorMessage,
+        modelType: settings.model || 'vidfab-q1',
+      })
 
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
@@ -403,6 +420,15 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('VideoGeneration: 视频特效失败:', errorMessage)
+
+      // 🔥 事件: 生成失败 (API 调用阶段失败)
+      GenerationAnalytics.trackGenerationFailed({
+        generationType: 'video-effects',
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+        errorMessage: errorMessage,
+        effectId: effectIdFinal,
+        effectName: effectNameFinal,
+      })
 
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
