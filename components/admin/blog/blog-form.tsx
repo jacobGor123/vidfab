@@ -97,7 +97,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
               placeholder="文章标题"
             />
           </div>
@@ -112,7 +112,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
               onChange={(e) =>
                 setFormData({ ...formData, slug: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
               placeholder="自动生成或手动输入"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -129,7 +129,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
               onChange={(e) =>
                 setFormData({ ...formData, category: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             >
               <option value="">选择分类</option>
               <option value="tutorial">教程</option>
@@ -151,7 +151,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
               setFormData({ ...formData, excerpt: e.target.value })
             }
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             placeholder="简短描述文章内容..."
           />
         </div>
@@ -166,7 +166,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
             onChange={(e) =>
               setFormData({ ...formData, featured_image_url: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             placeholder="https://..."
           />
         </div>
@@ -181,7 +181,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
             onChange={(e) =>
               setFormData({ ...formData, tags: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             placeholder="AI, video, tutorial"
           />
         </div>
@@ -212,7 +212,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
             onChange={(e) =>
               setFormData({ ...formData, meta_title: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             placeholder="留空则使用文章标题"
             maxLength={60}
           />
@@ -231,7 +231,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
               setFormData({ ...formData, meta_description: e.target.value })
             }
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             placeholder="留空则使用摘要"
             maxLength={160}
           />
@@ -250,7 +250,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
             onChange={(e) =>
               setFormData({ ...formData, keywords: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             placeholder="ai video, video generation, tutorial"
           />
         </div>
@@ -273,7 +273,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
                   status: e.target.value as any,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             >
               <option value="draft">草稿</option>
               <option value="scheduled">定时发布</option>
@@ -292,7 +292,7 @@ export default function BlogForm({ initialData, isEdit = false }: BlogFormProps)
                 onChange={(e) =>
                   setFormData({ ...formData, scheduled_at: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
               />
             </div>
           )}
