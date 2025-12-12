@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { inngest } from '@/lib/inngest/client'
 import { logger } from '@/lib/logger'
+import { RedisCache, checkRedisHealth } from '@/lib/redis-upstash'
 
 // Set runtime to Node.js (required for Inngest)
 export const runtime = 'nodejs'
@@ -22,6 +23,46 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now()
 
   try {
+    // ✅ 只允许生产环境执行，避免 Preview/Dev 部署触发
+    if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') {
+      logger.info('Cron job skipped: non-production Vercel environment', {
+        vercelEnv: process.env.VERCEL_ENV,
+      })
+      return new NextResponse(null, { status: 204 })
+    }
+
+    // ✅ 生产环境也要防止“部署后补跑”导致的重复触发
+    const deploymentId = process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA
+    if (deploymentId) {
+      const lockKey = `cron:generate-blog:deployment:${deploymentId}`
+      const redisHealthy = await checkRedisHealth()
+
+      if (redisHealthy) {
+        const alreadyTriggered = await RedisCache.exists(lockKey)
+        if (alreadyTriggered) {
+          logger.info('Cron job skipped: already triggered for this deployment', {
+            deploymentId,
+            lockKey,
+          })
+          return new NextResponse(null, { status: 204 })
+        }
+
+        // 设置 15 分钟冷却锁（秒）
+        await RedisCache.set(lockKey, true, 15 * 60)
+        logger.info('Cron deployment lock set', {
+          deploymentId,
+          lockKey,
+          ttlSeconds: 15 * 60,
+        })
+      } else {
+        logger.warn('Redis unhealthy: skip deployment cooldown lock', {
+          deploymentId,
+        })
+      }
+    } else {
+      logger.warn('Missing Vercel deployment identifiers; cannot apply cooldown lock')
+    }
+
     // Log cron job start with environment info
     logger.info('Cron job triggered: generate-blog', {
       environment: process.env.NODE_ENV,
