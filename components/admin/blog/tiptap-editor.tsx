@@ -12,6 +12,8 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Heading from '@tiptap/extension-heading';
 import { useCallback, useState } from 'react';
+import { format as prettierFormat } from 'prettier/standalone';
+import parserHtml from 'prettier/plugins/html';
 import {
   Bold,
   Italic,
@@ -123,6 +125,24 @@ export default function TiptapEditor({
       setIsHtmlMode(true);
     }
   }, [editor, isHtmlMode, htmlContent, onChange]);
+
+  const formatHtmlContent = useCallback(async () => {
+    try {
+      const formatted = await prettierFormat(htmlContent, {
+        parser: 'html',
+        plugins: [parserHtml],
+        printWidth: 80,
+        tabWidth: 2,
+        htmlWhitespaceSensitivity: 'ignore',
+      });
+
+      setHtmlContent(formatted);
+      onChange(formatted);
+    } catch (error) {
+      console.error('HTML format error:', error);
+      alert('HTML 格式化失败，请检查标签是否正确闭合');
+    }
+  }, [htmlContent, onChange]);
 
   if (!editor) {
     return null;
@@ -322,15 +342,27 @@ export default function TiptapEditor({
       {/* 编辑器内容 */}
       <div className="bg-white tiptap-editor-content">
         {isHtmlMode ? (
-          <textarea
-            value={htmlContent}
-            onChange={(e) => {
-              setHtmlContent(e.target.value);
-              onChange(e.target.value);
-            }}
-            className="w-full min-h-[400px] p-4 font-mono text-sm text-gray-900 bg-white border-0 focus:outline-none resize-none"
-            placeholder="HTML 源码..."
-          />
+          <div className="flex flex-col">
+            <div className="flex justify-end border-b border-gray-200 px-3 py-2 bg-gray-50">
+              <button
+                type="button"
+                onClick={formatHtmlContent}
+                className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-100 transition"
+                title="格式化 HTML"
+              >
+                格式化
+              </button>
+            </div>
+            <textarea
+              value={htmlContent}
+              onChange={(e) => {
+                setHtmlContent(e.target.value);
+                onChange(e.target.value);
+              }}
+              className="w-full min-h-[400px] p-4 font-mono text-sm text-gray-900 bg-white border-0 focus:outline-none resize-none"
+              placeholder="HTML 源码..."
+            />
+          </div>
         ) : (
           <EditorContent editor={editor} />
         )}

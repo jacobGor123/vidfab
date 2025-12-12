@@ -49,8 +49,9 @@ export const metadata: Metadata = {
   },
 };
 
-// ISR - Revalidate every hour
-export const revalidate = 3600;
+// ISR - Revalidate every 5 minutes (300s) to reduce cache staleness
+// 减少缓存时间，避免图片更新后长时间显示旧内容
+export const revalidate = 300;
 
 export default async function BlogPage() {
   // Fetch all published posts
