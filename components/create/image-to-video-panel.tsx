@@ -30,7 +30,7 @@ import { VideoTaskGridItem } from "./video-task-grid-item"
 import { VideoLimitDialog } from "./video-limit-dialog"
 import { calculateCreditsRequired } from "@/lib/subscription/pricing-config"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
-import { GenerationAnalytics, debounce } from "@/lib/analytics/generation-events"
+import { GenerationAnalytics } from "@/lib/analytics/generation-events"
 
 // Types
 import { VideoGenerationRequest, DURATION_MAP } from "@/lib/types/video"
@@ -61,23 +61,6 @@ export function ImageToVideoPanelEnhanced() {
 
   // 🔥 追踪是否已经加载过 image-to-video 数据
   const imageToVideoLoadedRef = useRef(false)
-
-  // 🔥 Analytics: 防抖追踪 input_prompt 事件
-  const lastPromptRef = useRef<string>("")
-
-  useEffect(() => {
-    const debouncedTrack = debounce(() => {
-      if (params.prompt && params.prompt !== lastPromptRef.current && params.prompt.length > 5) {
-        GenerationAnalytics.trackInputPrompt({
-          generationType: 'image-to-video',
-          promptLength: params.prompt.length,
-        })
-        lastPromptRef.current = params.prompt
-      }
-    }, 2000)
-
-    debouncedTrack()
-  }, [params.prompt])
 
   // Context and hooks
   const videoContext = useVideoContext()

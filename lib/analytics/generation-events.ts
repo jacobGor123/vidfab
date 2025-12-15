@@ -7,7 +7,6 @@
  * - generation_success: 生成成功
  * - generation_failed: 生成失败
  * - upload_image: 上传图片成功
- * - input_prompt: 用户输入提示词
  * - change_model: 切换模型
  * - change_duration: 修改时长
  * - change_ratio: 修改宽高比
@@ -150,27 +149,7 @@ export class GenerationAnalytics {
   }
 
   /**
-   * 6. 用户输入提示词
-   *
-   * 注意: 此方法应该配合防抖使用
-   * 建议: 防抖延迟 2秒, 最小长度 > 5
-   */
-  static trackInputPrompt(params: GenerationEventParams): void {
-    if (!this.isGtagAvailable()) return
-
-    // 只追踪长度 > 5 的提示词
-    if (params.promptLength && params.promptLength <= 5) {
-      return
-    }
-
-    window.gtag('event', 'input_prompt', {
-      generation_type: params.generationType,
-      prompt_length: params.promptLength,
-    })
-  }
-
-  /**
-   * 7. 切换模型
+   * 6. 切换模型
    */
   static trackChangeModel(params: GenerationEventParams): void {
     if (!this.isGtagAvailable()) return
@@ -183,7 +162,7 @@ export class GenerationAnalytics {
   }
 
   /**
-   * 8. 修改时长
+   * 7. 修改时长
    */
   static trackChangeDuration(params: GenerationEventParams): void {
     if (!this.isGtagAvailable()) return
@@ -197,7 +176,7 @@ export class GenerationAnalytics {
   }
 
   /**
-   * 9. 修改宽高比
+   * 8. 修改宽高比
    */
   static trackChangeRatio(params: GenerationEventParams): void {
     if (!this.isGtagAvailable()) return
@@ -208,27 +187,5 @@ export class GenerationAnalytics {
       new_value: params.newValue,
       model_type: params.modelType,
     })
-  }
-}
-
-/**
- * 防抖工具函数
- * 用于 input_prompt 事件的防抖处理
- */
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout | null = null
-
-  return function (this: any, ...args: Parameters<T>) {
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
-
-    timeoutId = setTimeout(() => {
-      func.apply(this, args)
-      timeoutId = null
-    }, delay)
   }
 }

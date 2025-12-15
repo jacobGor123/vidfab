@@ -24,7 +24,7 @@ import { ImageUploadArea } from "../image-upload/image-upload-area"
 import { ImageUploadGrid } from "../image-upload/image-upload-grid"
 import toast from "react-hot-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { GenerationAnalytics, debounce } from "@/lib/analytics/generation-events"
+import { GenerationAnalytics } from "@/lib/analytics/generation-events"
 
 export function ImageToImagePanel() {
   const isMobile = useIsMobile()
@@ -45,24 +45,6 @@ export function ImageToImagePanel() {
     }
     setModelState(newValue)
   }
-
-  // 用于去重的 Ref：记录上次输入的 prompt
-  const lastPromptRef = useRef<string>("")
-
-  // 防抖的 input_prompt 事件追踪
-  const debouncedTrackPrompt = useMemo(
-    () =>
-      debounce((prompt: string) => {
-        if (prompt !== lastPromptRef.current) {
-          lastPromptRef.current = prompt
-          GenerationAnalytics.trackInputPrompt({
-            generationType: 'image-to-image',
-            promptLength: prompt.length,
-          })
-        }
-      }, 2000),
-    []
-  )
 
   // 🔥 认证弹框 Hook
   const authModal = useAuthModal()
@@ -304,10 +286,7 @@ export function ImageToImagePanel() {
                   placeholder="Transform the image into a watercolor painting style with vibrant colors..."
                   value={prompt}
                   onChange={(e) => {
-                    const newValue = e.target.value
-                    setPrompt(newValue)
-                    // 🔥 防抖触发 input_prompt 事件
-                    debouncedTrackPrompt(newValue)
+                    setPrompt(e.target.value)
                   }}
                   className="min-h-[120px] bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-none focus:border-purple-500 focus:ring-purple-500"
                   maxLength={1000}
