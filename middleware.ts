@@ -61,6 +61,12 @@ export default withAuth(
     // 2. URL Rewrite: /studio/{tool} -> /create?tool={tool}
     // 保持浏览器 URL 为 /studio/{tool}，GA4 可以正确追踪路径
     if (nextUrl.pathname.startsWith('/studio/')) {
+      // 特殊页面：这些路径有真实的 page.tsx 文件，不需要 rewrite
+      const specialPaths = ['/studio/video-agent-beta']
+      if (specialPaths.some(path => nextUrl.pathname.startsWith(path))) {
+        return NextResponse.next()
+      }
+
       // 工具名映射表：URL 路径 -> query 参数值
       const toolMap: Record<string, string> = {
         'discover': 'discover',

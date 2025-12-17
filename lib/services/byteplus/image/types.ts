@@ -5,6 +5,7 @@
 export interface BytePlusImageRequest {
   model: string
   prompt: string
+  negative_prompt?: string  // 负面提示词
   size?: string  // "2048x2048" 或 "2K"
   sequential_image_generation?: 'auto' | 'disabled'
   response_format?: 'url' | 'b64_json'

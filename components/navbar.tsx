@@ -183,6 +183,17 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   </div>
                                 </Link>
                               </NavigationMenuLink>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/studio/video-agent-beta"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
+                                    Video Agent
+                                    <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
                             </div>
                           </div>
 

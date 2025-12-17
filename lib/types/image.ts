@@ -15,9 +15,10 @@ export interface BaseImageGenerationRequest {
 
 // 扩展支持 images 参数的图片生成请求
 export interface ImageGenerationRequest extends BaseImageGenerationRequest {
-  images?: string[]  // 图片 URL 数组，用于 image-to-image（最多3张）
+  images?: string[]  // 图片 URL 数组，用于角色一致性参考（Video Agent: 每个角色1张）
   generationType?: ImageGenerationType
   watermark?: boolean  // 是否添加水印（默认 false）
+  negativePrompt?: string  // 负面提示词，描述不希望出现的元素
 }
 
 // 图片生成响应

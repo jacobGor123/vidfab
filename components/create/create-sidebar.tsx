@@ -16,7 +16,7 @@ interface CreateSidebarProps {
   onToggle: () => void
 }
 
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile"
+type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "video-agent" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile"
 
 // Discover 单独菜单项
 const discoverItem = {
@@ -44,6 +44,11 @@ const menuCategories = [
         id: "video-effects" as ToolType,
         label: "Video Effects",
         iconPath: "/logo/video-effects.svg"
+      },
+      {
+        id: "video-agent" as ToolType,
+        label: "Video Agent",
+        iconPath: "/logo/video-agent.svg"
       }
     ]
   },
@@ -96,6 +101,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
     'text-to-video': '/studio/text-to-video',
     'image-to-video': '/studio/image-to-video',
     'video-effects': '/studio/ai-video-effects',
+    'video-agent': '/studio/video-agent-beta',
     'text-to-image': '/studio/text-to-image',
     'image-to-image': '/studio/image-to-image',
     'my-assets': '/studio/my-assets',

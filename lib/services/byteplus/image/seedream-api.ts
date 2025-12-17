@@ -1,5 +1,6 @@
 /**
- * BytePlus Seedream 4.0 Image API
+ * BytePlus Seedream 4.5 Image API
+ * 升级说明: 支持角色一致性 (6-10张参考图)
  */
 
 import { BytePlusClient } from '../core/client'
@@ -7,14 +8,23 @@ import { ImageGenerationRequest, ImageGenerationResponse } from '@/lib/types/ima
 import { convertAspectRatioToSize } from './utils'
 import { BytePlusImageRequest, BytePlusImageResponse } from './types'
 
-const client = new BytePlusClient()
+// 创建 client，图片生成需要更长的超时时间
+const client = new BytePlusClient({
+  timeoutMs: 60000 // 60 秒超时
+})
 
-// 使用 Seedream 4.0 模型
-const DEFAULT_IMAGE_MODEL = 'seedream-4-0-250828'
+// 使用 Seedream 4.5 模型 (支持角色一致性)
+const DEFAULT_IMAGE_MODEL = 'seedream-4-5-251128'
 
 /**
  * 提交图片生成任务
  * 注意: BytePlus Image API 是同步返回的，直接返回图片 URL
+ *
+ * Seedream 4.5 新特性:
+ * - 支持多张参考图（至少 10 张以上），用于角色一致性
+ * - 参考图通过 request.images 传递
+ * - Video Agent 业务规则：每个角色 1 张参考图，多个角色的分镜会传递多张
+ * - 例如：Prince + Dragon 的分镜会传递 2 张参考图
  */
 export async function submitImageGeneration(
   request: ImageGenerationRequest
@@ -29,18 +39,27 @@ export async function submitImageGeneration(
     watermark: request.watermark ?? false  // 使用请求中的水印设置，默认 false
   }
 
-  // Image-to-Image: 添加输入图片
+  // Image-to-Image 或 参考图 (用于角色一致性)
+  // Seedream 4.5: 支持多张参考图（至少 10 张以上）
   if (request.images && request.images.length > 0) {
     byteplusRequest.image = request.images.length === 1
       ? request.images[0]
       : request.images
   }
 
+  // 添加负面提示词
+  if (request.negativePrompt) {
+    byteplusRequest.negative_prompt = request.negativePrompt
+  }
+
   console.log('🚀 Submitting image generation to BytePlus:', {
     model: byteplusRequest.model,
     size: byteplusRequest.size,
     hasInputImages: !!byteplusRequest.image,
-    inputImageCount: Array.isArray(byteplusRequest.image) ? byteplusRequest.image.length : (byteplusRequest.image ? 1 : 0)
+    inputImageCount: Array.isArray(byteplusRequest.image) ? byteplusRequest.image.length : (byteplusRequest.image ? 1 : 0),
+    inputImages: byteplusRequest.image,  // 完整的参考图 URL
+    hasNegativePrompt: !!byteplusRequest.negative_prompt,
+    negativePrompt: byteplusRequest.negative_prompt
   })
 
   // BytePlus Image API 是同步返回的

@@ -1,0 +1,15 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Robot head with video play symbol -->
+<path d="M24 4C23.4477 4 23 4.44772 23 5V8C23 8.55228 23.4477 9 24 9C24.5523 9 25 8.55228 25 8V5C25 4.44772 24.5523 4 24 4Z" fill="#E5E5E5"/>
+<rect x="12" y="12" width="24" height="20" rx="3" fill="#E5E5E5"/>
+<circle cx="18" cy="20" r="2" fill="#1A1A1A"/>
+<circle cx="30" cy="20" r="2" fill="#1A1A1A"/>
+<path d="M18 26C18 26 20 28 24 28C28 28 30 26 30 26" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+<!-- Antenna -->
+<circle cx="24" cy="10" r="2" fill="#E5E5E5"/>
+<!-- Video play icon overlay -->
+<path d="M34 34L38 36.5L34 39V34Z" fill="#A855F7"/>
+<rect x="32" y="33" width="8" height="8" rx="1" stroke="#A855F7" stroke-width="1.5" fill="none"/>
+<!-- AI sparkle -->
+<path d="M40 18L41 21L44 22L41 23L40 26L39 23L36 22L39 21L40 18Z" fill="#A855F7"/>
+</svg>
