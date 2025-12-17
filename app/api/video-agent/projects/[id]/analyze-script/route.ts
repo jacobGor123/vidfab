@@ -1,0 +1,166 @@
+/**
+ * Video Agent - 脚本分析 API
+ * 使用 GPT-OSS-120B 分析用户脚本
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
+import { supabaseAdmin } from '@/lib/supabase'
+import { analyzeScript, validateAnalysisResult, generateMusicPrompt } from '@/lib/services/video-agent/script-analyzer'
+
+/**
+ * 分析脚本
+ * POST /api/video-agent/projects/[id]/analyze-script
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 验证用户身份
+    const session = await auth()
+
+    if (!session?.user?.uuid) {
+      return NextResponse.json(
+        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
+        { status: 401 }
+      )
+    }
+
+    const projectId = params.id
+
+    // 验证项目所有权
+    const { data: project, error: projectError } = await supabaseAdmin
+      .from('video_agent_projects')
+      .select('*')
+      .eq('id', projectId)
+      .eq('user_id', session.user.uuid)
+      .single()
+
+    if (projectError || !project) {
+      console.error('[Video Agent] Project not found or access denied:', projectError)
+      return NextResponse.json(
+        { error: 'Project not found or access denied' },
+        { status: 404 }
+      )
+    }
+
+    console.log('[Video Agent] Analyzing script for project', {
+      projectId,
+      duration: project.duration,
+      storyStyle: project.story_style
+    })
+
+    // 调用脚本分析服务
+    let analysis
+    try {
+      analysis = await analyzeScript(
+        project.original_script,
+        project.duration,
+        project.story_style
+      )
+    } catch (analysisError) {
+      console.error('[Video Agent] Script analysis failed:', analysisError)
+      return NextResponse.json(
+        {
+          error: 'Script analysis failed',
+          details: analysisError instanceof Error ? analysisError.message : 'Unknown error'
+        },
+        { status: 500 }
+      )
+    }
+
+    // 验证分析结果
+    const validation = validateAnalysisResult(analysis)
+    if (!validation.valid) {
+      console.error('[Video Agent] Invalid analysis result:', validation.errors)
+      return NextResponse.json(
+        {
+          error: 'Invalid analysis result',
+          details: validation.errors
+        },
+        { status: 500 }
+      )
+    }
+
+    // 🔥 生成 Suno 音乐 prompt
+    let musicPrompt: string | undefined
+    try {
+      musicPrompt = await generateMusicPrompt(
+        project.original_script,
+        project.story_style,
+        analysis.shots
+      )
+      console.log('[Video Agent] Music prompt generated:', musicPrompt)
+    } catch (musicError) {
+      console.warn('[Video Agent] Failed to generate music prompt (non-critical):', musicError)
+      // 音乐 prompt 生成失败不影响主流程，使用默认值
+      musicPrompt = undefined
+    }
+
+    // 保存分析结果到数据库
+    const { error: updateError } = await supabaseAdmin
+      .from('video_agent_projects')
+      .update({
+        script_analysis: analysis,
+        music_generation_prompt: musicPrompt,  // 🔥 保存音乐 prompt
+        // 不更新 current_step，由前端在用户点击"继续"时更新
+        step_1_status: 'completed'
+      })
+      .eq('id', projectId)
+
+    if (updateError) {
+      console.error('[Video Agent] Failed to save analysis:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to save analysis' },
+        { status: 500 }
+      )
+    }
+
+    // 保存分镜数据到 project_shots 表
+    const shotsToInsert = analysis.shots.map(shot => ({
+      project_id: projectId,
+      shot_number: shot.shot_number,
+      time_range: shot.time_range,
+      description: shot.description,
+      camera_angle: shot.camera_angle,
+      character_action: shot.character_action,
+      mood: shot.mood,
+      duration_seconds: shot.duration_seconds
+    }))
+
+    const { error: shotsError } = await supabaseAdmin
+      .from('project_shots')
+      .upsert(shotsToInsert, {
+        onConflict: 'project_id,shot_number'
+      })
+
+    if (shotsError) {
+      console.error('[Video Agent] Failed to save shots:', shotsError)
+      // 不返回错误,因为主要数据已经保存在 script_analysis 字段中
+    }
+
+    console.log('[Video Agent] Script analysis completed', {
+      projectId,
+      shotCount: analysis.shots.length,
+      characters: analysis.characters
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: analysis
+    })
+
+  } catch (error) {
+    console.error('[Video Agent] Analyze script error:', error)
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development'
+          ? (error as Error).message
+          : undefined
+      },
+      { status: 500 }
+    )
+  }
+}
