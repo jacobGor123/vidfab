@@ -36,6 +36,13 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   const [error, setError] = useState<string | null>(null)
   const [simulatedProgress, setSimulatedProgress] = useState(0)
 
+  console.log('[Step6] Component render:', {
+    projectId: project.id,
+    step_6_status: project.step_6_status,
+    composeStatus: composeStatus.status,
+    hasFinalVideo: !!composeStatus.finalVideo
+  })
+
   // 轮询状态
   const pollStatus = useCallback(async () => {
     if (!project.id) return
@@ -59,7 +66,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
         onUpdate({
           final_video: data.finalVideo,
           status: 'completed',
-          current_step: 6  // 保持在步骤 6，不要设置为 7
+          current_step: 5  // 修复：现在是步骤 5（Final Composition）
         })
       } else if (data.status === 'failed') {
         setIsComposing(false)
@@ -81,14 +88,16 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   // 组件初始化时检查项目状态
   useEffect(() => {
     // 如果项目已经完成，直接获取完成状态
-    if (project.step_6_status === 'completed') {
+    if (project.step_6_status === 'completed' && composeStatus.status !== 'completed') {
+      console.log('[Step6] Detected completed status, fetching final video')
       pollStatus()
-    } else if (project.step_6_status === 'processing') {
+    } else if (project.step_6_status === 'processing' && !isComposing) {
       // 如果正在处理中，开始轮询
+      console.log('[Step6] Detected processing status, starting polling')
       setComposeStatus({ status: 'processing', progress: 50 })
       setIsComposing(true)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [project.step_6_status, composeStatus.status, isComposing, pollStatus])
 
   // 模拟进度增长
   useEffect(() => {
