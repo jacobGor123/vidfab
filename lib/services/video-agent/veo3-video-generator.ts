@@ -94,7 +94,8 @@ export async function generateVeo3Video(
     aspect_ratio: request.aspectRatio,
     duration: veo3Duration,  // 4/6/8
     resolution: '720p',  // 默认 720p
-    generate_audio: false  // 不生成音频（使用 Doubao TTS）
+    generate_audio: false,  // 不生成音频（使用 Doubao TTS）
+    safety_tolerance: 6  // 🔥 安全容忍度（1-6，6为最宽松）降低误拦截率
   }
 
   // 4. 可选参数
