@@ -86,6 +86,7 @@ export function mapBytePlusResponseToStatus(response: BytePlusVideoResponse): Vi
       progress: response.status === 'running' ? 50 : response.status === 'succeeded' ? 100 : 0,
       created_at: new Date(response.created_at * 1000).toISOString(),
       updated_at: new Date(response.updated_at * 1000).toISOString(),
+      lastFrameUrl: response.content?.last_frame_url,  // 映射视频结束帧 URL
     },
   }
 }

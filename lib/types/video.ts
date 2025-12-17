@@ -57,6 +57,7 @@ export interface VideoStatusResponse {
     progress?: number
     created_at?: string
     updated_at?: string
+    lastFrameUrl?: string  // 视频结束帧 URL，用于连续镜头过渡
   }
 }
 
