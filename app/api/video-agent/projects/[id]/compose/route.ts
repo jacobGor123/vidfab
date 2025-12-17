@@ -7,10 +7,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { downloadAllClips, estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
-import { simpleConcatVideos, addBackgroundMusic, checkFfmpegAvailable, addSubtitlesToVideo } from '@/lib/services/video-agent/ffmpeg-executor'
+import { simpleConcatVideos, addBackgroundMusic, checkFfmpegAvailable, addSubtitlesToVideo, addAudioToVideo } from '@/lib/services/video-agent/ffmpeg-executor'
 import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/services/video-agent/video-composer'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
 import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
+import { generateNarration, ENGLISH_VOICES } from '@/lib/services/byteplus/audio/doubao-tts'
 import path from 'path'
 import fs from 'fs'
 
@@ -192,8 +193,84 @@ async function composeVideoAsync(
 
     console.log('[Video Agent] All clips downloaded, starting composition...')
 
-    // 步骤 2: 拼接视频
-    await simpleConcatVideos(clipsWithPaths, outputPath)
+    // 步骤 1.5: 🔥 旁白模式 - 为每个片段生成并混入旁白音频
+    let clipsForConcat = clipsWithPaths
+    if (project.enable_narration) {
+      console.log('[Video Agent] 🎤 Generating narration audio for all clips...')
+
+      // 获取分镜数据（用于生成旁白文本）
+      const { data: shotsData } = await supabaseAdmin
+        .from('project_shots')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('shot_number', { ascending: true })
+
+      if (shotsData && shotsData.length > 0) {
+        const clipsWithNarration = []
+
+        for (let i = 0; i < clipsWithPaths.length; i++) {
+          const clipPath = clipsWithPaths[i]
+          const shot = shotsData.find(s => s.shot_number === clips[i].shot_number)
+
+          if (!shot) {
+            console.warn(`[Video Agent] ⚠️ No shot data for clip ${clips[i].shot_number}, skipping narration`)
+            clipsWithNarration.push(clipPath)
+            continue
+          }
+
+          try {
+            // 使用 character_action 作为旁白文本
+            const narrationText = shot.character_action || shot.description
+            console.log(`[Video Agent] 🎤 Generating narration ${i + 1}/${clipsWithPaths.length}:`, {
+              shotNumber: shot.shot_number,
+              textLength: narrationText.length
+            })
+
+            // 生成旁白音频
+            const narrationResult = await generateNarration({
+              text: narrationText,
+              voice_type: ENGLISH_VOICES.en_us_female_1,  // 美式英语女声
+              speed: 1.0,
+              volume: 80,
+              format: 'mp3'
+            })
+
+            if (!narrationResult.success) {
+              throw new Error(narrationResult.error || 'Narration generation failed')
+            }
+
+            // 下载旁白音频
+            const narrationPath = path.join(tempDir, `narration_${shot.shot_number}.mp3`)
+            const fetch = (await import('node-fetch')).default
+            const narrationResponse = await fetch(narrationResult.audio_url)
+            const narrationBuffer = await narrationResponse.buffer()
+            fs.writeFileSync(narrationPath, narrationBuffer)
+
+            // 将旁白音频混入视频
+            const videoWithNarrationPath = path.join(tempDir, `clip_${shot.shot_number}_with_narration.mp4`)
+            await addAudioToVideo(clipPath, narrationPath, videoWithNarrationPath, {
+              volume: 1.0  // 旁白音量 100%
+            })
+
+            clipsWithNarration.push(videoWithNarrationPath)
+            console.log(`[Video Agent] 🎤 Narration added to clip ${shot.shot_number} ✓`)
+
+          } catch (narrationError) {
+            console.error(`[Video Agent] ⚠️ Failed to add narration to clip ${clips[i].shot_number}:`, narrationError)
+            // 旁白失败不影响视频合成，使用原视频
+            clipsWithNarration.push(clipPath)
+          }
+        }
+
+        clipsForConcat = clipsWithNarration
+        console.log('[Video Agent] 🎤 Narration audio generation completed')
+      } else {
+        console.warn('[Video Agent] ⚠️ No shots data found, skipping narration')
+      }
+    }
+
+    // 步骤 2: 拼接视频（使用带旁白的视频片段）
+    await simpleConcatVideos(clipsForConcat, outputPath)
 
     let finalVideoPath = outputPath
 

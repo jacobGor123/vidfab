@@ -455,3 +455,81 @@ export async function addSubtitlesToVideo(
       .run()
   })
 }
+
+/**
+ * 将音频添加到视频
+ * @param videoPath 输入视频路径
+ * @param audioPath 输入音频路径
+ * @param outputPath 输出视频路径
+ * @param options 音频选项（音量等）
+ */
+export async function addAudioToVideo(
+  videoPath: string,
+  audioPath: string,
+  outputPath: string,
+  options: {
+    volume?: number  // 音量（0.0-1.0，默认 1.0）
+    fadeIn?: number  // 淡入时长（秒）
+    fadeOut?: number // 淡出时长（秒）
+  } = {}
+): Promise<void> {
+  const ffmpegModule = await import('fluent-ffmpeg')
+  const ffmpeg = ffmpegModule.default
+
+  const volume = options.volume ?? 1.0
+
+  console.log('[FFmpegExecutor] 添加音频到视频:', {
+    videoPath,
+    audioPath,
+    outputPath,
+    volume
+  })
+
+  return new Promise((resolve, reject) => {
+    const command = ffmpeg()
+      .input(videoPath)
+      .input(audioPath)
+
+    // 构建音频滤镜
+    let audioFilter = `[1:a]volume=${volume}`
+
+    if (options.fadeIn) {
+      audioFilter += `,afade=t=in:st=0:d=${options.fadeIn}`
+    }
+
+    if (options.fadeOut) {
+      // 注意：淡出需要知道音频总时长，这里简化处理
+      audioFilter += `,afade=t=out:st=0:d=${options.fadeOut}`
+    }
+
+    audioFilter += '[audio]'
+
+    command
+      .complexFilter([audioFilter])
+      .outputOptions([
+        '-map 0:v',          // 使用第一个输入的视频流
+        '-map [audio]',      // 使用处理后的音频
+        '-c:v copy',         // 视频流直接复制（不重新编码）
+        '-c:a aac',          // 音频编码为 AAC
+        '-shortest'          // 以较短的流为准（避免视频/音频不同步）
+      ])
+      .output(outputPath)
+      .on('start', (cmd: string) => {
+        console.log('[FFmpegExecutor] FFmpeg命令:', cmd)
+      })
+      .on('progress', (progress: { percent?: number }) => {
+        if (progress.percent) {
+          console.log(`[FFmpegExecutor] 音频添加进度: ${progress.percent.toFixed(1)}%`)
+        }
+      })
+      .on('end', () => {
+        console.log('[FFmpegExecutor] 音频添加完成 ✓')
+        resolve()
+      })
+      .on('error', (err: Error) => {
+        console.error('[FFmpegExecutor] 添加音频失败:', err)
+        reject(err)
+      })
+      .run()
+  })
+}
