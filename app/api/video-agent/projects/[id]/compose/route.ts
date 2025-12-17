@@ -11,7 +11,7 @@ import { simpleConcatVideos, addBackgroundMusic, checkFfmpegAvailable, addSubtit
 import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/services/video-agent/video-composer'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
 import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
-import { generateNarration, ENGLISH_VOICES } from '@/lib/services/byteplus/audio/doubao-tts'
+import { generateNarration, ELEVENLABS_VOICES } from '@/lib/services/kie-ai/elevenlabs-tts'
 import path from 'path'
 import fs from 'fs'
 
@@ -226,13 +226,13 @@ async function composeVideoAsync(
               textLength: narrationText.length
             })
 
-            // 生成旁白音频
+            // 生成旁白音频（使用 Kie.ai ElevenLabs TTS）
             const narrationResult = await generateNarration({
               text: narrationText,
-              voice_type: ENGLISH_VOICES.en_us_female_1,  // 美式英语女声
+              voice: 'Rachel',  // 专业、清晰的女声
               speed: 1.0,
-              volume: 80,
-              format: 'mp3'
+              stability: 0.5,
+              similarity_boost: 0.75
             })
 
             if (!narrationResult.success) {
