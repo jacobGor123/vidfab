@@ -246,13 +246,15 @@ export async function POST(
       shotCount: shots.length
     })
 
-    // 🔥 并行启动 Suno 音乐生成（如果有 music_generation_prompt）
-    if (project.music_generation_prompt) {
+    // 🔥 并行启动 Suno 音乐生成（仅非旁白模式）
+    // 旁白模式下不生成背景音乐，避免与旁白音频冲突
+    if (project.music_generation_prompt && !project.enable_narration) {
       Promise.resolve().then(async () => {
         try {
           console.log('[Video Agent] 🎵 Starting parallel Suno music generation', {
             projectId,
-            promptLength: project.music_generation_prompt.length
+            promptLength: project.music_generation_prompt.length,
+            mode: 'background-music'
           })
 
           // 启动 Suno 音乐生成（不等待完成）
@@ -283,6 +285,8 @@ export async function POST(
           // 音乐生成失败不影响主流程
         }
       })
+    } else if (project.enable_narration) {
+      console.log('[Video Agent] 🎵 Skipping music generation (narration mode enabled)', { projectId })
     }
 
     // 立即返回，后台异步生成

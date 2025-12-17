@@ -197,11 +197,16 @@ async function composeVideoAsync(
 
     let finalVideoPath = outputPath
 
-    // 步骤 3: 🔥 检查 Suno 音乐生成状态并添加背景音乐
+    // 步骤 3: 🔥 检查 Suno 音乐生成状态并添加背景音乐（仅非旁白模式）
     let musicUrl = project.music_url
 
+    // 旁白模式下不添加背景音乐
+    if (project.enable_narration) {
+      console.log('[Video Agent] 🎵 Skipping background music (narration mode enabled)', { projectId })
+      musicUrl = null
+    }
     // 如果有 Suno task ID，检查音乐是否生成完成
-    if (project.suno_task_id && !musicUrl) {
+    else if (project.suno_task_id && !musicUrl) {
       try {
         console.log('[Video Agent] 🎵 Checking Suno music generation status...', {
           sunoTaskId: project.suno_task_id
