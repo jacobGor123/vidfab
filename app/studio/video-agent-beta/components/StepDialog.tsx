@@ -45,11 +45,14 @@ export default function StepDialog({
   project,
   onProjectUpdate
 }: StepDialogProps) {
-  const [currentStep, setCurrentStep] = useState(step)
+  // 向后兼容：旧项目的步骤 6-7 映射为新的步骤 5
+  const normalizedStep = step >= 6 ? 5 : step
+  const [currentStep, setCurrentStep] = useState(normalizedStep)
 
   // 同步 prop 变化（页面刷新时从数据库读取的 current_step）
   useEffect(() => {
-    setCurrentStep(step)
+    const normalized = step >= 6 ? 5 : step
+    setCurrentStep(normalized)
   }, [step])
 
   const handleNext = async () => {
