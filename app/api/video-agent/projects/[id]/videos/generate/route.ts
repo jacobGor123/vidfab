@@ -118,23 +118,33 @@ async function generateVideosAsync(
     }
 
     try {
-      // 🔥 第一个片段：使用分镜图
-      // 🔥 后续片段：使用上一个片段的末尾帧
-      const firstFrameUrl = i === 0 ? storyboard.image_url : previousLastFrameUrl
+      // 🔥 旁白模式 (Veo3.1)：每个片段使用自己的分镜图
+      // 🔥 非旁白模式 (BytePlus)：第一个用分镜图，后续用上一个片段的末尾帧
+      const firstFrameUrl = enableNarration
+        ? storyboard.image_url  // 旁白模式：始终使用分镜图
+        : (i === 0 ? storyboard.image_url : previousLastFrameUrl)  // 非旁白：链式过渡
 
       if (!firstFrameUrl) {
         throw new Error(`片段 ${shot.shot_number} 缺少首帧图像（上一个片段可能未返回末尾帧）`)
       }
 
+      const frameSource = enableNarration
+        ? 'storyboard (narration mode)'
+        : (i === 0 ? 'storyboard' : 'previous_last_frame')
+
       console.log(`[Video Agent] 生成片段 ${i + 1}/${storyboards.length}`, {
         shot_number: shot.shot_number,
-        firstFrameSource: i === 0 ? 'storyboard' : 'previous_last_frame',
-        enableNarration
+        firstFrameSource: frameSource,
+        enableNarration,
+        mode: enableNarration ? 'veo3.1' : 'byteplus'
       })
 
       // 判断是否使用 veo3.1 生成带旁白的视频
       if (enableNarration) {
-        // TODO: Veo3.1 路径暂时保持原逻辑，后续在 Phase 4 中实现链式过渡
+        // 🔥 Veo3.1 旁白模式：不使用首帧链式过渡，每个视频独立生成
+        // 使用分镜图作为起始帧，下一个分镜图作为结束帧（实现流畅过渡）
+        console.log(`[Video Agent] Using Veo3.1 (narration mode) for shot ${shot.shot_number}`)
+
         const nextStoryboard = storyboards.find(sb => sb.shot_number === shot.shot_number + 1)
         const images = getVideoGenerationImages(
           { imageUrl: storyboard.image_url },
@@ -163,6 +173,10 @@ async function generateVideosAsync(
           })
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
+
+        console.log(`[Video Agent] Veo3.1 task ${requestId} submitted for shot ${shot.shot_number}`)
+
+        // ✅ 不需要 previousLastFrameUrl，每个视频独立生成
 
       } else {
         // 🔥 BytePlus Seedance: 使用链式首帧
@@ -235,25 +249,31 @@ async function generateVideosAsync(
         .eq('project_id', projectId)
         .eq('shot_number', shot.shot_number)
 
-      // 🔥 生成失败时，终止后续片段（避免链条断裂）
-      const remainingCount = storyboards.length - i - 1
-      if (remainingCount > 0) {
-        console.warn(`[Video Agent] ⚠️ 链式生成中断，剩余 ${remainingCount} 个片段将标记为失败`)
+      // 🔥 非旁白模式：链式生成，一个失败终止后续
+      // 🔥 旁白模式：独立生成，一个失败不影响后续
+      if (!enableNarration) {
+        const remainingCount = storyboards.length - i - 1
+        if (remainingCount > 0) {
+          console.warn(`[Video Agent] ⚠️ 链式生成中断，剩余 ${remainingCount} 个片段将标记为失败`)
 
-        for (let j = i + 1; j < storyboards.length; j++) {
-          await supabaseAdmin
-            .from('project_video_clips')
-            .update({
-              status: 'failed',
-              error_message: '前序片段生成失败，链条中断',
-              updated_at: new Date().toISOString()
-            })
-            .eq('project_id', projectId)
-            .eq('shot_number', storyboards[j].shot_number)
+          for (let j = i + 1; j < storyboards.length; j++) {
+            await supabaseAdmin
+              .from('project_video_clips')
+              .update({
+                status: 'failed',
+                error_message: '前序片段生成失败，链条中断',
+                updated_at: new Date().toISOString()
+              })
+              .eq('project_id', projectId)
+              .eq('shot_number', storyboards[j].shot_number)
+          }
         }
-      }
 
-      break  // 终止循环
+        break  // 终止循环（仅非旁白模式）
+      } else {
+        console.log(`[Video Agent] ℹ️ 旁白模式：片段 ${shot.shot_number} 失败，继续生成后续片段`)
+        // 旁白模式：继续下一个片段
+      }
     }
   }
 
