@@ -7,9 +7,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { downloadAllClips, estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
-import { simpleConcatVideos, addBackgroundMusic, checkFfmpegAvailable } from '@/lib/services/video-agent/ffmpeg-executor'
+import { simpleConcatVideos, addBackgroundMusic, checkFfmpegAvailable, addSubtitlesToVideo } from '@/lib/services/video-agent/ffmpeg-executor'
 import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/services/video-agent/video-composer'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
+import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
 import path from 'path'
 import fs from 'fs'
 
@@ -281,9 +282,52 @@ async function composeVideoAsync(
       finalVideoPath = outputWithMusic
     }
 
+    // 步骤 4: 🔥 添加字幕（如果启用了旁白模式）
+    if (project.enable_narration) {
+      try {
+        console.log('[Video Agent] 🔠 Adding subtitles...')
+
+        // 获取分镜数据（用于生成字幕）
+        const { data: shotsData } = await supabaseAdmin
+          .from('project_shots')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('shot_number', { ascending: true })
+
+        if (shotsData && shotsData.length > 0) {
+          // 生成 SRT 字幕内容
+          const srtContent = generateSRTFromShots(shotsData, {
+            useCharacterAction: true  // 使用 character_action 作为字幕文本
+          })
+
+          // 保存 SRT 文件
+          const srtPath = path.join(tempDir, 'subtitles.srt')
+          fs.writeFileSync(srtPath, srtContent, 'utf-8')
+
+          console.log('[Video Agent] 🔠 SRT file generated:', srtPath)
+
+          // 将字幕烧录到视频中
+          const videoWithSubsPath = path.join(tempDir, 'final_video_with_subs.mp4')
+          await addSubtitlesToVideo(finalVideoPath, srtPath, videoWithSubsPath, {
+            fontSize: 28,
+            outline: 3,
+            shadow: 2
+          })
+
+          finalVideoPath = videoWithSubsPath
+          console.log('[Video Agent] 🔠 Subtitles added successfully ✓')
+        } else {
+          console.warn('[Video Agent] ⚠️ No shots data found, skipping subtitles')
+        }
+      } catch (subtitleError) {
+        console.error('[Video Agent] ⚠️ Failed to add subtitles (non-critical):', subtitleError)
+        // 字幕添加失败不影响视频合成，继续处理
+      }
+    }
+
     console.log('[Video Agent] Video composition completed:', finalVideoPath)
 
-    // 步骤 4: 上传到 Supabase Storage
+    // 步骤 5: 上传到 Supabase Storage
     const finalVideoBuffer = fs.readFileSync(finalVideoPath)
     const storagePath = `video-agent/${projectId}/final_video_${Date.now()}.mp4`
 

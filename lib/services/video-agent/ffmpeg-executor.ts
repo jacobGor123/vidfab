@@ -381,3 +381,77 @@ export async function concatenateWithCrossfadeAndAudio(
       .run()
   })
 }
+
+/**
+ * 🔥 为视频添加字幕（烧录到视频中）
+ * @param videoPath 输入视频路径
+ * @param srtPath SRT 字幕文件路径
+ * @param outputPath 输出视频路径
+ * @param options 字幕样式选项
+ */
+export async function addSubtitlesToVideo(
+  videoPath: string,
+  srtPath: string,
+  outputPath: string,
+  options?: {
+    fontName?: string
+    fontSize?: number
+    primaryColor?: string
+    outlineColor?: string
+    outline?: number
+    shadow?: number
+    alignment?: number
+  }
+): Promise<void> {
+  const ffmpegModule = await import('fluent-ffmpeg')
+  const ffmpeg = ffmpegModule.default
+
+  // 默认字幕样式（白色字体，黑色描边，底部居中）
+  const fontName = options?.fontName || 'Arial'
+  const fontSize = options?.fontSize || 24
+  const primaryColor = options?.primaryColor || '&HFFFFFF'  // 白色
+  const outlineColor = options?.outlineColor || '&H000000'  // 黑色
+  const outline = options?.outline || 2
+  const shadow = options?.shadow || 1
+  const alignment = options?.alignment || 2  // 底部居中
+
+  // 构建字幕样式字符串
+  const subtitleStyle = [
+    `FontName=${fontName}`,
+    `FontSize=${fontSize}`,
+    `PrimaryColour=${primaryColor}`,
+    `OutlineColour=${outlineColor}`,
+    `BorderStyle=1`,
+    `Outline=${outline}`,
+    `Shadow=${shadow}`,
+    `Alignment=${alignment}`
+  ].join(',')
+
+  return new Promise((resolve, reject) => {
+    ffmpeg()
+      .input(videoPath)
+      .outputOptions([
+        `-vf subtitles=${srtPath}:force_style='${subtitleStyle}'`
+      ])
+      .videoCodec('libx264')
+      .audioCodec('copy')  // 保留原音频
+      .output(outputPath)
+      .on('start', (cmd: string) => {
+        console.log('[FFmpegExecutor] 添加字幕:', cmd)
+      })
+      .on('progress', (progress: { percent?: number }) => {
+        if (progress.percent) {
+          console.log(`[FFmpegExecutor] 字幕渲染进度: ${progress.percent.toFixed(1)}%`)
+        }
+      })
+      .on('end', () => {
+        console.log('[FFmpegExecutor] 字幕添加完成 ✓')
+        resolve()
+      })
+      .on('error', (err: Error) => {
+        console.error('[FFmpegExecutor] 添加字幕失败:', err)
+        reject(err)
+      })
+      .run()
+  })
+}
