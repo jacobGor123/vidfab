@@ -4,10 +4,30 @@
  */
 
 import Replicate from 'replicate'
+import { Agent } from 'undici'
 
-// 初始化 Replicate client
+// 创建自定义 Agent，增加连接和请求超时时间
+const agent = new Agent({
+  connect: {
+    timeout: 60000  // 连接超时：60 秒（从 10 秒增加到 60 秒）
+  },
+  bodyTimeout: 120000,  // 请求体超时：120 秒
+  headersTimeout: 60000  // 响应头超时：60 秒
+})
+
+// 自定义 fetch 函数，使用配置好的 Agent
+const customFetch = (url: RequestInfo | URL, init?: RequestInit) => {
+  return fetch(url, {
+    ...init,
+    // @ts-ignore - undici Agent 类型兼容性
+    dispatcher: agent
+  })
+}
+
+// 初始化 Replicate client，使用自定义 fetch
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN || ''
+  auth: process.env.REPLICATE_API_TOKEN || '',
+  fetch: customFetch as any
 })
 
 // GPT-4o-mini 模型（通过 Replicate）
