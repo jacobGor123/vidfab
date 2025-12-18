@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { VideoAgentProject, VideoClip } from '@/lib/stores/video-agent'
 import { RefreshCw } from 'lucide-react'
+import { showConfirm } from '@/lib/utils/toast'
 
 interface Step5Props {
   project: VideoAgentProject
@@ -178,9 +179,17 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
     }))
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (failedShots > 0) {
-      if (!confirm(`${failedShots} videos failed. Continue anyway?`)) {
+      const confirmed = await showConfirm(
+        `${failedShots} videos failed. Continue anyway?`,
+        {
+          title: 'Videos Failed',
+          confirmText: 'Continue',
+          cancelText: 'Cancel'
+        }
+      )
+      if (!confirmed) {
         return
       }
     }

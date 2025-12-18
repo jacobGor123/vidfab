@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
 import { Clock, Trash2, ChevronRight, PlayCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { showConfirm } from '@/lib/utils/toast'
 
 interface ProjectListProps {
   onResume: (project: VideoAgentProject) => void
@@ -40,7 +41,15 @@ export default function ProjectList({ onResume }: ProjectListProps) {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!confirm('Are you sure you want to delete this draft?')) return
+    const confirmed = await showConfirm(
+      'This draft will be permanently deleted.',
+      {
+        title: 'Delete Draft',
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    )
+    if (!confirmed) return
 
     try {
       const response = await fetch(`/api/video-agent/projects/${id}`, { method: 'DELETE' })

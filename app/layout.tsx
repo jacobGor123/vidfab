@@ -9,6 +9,7 @@ import { WebVitals } from "@/components/web-vitals"
 import { cn } from "@/lib/utils"
 import { openSans } from "@/lib/fonts"
 import { Toaster } from "react-hot-toast"
+import { Toaster as SonnerToaster } from "sonner"
 import { StructuredData } from "@/components/seo/structured-data"
 import { getOrganizationSchema, getWebSiteSchema, getSoftwareApplicationSchema } from "@/lib/seo/structured-data"
 import dynamic from 'next/dynamic'
@@ -203,6 +204,13 @@ export default function RootLayout({
                   border: '1px solid #374151',
                 }
               }}
+            />
+            {/* Sonner Toaster for modern toasts and confirms */}
+            <SonnerToaster
+              position="top-center"
+              richColors
+              closeButton
+              theme="dark"
             />
           </ThemeProvider>
         </SessionProvider>

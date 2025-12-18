@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { VideoAgentProject, Storyboard } from '@/lib/stores/video-agent'
+import { showConfirm } from '@/lib/utils/toast'
 
 interface Step4Props {
   project: VideoAgentProject
@@ -140,9 +141,17 @@ export default function Step4StoryboardGen({ project, onNext, onUpdate }: Step4P
     }
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (failedShots > 0) {
-      if (!confirm(`${failedShots} storyboards failed. Continue anyway?`)) {
+      const confirmed = await showConfirm(
+        `${failedShots} storyboards failed. Continue anyway?`,
+        {
+          title: 'Storyboards Failed',
+          confirmText: 'Continue',
+          cancelText: 'Cancel'
+        }
+      )
+      if (!confirmed) {
         return
       }
     }
@@ -295,8 +304,16 @@ export default function Step4StoryboardGen({ project, onNext, onUpdate }: Step4P
                       size="sm"
                       variant="ghost"
                       className="h-7 px-2 text-xs"
-                      onClick={() => {
-                        if (confirm('Regenerate this storyboard? The current image will be replaced.')) {
+                      onClick={async () => {
+                        const confirmed = await showConfirm(
+                          'The current image will be replaced.',
+                          {
+                            title: 'Regenerate Storyboard',
+                            confirmText: 'Regenerate',
+                            cancelText: 'Cancel'
+                          }
+                        )
+                        if (confirmed) {
                           handleRegenerate(item.shot_number)
                         }
                       }}

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import InspirationDialog from './InspirationDialog'
 import { cn } from '@/lib/utils'
+import { showError } from '@/lib/utils/toast'
 
 const DURATIONS = [
   { value: 15, label: '15s' },
@@ -73,7 +74,7 @@ export default function InputStage({ onStart }: InputStageProps) {
 
   const handleSubmit = async () => {
     if (!script.trim()) {
-      alert('Please enter a video script')
+      showError('Please enter a video script')
       return
     }
 
@@ -87,7 +88,7 @@ export default function InputStage({ onStart }: InputStageProps) {
         enableNarration
       })
     } catch (error: any) {
-      alert(error.message)
+      showError(error.message)
     } finally {
       setIsLoading(false)
     }
@@ -104,7 +105,7 @@ export default function InputStage({ onStart }: InputStageProps) {
       setShowInspirationDialog(true)
     } catch (error: any) {
       console.error('Failed to get inspirations:', error)
-      alert('Failed to generate AI inspirations.')
+      showError('Failed to generate AI inspirations.')
     } finally {
       setIsGeneratingInspiration(false)
     }
