@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
 import { Clock, Trash2, ChevronRight, PlayCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { showConfirm } from '@/lib/utils/toast'
+import { showConfirm, showSuccess, showError, showLoading } from '@/lib/utils/toast'
 
 interface ProjectListProps {
   onResume: (project: VideoAgentProject) => void
@@ -51,13 +51,20 @@ export default function ProjectList({ onResume }: ProjectListProps) {
     )
     if (!confirmed) return
 
+    const dismissLoading = showLoading('Deleting draft...')
     try {
       const response = await fetch(`/api/video-agent/projects/${id}`, { method: 'DELETE' })
+      dismissLoading()
       if (response.ok) {
         setProjects(prev => prev.filter(p => p.id !== id))
+        showSuccess('Draft deleted successfully')
+      } else {
+        showError('Failed to delete draft')
       }
     } catch (error) {
+      dismissLoading()
       console.error('Failed to delete project:', error)
+      showError('Failed to delete draft')
     }
   }
 

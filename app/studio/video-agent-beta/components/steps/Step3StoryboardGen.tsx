@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { VideoAgentProject, Storyboard } from '@/lib/stores/video-agent'
-import { showConfirm } from '@/lib/utils/toast'
+import { showConfirm, showSuccess, showError, showLoading } from '@/lib/utils/toast'
 
 interface Step4Props {
   project: VideoAgentProject
@@ -114,12 +114,14 @@ export default function Step4StoryboardGen({ project, onNext, onUpdate }: Step4P
     setRegeneratingShot(shotNumber)
     setError(null)
 
+    const dismissLoading = showLoading(`Regenerating storyboard ${shotNumber}...`)
     try {
       const response = await fetch(
         `/api/video-agent/projects/${project.id}/storyboards/${shotNumber}/regenerate`,
         { method: 'POST' }
       )
 
+      dismissLoading()
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.error || 'Failed to regenerate storyboard')
@@ -132,10 +134,13 @@ export default function Step4StoryboardGen({ project, onNext, onUpdate }: Step4P
         )
       )
 
+      showSuccess(`Storyboard ${shotNumber} regeneration started`)
       // 开始轮询
       pollStatus()
     } catch (err: any) {
+      dismissLoading()
       setError(err.message)
+      showError(err.message)
     } finally {
       setRegeneratingShot(null)
     }

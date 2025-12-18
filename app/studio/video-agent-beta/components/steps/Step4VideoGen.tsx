@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { VideoAgentProject, VideoClip } from '@/lib/stores/video-agent'
 import { RefreshCw } from 'lucide-react'
-import { showConfirm } from '@/lib/utils/toast'
+import { showConfirm, showSuccess, showError, showLoading } from '@/lib/utils/toast'
 
 interface Step5Props {
   project: VideoAgentProject
@@ -117,6 +117,7 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
     setRetryingShot(shotNumber)
     setError(null)
 
+    const dismissLoading = showLoading(`Regenerating video ${shotNumber}...`)
     try {
       // 获取自定义 prompt（如果用户修改过）
       const customPrompt = customPrompts[shotNumber]
@@ -134,6 +135,7 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
         }
       )
 
+      dismissLoading()
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.error || 'Failed to retry video generation')
@@ -146,11 +148,14 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
         )
       )
 
+      showSuccess(`Video ${shotNumber} regeneration started`)
       // 开始轮询
       setIsGenerating(true)
       pollStatus()
     } catch (err: any) {
+      dismissLoading()
       setError(err.message)
+      showError(err.message)
     } finally {
       setRetryingShot(null)
     }
