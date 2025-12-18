@@ -155,13 +155,18 @@ async function generateVideosAsync(
           throw new Error('No reference image available for Veo3.1 generation')
         }
 
+        // 🔥 增强 prompt：结合场景描述 + 角色动作
+        const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+
         const { requestId } = await generateVeo3Video({
-          prompt: shot.character_action,
+          prompt: enhancedPrompt,
           image: images.image,
           aspectRatio: aspectRatio,
           duration: shot.duration_seconds,
           lastImage: images.lastImage
         })
+
+        console.log(`[Video Agent] 🎬 Enhanced prompt for shot ${shot.shot_number}:`, enhancedPrompt)
 
         await supabaseAdmin
           .from('project_video_clips')
@@ -180,9 +185,12 @@ async function generateVideosAsync(
 
       } else {
         // 🔥 BytePlus Seedance: 使用链式首帧
+        // 🔥 增强 prompt：结合场景描述 + 角色动作
+        const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+
         const videoRequest: VideoGenerationRequest = {
           image: firstFrameUrl,  // 🔥 使用链式首帧
-          prompt: shot.character_action,
+          prompt: enhancedPrompt,
           model: 'vidfab-q1',
           duration: shot.duration_seconds,
           resolution: '1080p',
@@ -191,6 +199,8 @@ async function generateVideosAsync(
           watermark: false,
           seed: shot.seed
         }
+
+        console.log(`[Video Agent] 🎬 Enhanced prompt for shot ${shot.shot_number}:`, enhancedPrompt)
 
         // 提交任务（return_last_frame 默认启用）
         const result = await submitVideoGeneration(videoRequest, {

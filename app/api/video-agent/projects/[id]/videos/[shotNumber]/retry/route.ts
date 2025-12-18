@@ -125,13 +125,18 @@ export async function POST(
         throw new Error('No reference image available for Veo3.1 generation')
       }
 
+      // 🔥 增强 prompt：结合场景描述 + 角色动作
+      const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+
       const { requestId } = await generateVeo3Video({
-        prompt: shot.character_action,
+        prompt: enhancedPrompt,
         image: images.image,
         aspectRatio: project.aspect_ratio || '16:9',
         duration: shot.duration_seconds,
         lastImage: images.lastImage
       })
+
+      console.log(`[Video Agent] 🔄 Enhanced prompt for shot ${shotNumber}:`, enhancedPrompt)
 
       await supabaseAdmin
         .from('project_video_clips')
@@ -151,9 +156,12 @@ export async function POST(
       // 🔥 重新生成时使用新的随机 seed，确保生成不同的视频
       const newSeed = Math.floor(Math.random() * 1000000)
 
+      // 🔥 增强 prompt：结合场景描述 + 角色动作
+      const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+
       const videoRequest: VideoGenerationRequest = {
         image: storyboard.image_url,
-        prompt: shot.character_action,
+        prompt: enhancedPrompt,
         model: 'vidfab-q1',
         duration: shot.duration_seconds,
         resolution: '1080p',
@@ -163,6 +171,7 @@ export async function POST(
         seed: newSeed  // 🔥 使用新的随机 seed
       }
 
+      console.log(`[Video Agent] 🔄 Enhanced prompt for shot ${shotNumber}:`, enhancedPrompt)
       console.log(`[Video Agent] 🔄 Using new random seed: ${newSeed} (old: ${shot.seed})`)
 
       const result = await submitVideoGeneration(videoRequest, {
