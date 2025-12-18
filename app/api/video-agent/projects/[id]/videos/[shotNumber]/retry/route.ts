@@ -42,6 +42,10 @@ export async function POST(
       )
     }
 
+    // 🔥 获取用户自定义 prompt（如果有）
+    const body = await request.json().catch(() => ({}))
+    const customPrompt = body.customPrompt as string | undefined
+
     // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
@@ -125,18 +129,18 @@ export async function POST(
         throw new Error('No reference image available for Veo3.1 generation')
       }
 
-      // 🔥 增强 prompt：结合场景描述 + 角色动作
-      const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+      // 🔥 Prompt 优先级：用户自定义 > 增强 prompt（描述 + 动作）
+      const finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
 
       const { requestId } = await generateVeo3Video({
-        prompt: enhancedPrompt,
+        prompt: finalPrompt,
         image: images.image,
         aspectRatio: project.aspect_ratio || '16:9',
         duration: shot.duration_seconds,
         lastImage: images.lastImage
       })
 
-      console.log(`[Video Agent] 🔄 Enhanced prompt for shot ${shotNumber}:`, enhancedPrompt)
+      console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced'} prompt for shot ${shotNumber}:`, finalPrompt)
 
       await supabaseAdmin
         .from('project_video_clips')
@@ -156,12 +160,12 @@ export async function POST(
       // 🔥 重新生成时使用新的随机 seed，确保生成不同的视频
       const newSeed = Math.floor(Math.random() * 1000000)
 
-      // 🔥 增强 prompt：结合场景描述 + 角色动作
-      const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+      // 🔥 Prompt 优先级：用户自定义 > 增强 prompt（描述 + 动作）
+      const finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
 
       const videoRequest: VideoGenerationRequest = {
         image: storyboard.image_url,
-        prompt: enhancedPrompt,
+        prompt: finalPrompt,
         model: 'vidfab-q1',
         duration: shot.duration_seconds,
         resolution: '1080p',
@@ -171,7 +175,7 @@ export async function POST(
         seed: newSeed  // 🔥 使用新的随机 seed
       }
 
-      console.log(`[Video Agent] 🔄 Enhanced prompt for shot ${shotNumber}:`, enhancedPrompt)
+      console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced'} prompt for shot ${shotNumber}:`, finalPrompt)
       console.log(`[Video Agent] 🔄 Using new random seed: ${newSeed} (old: ${shot.seed})`)
 
       const result = await submitVideoGeneration(videoRequest, {

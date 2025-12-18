@@ -28,6 +28,8 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
   )
   const [error, setError] = useState<string | null>(null)
   const [retryingShot, setRetryingShot] = useState<number | null>(null)
+  const [customPrompts, setCustomPrompts] = useState<Record<number, string>>({})  // 存储每个 shot 的自定义 prompt
+  const [expandedPrompts, setExpandedPrompts] = useState<Record<number, boolean>>({})  // 控制 prompt 输入框展开/收起
 
   const totalShots = project.script_analysis?.shot_count || 0
   const completedShots = Array.isArray(videoClips) ? videoClips.filter((vc) => vc.status === 'success').length : 0
@@ -115,9 +117,20 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
     setError(null)
 
     try {
+      // 获取自定义 prompt（如果用户修改过）
+      const customPrompt = customPrompts[shotNumber]
+
       const response = await fetch(
         `/api/video-agent/projects/${project.id}/videos/${shotNumber}/retry`,
-        { method: 'POST' }
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            customPrompt: customPrompt || undefined  // 如果有自定义 prompt 就传递
+          })
+        }
       )
 
       if (!response.ok) {
@@ -140,6 +153,29 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
     } finally {
       setRetryingShot(null)
     }
+  }
+
+  // 获取默认 prompt（description + character_action）
+  const getDefaultPrompt = (shotNumber: number): string => {
+    const shot = project.script_analysis?.shots.find(s => s.shot_number === shotNumber)
+    if (!shot) return ''
+    return `${shot.description}. ${shot.character_action}`
+  }
+
+  // 切换 prompt 输入框展开/收起
+  const togglePromptExpand = (shotNumber: number) => {
+    setExpandedPrompts(prev => ({
+      ...prev,
+      [shotNumber]: !prev[shotNumber]
+    }))
+  }
+
+  // 更新自定义 prompt
+  const updateCustomPrompt = (shotNumber: number, prompt: string) => {
+    setCustomPrompts(prev => ({
+      ...prev,
+      [shotNumber]: prompt
+    }))
   }
 
   const handleConfirm = () => {
@@ -344,12 +380,36 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
               <div className="p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">Shot {item.shot_number}</span>
+                  <button
+                    onClick={() => togglePromptExpand(item.shot_number)}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    title={expandedPrompts[item.shot_number] ? "Hide prompt" : "Edit prompt"}
+                  >
+                    {expandedPrompts[item.shot_number] ? '▼ Prompt' : '▶ Prompt'}
+                  </button>
                 </div>
                 {item.status === 'success' && 'duration' in item && item.duration && (
                   <div className="text-xs text-muted-foreground">{item.duration}s</div>
                 )}
                 {'error_message' in item && item.error_message && (
                   <p className="text-xs text-destructive">{item.error_message}</p>
+                )}
+
+                {/* Prompt 输入框 */}
+                {expandedPrompts[item.shot_number] && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <label className="text-xs text-muted-foreground">Custom Prompt:</label>
+                    <textarea
+                      value={customPrompts[item.shot_number] || getDefaultPrompt(item.shot_number)}
+                      onChange={(e) => updateCustomPrompt(item.shot_number, e.target.value)}
+                      className="w-full text-xs p-2 bg-muted/50 border border-muted rounded resize-none focus:outline-none focus:border-primary"
+                      rows={3}
+                      placeholder="Enter custom prompt for video generation..."
+                    />
+                    <p className="text-xs text-muted-foreground/70">
+                      Modify the prompt and click regenerate to create a new video
+                    </p>
+                  </div>
                 )}
               </div>
             </CardContent>
