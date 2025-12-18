@@ -302,13 +302,15 @@ export default function Step4StoryboardGen({ project, onNext, onUpdate }: Step4P
                 )}
               </div>
               <div className="p-3 space-y-2">
+                {/* 标题行 */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">Shot {item.shot_number}</span>
-                  {item.status === 'success' && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 text-xs"
+                </div>
+
+                {/* 操作按钮行（仅在有图片时显示）*/}
+                {(item.status === 'success' || item.status === 'failed') && (
+                  <div className="flex items-center gap-2">
+                    <button
                       onClick={async () => {
                         const confirmed = await showConfirm(
                           'The current image will be replaced.',
@@ -323,16 +325,18 @@ export default function Step4StoryboardGen({ project, onNext, onUpdate }: Step4P
                         }
                       }}
                       disabled={regeneratingShot === item.shot_number}
+                      className="flex-1 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                      title="Regenerate this storyboard"
                     >
                       {regeneratingShot === item.shot_number ? (
                         <>
-                          <div className="w-3 h-3 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin mr-1" />
-                          Regenerating
+                          <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs font-medium">Regenerating</span>
                         </>
                       ) : (
                         <>
                           <svg
-                            className="w-3 h-3 mr-1"
+                            className="w-3.5 h-3.5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -344,22 +348,14 @@ export default function Step4StoryboardGen({ project, onNext, onUpdate }: Step4P
                               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                             />
                           </svg>
-                          Regenerate
+                          <span className="text-xs font-medium">
+                            {item.status === 'failed' ? 'Retry' : 'Regenerate'}
+                          </span>
                         </>
                       )}
-                    </Button>
-                  )}
-                  {item.status === 'failed' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRegenerate(item.shot_number)}
-                      disabled={regeneratingShot === item.shot_number}
-                    >
-                      {regeneratingShot === item.shot_number ? 'Retrying...' : 'Retry'}
-                    </Button>
-                  )}
-                </div>
+                    </button>
+                  </div>
+                )}
                 {'error_message' in item && item.error_message && (
                   <p className="text-xs text-destructive">{item.error_message}</p>
                 )}
