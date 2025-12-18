@@ -408,7 +408,7 @@ export async function addSubtitlesToVideo(
 
   // 默认字幕样式（白色字体，黑色描边，底部居中）
   const fontName = options?.fontName || 'Arial'
-  const fontSize = options?.fontSize || 24
+  const fontSize = options?.fontSize || 18  // 🔥 降低默认字号（从 24 改为 18）
   const primaryColor = options?.primaryColor || '&HFFFFFF'  // 白色
   const outlineColor = options?.outlineColor || '&H000000'  // 黑色
   const outline = options?.outline || 2

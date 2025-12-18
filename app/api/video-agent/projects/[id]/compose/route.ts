@@ -391,9 +391,9 @@ async function composeVideoAsync(
           // 将字幕烧录到视频中
           const videoWithSubsPath = path.join(tempDir, 'final_video_with_subs.mp4')
           await addSubtitlesToVideo(finalVideoPath, srtPath, videoWithSubsPath, {
-            fontSize: 28,
-            outline: 3,
-            shadow: 2
+            fontSize: 16,  // 🔥 调整字号（从 28 改为 16，更适合 1080p 视频）
+            outline: 2,    // 🔥 减小描边（从 3 改为 2）
+            shadow: 1      // 🔥 减小阴影（从 2 改为 1）
           })
 
           finalVideoPath = videoWithSubsPath
