@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { VideoAgentProject, VideoClip } from '@/lib/stores/video-agent'
+import { RefreshCw } from 'lucide-react'
 
 interface Step5Props {
   project: VideoAgentProject
@@ -127,11 +128,12 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
       // 更新状态为 generating
       setVideoClips((prev) =>
         prev.map((vc) =>
-          vc.shot_number === shotNumber ? { ...vc, status: 'generating' } : vc
+          vc.shot_number === shotNumber ? { ...vc, status: 'generating', error_message: null } : vc
         )
       )
 
       // 开始轮询
+      setIsGenerating(true)
       pollStatus()
     } catch (err: any) {
       setError(err.message)
@@ -302,34 +304,46 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
                     </div>
                   </div>
                 ) : item.status === 'success' && 'video_url' in item && item.video_url ? (
-                  <video
-                    src={item.video_url}
-                    controls
-                    className="w-full h-full object-contain"
-                    preload="metadata"
-                  />
+                  <>
+                    <video
+                      src={item.video_url}
+                      controls
+                      className="w-full h-full object-contain"
+                      preload="metadata"
+                    />
+                    {/* 重新生成按钮 - 悬浮在视频右下角 */}
+                    <button
+                      onClick={() => handleRetry(item.shot_number)}
+                      disabled={retryingShot === item.shot_number}
+                      className="absolute bottom-2 right-2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                      title="Regenerate this video"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${retryingShot === item.shot_number ? 'animate-spin' : ''}`} />
+                    </button>
+                  </>
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
                       <div className="text-3xl mb-2">❌</div>
                       <div className="text-xs text-destructive">Failed</div>
                     </div>
+                    {/* 重新生成按钮 - 失败时也显示在右下角 */}
+                    {item.status === 'failed' && (
+                      <button
+                        onClick={() => handleRetry(item.shot_number)}
+                        disabled={retryingShot === item.shot_number}
+                        className="absolute bottom-2 right-2 p-2 bg-destructive/80 hover:bg-destructive text-white rounded-full transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                        title="Retry generating this video"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${retryingShot === item.shot_number ? 'animate-spin' : ''}`} />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
               <div className="p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">Shot {item.shot_number}</span>
-                  {item.status === 'failed' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRetry(item.shot_number)}
-                      disabled={retryingShot === item.shot_number}
-                    >
-                      {retryingShot === item.shot_number ? 'Retrying...' : 'Retry'}
-                    </Button>
-                  )}
                 </div>
                 {item.status === 'success' && 'duration' in item && item.duration && (
                   <div className="text-xs text-muted-foreground">{item.duration}s</div>
