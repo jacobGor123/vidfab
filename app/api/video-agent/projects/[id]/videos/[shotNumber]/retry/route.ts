@@ -142,16 +142,22 @@ export async function POST(
 
       console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced'} prompt for shot ${shotNumber}:`, finalPrompt)
 
-      await supabaseAdmin
+      const { error: veo3UpdateError } = await supabaseAdmin
         .from('project_video_clips')
         .update({
           video_request_id: requestId,
           video_status: 'generating',
           status: 'generating',
+          error_message: null,
           updated_at: new Date().toISOString()
         })
         .eq('project_id', projectId)
         .eq('shot_number', shotNumber)
+
+      if (veo3UpdateError) {
+        console.error(`[Video Agent] ❌ Failed to update Veo3 task ID for shot ${shotNumber}:`, veo3UpdateError)
+        throw new Error(`Failed to save Veo3 task ID: ${veo3UpdateError.message}`)
+      }
 
       console.log(`[Video Agent] 🔄 Veo3.1 task ${requestId} submitted for shot ${shotNumber}`)
 
@@ -182,7 +188,7 @@ export async function POST(
         returnLastFrame: true
       })
 
-      await supabaseAdmin
+      const { error: byteplusUpdateError } = await supabaseAdmin
         .from('project_video_clips')
         .update({
           seedance_task_id: result.data.id,
@@ -192,6 +198,11 @@ export async function POST(
         })
         .eq('project_id', projectId)
         .eq('shot_number', shotNumber)
+
+      if (byteplusUpdateError) {
+        console.error(`[Video Agent] ❌ Failed to update BytePlus task ID for shot ${shotNumber}:`, byteplusUpdateError)
+        throw new Error(`Failed to save BytePlus task ID: ${byteplusUpdateError.message}`)
+      }
 
       console.log(`[Video Agent] 🔄 BytePlus task ${result.data.id} submitted for shot ${shotNumber}`)
     }

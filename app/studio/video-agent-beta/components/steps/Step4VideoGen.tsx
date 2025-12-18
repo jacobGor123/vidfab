@@ -354,53 +354,49 @@ export default function Step5VideoGen({ project, onNext, onUpdate }: Step5Props)
                     </div>
                   </div>
                 ) : item.status === 'success' && 'video_url' in item && item.video_url ? (
-                  <>
-                    <video
-                      src={item.video_url}
-                      controls
-                      className="w-full h-full object-contain"
-                      preload="metadata"
-                    />
-                    {/* 重新生成按钮 - 悬浮在视频右下角 */}
-                    <button
-                      onClick={() => handleRetry(item.shot_number)}
-                      disabled={retryingShot === item.shot_number}
-                      className="absolute bottom-2 right-2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-10"
-                      title="Regenerate this video"
-                    >
-                      <RefreshCw className={`w-4 h-4 ${retryingShot === item.shot_number ? 'animate-spin' : ''}`} />
-                    </button>
-                  </>
+                  <video
+                    src={item.video_url}
+                    controls
+                    className="w-full h-full object-contain"
+                    preload="metadata"
+                  />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
                       <div className="text-3xl mb-2">❌</div>
                       <div className="text-xs text-destructive">Failed</div>
                     </div>
-                    {/* 重新生成按钮 - 失败时也显示在右下角 */}
-                    {item.status === 'failed' && (
-                      <button
-                        onClick={() => handleRetry(item.shot_number)}
-                        disabled={retryingShot === item.shot_number}
-                        className="absolute bottom-2 right-2 p-2 bg-destructive/80 hover:bg-destructive text-white rounded-full transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-10"
-                        title="Retry generating this video"
-                      >
-                        <RefreshCw className={`w-4 h-4 ${retryingShot === item.shot_number ? 'animate-spin' : ''}`} />
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
               <div className="p-3 space-y-2">
+                {/* 标题行 */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">Shot {item.shot_number}</span>
+                </div>
+
+                {/* 操作按钮行 */}
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => togglePromptExpand(item.shot_number)}
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    className="flex-1 text-xs text-left px-2 py-1.5 rounded bg-muted/30 hover:bg-muted/60 text-muted-foreground hover:text-primary transition-colors"
                     title={expandedPrompts[item.shot_number] ? "Hide prompt" : "Edit prompt"}
                   >
                     {expandedPrompts[item.shot_number] ? '▼ Prompt' : '▶ Prompt'}
                   </button>
+
+                  {/* 重新生成按钮（仅在有视频时显示）*/}
+                  {(item.status === 'success' || item.status === 'failed') && (
+                    <button
+                      onClick={() => handleRetry(item.shot_number)}
+                      disabled={retryingShot === item.shot_number}
+                      className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                      title="Regenerate this video"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${retryingShot === item.shot_number ? 'animate-spin' : ''}`} />
+                      <span className="text-xs font-medium">Retry</span>
+                    </button>
+                  )}
                 </div>
                 {item.status === 'success' && 'duration' in item && item.duration && (
                   <div className="text-xs text-muted-foreground">{item.duration}s</div>

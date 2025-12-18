@@ -86,14 +86,22 @@ export async function GET(
 
     // 统计正在生成中的视频数量
     const generatingClips = videoClips.filter(c => c.status === 'generating' && (c.seedance_task_id || c.video_request_id))
+    const stuckGeneratingClips = videoClips.filter(c => c.status === 'generating' && !c.seedance_task_id && !c.video_request_id)
+
     console.log('[Video Agent] Status check:', {
       projectId,
       totalClips: videoClips.length,
       generatingCount: generatingClips.length,
+      stuckCount: stuckGeneratingClips.length,
       generatingShots: generatingClips.map(c => ({
         shot: c.shot_number,
         seedanceId: c.seedance_task_id,
         veo3Id: c.video_request_id
+      })),
+      stuckShots: stuckGeneratingClips.map(c => ({
+        shot: c.shot_number,
+        hasTaskId: false,
+        status: c.status
       }))
     })
 
