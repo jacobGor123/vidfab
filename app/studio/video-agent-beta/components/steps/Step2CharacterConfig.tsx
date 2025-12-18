@@ -373,13 +373,6 @@ export default function Step2CharacterConfig({ project, onNext, onUpdate }: Step
 
   return (
     <div className="space-y-6">
-      {/* 标题和进度 */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Configure Characters</h2>
-        <Badge variant="outline" className="mt-2">
-          Generated: {generatedCount}/{totalCount}
-        </Badge>
-      </div>
 
       {/* 错误提示 */}
       {error && (

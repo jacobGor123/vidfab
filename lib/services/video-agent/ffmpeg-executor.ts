@@ -401,6 +401,7 @@ export async function addSubtitlesToVideo(
     outline?: number
     shadow?: number
     alignment?: number
+    marginV?: number  // 底部边距
   }
 ): Promise<void> {
   const ffmpegModule = await import('fluent-ffmpeg')
@@ -414,6 +415,7 @@ export async function addSubtitlesToVideo(
   const outline = options?.outline || 2
   const shadow = options?.shadow || 1
   const alignment = options?.alignment || 2  // 底部居中
+  const marginV = options?.marginV || 30  // 🔥 底部边距 30px
 
   // 构建字幕样式字符串
   const subtitleStyle = [
@@ -424,7 +426,8 @@ export async function addSubtitlesToVideo(
     `BorderStyle=1`,
     `Outline=${outline}`,
     `Shadow=${shadow}`,
-    `Alignment=${alignment}`
+    `Alignment=${alignment}`,
+    `MarginV=${marginV}`  // 🔥 添加底部边距
   ].join(',')
 
   return new Promise((resolve, reject) => {
