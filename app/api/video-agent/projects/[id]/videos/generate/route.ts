@@ -369,6 +369,38 @@ export async function POST(
       )
     }
 
+    // 🔥 幂等性检查：检查是否已经有视频生成记录
+    const { data: existingClips } = await supabaseAdmin
+      .from('project_video_clips')
+      .select('*')
+      .eq('project_id', projectId)
+
+    const hasExistingClips = existingClips && existingClips.length > 0
+
+    if (hasExistingClips) {
+      // 已经有记录，检查是否有正在生成或已完成的视频
+      const hasGenerating = existingClips.some(clip => clip.status === 'generating')
+      const hasCompleted = existingClips.some(clip => clip.status === 'success')
+
+      if (hasGenerating || hasCompleted) {
+        console.log('[Video Agent] Video generation already in progress or completed', {
+          projectId,
+          hasGenerating,
+          hasCompleted,
+          existingClipsCount: existingClips.length
+        })
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            message: 'Video generation already started',
+            totalClips: existingClips.length,
+            alreadyStarted: true
+          }
+        })
+      }
+    }
+
     // 更新项目状态为 processing
     await supabaseAdmin
       .from('video_agent_projects')
