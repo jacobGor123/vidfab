@@ -148,6 +148,9 @@ export async function POST(
 
     } else {
       // 🎬 BytePlus Seedance: 使用分镜图生成
+      // 🔥 重新生成时使用新的随机 seed，确保生成不同的视频
+      const newSeed = Math.floor(Math.random() * 1000000)
+
       const videoRequest: VideoGenerationRequest = {
         image: storyboard.image_url,
         prompt: shot.character_action,
@@ -157,8 +160,10 @@ export async function POST(
         aspectRatio: project.aspect_ratio || '16:9',
         cameraFixed: true,
         watermark: false,
-        seed: shot.seed
+        seed: newSeed  // 🔥 使用新的随机 seed
       }
+
+      console.log(`[Video Agent] 🔄 Using new random seed: ${newSeed} (old: ${shot.seed})`)
 
       const result = await submitVideoGeneration(videoRequest, {
         returnLastFrame: true
