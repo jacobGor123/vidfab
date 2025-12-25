@@ -58,7 +58,7 @@ export function isImageAsset(asset: UnifiedAsset): asset is UnifiedAsset & { raw
  * 合并图片和视频为统一资产列表
  * @param videos 视频列表
  * @param images 图片列表
- * @returns 统一的资产列表,按创建时间倒序排序
+ * @returns 统一的资产列表（不做排序，由调用方决定排序规则）
  */
 export function mergeAssets(videos: UserVideo[], images: UserImage[]): UnifiedAsset[] {
   const videoAssets: UnifiedAsset[] = videos.map(v => ({
@@ -97,8 +97,7 @@ export function mergeAssets(videos: UserVideo[], images: UserImage[]): UnifiedAs
     rawData: i
   }))
 
-  // 合并并按创建时间倒序排序
-  return [...videoAssets, ...imageAssets].sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  // 🔥 重构：删除冗余的排序逻辑
+  // 排序现在由 API 层统一处理（/api/user/assets）
+  return [...videoAssets, ...imageAssets]
 }

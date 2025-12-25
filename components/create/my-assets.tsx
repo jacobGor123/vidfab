@@ -79,6 +79,10 @@ export function MyAssets() {
   // Track assets being deleted for loading states
   const [deletingAssetIds, setDeletingAssetIds] = useState<Set<string>>(new Set())
 
+  // 🔥 Sorting controls
+  const [orderBy, setOrderBy] = useState<'created_at' | 'updated_at'>('created_at')
+  const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('desc')
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed": return "text-green-400"
@@ -124,8 +128,10 @@ export function MyAssets() {
           setLoadingState(prev => ({ ...prev, isInitialLoading: true, hasError: false }))
         }
 
-        // 🔥 New architecture: First get permanent videos from database via API
-        const response = await fetch(`/api/user/videos?page=${currentPage}&limit=${ITEMS_PER_PAGE}&orderBy=created_at&orderDirection=desc`)
+        // 🔥 REFACTORED: Use unified assets API (videos + images in one request)
+        const response = await fetch(
+          `/api/user/assets?page=${currentPage}&limit=${ITEMS_PER_PAGE}&orderBy=${orderBy}&orderDirection=${orderDirection}`
+        )
 
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -137,50 +143,45 @@ export function MyAssets() {
           throw new Error(apiData.error || 'API returned success=false')
         }
 
-        const permanentVideos = apiData.data.videos || []
-        const videoPagination = apiData.data.pagination
+        const assetsData = apiData.data.assets || []
+        const pagination = apiData.data.pagination
 
-        // 🔥 New: Load images data
-        const imagesResponse = await fetch(`/api/user/images?page=${currentPage}&limit=${ITEMS_PER_PAGE}&orderBy=created_at&orderDirection=desc`)
+        console.log('✅ Loaded unified assets:', {
+          count: assetsData.length,
+          total: pagination.total,
+          page: pagination.page
+        })
 
-        if (!imagesResponse.ok) {
-          console.warn('⚠️ Failed to load images, continuing with videos only')
-        }
+        // Set unified assets (already sorted by API)
+        setAssets(assetsData)
 
-        const imagesData = await imagesResponse.json()
-        const permanentImages = imagesData.success ? (imagesData.data.images || []) : []
-        const imagePagination = imagesData.success ? imagesData.data.pagination : { total: 0 }
+        // Extract videos and images for backward compatibility
+        const videoAssets = assetsData.filter((a: any) => a.type === 'video')
+        const imageAssets = assetsData.filter((a: any) => a.type === 'image')
 
-        // 🔥 Store videos and images separately
-        const allVideos = permanentVideos.map(video => ({
-          ...video,
-          _isTemporary: false
-        }))
+        setVideos(videoAssets.map((a: any) => ({ ...a.rawData, _isTemporary: false })))
+        setImages(imageAssets.map((a: any) => a.rawData))
 
-        setVideos(allVideos)
-        setImages(permanentImages)
-        setTotalVideos(videoPagination.total)
-        setTotalImages(imagePagination.total)
+        // Update counts
+        setTotalAssets(pagination.total)
+        setTotalPages(Math.ceil(pagination.total / ITEMS_PER_PAGE))
 
-        // 🔥 Merge assets and sort by creation time
-        const mergedAssets = mergeAssets(allVideos, permanentImages)
-        setAssets(mergedAssets)
-
-        // Calculate total assets and pages
-        const totalCount = videoPagination.total + imagePagination.total
-        setTotalAssets(totalCount)
-        setTotalPages(Math.ceil(totalCount / ITEMS_PER_PAGE))
+        // Note: totalVideos and totalImages are approximate (based on current page)
+        // For exact counts, we'd need separate count queries
+        setTotalVideos(videoAssets.length)
+        setTotalImages(imageAssets.length)
 
         setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: false })
         setIsPageChanging(false)
 
-
       } catch (dbError) {
         console.error('❌ API/Database query failed:', dbError)
-        toast.error('Failed to load videos from database')
+        toast.error('Failed to load assets from database')
 
         // 🔥 My Assets only shows permanent data, show empty state when database unavailable
         setVideos([])
+        setImages([])
+        setAssets([])
         setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: true })
         setIsPageChanging(false)
       }
@@ -192,7 +193,7 @@ export function MyAssets() {
       setLoadingState({ isInitialLoading: false, isDataLoaded: true, hasError: true })
       setIsPageChanging(false)
     }
-  }, [session?.user?.uuid, sessionStatus, currentPage, ITEMS_PER_PAGE])
+  }, [session?.user?.uuid, sessionStatus, currentPage, ITEMS_PER_PAGE, orderBy, orderDirection])
 
   useEffect(() => {
     loadUserData()
@@ -545,6 +546,41 @@ export function MyAssets() {
           </div>
         </div>
       )}
+
+        {/* 🔥 Sorting Controls */}
+        <div className="flex items-center justify-between bg-gray-950 border border-gray-800 rounded-lg p-3">
+          <div className="flex items-center space-x-2 text-sm text-gray-400">
+            <span>Total: {totalAssets} assets</span>
+            <span className="text-gray-600">•</span>
+            <span>{totalVideos} videos</span>
+            <span className="text-gray-600">•</span>
+            <span>{totalImages} images</span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-400">Sort by:</span>
+            <select
+              value={orderBy}
+              onChange={(e) => {
+                setOrderBy(e.target.value as 'created_at' | 'updated_at')
+                setCurrentPage(1) // Reset to first page when sorting changes
+              }}
+              className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1.5 text-sm text-gray-300 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-cyan-DEFAULT/50"
+            >
+              <option value="created_at">Creation Time</option>
+              <option value="updated_at">Update Time</option>
+            </select>
+            <button
+              onClick={() => {
+                setOrderDirection(prev => prev === 'desc' ? 'asc' : 'desc')
+                setCurrentPage(1) // Reset to first page when sorting changes
+              }}
+              className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1.5 text-sm text-gray-300 hover:border-gray-600 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-cyan-DEFAULT/50 transition-colors"
+              title={orderDirection === 'desc' ? 'Newest first' : 'Oldest first'}
+            >
+              {orderDirection === 'desc' ? '↓ Newest' : '↑ Oldest'}
+            </button>
+          </div>
+        </div>
         </div>
 
         {/* 资产列表 - 占据剩余空间 */}
