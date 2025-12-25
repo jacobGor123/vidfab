@@ -244,3 +244,27 @@
     transform: scale(1);
   }
 }
+
+/* Sonner Toast 样式修复 */
+@layer utilities {
+  /* 确保 toast 和关闭按钮可以接收点击事件 */
+  [data-sonner-toast] {
+    pointer-events: auto !important;
+  }
+
+  /* 确保关闭按钮可点击 */
+  [data-sonner-toast] button[data-close-button],
+  [data-sonner-toast] [data-button],
+  [data-sonner-toast] .sonner-close-button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    position: relative !important;
+  }
+
+  /* 确保关闭按钮可见且可交互 */
+  [data-sonner-toast] button[data-close-button]:hover,
+  [data-sonner-toast] .sonner-close-button:hover {
+    opacity: 1 !important;
+  }
+}

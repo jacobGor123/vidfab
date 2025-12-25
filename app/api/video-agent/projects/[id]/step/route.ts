@@ -4,8 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
 /**
  * 更新当前步骤
@@ -16,21 +19,8 @@ import { supabaseAdmin } from '@/lib/supabase'
  *   current_step: number  // 1-6
  * }
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const PATCH = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -38,7 +28,7 @@ export async function PATCH(
       .from('video_agent_projects')
       .select('user_id')
       .eq('id', projectId)
-      .single()
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -47,7 +37,7 @@ export async function PATCH(
       )
     }
 
-    if (project.user_id !== session.user.uuid) {
+    if (project.user_id !== userId) {
       return NextResponse.json(
         { error: 'Access denied', code: 'ACCESS_DENIED' },
         { status: 403 }
@@ -93,8 +83,9 @@ export async function PATCH(
       .update({
         current_step,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     if (updateError) {
       console.error('[Video Agent] Failed to update current step:', updateError)
@@ -128,4 +119,4 @@ export async function PATCH(
       { status: 500 }
     )
   }
-}
+})

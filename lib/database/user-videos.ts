@@ -25,6 +25,7 @@ export class UserVideosDB {
       prompt: string
       settings: UserVideo['settings']
       originalUrl?: string
+      storagePath?: string  // 🔥 新增: 永久存储路径
     },
     userEmail?: string
   ): Promise<UserVideo> {
@@ -42,6 +43,7 @@ export class UserVideosDB {
               prompt: data.prompt,
               settings: data.settings,
               original_url: data.originalUrl,
+              storage_path: data.storagePath,  // 🔥 新增: 永久存储路径
               status: 'generating'
             })
             .select()
@@ -284,6 +286,7 @@ export class UserVideosDB {
       thumbnailPath?: string
       fileSize?: number
       durationSeconds?: number
+      originalUrl?: string
     }
   ): Promise<UserVideo> {
     // 🔥 如果是临时视频ID，直接返回模拟结果，不进行数据库操作
@@ -321,6 +324,7 @@ export class UserVideosDB {
         if (updates.thumbnailPath) updateData.thumbnail_path = updates.thumbnailPath
         if (updates.fileSize !== undefined) updateData.file_size = updates.fileSize
         if (updates.durationSeconds !== undefined) updateData.duration_seconds = updates.durationSeconds
+        if (updates.originalUrl) updateData.original_url = updates.originalUrl
 
         const { data: video, error } = await supabaseAdmin
           .from(TABLES.USER_VIDEOS)

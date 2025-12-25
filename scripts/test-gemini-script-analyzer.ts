@@ -5,7 +5,7 @@
  * npx tsx scripts/test-gemini-script-analyzer.ts
  */
 
-import { analyzeScript } from '../lib/services/video-agent/script-analyzer'
+import { analyzeScript } from '../lib/services/video-agent/script-analyzer-google'
 
 async function testGeminiScriptAnalyzer() {
   console.log('🧪 开始测试 Gemini 脚本分析服务...\n')

@@ -1,196 +1,149 @@
 /**
- * Video Agent - 项目详情和删除 API
- * GET: 获取项目完整信息
- * DELETE: 删除项目及所有关联数据
+ * Video Agent - 项目更新和删除 API
+ * PATCH /api/video-agent/projects/[id] - 更新项目
+ * DELETE /api/video-agent/projects/[id] - 删除项目
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
 /**
- * 获取项目详情
- * GET /api/video-agent/projects/[id]
+ * 更新项目
+ * PATCH /api/video-agent/projects/[id]
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const PATCH = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
-    const projectId = params.id
-
-    // 获取项目基本信息
-    const { data: project, error: projectError } = await supabaseAdmin
-      .from('video_agent_projects')
-      .select('*')
-      .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
-
-    if (projectError || !project) {
-      console.error('[Video Agent] Project not found:', projectError)
-      return NextResponse.json(
-        { error: 'Project not found', code: 'PROJECT_NOT_FOUND' },
-        { status: 404 }
-      )
-    }
-
-    // 获取分镜脚本
-    const { data: shots } = await supabaseAdmin
-      .from('project_shots')
-      .select('*')
-      .eq('project_id', projectId)
-      .order('shot_number', { ascending: true })
-
-    // 获取人物配置
-    const { data: characters } = await supabaseAdmin
-      .from('project_characters')
-      .select(`
-        *,
-        character_reference_images (*)
-      `)
-      .eq('project_id', projectId)
-      .order('created_at', { ascending: true })
-
-    // 获取分镜图
-    const { data: storyboards } = await supabaseAdmin
-      .from('project_storyboards')
-      .select('*')
-      .eq('project_id', projectId)
-      .order('shot_number', { ascending: true })
-
-    // 获取视频片段
-    const { data: videoClips } = await supabaseAdmin
-      .from('project_video_clips')
-      .select('*')
-      .eq('project_id', projectId)
-      .order('shot_number', { ascending: true })
-
-    console.log('[Video Agent] Project fetched successfully', {
-      projectId,
-      shotsCount: shots?.length || 0,
-      charactersCount: characters?.length || 0,
-      storyboardsCount: storyboards?.length || 0,
-      videoClipsCount: videoClips?.length || 0
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...project,
-        shots: shots || [],
-        characters: characters || [],
-        storyboards: storyboards || [],
-        videoClips: videoClips || []
-      }
-    })
-
-  } catch (error) {
-    console.error('[Video Agent] Get project error:', error)
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development'
-          ? (error as Error).message
-          : undefined
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * 删除项目
- * DELETE /api/video-agent/projects/[id]
- */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
-      .select('user_id')
+      .select('id')
       .eq('id', projectId)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
+      console.error('[Video Agent] Project not found or access denied:', projectError)
       return NextResponse.json(
-        { error: 'Project not found', code: 'PROJECT_NOT_FOUND' },
+        { error: 'Project not found or access denied' },
         { status: 404 }
       )
     }
 
-    if (project.user_id !== session.user.uuid) {
+    // 解析请求体
+    const updates = await request.json()
+
+    // 只允许更新特定字段
+    const allowedFields = [
+      'script_analysis',
+      'story_style',
+      'duration',
+      'aspect_ratio',
+      'enable_narration'
+    ]
+
+    const filteredUpdates: Record<string, any> = {}
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) {
+        filteredUpdates[field] = updates[field]
+      }
+    }
+
+    if (Object.keys(filteredUpdates).length === 0) {
       return NextResponse.json(
-        { error: 'Access denied', code: 'ACCESS_DENIED' },
-        { status: 403 }
+        { error: 'No valid fields to update' },
+        { status: 400 }
       )
     }
 
-    console.log('[Video Agent] Deleting project', { projectId })
+    console.log('[Video Agent] Updating project:', {
+      projectId,
+      fields: Object.keys(filteredUpdates)
+    })
 
-    // 删除关联数据 (使用 CASCADE 自动删除)
-    // 1. project_shots (ON DELETE CASCADE)
-    // 2. shot_characters (ON DELETE CASCADE)
-    // 3. project_characters -> character_reference_images (ON DELETE CASCADE)
-    // 4. project_storyboards (ON DELETE CASCADE)
-    // 5. project_video_clips (ON DELETE CASCADE)
-
-    // 删除主表记录,级联删除所有关联数据
-    const { error: deleteError } = await supabaseAdmin
+    // 更新数据库
+    const { data, error } = await supabaseAdmin
       .from('video_agent_projects')
-      .delete()
+      .update(filteredUpdates as any)
       .eq('id', projectId)
+      .select()
+      .single<VideoAgentProject>()
 
-    if (deleteError) {
-      console.error('[Video Agent] Failed to delete project:', deleteError)
+    if (error) {
+      console.error('[Video Agent] Update failed:', error)
       return NextResponse.json(
-        { error: 'Failed to delete project', details: deleteError.message },
+        { error: 'Failed to update project' },
         { status: 500 }
       )
     }
 
-    console.log('[Video Agent] Project deleted successfully', { projectId })
+    return NextResponse.json({
+      success: true,
+      data
+    })
+  } catch (error) {
+    console.error('[Video Agent] PATCH /projects/[id] error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+})
+
+/**
+ * 删除项目
+ * DELETE /api/video-agent/projects/[id]
+ */
+export const DELETE = withAuth(async (request, { params, userId }) => {
+  try {
+    const projectId = params.id
+
+    // 验证项目所有权
+    const { data: project, error: projectError } = await supabaseAdmin
+      .from('video_agent_projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
+
+    if (projectError || !project) {
+      console.error('[Video Agent] Project not found or access denied:', projectError)
+      return NextResponse.json(
+        { error: 'Project not found or access denied' },
+        { status: 404 }
+      )
+    }
+
+    console.log('[Video Agent] Deleting project:', { projectId })
+
+    // 删除数据库记录
+    const { error } = await supabaseAdmin
+      .from('video_agent_projects')
+      .delete()
+      .eq('id', projectId)
+
+    if (error) {
+      console.error('[Video Agent] Delete failed:', error)
+      return NextResponse.json(
+        { error: 'Failed to delete project' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Project deleted successfully'
     })
-
   } catch (error) {
-    console.error('[Video Agent] Delete project error:', error)
+    console.error('[Video Agent] DELETE /projects/[id] error:', error)
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development'
-          ? (error as Error).message
-          : undefined
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
-}
+})

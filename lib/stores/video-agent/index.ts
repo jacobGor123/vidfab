@@ -47,7 +47,47 @@ export const useVideoAgentStore = create<VideoAgentStore>()(
     {
       name: 'video-agent-storage',
       partialize: (state) => ({
-        currentProject: state.currentProject,
+        // ⚠️ 性能：避免持久化超大对象（script_analysis/shots、storyboards、video_clips 等）
+        // 这些数据要么可以从 API 重新拉取，要么会导致 localStorage 序列化卡顿。
+        currentProject: state.currentProject
+          ? {
+              id: state.currentProject.id,
+              user_id: state.currentProject.user_id,
+              status: state.currentProject.status,
+              current_step: state.currentProject.current_step,
+
+              step_1_status: state.currentProject.step_1_status,
+              step_2_status: state.currentProject.step_2_status,
+              step_3_status: state.currentProject.step_3_status,
+              step_4_status: state.currentProject.step_4_status,
+              step_5_status: state.currentProject.step_5_status,
+              step_6_status: state.currentProject.step_6_status,
+              step_7_status: state.currentProject.step_7_status,
+
+              duration: state.currentProject.duration,
+              story_style: state.currentProject.story_style,
+              original_script: state.currentProject.original_script,
+
+              image_style_id: state.currentProject.image_style_id,
+
+              music_source: state.currentProject.music_source,
+              music_url: state.currentProject.music_url,
+              music_storage_path: state.currentProject.music_storage_path,
+              music_generation_prompt: state.currentProject.music_generation_prompt,
+              suno_task_id: state.currentProject.suno_task_id,
+              transition_effect: state.currentProject.transition_effect,
+              transition_duration: state.currentProject.transition_duration,
+
+              final_video: state.currentProject.final_video,
+
+              regenerate_quota_remaining: state.currentProject.regenerate_quota_remaining,
+              credits_used: state.currentProject.credits_used,
+
+              created_at: state.currentProject.created_at,
+              updated_at: state.currentProject.updated_at,
+              completed_at: state.currentProject.completed_at
+            }
+          : null,
         currentStep: state.currentStep
       })
     }

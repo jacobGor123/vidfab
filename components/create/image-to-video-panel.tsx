@@ -61,6 +61,8 @@ export function ImageToVideoPanelEnhanced() {
 
   // 🔥 追踪是否已经加载过 image-to-video 数据
   const imageToVideoLoadedRef = useRef(false)
+  // 🔥 追踪是否正在加载 sessionStorage 数据（防止并发加载）
+  const isLoadingSessionDataRef = useRef(false)
 
   // Context and hooks
   const videoContext = useVideoContext()
@@ -132,7 +134,14 @@ export function ImageToVideoPanelEnhanced() {
         creditsRequired: getCreditsRequired(),
       })
 
-      startPolling(jobId, requestId) // 🔥 启动轮询
+      // 🔥 修复：从 videoContext 查找完整的 job 对象
+      const job = videoContext.activeJobs.find(j => j.id === jobId)
+
+      if (job) {
+        startPolling(job) // ✅ 传递完整的 VideoJob 对象
+      } else {
+        console.error(`❌ [Image-to-Video] Job not found: ${jobId}`)
+      }
     },
     onError: (error) => {
       console.error('Image-to-video generation failed:', error)
@@ -234,12 +243,15 @@ export function ImageToVideoPanelEnhanced() {
 
   // 🔥 Check for image-to-video data from other pages (image previews, my assets)
   useEffect(() => {
-    // 如果已经加载过，跳过
-    if (imageToVideoLoadedRef.current) {
+    // 🔥 双重保护：防止并发加载
+    if (imageToVideoLoadedRef.current || isLoadingSessionDataRef.current) {
       return
     }
 
     const checkImageToVideoData = async () => {
+      // 🔥 标记正在加载
+      isLoadingSessionDataRef.current = true
+
       try {
         const stored = sessionStorage.getItem('vidfab-image-to-video')
         if (!stored) {
@@ -320,11 +332,14 @@ export function ImageToVideoPanelEnhanced() {
         // 🔥 失败时不标记为已加载，允许重试
         // imageToVideoLoadedRef.current 保持为 false
         sessionStorage.removeItem('vidfab-image-to-video')
+      } finally {
+        // 🔥 重置加载状态
+        isLoadingSessionDataRef.current = false
       }
     }
 
     checkImageToVideoData()
-  }, [imageUpload.uploadImage, setParams]) // 🔥 使用更稳定的依赖
+  }, []) // 🔥 修复：只在组件 mount 时执行一次，避免重复加载导致的竞态条件
 
   // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {

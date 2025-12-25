@@ -12,8 +12,11 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
 import ProgressBar from './ProgressBar'
+import { X } from 'lucide-react'
+import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 
 // 导入各个步骤组件
 import Step1ScriptAnalysis from './steps/Step1ScriptAnalysis'
@@ -45,6 +48,22 @@ export default function StepDialog({
   project,
   onProjectUpdate
 }: StepDialogProps) {
+  const { updateProjectStep } = useVideoAgentAPI()
+
+  // 性能观测：弹框首次打开到下一帧
+  useEffect(() => {
+    if (!open) return
+
+    const openedAt = performance.now()
+    requestAnimationFrame(() => {
+      const costMs = performance.now() - openedAt
+      console.log('[Perf][StepDialog] open->next frame (approx):', {
+        projectId: project.id,
+        costMs: Math.round(costMs)
+      })
+    })
+  }, [open, project.id])
+
   // 向后兼容：旧项目的步骤 6-7 映射为新的步骤 5
   const normalizedStep = step >= 6 ? 5 : step
   const [currentStep, setCurrentStep] = useState(normalizedStep)
@@ -61,11 +80,7 @@ export default function StepDialog({
 
     // 同步更新数据库的 current_step
     try {
-      await fetch(`/api/video-agent/projects/${project.id}/step`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ current_step: nextStep })
-      })
+      await updateProjectStep(project.id, nextStep)
     } catch (error) {
       console.error('Failed to update current_step:', error)
     }
@@ -127,22 +142,45 @@ export default function StepDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-slate-950/90 backdrop-blur-xl border-slate-800 shadow-2xl p-0 gap-0">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent
+        showClose={false}
+        className="max-w-5xl max-h-[90vh] overflow-y-auto bg-slate-950/90 backdrop-blur-xl border-slate-800 shadow-2xl p-0 gap-0"
+        onPointerDownOutside={(e) => {
+          // 阻止点击外部关闭弹窗
+          e.preventDefault()
+        }}
+        onEscapeKeyDown={(e) => {
+          // 阻止 ESC 键关闭弹窗
+          e.preventDefault()
+        }}
+      >
         <DialogHeader className="p-6 border-b border-white/10 bg-white/5">
-          <DialogTitle className="flex items-center gap-3 text-white">
-            <span className="font-mono text-blue-400 opacity-60">0{currentStep}</span>
-            <span className="h-4 w-[1px] bg-white/20" />
-            <span className="font-medium tracking-wide">
-              {STEP_TITLES[currentStep as keyof typeof STEP_TITLES]}
-            </span>
-            {project.status === 'processing' && (
-              <span className="flex items-center gap-2 text-xs font-normal px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 ml-auto">
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-                Processing
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-3 text-white">
+              <span className="font-mono text-blue-400 opacity-60">0{currentStep}</span>
+              <span className="h-4 w-[1px] bg-white/20" />
+              <span className="font-medium tracking-wide">
+                {STEP_TITLES[currentStep as keyof typeof STEP_TITLES]}
               </span>
-            )}
-          </DialogTitle>
+              {project.status === 'processing' && (
+                <span className="flex items-center gap-2 text-xs font-normal px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+                  Processing
+                </span>
+              )}
+            </DialogTitle>
+
+            {/* 关闭按钮 */}
+            <Button
+              onClick={() => onOpenChange(false)}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-slate-400 hover:text-white hover:bg-white/10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="p-6 space-y-6">

@@ -4,36 +4,28 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { downloadAllClips, estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
-import { simpleConcatVideos, addBackgroundMusic, checkFfmpegAvailable, addSubtitlesToVideo, addAudioToVideo } from '@/lib/services/video-agent/ffmpeg-executor'
-import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/services/video-agent/video-composer'
+import { simpleConcatVideos, addBackgroundMusic, checkFfmpegAvailable, addSubtitlesToVideo, addAudioToVideo, concatenateWithCrossfadeAndAudio } from '@/lib/services/video-agent/processors/ffmpeg'
+import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/types/video-agent'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
 import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
 import { generateNarration, ELEVENLABS_VOICES } from '@/lib/services/kie-ai/elevenlabs-tts'
 import path from 'path'
 import fs from 'fs'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectShot = Database['public']['Tables']['project_shots']['Row']
+type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
 
 /**
  * 开始合成最终视频
  * POST /api/video-agent/projects/[id]/compose
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -41,8 +33,8 @@ export async function POST(
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -76,6 +68,7 @@ export async function POST(
       .eq('project_id', projectId)
       .eq('status', 'success')  // 修复：使用 'success' 而不是 'completed'
       .order('shot_number', { ascending: true })
+      .returns<ProjectVideoClip[]>()
 
     if (clipsError || !videoClips || videoClips.length === 0) {
       console.error('[Video Agent] No completed video clips found', {
@@ -94,6 +87,7 @@ export async function POST(
       .select('shot_number, duration_seconds')
       .eq('project_id', projectId)
       .order('shot_number', { ascending: true })
+      .returns<Pick<ProjectShot, 'shot_number' | 'duration_seconds'>[]>()
 
     // 构建 VideoClip 对象
     const clips: VideoClip[] = videoClips.map(clip => {
@@ -127,8 +121,9 @@ export async function POST(
         status: 'processing',
         step_6_status: 'processing'  // Step 6（最终合成）
         // 不更新 current_step，由前端在用户点击"继续"时更新
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     // 异步执行合成任务
     composeVideoAsync(projectId, clips, project).catch(error => {
@@ -140,8 +135,9 @@ export async function POST(
         .update({
           status: 'failed',
           step_6_status: 'failed'  // 修复：Step 6
-        })
+        } as any)
         .eq('id', projectId)
+        .returns<any>()
     })
 
     // 估算合成时长
@@ -169,7 +165,7 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})
 
 /**
  * 异步执行视频合成
@@ -204,17 +200,19 @@ async function composeVideoAsync(
         .select('*')
         .eq('project_id', projectId)
         .order('shot_number', { ascending: true })
+        .returns<ProjectShot[]>()
 
       if (shotsData && shotsData.length > 0) {
         const clipsWithNarration = []
 
         for (let i = 0; i < clipsWithPaths.length; i++) {
-          const clipPath = clipsWithPaths[i]
+          const clip = clipsWithPaths[i]
+          const clipPath = clip.local_path  // 🔥 修复：获取字符串路径，而不是整个对象
           const shot = shotsData.find(s => s.shot_number === clips[i].shot_number)
 
           if (!shot) {
             console.warn(`[Video Agent] ⚠️ No shot data for clip ${clips[i].shot_number}, skipping narration`)
-            clipsWithNarration.push(clipPath)
+            clipsWithNarration.push(clip)  // 🔥 修复：推入完整的 clip 对象
             continue
           }
 
@@ -248,17 +246,44 @@ async function composeVideoAsync(
 
             // 将旁白音频混入视频
             const videoWithNarrationPath = path.join(tempDir, `clip_${shot.shot_number}_with_narration.mp4`)
+            if (!clipPath) {
+              throw new Error(`Clip ${shot.shot_number} has no local_path`)
+            }
             await addAudioToVideo(clipPath, narrationPath, videoWithNarrationPath, {
               volume: 1.0  // 旁白音量 100%
             })
 
-            clipsWithNarration.push(videoWithNarrationPath)
+            // 🔥 修复：推入更新了 local_path 的 clip 对象（指向带旁白的视频）
+            clipsWithNarration.push({
+              ...clip,
+              local_path: videoWithNarrationPath
+            })
             console.log(`[Video Agent] 🎤 Narration added to clip ${shot.shot_number} ✓`)
 
           } catch (narrationError) {
             console.error(`[Video Agent] ⚠️ Failed to add narration to clip ${clips[i].shot_number}:`, narrationError)
-            // 旁白失败不影响视频合成，使用原视频
-            clipsWithNarration.push(clipPath)
+            // 旁白失败：为视频添加静音音频轨道（确保所有视频都有音频）
+            try {
+              const clipPath = clip.local_path
+              const videoWithSilentAudioPath = path.join(tempDir, `clip_${clips[i].shot_number}_with_silent_audio.mp4`)
+
+              // 使用 FFmpeg 添加静音音频轨道
+              const { addSilentAudioTrack } = await import('@/lib/services/video-agent/processors/ffmpeg')
+              if (!clipPath) {
+                throw new Error(`Clip ${clips[i].shot_number} has no local_path`)
+              }
+              await addSilentAudioTrack(clipPath, videoWithSilentAudioPath)
+
+              clipsWithNarration.push({
+                ...clip,
+                local_path: videoWithSilentAudioPath
+              })
+              console.log(`[Video Agent] 🔇 Added silent audio track to clip ${clips[i].shot_number}`)
+            } catch (silentAudioError) {
+              console.error(`[Video Agent] ❌ Failed to add silent audio to clip ${clips[i].shot_number}:`, silentAudioError)
+              // 最后fallback：使用原视频
+              clipsWithNarration.push(clip)
+            }
           }
         }
 
@@ -269,8 +294,16 @@ async function composeVideoAsync(
       }
     }
 
-    // 步骤 2: 拼接视频（使用带旁白的视频片段）
-    await simpleConcatVideos(clipsForConcat, outputPath)
+    // 步骤 2: 拼接视频（使用带旁白的视频片段，添加过渡效果）
+    const videoPaths = clipsForConcat.map(clip => clip.local_path!).filter(Boolean)
+    console.log('[Video Agent] 🎬 Concatenating videos with crossfade transitions', {
+      clipCount: videoPaths.length,
+      transitionDuration: 0.5
+    })
+
+    // 使用带过渡效果的拼接函数（0.5 秒交叉淡化过渡）
+    const segmentDuration = Math.max(...clipsForConcat.map(c => c.duration_seconds || 5))
+    await concatenateWithCrossfadeAndAudio(videoPaths, outputPath, 0.5, segmentDuration)
 
     let finalVideoPath = outputPath
 
@@ -301,8 +334,9 @@ async function composeVideoAsync(
             .update({
               music_url: musicUrl,
               updated_at: new Date().toISOString()
-            })
+            } as any)
             .eq('id', projectId)
+            .returns<any>()
         } else if (sunoStatus.status === 'processing' || sunoStatus.status === 'submitted') {
           console.log('[Video Agent] 🎵 Suno music still generating, waiting...')
 
@@ -321,8 +355,9 @@ async function composeVideoAsync(
               .update({
                 music_url: musicUrl,
                 updated_at: new Date().toISOString()
-              })
+              } as any)
               .eq('id', projectId)
+              .returns<any>()
           } else {
             console.warn('[Video Agent] ⚠️ Suno music generation failed or timed out')
           }
@@ -375,6 +410,7 @@ async function composeVideoAsync(
           .select('*')
           .eq('project_id', projectId)
           .order('shot_number', { ascending: true })
+          .returns<ProjectShot[]>()
 
         if (shotsData && shotsData.length > 0) {
           // 生成 SRT 字幕内容
@@ -465,8 +501,9 @@ async function composeVideoAsync(
         final_video_file_size: finalVideoBuffer.length,
         final_video_resolution: '1080p',
         completed_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     console.log('[Video Agent] Project completed successfully:', {
       projectId,
@@ -487,8 +524,9 @@ async function composeVideoAsync(
       .update({
         status: 'failed',
         step_6_status: 'failed'  // 修复：Step 6
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     // 清理临时文件
     if (fs.existsSync(tempDir)) {

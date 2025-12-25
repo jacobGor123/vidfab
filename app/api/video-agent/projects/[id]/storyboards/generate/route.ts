@@ -4,16 +4,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
-import {
-  generateSingleStoryboard,
-  CharacterConfig,
-  Shot,
-  IMAGE_STYLES,
-  ImageStyle
-} from '@/lib/services/video-agent/storyboard-generator'
+import { generateSingleStoryboard, IMAGE_STYLES } from '@/lib/services/video-agent/storyboard-generator'
+import type { CharacterConfig, Shot, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectStoryboard = Database['public']['Tables']['project_storyboards']['Row']
+type ProjectCharacter = Database['public']['Tables']['project_characters']['Row']
+type CharacterReferenceImage = Database['public']['Tables']['character_reference_images']['Row']
+
+// 人物查询结果类型（包含关联的参考图）
+type CharacterWithReferences = Pick<ProjectCharacter, 'character_name'> & {
+  character_reference_images: Pick<CharacterReferenceImage, 'image_url' | 'image_order'>[]
+}
+
+// 完整人物查询结果（包含所有字段和参考图）
+type CharacterWithFullReferences = ProjectCharacter & {
+  character_reference_images: Pick<CharacterReferenceImage, 'image_url' | 'image_order'>[]
+}
 
 /**
  * 异步生成分镜图（后台任务）
@@ -48,9 +59,10 @@ async function generateStoryboardsAsync(
           status: result.status,
           error_message: result.error,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('project_id', projectId)
         .eq('shot_number', shot.shot_number)
+        .returns<any>()
 
       if (result.status === 'success') {
         successCount++
@@ -77,9 +89,10 @@ async function generateStoryboardsAsync(
           status: 'failed',
           error_message: error instanceof Error ? error.message : 'Unknown error',
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('project_id', projectId)
         .eq('shot_number', shot.shot_number)
+        .returns<any>()
 
       return null
     }
@@ -95,8 +108,9 @@ async function generateStoryboardsAsync(
     .update({
       step_3_status: finalStatus,
       updated_at: new Date().toISOString()
-    })
+    } as any)
     .eq('id', projectId)
+    .returns<any>()
 
   console.log('[Video Agent] Async storyboard generation completed', {
     projectId,
@@ -111,21 +125,8 @@ async function generateStoryboardsAsync(
  * 批量生成分镜图
  * POST /api/video-agent/projects/[id]/storyboards/generate
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -133,8 +134,8 @@ export async function POST(
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -167,6 +168,7 @@ export async function POST(
       `)
       .eq('project_id', projectId)
       .order('created_at')
+      .returns<CharacterWithFullReferences[]>()
 
     if (charsError) {
       console.error('[Video Agent] Failed to fetch characters:', charsError)
@@ -185,13 +187,45 @@ export async function POST(
     }))
 
     // 获取分镜数据
-    const shots: Shot[] = project.script_analysis.shots || []
+    const shots: Shot[] = (project.script_analysis as unknown as ScriptAnalysisResult).shots || []
 
     if (shots.length === 0) {
       return NextResponse.json(
         { error: 'No shots found in script analysis' },
         { status: 400 }
       )
+    }
+
+    // 🔥 幂等性检查：检查是否已存在分镜图记录
+    const { data: existingStoryboards } = await supabaseAdmin
+      .from('project_storyboards')
+      .select('*')
+      .eq('project_id', projectId)
+      .returns<ProjectStoryboard[]>()
+
+    const hasExistingStoryboards = existingStoryboards && existingStoryboards.length > 0
+
+    if (hasExistingStoryboards) {
+      const hasGenerating = existingStoryboards.some(sb => sb.status === 'generating')
+      const hasCompleted = existingStoryboards.some(sb => sb.status === 'success')
+
+      if (hasGenerating || hasCompleted) {
+        console.log('[Video Agent] Storyboard generation already started', {
+          projectId,
+          totalStoryboards: existingStoryboards.length,
+          hasGenerating,
+          hasCompleted
+        })
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            message: 'Storyboard generation already started',
+            total: existingStoryboards.length,
+            alreadyStarted: true
+          }
+        })
+      }
     }
 
     console.log('[Video Agent] Starting storyboard generation', {
@@ -216,8 +250,9 @@ export async function POST(
       .update({
         // 不更新 current_step，由前端在用户点击"继续"时更新
         step_3_status: 'processing'
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     // 立即在数据库中创建所有分镜记录，状态为 'generating'
     const initialStoryboards = shots.map(shot => ({
@@ -229,7 +264,7 @@ export async function POST(
 
     const { error: insertError } = await supabaseAdmin
       .from('project_storyboards')
-      .upsert(initialStoryboards, {
+      .upsert(initialStoryboards as any, {
         onConflict: 'project_id,shot_number'
       })
 
@@ -249,17 +284,18 @@ export async function POST(
     // 🔥 并行启动 Suno 音乐生成（仅非旁白模式）
     // 旁白模式下不生成背景音乐，避免与旁白音频冲突
     if (project.music_generation_prompt && !project.enable_narration) {
+      const musicPrompt = project.music_generation_prompt // 保存到局部变量避免类型检查问题
       Promise.resolve().then(async () => {
         try {
           console.log('[Video Agent] 🎵 Starting parallel Suno music generation', {
             projectId,
-            promptLength: project.music_generation_prompt.length,
+            promptLength: musicPrompt.length,
             mode: 'background-music'
           })
 
           // 启动 Suno 音乐生成（不等待完成）
           const generateResponse = await sunoAPI.generate({
-            prompt: project.music_generation_prompt,
+            prompt: musicPrompt,
             make_instrumental: true, // 🔥 纯音乐（无歌词），更适合背景音乐
             wait_audio: false
           })
@@ -272,8 +308,9 @@ export async function POST(
             .update({
               suno_task_id: sunoTaskId,
               updated_at: new Date().toISOString()
-            })
+            } as any)
             .eq('id', projectId)
+            .returns<any>()
 
           console.log('[Video Agent] 🎵 Suno music generation started (parallel)', {
             projectId,
@@ -318,8 +355,9 @@ export async function POST(
         .from('video_agent_projects')
         .update({
           step_3_status: 'failed'
-        })
+        } as any)
         .eq('id', params.id)
+        .returns<any>()
     } catch (updateError) {
       console.error('[Video Agent] Failed to update project status:', updateError)
     }
@@ -334,26 +372,14 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})
 
 /**
  * 获取分镜图生成状态
  * GET /api/video-agent/projects/[id]/storyboards/generate
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const GET = withAuth(async (request, { params, userId }) => {
   try {
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -361,8 +387,8 @@ export async function GET(
       .from('video_agent_projects')
       .select('step_3_status')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -407,4 +433,4 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})

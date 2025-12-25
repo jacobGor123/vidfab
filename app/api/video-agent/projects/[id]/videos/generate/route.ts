@@ -4,15 +4,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { submitVideoGeneration, checkVideoStatus } from '@/lib/services/byteplus/video/seedance-api'
 import { VideoGenerationRequest } from '@/lib/types/video'
-import type { Shot, Storyboard } from '@/lib/services/video-agent/video-generator'
+import type { Shot, Storyboard } from '@/lib/types/video-agent'
 import {
   generateVeo3Video,
   getVideoGenerationImages
 } from '@/lib/services/video-agent/veo3-video-generator'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
 
 /**
  * 辅助函数：延迟
@@ -68,6 +72,8 @@ async function pollVideoStatus(
       }
       await sleep(intervalMs)
     }
+
+    await sleep(intervalMs)
   }
 
   return {
@@ -111,9 +117,10 @@ async function generateVideosAsync(
           status: 'failed',
           error_message: '未找到对应的分镜脚本',
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('project_id', projectId)
         .eq('shot_number', storyboard.shot_number)
+        .returns<any>()
       continue
     }
 
@@ -155,8 +162,8 @@ async function generateVideosAsync(
           throw new Error('No reference image available for Veo3.1 generation')
         }
 
-        // 🔥 增强 prompt：结合场景描述 + 角色动作
-        const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+        // 🔥 增强 prompt：结合场景描述 + 角色动作 + 禁止字幕
+        const enhancedPrompt = `${shot.description}. ${shot.character_action}. No text, no subtitles, no captions, no words on screen.`
 
         const { requestId } = await generateVeo3Video({
           prompt: enhancedPrompt,
@@ -175,9 +182,10 @@ async function generateVideosAsync(
             video_status: 'generating',
             status: 'generating',
             updated_at: new Date().toISOString()
-          })
+          } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
+          .returns<any>()
 
         console.log(`[Video Agent] Veo3.1 task ${requestId} submitted for shot ${shot.shot_number}`)
 
@@ -185,8 +193,8 @@ async function generateVideosAsync(
 
       } else {
         // 🔥 BytePlus Seedance: 使用链式首帧
-        // 🔥 增强 prompt：结合场景描述 + 角色动作
-        const enhancedPrompt = `${shot.description}. ${shot.character_action}`
+        // 🔥 增强 prompt：结合场景描述 + 角色动作 + 强调保持参考图人物外观 + 禁止字幕
+        const enhancedPrompt = `Maintain exact character appearance and features from the reference image. ${shot.description}. ${shot.character_action}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
         const videoRequest: VideoGenerationRequest = {
           image: firstFrameUrl,  // 🔥 使用链式首帧
@@ -213,9 +221,10 @@ async function generateVideosAsync(
             seedance_task_id: result.data.id,
             status: 'generating',
             updated_at: new Date().toISOString()
-          })
+          } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
+          .returns<any>()
 
         console.log(`[Video Agent] 片段 ${shot.shot_number} 任务已提交，等待完成...`)
 
@@ -237,9 +246,10 @@ async function generateVideosAsync(
             last_frame_url: pollResult.lastFrameUrl,  // 🔥 保存末尾帧
             status: 'completed',
             updated_at: new Date().toISOString()
-          })
+          } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
+          .returns<any>()
 
         console.log(`[Video Agent] 片段 ${shot.shot_number} 完成 ✓`, {
           hasLastFrame: !!pollResult.lastFrameUrl
@@ -255,9 +265,10 @@ async function generateVideosAsync(
           status: 'failed',
           error_message: error instanceof Error ? error.message : '视频生成失败',
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('project_id', projectId)
         .eq('shot_number', shot.shot_number)
+        .returns<any>()
 
       // 🔥 非旁白模式：链式生成，一个失败终止后续
       // 🔥 旁白模式：独立生成，一个失败不影响后续
@@ -273,9 +284,10 @@ async function generateVideosAsync(
                 status: 'failed',
                 error_message: '前序片段生成失败，链条中断',
                 updated_at: new Date().toISOString()
-              })
+              } as any)
               .eq('project_id', projectId)
               .eq('shot_number', storyboards[j].shot_number)
+              .returns<any>()
           }
         }
 
@@ -294,21 +306,8 @@ async function generateVideosAsync(
  * 批量生成视频片段
  * POST /api/video-agent/projects/[id]/videos/generate
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -316,8 +315,8 @@ export async function POST(
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       console.error('[Video Agent] Project not found:', projectError)
@@ -408,8 +407,9 @@ export async function POST(
         status: 'processing',
         step_4_status: 'processing'
         // 不更新 current_step，由前端在用户点击"继续"时更新
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     // 立即在数据库中创建所有视频记录，状态为 'generating'
     const initialClips = storyboards.map(sb => ({
@@ -421,7 +421,7 @@ export async function POST(
 
     const { error: insertError } = await supabaseAdmin
       .from('project_video_clips')
-      .upsert(initialClips, {
+      .upsert(initialClips as any, {
         onConflict: 'project_id,shot_number'
       })
 
@@ -446,7 +446,7 @@ export async function POST(
         projectId,
         storyboards as Storyboard[],
         shots as Shot[],
-        session.user.uuid,
+        userId,
         project.enable_narration || false,
         project.aspect_ratio || '16:9'
       )
@@ -470,8 +470,9 @@ export async function POST(
         .update({
           status: 'failed',
           step_4_status: 'failed'
-        })
+        } as any)
         .eq('id', params.id)
+        .returns<any>()
     } catch (updateError) {
       console.error('[Video Agent] Failed to update project status:', updateError)
     }
@@ -486,4 +487,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

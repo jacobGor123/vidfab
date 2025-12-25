@@ -3,16 +3,13 @@
  * 使用 Gemini 3 Pro 根据脚本分析结果为每个人物生成专业的生图 prompt
  */
 
-import { GoogleGenAI } from '@google/genai'
-import { ScriptAnalysisResult } from './script-analyzer'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
 
 // 初始化 Gemini AI client
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || '',
-  apiVersion: 'v1alpha'
-})
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
-const GEMINI_MODEL = 'gemini-3-pro-preview'
+const GEMINI_MODEL = 'gemini-2.0-flash-exp'
 
 /**
  * 图片风格配置
@@ -211,15 +208,8 @@ export async function generateCharacterPrompts(
 
   try {
     // 调用 Gemini API
-    const response = await ai.models.generateContent({
+    const model = genAI.getGenerativeModel({
       model: GEMINI_MODEL,
-      contents: [
-        {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ],
       generationConfig: {
         temperature: 0.8,
         maxOutputTokens: 8192,
@@ -227,7 +217,9 @@ export async function generateCharacterPrompts(
       }
     })
 
-    const content = response.text
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const content = response.text()
 
     if (!content) {
       throw new Error('Empty response from Gemini 3 Pro')
@@ -251,9 +243,9 @@ export async function generateCharacterPrompts(
     }
 
     // 解析 JSON
-    let result: { characterPrompts: CharacterPrompt[] }
+    let parsedResult: { characterPrompts: CharacterPrompt[] }
     try {
-      result = JSON.parse(cleanContent)
+      parsedResult = JSON.parse(cleanContent)
     } catch (parseError) {
       console.error('[Character Prompt Generator] JSON parse error:', parseError)
       console.error('[Character Prompt Generator] Raw content:', content)
@@ -261,15 +253,15 @@ export async function generateCharacterPrompts(
     }
 
     // 验证结果
-    if (!result.characterPrompts || !Array.isArray(result.characterPrompts)) {
+    if (!parsedResult.characterPrompts || !Array.isArray(parsedResult.characterPrompts)) {
       throw new Error('Invalid character prompts format')
     }
 
     console.log('[Character Prompt Generator] Generation completed:', {
-      count: result.characterPrompts.length
+      count: parsedResult.characterPrompts.length
     })
 
-    return result.characterPrompts
+    return parsedResult.characterPrompts
 
   } catch (error) {
     console.error('[Character Prompt Generator] Generation failed:', error)

@@ -4,9 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { checkVideoStatus } from '@/lib/services/byteplus/video/seedance-api'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
 
 /**
  * 查询视频生成状态
@@ -24,21 +28,8 @@ import { checkVideoStatus } from '@/lib/services/byteplus/video/seedance-api'
  *   }
  * }
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const GET = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -46,7 +37,7 @@ export async function GET(
       .from('video_agent_projects')
       .select('user_id')
       .eq('id', projectId)
-      .single()
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -55,7 +46,7 @@ export async function GET(
       )
     }
 
-    if (project.user_id !== session.user.uuid) {
+    if (project.user_id !== userId) {
       return NextResponse.json(
         { error: 'Access denied', code: 'ACCESS_DENIED' },
         { status: 403 }
@@ -68,6 +59,7 @@ export async function GET(
       .select('*')
       .eq('project_id', projectId)
       .order('shot_number', { ascending: true })
+      .returns<ProjectVideoClip[]>()
 
     if (clipsError) {
       console.error('[Video Agent] Failed to fetch video clips:', clipsError)
@@ -111,19 +103,39 @@ export async function GET(
         // 如果状态是 generating 且有 video_request_id（Veo3），查询 Veo3 状态
         if (clip.status === 'generating' && clip.video_request_id) {
           try {
+            console.log(`[Video Status API] Checking Veo3 status for shot ${clip.shot_number}:`, {
+              clipId: clip.id,
+              requestId: clip.video_request_id
+            })
+
             const { getVeo3VideoStatus } = await import('@/lib/services/video-agent/veo3-video-generator')
             const statusResult = await getVeo3VideoStatus(clip.video_request_id)
 
+            console.log(`[Video Status API] Veo3 status result for shot ${clip.shot_number}:`, {
+              status: statusResult.status,
+              hasVideoUrl: !!statusResult.videoUrl,
+              videoUrl: statusResult.videoUrl,
+              error: statusResult.error
+            })
+
             if (statusResult.status === 'completed' && statusResult.videoUrl) {
+              console.log(`[Video Status API] Updating clip ${clip.shot_number} to success with URL:`, statusResult.videoUrl)
+
               // 更新数据库
-              await supabaseAdmin
+              const { error: updateError } = await supabaseAdmin
                 .from('project_video_clips')
                 .update({
                   status: 'success',
                   video_url: statusResult.videoUrl,
                   updated_at: new Date().toISOString()
-                })
+                } as any)
                 .eq('id', clip.id)
+
+              if (updateError) {
+                console.error(`[Video Status API] Failed to update clip ${clip.shot_number}:`, updateError)
+              } else {
+                console.log(`[Video Status API] Successfully updated clip ${clip.shot_number} to success`)
+              }
 
               return {
                 ...clip,
@@ -140,7 +152,7 @@ export async function GET(
                   status: 'failed',
                   error_message: errorMessage,
                   updated_at: new Date().toISOString()
-                })
+                } as any)
                 .eq('id', clip.id)
 
               return {
@@ -169,7 +181,7 @@ export async function GET(
                   status: 'success',  // 修复：使用 'success' 而不是 'completed'
                   video_url: videoUrl,
                   updated_at: new Date().toISOString()
-                })
+                } as any)
                 .eq('id', clip.id)
 
               return {
@@ -187,7 +199,7 @@ export async function GET(
                   status: 'failed',
                   error_message: errorMessage,
                   updated_at: new Date().toISOString()
-                })
+                } as any)
                 .eq('id', clip.id)
 
               return {
@@ -219,7 +231,7 @@ export async function GET(
         .update({
           step_4_status: 'completed'  // Step 4（视频生成）完成
           // 不更新 current_step，由前端在用户点击"继续"时更新
-        })
+        } as any)
         .eq('id', projectId)
     }
 
@@ -241,4 +253,4 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})

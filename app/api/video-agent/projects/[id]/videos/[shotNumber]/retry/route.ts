@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { submitVideoGeneration } from '@/lib/services/byteplus/video/seedance-api'
 import { VideoGenerationRequest } from '@/lib/types/video'
@@ -12,26 +12,18 @@ import {
   generateVeo3Video,
   getVideoGenerationImages
 } from '@/lib/services/video-agent/veo3-video-generator'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectShot = Database['public']['Tables']['project_shots']['Row']
+type ProjectStoryboard = Database['public']['Tables']['project_storyboards']['Row']
 
 /**
  * 重新生成单个视频片段
  * POST /api/video-agent/projects/[id]/videos/[shotNumber]/retry
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string; shotNumber: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
     const shotNumber = parseInt(params.shotNumber, 10)
 
@@ -51,8 +43,8 @@ export async function POST(
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -73,7 +65,7 @@ export async function POST(
       .select('*')
       .eq('project_id', projectId)
       .eq('shot_number', shotNumber)
-      .single()
+      .single<ProjectShot>()
 
     if (!shot) {
       return NextResponse.json(
@@ -87,7 +79,7 @@ export async function POST(
       .select('*')
       .eq('project_id', projectId)
       .eq('shot_number', shotNumber)
-      .single()
+      .single<ProjectStoryboard>()
 
     if (!storyboard) {
       return NextResponse.json(
@@ -103,9 +95,10 @@ export async function POST(
         status: 'generating',
         error_message: null,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('project_id', projectId)
       .eq('shot_number', shotNumber)
+      .returns<any>()
 
     // 根据是否启用旁白选择不同的生成方式
     if (project.enable_narration) {
@@ -118,7 +111,7 @@ export async function POST(
         .select('*')
         .eq('project_id', projectId)
         .eq('shot_number', shotNumber + 1)
-        .single()
+        .single<ProjectStoryboard>()
 
       const images = getVideoGenerationImages(
         { imageUrl: storyboard.image_url },
@@ -130,7 +123,12 @@ export async function POST(
       }
 
       // 🔥 Prompt 优先级：用户自定义 > 增强 prompt（描述 + 动作）
-      const finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
+      let finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
+
+      // 🔥 强制添加禁止字幕指令（无论是自定义还是默认 prompt）
+      if (!finalPrompt.includes('No text') && !finalPrompt.includes('no subtitles')) {
+        finalPrompt += '. No text, no subtitles, no captions, no words on screen.'
+      }
 
       const { requestId } = await generateVeo3Video({
         prompt: finalPrompt,
@@ -150,9 +148,10 @@ export async function POST(
           status: 'generating',
           error_message: null,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('project_id', projectId)
         .eq('shot_number', shotNumber)
+        .returns<any>()
 
       if (veo3UpdateError) {
         console.error(`[Video Agent] ❌ Failed to update Veo3 task ID for shot ${shotNumber}:`, veo3UpdateError)
@@ -167,7 +166,12 @@ export async function POST(
       const newSeed = Math.floor(Math.random() * 1000000)
 
       // 🔥 Prompt 优先级：用户自定义 > 增强 prompt（描述 + 动作）
-      const finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
+      let finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
+
+      // 🔥 强制添加禁止字幕指令（无论是自定义还是默认 prompt）
+      if (!finalPrompt.includes('No text') && !finalPrompt.includes('no subtitles')) {
+        finalPrompt += '. No text, no subtitles, no captions, no words on screen.'
+      }
 
       const videoRequest: VideoGenerationRequest = {
         image: storyboard.image_url,
@@ -195,9 +199,10 @@ export async function POST(
           status: 'generating',
           error_message: null,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('project_id', projectId)
         .eq('shot_number', shotNumber)
+        .returns<any>()
 
       if (byteplusUpdateError) {
         console.error(`[Video Agent] ❌ Failed to update BytePlus task ID for shot ${shotNumber}:`, byteplusUpdateError)
@@ -229,4 +234,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

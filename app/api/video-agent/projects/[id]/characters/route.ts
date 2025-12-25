@@ -4,28 +4,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectCharacter = Database['public']['Tables']['project_characters']['Row']
 
 /**
  * 配置人物角色
  * POST /api/video-agent/projects/[id]/characters
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -33,8 +24,8 @@ export async function POST(
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -51,6 +42,7 @@ export async function POST(
         templateId?: string
         referenceImages?: string[]
         generationPrompt?: string
+        negativePrompt?: string  // 🔥 添加类型定义
       }>
     }
 
@@ -87,12 +79,13 @@ export async function POST(
       character_name: char.name,
       source: char.source,
       template_id: char.templateId,
-      generation_prompt: char.generationPrompt
+      generation_prompt: char.generationPrompt,
+      negative_prompt: char.negativePrompt  // 🔥 添加 negative prompt 支持
     }))
 
     const { data: insertedChars, error: insertError } = await supabaseAdmin
       .from('project_characters')
-      .insert(charactersToInsert)
+      .insert(charactersToInsert as any)
       .select()
 
     if (insertError) {
@@ -131,8 +124,9 @@ export async function POST(
       .update({
         // 不更新 current_step，由前端在用户点击"继续"时更新
         step_2_status: 'completed'
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     console.log('[Video Agent] Characters configured successfully', {
       projectId,
@@ -158,26 +152,14 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})
 
 /**
  * 获取项目的人物配置
  * GET /api/video-agent/projects/[id]/characters
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const GET = withAuth(async (request, { params, userId }) => {
   try {
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -185,8 +167,8 @@ export async function GET(
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -228,4 +210,4 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})

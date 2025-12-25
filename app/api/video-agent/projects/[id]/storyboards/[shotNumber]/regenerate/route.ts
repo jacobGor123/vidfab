@@ -4,32 +4,33 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { regenerateStoryboard, IMAGE_STYLES } from '@/lib/services/video-agent/storyboard-generator'
-import type { Shot, CharacterConfig, ImageStyle } from '@/lib/services/video-agent/storyboard-generator'
+import type { Shot, CharacterConfig, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectCharacter = Database['public']['Tables']['project_characters']['Row']
+type CharacterReferenceImage = Database['public']['Tables']['character_reference_images']['Row']
+
+// 人物查询结果类型（包含关联的参考图）
+type CharacterWithReferences = Pick<ProjectCharacter, 'character_name'> & {
+  character_reference_images: Pick<CharacterReferenceImage, 'image_url' | 'image_order'>[]
+}
 
 /**
  * 重新生成分镜图
  * POST /api/video-agent/projects/[id]/storyboards/[shotNumber]/regenerate
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string; shotNumber: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
     const shotNumber = parseInt(params.shotNumber, 10)
+
+    // 获取请求体中的自定义 prompt
+    const body = await request.json().catch(() => ({}))
+    const customPrompt = body.customPrompt as string | undefined
 
     if (isNaN(shotNumber)) {
       return NextResponse.json(
@@ -41,9 +42,9 @@ export async function POST(
     // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
-      .select('user_id, image_style_id, regenerate_quota_remaining, aspect_ratio')
+      .select('user_id, image_style, regenerate_quota_remaining, aspect_ratio')
       .eq('id', projectId)
-      .single()
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -52,7 +53,7 @@ export async function POST(
       )
     }
 
-    if (project.user_id !== session.user.uuid) {
+    if (project.user_id !== userId) {
       return NextResponse.json(
         { error: 'Access denied', code: 'ACCESS_DENIED' },
         { status: 403 }
@@ -78,7 +79,7 @@ export async function POST(
       .from('video_agent_projects')
       .select('script_analysis')
       .eq('id', projectId)
-      .single()
+      .single<VideoAgentProject>()
 
     if (projectDataError || !projectData?.script_analysis) {
       return NextResponse.json(
@@ -87,7 +88,7 @@ export async function POST(
       )
     }
 
-    const shots = projectData.script_analysis.shots || []
+    const shots = (projectData.script_analysis as unknown as ScriptAnalysisResult).shots || []
     const shot = shots.find((s: Shot) => s.shot_number === shotNumber)
 
     if (!shot) {
@@ -108,6 +109,7 @@ export async function POST(
         )
       `)
       .eq('project_id', projectId)
+      .returns<CharacterWithReferences[]>()
 
     const characterConfigs: CharacterConfig[] = (charactersData || []).map(char => ({
       name: char.character_name,
@@ -117,7 +119,7 @@ export async function POST(
     }))
 
     // 获取图片风格
-    const styleId = project.image_style_id || 'realistic'
+    const styleId = project.image_style || 'realistic'
     const imageStyle = IMAGE_STYLES[styleId] || IMAGE_STYLES.realistic
 
     console.log('[Video Agent] Regenerating storyboard with data', {
@@ -133,7 +135,8 @@ export async function POST(
         referenceImageCount: c.reference_images.length,
         referenceImages: c.reference_images
       })),
-      style: imageStyle.name
+      style: imageStyle.name,
+      usingCustomPrompt: !!customPrompt
     })
 
     // 调用重新生成服务
@@ -141,7 +144,9 @@ export async function POST(
       shot as Shot,
       characterConfigs,
       imageStyle as ImageStyle,
-      project.aspect_ratio || '16:9'
+      project.aspect_ratio || '16:9',
+      undefined,  // seed (暂时不使用)
+      customPrompt  // 🔥 传递自定义 prompt
     )
 
     console.log('[Video Agent] Storyboard regeneration result', {
@@ -158,9 +163,10 @@ export async function POST(
         status: result.status,
         error_message: result.error || null,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('project_id', projectId)
       .eq('shot_number', shotNumber)
+      .returns<any>()
 
     if (updateError) {
       console.error('[Video Agent] Failed to update storyboard:', updateError)
@@ -197,4 +203,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

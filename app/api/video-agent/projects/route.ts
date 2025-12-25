@@ -4,33 +4,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 
 /**
  * 创建新项目
  * POST /api/video-agent/projects
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user) {
-      console.error('❌ Video Agent: Authentication failed')
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
-    if (!session.user.uuid) {
-      console.error('❌ Video Agent: User UUID missing')
-      return NextResponse.json(
-        { error: 'User UUID required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
 
     // 解析请求体
     let body: {
@@ -90,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Video Agent] Creating new project', {
-      userId: session.user.uuid,
+      userId,
       duration,
       storyStyle,
       scriptLength: originalScript.length,
@@ -102,7 +84,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from('video_agent_projects')
       .insert({
-        user_id: session.user.uuid,
+        user_id: userId,
         duration,
         story_style: storyStyle,
         original_script: originalScript,
@@ -145,27 +127,18 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 /**
  * 获取用户的所有项目
  * GET /api/video-agent/projects
  */
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request, { params, userId }) => {
   try {
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
     const { data, error } = await supabaseAdmin
       .from('video_agent_projects')
       .select('*')
-      .eq('user_id', session.user.uuid)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -188,4 +161,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

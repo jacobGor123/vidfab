@@ -10,7 +10,8 @@ import { BytePlusImageRequest, BytePlusImageResponse } from './types'
 
 // 创建 client，图片生成需要更长的超时时间
 const client = new BytePlusClient({
-  timeoutMs: 60000 // 60 秒超时
+  timeoutMs: 120000, // 120 秒超时（2分钟）- 图片生成可能需要更长时间
+  maxRetries: 2 // 最多重试2次，总共3次尝试
 })
 
 // 使用 Seedream 4.5 模型 (支持角色一致性)

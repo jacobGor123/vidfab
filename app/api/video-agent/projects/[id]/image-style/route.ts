@@ -4,8 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
 /**
  * 保存图片风格选择
@@ -16,21 +19,8 @@ import { supabaseAdmin } from '@/lib/supabase'
  *   styleId: 'realistic' | 'anime' | 'cinematic' | 'cyberpunk'
  * }
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -38,7 +28,7 @@ export async function POST(
       .from('video_agent_projects')
       .select('user_id')
       .eq('id', projectId)
-      .single()
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -47,7 +37,7 @@ export async function POST(
       )
     }
 
-    if (project.user_id !== session.user.uuid) {
+    if (project.user_id !== userId) {
       return NextResponse.json(
         { error: 'Access denied', code: 'ACCESS_DENIED' },
         { status: 403 }
@@ -92,8 +82,9 @@ export async function POST(
         step_3_status: 'completed',
         // 不更新 current_step，由前端在用户点击"继续"时更新
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     if (updateError) {
       console.error('[Video Agent] Failed to save image style:', updateError)
@@ -124,4 +115,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

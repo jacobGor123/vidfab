@@ -4,8 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
+type ProjectStoryboard = Database['public']['Tables']['project_storyboards']['Row']
 
 /**
  * 查询分镜图生成状态
@@ -23,21 +27,8 @@ import { supabaseAdmin } from '@/lib/supabase'
  *   }
  * }
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const GET = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -45,7 +36,7 @@ export async function GET(
       .from('video_agent_projects')
       .select('user_id')
       .eq('id', projectId)
-      .single()
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -54,7 +45,7 @@ export async function GET(
       )
     }
 
-    if (project.user_id !== session.user.uuid) {
+    if (project.user_id !== userId) {
       return NextResponse.json(
         { error: 'Access denied', code: 'ACCESS_DENIED' },
         { status: 403 }
@@ -67,6 +58,7 @@ export async function GET(
       .select('*')
       .eq('project_id', projectId)
       .order('shot_number', { ascending: true })
+      .returns<ProjectStoryboard[]>()
 
     if (storyboardsError) {
       console.error('[Video Agent] Failed to fetch storyboards:', storyboardsError)
@@ -96,8 +88,9 @@ export async function GET(
         .update({
           step_3_status: 'completed',  // Step 3 完成
           // 不更新 current_step，由前端在用户点击"继续"时更新
-        })
+        } as any)
         .eq('id', projectId)
+        .returns<any>()
     }
 
     // 直接返回数组，字段名使用下划线（匹配数据库和前端）
@@ -127,4 +120,4 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})

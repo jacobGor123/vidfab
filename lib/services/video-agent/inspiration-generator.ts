@@ -3,15 +3,12 @@
  * 使用 Brave Search 搜索热门短视频趋势 + Gemini 3 Pro 分析生成创意脚本
  */
 
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 // 初始化 Gemini AI client
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || '',
-  apiVersion: 'v1alpha'
-})
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
-const GEMINI_MODEL = 'gemini-3-pro-preview'
+const GEMINI_MODEL = 'gemini-2.0-flash-exp'
 
 /**
  * 脚本创意类型
@@ -162,15 +159,8 @@ export async function generateInspirations(): Promise<ScriptInspiration[]> {
 
   try {
     // 步骤 3: 调用 Gemini API
-    const response = await ai.models.generateContent({
+    const model = genAI.getGenerativeModel({
       model: GEMINI_MODEL,
-      contents: [
-        {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ],
       generationConfig: {
         temperature: 0.9,  // 更高的创造性
         maxOutputTokens: 8192,
@@ -178,7 +168,9 @@ export async function generateInspirations(): Promise<ScriptInspiration[]> {
       }
     })
 
-    const content = response.text
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const content = response.text()
 
     if (!content) {
       throw new Error('Empty response from Gemini 3 Pro')
@@ -202,9 +194,9 @@ export async function generateInspirations(): Promise<ScriptInspiration[]> {
     }
 
     // 解析 JSON
-    let result: { inspirations: ScriptInspiration[] }
+    let parsedResult: { inspirations: ScriptInspiration[] }
     try {
-      result = JSON.parse(cleanContent)
+      parsedResult = JSON.parse(cleanContent)
     } catch (parseError) {
       console.error('[Inspiration Generator] JSON parse error:', parseError)
       console.error('[Inspiration Generator] Raw content:', content)
@@ -212,19 +204,19 @@ export async function generateInspirations(): Promise<ScriptInspiration[]> {
     }
 
     // 验证结果
-    if (!result.inspirations || !Array.isArray(result.inspirations)) {
+    if (!parsedResult.inspirations || !Array.isArray(parsedResult.inspirations)) {
       throw new Error('Invalid inspirations format')
     }
 
-    if (result.inspirations.length !== 5) {
-      console.warn('[Inspiration Generator] Expected 5 inspirations, got:', result.inspirations.length)
+    if (parsedResult.inspirations.length !== 5) {
+      console.warn('[Inspiration Generator] Expected 5 inspirations, got:', parsedResult.inspirations.length)
     }
 
     console.log('[Inspiration Generator] Generation completed successfully:', {
-      count: result.inspirations.length
+      count: parsedResult.inspirations.length
     })
 
-    return result.inspirations
+    return parsedResult.inspirations
 
   } catch (error) {
     console.error('[Inspiration Generator] Generation failed:', error)

@@ -2,6 +2,7 @@
  * Supabase Client Configuration for VidFab AI Video Platform
  */
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
 // Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -14,12 +15,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // 🔥 使用单例模式避免开发环境中的重复实例警告
 declare const globalThis: {
-  supabaseGlobalInstance?: ReturnType<typeof createClient>
-  supabaseAdminGlobalInstance?: ReturnType<typeof createClient>
+  supabaseGlobalInstance?: ReturnType<typeof createClient<Database>>
+  supabaseAdminGlobalInstance?: ReturnType<typeof createClient<Database>>
 } & typeof global
 
 // Public client (for client-side operations)
-export const supabase = globalThis.supabaseGlobalInstance ?? createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = globalThis.supabaseGlobalInstance ?? createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
@@ -32,7 +33,7 @@ if (!globalThis.supabaseGlobalInstance) {
 }
 
 // Admin client (for server-side operations with elevated permissions)
-export const supabaseAdmin = globalThis.supabaseAdminGlobalInstance ?? createClient(
+export const supabaseAdmin = globalThis.supabaseAdminGlobalInstance ?? createClient<Database>(
   supabaseUrl,
   supabaseServiceKey || supabaseAnonKey,
   {

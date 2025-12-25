@@ -211,6 +211,16 @@ export default function RootLayout({
               richColors
               closeButton
               theme="dark"
+              toastOptions={{
+                style: {
+                  zIndex: 9999,
+                  pointerEvents: 'auto'
+                },
+                className: 'sonner-toast',
+                classNames: {
+                  closeButton: 'sonner-close-button'
+                }
+              }}
             />
           </ThemeProvider>
         </SessionProvider>

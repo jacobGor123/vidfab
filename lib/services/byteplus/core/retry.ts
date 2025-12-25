@@ -13,9 +13,14 @@ export async function retryWithBackoff<T>(
     } catch (error) {
       lastError = error
 
-      // Do not retry on client errors (4xx)
+      // Do not retry on client errors (4xx), except for timeouts (408)
       const status = (error as any)?.status as number | undefined
-      if (status && status < 500) {
+      const code = (error as any)?.code as string | undefined
+
+      // Always retry on timeout (408) or TIMEOUT code
+      const isTimeout = status === 408 || code === 'TIMEOUT'
+
+      if (status && status < 500 && !isTimeout) {
         throw error
       }
 

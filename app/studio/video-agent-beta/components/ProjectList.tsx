@@ -11,6 +11,7 @@ import { VideoAgentProject } from '@/lib/stores/video-agent'
 import { Clock, Trash2, ChevronRight, PlayCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { showConfirm, showSuccess, showError, showLoading } from '@/lib/utils/toast'
+import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 
 interface ProjectListProps {
   onResume: (project: VideoAgentProject) => void
@@ -19,6 +20,7 @@ interface ProjectListProps {
 export default function ProjectList({ onResume }: ProjectListProps) {
   const [projects, setProjects] = useState<VideoAgentProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { getProjects, deleteProject } = useVideoAgentAPI()
 
   useEffect(() => {
     loadProjects()
@@ -27,11 +29,8 @@ export default function ProjectList({ onResume }: ProjectListProps) {
   const loadProjects = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/video-agent/projects')
-      if (response.ok) {
-        const { data } = await response.json()
-        setProjects(data || [])
-      }
+      const data = await getProjects()
+      setProjects(data || [])
     } catch (error) {
       console.error('Failed to load projects:', error)
     } finally {
@@ -53,14 +52,10 @@ export default function ProjectList({ onResume }: ProjectListProps) {
 
     const dismissLoading = showLoading('Deleting draft...')
     try {
-      const response = await fetch(`/api/video-agent/projects/${id}`, { method: 'DELETE' })
+      await deleteProject(id)
       dismissLoading()
-      if (response.ok) {
-        setProjects(prev => prev.filter(p => p.id !== id))
-        showSuccess('Draft deleted successfully')
-      } else {
-        showError('Failed to delete draft')
-      }
+      setProjects(prev => prev.filter(p => p.id !== id))
+      showSuccess('Draft deleted successfully')
     } catch (error) {
       dismissLoading()
       console.error('Failed to delete project:', error)
@@ -97,9 +92,6 @@ export default function ProjectList({ onResume }: ProjectListProps) {
     return (
       <Card className="bg-slate-900/30 border-slate-800/50 border-dashed backdrop-blur-sm">
         <div className="py-12 text-center">
-          <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">📝</span>
-          </div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No drafts yet</h3>
           <p className="text-sm text-slate-500">
             Start creating your first video above.

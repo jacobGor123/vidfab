@@ -44,12 +44,13 @@ const menuCategories = [
         id: "video-effects" as ToolType,
         label: "Video Effects",
         iconPath: "/logo/video-effects.svg"
-      },
-      {
-        id: "video-agent" as ToolType,
-        label: "Video Agent",
-        iconPath: "/logo/video-agent.svg"
       }
+      // 🔥 Video Agent 入口已隐藏
+      // {
+      //   id: "video-agent" as ToolType,
+      //   label: "Video Agent",
+      //   iconPath: "/logo/video-agent.svg"
+      // }
     ]
   },
   {
@@ -101,7 +102,8 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
     'text-to-video': '/studio/text-to-video',
     'image-to-video': '/studio/image-to-video',
     'video-effects': '/studio/ai-video-effects',
-    'video-agent': '/studio/video-agent-beta',
+    // 🔥 Video Agent 路由已隐藏（保留占位符以满足 TypeScript）
+    'video-agent': '', // 空字符串占位，菜单中已移除
     'text-to-image': '/studio/text-to-image',
     'image-to-image': '/studio/image-to-image',
     'my-assets': '/studio/my-assets',

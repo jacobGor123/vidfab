@@ -5,11 +5,13 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
-import { Film, Users, Clock, Video, Smile, User } from 'lucide-react'
+import { Film, Users, Clock, Video, Smile, User, Edit3, Save, X } from 'lucide-react'
+import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 
 interface Step1Props {
   project: VideoAgentProject
@@ -18,6 +20,7 @@ interface Step1Props {
 }
 
 export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1Props) {
+  const { analyzeScript, updateProject } = useVideoAgentAPI()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<ScriptAnalysis | null>(
     project.script_analysis || null
@@ -25,50 +28,186 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   const [error, setError] = useState<string | null>(null)
   const [hasStarted, setHasStarted] = useState(false) // 防止重复触发
 
+  // 性能观测：分析请求 + 首次渲染耗时
+  const [analysisReceivedAt, setAnalysisReceivedAt] = useState<number | null>(null)
+
+  // 首次渲染分镜卡片数量限制：避免 analysis 返回后一次性渲染过多 DOM 导致卡顿
+  const INITIAL_RENDER_SHOTS = 12
+  const RENDER_BATCH = 12
+  const [visibleShotCount, setVisibleShotCount] = useState(INITIAL_RENDER_SHOTS)
+
+  // 当拿到新的 analysis 时重置可见数量（也能覆盖“恢复草稿”场景）
+  useEffect(() => {
+    if (!analysis) return
+    setVisibleShotCount(Math.min(INITIAL_RENDER_SHOTS, analysis.shots.length))
+  }, [analysis])
+
+  const visibleShots = useMemo(() => {
+    if (!analysis) return []
+    return analysis.shots.slice(0, visibleShotCount)
+  }, [analysis, visibleShotCount])
+
+  // “滚动接近底部自动加载更多”——比纯按钮更顺滑，但依然简单可控
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    if (!analysis) return
+
+    const onScroll = () => {
+      if (!analysis) return
+      if (visibleShotCount >= analysis.shots.length) return
+
+      const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+      if (distanceToBottom < 800) {
+        setVisibleShotCount((prev) => Math.min(prev + RENDER_BATCH, analysis.shots.length))
+      }
+    }
+
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [analysis, visibleShotCount])
+
+  // 🔥 编辑状态管理
+  const [editedShots, setEditedShots] = useState<Record<number, string>>({}) // 记录修改的分镜描述
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false) // 是否有未保存的修改
+  const [isSaving, setIsSaving] = useState(false) // 是否正在保存
+
+  // 🔥 使用 useRef 防止竞态条件
+  const isAnalyzingRef = useRef(false)
+
   const handleAnalyze = async () => {
-    if (isAnalyzing || hasStarted) {
-      console.log('[Step1] Analysis already in progress, skipping...')
+    if (isAnalyzingRef.current || hasStarted) {
       return
     }
 
+    isAnalyzingRef.current = true
     setHasStarted(true)
     setIsAnalyzing(true)
     setError(null)
 
     try {
-      const response = await fetch(`/api/video-agent/projects/${project.id}/analyze-script`, {
-        method: 'POST'
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Script analysis failed')
-      }
-
-      const { data } = await response.json()
+      const data = await analyzeScript(project.id)
       setAnalysis(data)
-      onUpdate({ script_analysis: data })  // 不需要手动更新 current_step
+      setAnalysisReceivedAt(performance.now())
+      onUpdate({ script_analysis: data })
     } catch (err: any) {
+      console.error('[Step1] Script analysis failed:', err.message)
       setError(err.message)
-      setHasStarted(false) // 失败后允许重试
+      setHasStarted(false)
+      isAnalyzingRef.current = false
     } finally {
       setIsAnalyzing(false)
     }
   }
 
-  // 如果已有分析结果，直接显示；否则自动开始分析（只触发一次）
   useEffect(() => {
     if (project.script_analysis) {
       setAnalysis(project.script_analysis)
-      setHasStarted(true) // 标记已完成
-    } else if (!hasStarted && !isAnalyzing && !error) {
-      // 自动开始分析（只会执行一次）
-      console.log('[Step1] Auto-starting script analysis')
-      handleAnalyze()
+      setAnalysisReceivedAt(performance.now())
+      setHasStarted(true)
+      isAnalyzingRef.current = false
+      return
     }
-  }, [project.script_analysis]) // 只依赖 script_analysis
 
-  const handleConfirm = () => {
+    if (isAnalyzingRef.current || hasStarted) {
+      return
+    }
+
+    handleAnalyze()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.script_analysis, project.id])
+
+  // 性能观测：analysis 数据到位后，首帧渲染（commit+paint）大概耗时
+  useEffect(() => {
+    if (!analysisReceivedAt || !analysis) return
+
+    const start = analysisReceivedAt
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const costMs = performance.now() - start
+        console.log('[Perf][Step1] analysis->first paint (approx):', {
+          projectId: project.id,
+          shotCount: analysis.shot_count,
+          characters: analysis.characters?.length ?? 0,
+          costMs: Math.round(costMs)
+        })
+      })
+    })
+  }, [analysisReceivedAt, analysis, project.id])
+
+  // 🔥 处理分镜描述修改
+  const handleShotDescriptionChange = (shotNumber: number, newDescription: string) => {
+    setEditedShots(prev => ({
+      ...prev,
+      [shotNumber]: newDescription
+    }))
+    setHasUnsavedChanges(true)
+  }
+
+  // 🔥 保存修改后的分镜
+  const handleSaveChanges = async () => {
+    if (!analysis || Object.keys(editedShots).length === 0) {
+      return
+    }
+
+    setIsSaving(true)
+    setError(null)
+
+    try {
+      // 创建更新后的 shots 数组
+      const updatedShots = analysis.shots.map(shot => {
+        if (editedShots[shot.shot_number]) {
+          return {
+            ...shot,
+            description: editedShots[shot.shot_number]
+          }
+        }
+        return shot
+      })
+
+      // 更新 analysis 对象
+      const updatedAnalysis = {
+        ...analysis,
+        shots: updatedShots
+      }
+
+      // 保存到数据库
+      await updateProject(project.id, {
+        script_analysis: updatedAnalysis
+      })
+
+      // 更新本地状态
+      setAnalysis(updatedAnalysis)
+      onUpdate({ script_analysis: updatedAnalysis })
+      setEditedShots({})
+      setHasUnsavedChanges(false)
+
+      console.log('[Step1] Changes saved successfully')
+    } catch (err: any) {
+      setError(err.message || 'Failed to save changes')
+      console.error('[Step1] Save failed:', err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 🔥 取消修改
+  const handleCancelChanges = () => {
+    setEditedShots({})
+    setHasUnsavedChanges(false)
+  }
+
+  // 🔥 获取分镜描述（优先使用编辑后的）
+  const getShotDescription = (shotNumber: number, originalDescription: string) => {
+    return editedShots[shotNumber] || originalDescription
+  }
+
+  const handleConfirm = async () => {
+    // 如果有未保存的修改，先保存
+    if (hasUnsavedChanges) {
+      await handleSaveChanges()
+    }
     onNext()
   }
 
@@ -130,7 +269,10 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div
+      ref={scrollContainerRef}
+      className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700"
+    >
       {/* 1. Analysis Overview Card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="px-6 py-6 bg-blue-500/10 border border-blue-500/20 rounded-xl relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
@@ -189,12 +331,41 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Film className="w-5 h-5 text-slate-400" />
             <span>Storyboard Breakdown</span>
-
           </h3>
+
+          {/* 🔥 保存/取消按钮 */}
+          {hasUnsavedChanges && (
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleCancelChanges}
+                variant="ghost"
+                size="sm"
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                size="sm"
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                {isSaving ? (
+                  <>Saving...</>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-1" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
-          {analysis?.shots.map((shot) => (
+          {visibleShots.map((shot) => (
             <div
               key={shot.shot_number}
               className="group relative bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-8 transition-all duration-300"
@@ -221,9 +392,13 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
                     </span>
                   </div>
 
-                  <p className="text-xl text-slate-200 leading-relaxed font-light tracking-wide">
-                    {shot.description}
-                  </p>
+                  {/* 🔥 可编辑的分镜描述 */}
+                  <Textarea
+                    value={getShotDescription(shot.shot_number, shot.description)}
+                    onChange={(e) => handleShotDescriptionChange(shot.shot_number, e.target.value)}
+                    className="text-lg text-slate-200 leading-relaxed font-light tracking-wide bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[80px]"
+                    placeholder="Describe this shot..."
+                  />
 
                   <div className="flex flex-wrap gap-3 pt-2">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-xs font-bold text-indigo-300 uppercase tracking-wide">
@@ -246,6 +421,23 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
             </div>
           ))}
         </div>
+
+        {/* 分批渲染：先让首屏可交互，再逐步加载更多分镜 */}
+        {analysis && visibleShotCount < analysis.shots.length && (
+          <div className="pt-4 flex justify-center">
+            <Button
+              onClick={() =>
+                setVisibleShotCount((prev) =>
+                  Math.min(prev + RENDER_BATCH, analysis.shots.length)
+                )
+              }
+              variant="outline"
+              className="border-white/10 text-slate-200 hover:bg-white/5"
+            >
+              Load More ({visibleShotCount}/{analysis.shots.length})
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Confirm Action */}

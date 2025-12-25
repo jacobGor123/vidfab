@@ -6,9 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateCharacterPrompts, ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
+import type { Database } from '@/lib/database.types'
+import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -17,29 +21,17 @@ export const maxDuration = 60
  * POST /api/video-agent/projects/[id]/character-prompts
  * 生成人物 Prompts
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 1. 用户认证
-    const session = await auth()
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
-    // 2. 验证项目所有权
+    // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -72,12 +64,12 @@ export async function POST(
     console.log('[API] Generating character prompts:', {
       projectId,
       imageStyle,
-      characters: project.script_analysis.characters
+      characters: (project.script_analysis as unknown as ScriptAnalysisResult).characters
     })
 
     // 5. 调用 Gemini 生成 prompts
     const characterPrompts = await generateCharacterPrompts(
-      project.script_analysis,
+      project.script_analysis as unknown as ScriptAnalysisResult,
       imageStyle as ImageStyle
     )
 
@@ -104,4 +96,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

@@ -1,32 +1,23 @@
 /**
  * Video Agent - 脚本分析 API
- * 使用 GPT-OSS-120B 分析用户脚本
+ * 使用 Gemini 2.0 Flash 分析用户脚本
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
-import { analyzeScript, validateAnalysisResult, generateMusicPrompt } from '@/lib/services/video-agent/script-analyzer'
+import { analyzeScript, validateAnalysisResult, generateMusicPrompt } from '@/lib/services/video-agent/script-analyzer-google'
+import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
 /**
  * 分析脚本
  * POST /api/video-agent/projects/[id]/analyze-script
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
     // 验证项目所有权
@@ -34,8 +25,8 @@ export async function POST(
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       console.error('[Video Agent] Project not found or access denied:', projectError)
@@ -43,6 +34,15 @@ export async function POST(
         { error: 'Project not found or access denied' },
         { status: 404 }
       )
+    }
+
+    // 幂等性检查：如果已经有分析结果，直接返回
+    if (project.script_analysis && typeof project.script_analysis === 'object') {
+      return NextResponse.json({
+        success: true,
+        data: project.script_analysis,
+        cached: true
+      })
     }
 
     console.log('[Video Agent] Analyzing script for project', {
@@ -102,12 +102,13 @@ export async function POST(
     const { error: updateError } = await supabaseAdmin
       .from('video_agent_projects')
       .update({
-        script_analysis: analysis,
+        script_analysis: analysis as any,
         music_generation_prompt: musicPrompt,  // 🔥 保存音乐 prompt
         // 不更新 current_step，由前端在用户点击"继续"时更新
         step_1_status: 'completed'
-      })
+      } as any)
       .eq('id', projectId)
+      .returns<any>()
 
     if (updateError) {
       console.error('[Video Agent] Failed to save analysis:', updateError)
@@ -127,7 +128,7 @@ export async function POST(
       character_action: shot.character_action,
       mood: shot.mood,
       duration_seconds: shot.duration_seconds
-    }))
+    })) as any
 
     const { error: shotsError } = await supabaseAdmin
       .from('project_shots')
@@ -163,4 +164,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

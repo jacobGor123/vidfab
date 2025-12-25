@@ -4,26 +4,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-api'
 
 /**
  * 生成人物参考图
  * POST /api/video-agent/generate-character-image
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
     // 验证用户身份
-    const session = await auth()
-
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
-      )
-    }
-
-    // 解析请求体
+        // 解析请求体
     let body: {
       prompt: string
       aspectRatio?: string
@@ -60,6 +51,7 @@ export async function POST(request: NextRequest) {
     try {
       const result = await submitImageGeneration({
         prompt,
+        model: 'seedream-v4',
         aspectRatio,
         images: images && images.length > 0 ? images : undefined,
         watermark: false
@@ -98,4 +90,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

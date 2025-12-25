@@ -6,10 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-api'
 import { ImageGenerationRequest } from '@/lib/types/image'
+import type { Database } from '@/lib/database.types'
+
+type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5分钟超时（批量生成可能需要较长时间）
@@ -31,29 +34,17 @@ interface BatchGenerationResult {
  * POST /api/video-agent/projects/[id]/batch-generate-characters
  * 批量生成人物图片
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 1. 用户认证
-    const session = await auth()
-    if (!session?.user?.uuid) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
 
-    // 2. 验证项目所有权
+    // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
       .select('*')
       .eq('id', projectId)
-      .eq('user_id', session.user.uuid)
-      .single()
+      .eq('user_id', userId)
+      .single<VideoAgentProject>()
 
     if (projectError || !project) {
       return NextResponse.json(
@@ -86,6 +77,7 @@ export async function POST(
 
         const request: ImageGenerationRequest = {
           prompt: charPrompt.prompt,
+          model: 'seedream-v4',
           negativePrompt: charPrompt.negativePrompt,
           aspectRatio: project.aspect_ratio || '16:9', // 使用项目设置的宽高比
           watermark: false
@@ -184,4 +176,4 @@ export async function POST(
       { status: 500 }
     )
   }
-}
+})

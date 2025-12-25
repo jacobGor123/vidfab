@@ -5,12 +5,13 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
 import { cn } from '@/lib/utils'
+import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 
 interface Step7Props {
   project: VideoAgentProject
@@ -31,33 +32,60 @@ interface ComposeStatus {
 }
 
 export default function Step7FinalCompose({ project, onComplete, onUpdate }: Step7Props) {
+  const { getComposeStatus, composeVideo } = useVideoAgentAPI()
+  const debugEnabled =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).has('va_debug')
+
   const [isComposing, setIsComposing] = useState(false)
   const [composeStatus, setComposeStatus] = useState<ComposeStatus>({ status: 'pending' })
   const [error, setError] = useState<string | null>(null)
   const [simulatedProgress, setSimulatedProgress] = useState(0)
 
-  console.log('[Step6] Component render:', {
-    projectId: project.id,
-    step_6_status: project.step_6_status,
-    composeStatus: composeStatus.status,
-    hasFinalVideo: !!composeStatus.finalVideo
-  })
+  // 页面不可见时暂停定时器，避免后台占用主线程导致交互卡顿
+  const [isPageVisible, setIsPageVisible] = useState(true)
+
+  useEffect(() => {
+    const update = () => setIsPageVisible(document.visibilityState === 'visible')
+    update()
+    document.addEventListener('visibilitychange', update)
+    return () => document.removeEventListener('visibilitychange', update)
+  }, [])
+
+  // 避免无变化轮询仍触发重渲染
+  const lastPollSignatureRef = useRef<string>('')
+
+  // 避免 simulatedProgress 每秒 setState 导致全组件重渲染，改为更低频且只在数值变化时更新
+  const lastSimulatedProgressRef = useRef<number>(0)
+
+  if (debugEnabled) {
+    console.log('[VA_DEBUG][Step6] Component render:', {
+      projectId: project.id,
+      step_6_status: project.step_6_status,
+      composeStatus: composeStatus.status,
+      hasFinalVideo: !!composeStatus.finalVideo
+    })
+  }
 
   // 轮询状态
   const pollStatus = useCallback(async () => {
     if (!project.id) return
 
     try {
-      const response = await fetch(`/api/video-agent/projects/${project.id}/compose/status`)
+      const data = await getComposeStatus(project.id)
 
-      if (!response.ok) return
+      const signature = `${data?.status || ''}:${data?.progress ?? ''}:${data?.message || ''}:${data?.finalVideo?.url || ''}`
+      if (signature === lastPollSignatureRef.current) {
+        return
+      }
+      lastPollSignatureRef.current = signature
 
-      const { data } = await response.json()
-      console.log('[Step6] Poll status response:', {
-        status: data.status,
-        hasFinalVideo: !!data.finalVideo,
-        finalVideo: data.finalVideo
-      })
+      if (debugEnabled) {
+        console.log('[VA_DEBUG][Step6] Poll status response:', {
+          status: data.status,
+          hasFinalVideo: !!data.finalVideo
+        })
+      }
       setComposeStatus(data)
 
       if (data.status === 'completed') {
@@ -75,62 +103,79 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     } catch (err) {
       console.error('Failed to poll compose status:', err)
     }
-  }, [project.id, onUpdate])
+  }, [project.id, onUpdate, getComposeStatus])
 
-  // 启动轮询
+  // 启动轮询 - 🔥 优化：缩短轮询间隔到 2 秒，减少卡顿感
   useEffect(() => {
+    if (!isPageVisible) return
     if (isComposing || composeStatus.status === 'processing') {
-      const interval = setInterval(pollStatus, 5000)
+      // 立即轮询一次
+      pollStatus()
+      // 然后每 2 秒轮询一次（原来是 5 秒）
+      const interval = setInterval(pollStatus, 2000)
       return () => clearInterval(interval)
     }
-  }, [isComposing, composeStatus.status, pollStatus])
+  }, [isPageVisible, isComposing, composeStatus.status, pollStatus])
 
   // 组件初始化时检查项目状态
   useEffect(() => {
     // 如果项目已经完成，直接获取完成状态
     if (project.step_6_status === 'completed' && composeStatus.status !== 'completed') {
-      console.log('[Step6] Detected completed status, fetching final video')
+      if (debugEnabled) console.log('[VA_DEBUG][Step6] Detected completed status, fetching final video')
       pollStatus()
-    } else if (project.step_6_status === 'processing' && !isComposing) {
-      // 如果正在处理中，开始轮询
-      console.log('[Step6] Detected processing status, starting polling')
+    } else if (project.step_6_status === 'processing' && !isComposing && composeStatus.status !== 'completed') {
+      // 🔥 修复：只有在 composeStatus 不是 completed 时才设置为 processing
+      // 避免轮询完成后，因为父组件状态更新延迟而重新设置为 processing
+      if (debugEnabled) console.log('[VA_DEBUG][Step6] Detected processing status, starting polling')
       setComposeStatus({ status: 'processing', progress: 50 })
       setIsComposing(true)
+      // 初始化模拟进度基准，避免从 0 频繁更新
+      lastSimulatedProgressRef.current = 50
+      setSimulatedProgress(50)
     }
   }, [project.step_6_status, composeStatus.status, isComposing, pollStatus])
 
-  // 模拟进度增长
+  // 模拟进度增长 - 🔥 优化：继续增长到 98%，减少卡顿感
   useEffect(() => {
+    if (!isPageVisible) return
     if (composeStatus.status === 'processing') {
       const progressInterval = setInterval(() => {
-        setSimulatedProgress((prev) => {
-          // 慢慢增长到 95%，最后 5% 等待实际完成
-          if (prev < 95) {
-            return Math.min(prev + Math.random() * 3, 95)
-          }
-          return prev
-        })
-      }, 1000)
+        const prev = lastSimulatedProgressRef.current
+        let next = prev
+
+        // 🔥 优化：慢慢增长到 98%（原来是 95%），最后 2% 等待实际完成
+        // 95-98% 区间增长更慢，给用户更好的反馈
+        if (prev < 90) {
+          // 0-90%：正常增长速度
+          next = Math.min(prev + Math.random() * 4, 90)
+        } else if (prev < 98) {
+          // 90-98%：放慢增长速度（模拟字幕渲染阶段）
+          next = Math.min(prev + Math.random() * 1.5, 98)
+        }
+        // 98-100%：等待实际完成
+
+        // 只在整数百分比发生变化时触发一次 setState（大幅降低重渲染频率）
+        const prevInt = Math.round(prev)
+        const nextInt = Math.round(next)
+        lastSimulatedProgressRef.current = next
+        if (nextInt !== prevInt) {
+          setSimulatedProgress(next)
+        }
+      }, 400)
 
       return () => clearInterval(progressInterval)
     }
-  }, [composeStatus.status])
+  }, [isPageVisible, composeStatus.status])
 
   const handleStartCompose = async () => {
     setIsComposing(true)
     setError(null)
 
     try {
-      const response = await fetch(`/api/video-agent/projects/${project.id}/compose`, {
-        method: 'POST'
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to start composition')
-      }
+      await composeVideo(project.id)
 
       setComposeStatus({ status: 'processing', progress: 0 })
+      lastSimulatedProgressRef.current = 0
       setSimulatedProgress(0)
       pollStatus()
     } catch (err: any) {
@@ -150,8 +195,33 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     onComplete()
   }
 
-  // 初始状态：未开始合成
-  if (composeStatus.status === 'pending') {
+  // 🔥 优先级1：合成失败（明确的 failed 状态）
+  if (composeStatus.status === 'failed') {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">❌</div>
+          <h3 className="text-xl font-bold mb-2">Composition Failed</h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            {error || composeStatus.message || 'An unexpected error occurred during video composition'}
+          </p>
+        </div>
+
+        <div className="flex justify-center gap-4">
+          <Button onClick={handleStartCompose} variant="outline" size="lg">
+            Try Again
+          </Button>
+          <Button onClick={handleComplete} size="lg">
+            Close
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // 🔥 优先级2：初始状态/未开始合成（pending 或其他未知状态）
+  if (composeStatus.status === 'pending' ||
+      (composeStatus.status !== 'processing' && composeStatus.status !== 'completed')) {
     return (
       <div className="space-y-8">
         {/* Composition Summary */}
@@ -220,15 +290,24 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     )
   }
 
-  // 合成中
+  // 🔥 优先级3：合成中
   if (composeStatus.status === 'processing') {
+    // 🔥 根据进度显示不同的阶段提示
+    const getProgressMessage = (progress: number) => {
+      if (progress < 30) return 'Preparing video clips...'
+      if (progress < 60) return 'Merging video segments...'
+      if (progress < 85) return 'Adding transitions and effects...'
+      if (progress < 95) return 'Rendering subtitles...'
+      return 'Finalizing video...'
+    }
+
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="inline-block w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-6" />
           <h3 className="text-xl font-bold mb-2">Composing Your Video...</h3>
           <p className="text-muted-foreground">
-            {composeStatus.message || 'This may take a minute or two'}
+            {composeStatus.message || getProgressMessage(simulatedProgress)}
           </p>
         </div>
 
@@ -259,12 +338,13 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     )
   }
 
-  // 合成完成
-  console.log('[Step6] Render check:', {
-    status: composeStatus.status,
-    hasFinalVideo: !!composeStatus.finalVideo,
-    finalVideo: composeStatus.finalVideo
-  })
+  // 🔥 优先级4：合成完成
+  if (debugEnabled) {
+    console.log('[VA_DEBUG][Step6] Render check:', {
+      status: composeStatus.status,
+      hasFinalVideo: !!composeStatus.finalVideo
+    })
+  }
 
   if (composeStatus.status === 'completed' && composeStatus.finalVideo) {
     const { url, file_size, resolution, duration } = composeStatus.finalVideo
@@ -326,24 +406,14 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     )
   }
 
-  // 合成失败
+  // 🔥 Fallback: 不应该到达这里，但为了类型安全，返回 pending 状态
+  console.warn('[Step6] Unexpected render state:', { status: composeStatus.status })
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center py-12">
-        <div className="text-6xl mb-4">❌</div>
-        <h3 className="text-xl font-bold mb-2">Composition Failed</h3>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          {error || 'An unexpected error occurred during video composition'}
-        </p>
-      </div>
-
-      <div className="flex justify-center gap-4">
-        <Button onClick={handleStartCompose} variant="outline" size="lg">
-          Try Again
-        </Button>
-        <Button onClick={handleComplete} size="lg">
-          Close
-        </Button>
+        <div className="inline-block w-16 h-16 border-4 border-muted border-t-primary rounded-full animate-spin mb-6" />
+        <h3 className="text-xl font-bold mb-2">Loading...</h3>
+        <p className="text-muted-foreground">Initializing composition...</p>
       </div>
     </div>
   )
