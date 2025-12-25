@@ -15,6 +15,9 @@ import InputStage from './components/InputStage'
 import StepDialog from './components/StepDialog'
 import ProjectList from './components/ProjectList'
 
+// 🔥 禁用静态生成（页面已隐藏，无需预渲染）
+export const dynamic = 'force-dynamic'
+
 export default function VideoAgentBetaPage() {
   const router = useRouter()
   const authModal = useAuthModal()

@@ -1,10 +1,13 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Navbar } from "@/components/navbar"
 import { CreateSidebar } from "@/components/create/create-sidebar"
 import { useIsMobile } from "@/hooks/use-mobile"
+
+// 🔥 禁用静态生成（CreateSidebar 使用了 useSearchParams）
+export const dynamic = 'force-dynamic'
 
 export default function VideoAgentLayout({
   children,
@@ -29,10 +32,12 @@ export default function VideoAgentLayout({
       <div className="flex h-screen pt-16">
         {/* Sidebar - Hidden on mobile, shown as tabs instead */}
         {!isMobile && (
-          <CreateSidebar
-            isOpen={sidebarOpen}
-            onToggle={() => setSidebarOpen(!sidebarOpen)}
-          />
+          <Suspense fallback={<div className="w-64" />}>
+            <CreateSidebar
+              isOpen={sidebarOpen}
+              onToggle={() => setSidebarOpen(!sidebarOpen)}
+            />
+          </Suspense>
         )}
 
         {/* Main Content */}
