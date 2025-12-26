@@ -10,6 +10,7 @@ import { generateSingleStoryboard, IMAGE_STYLES } from '@/lib/services/video-age
 import type { CharacterConfig, Shot, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
 import type { Database } from '@/lib/database.types'
+import pLimit from 'p-limit'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectStoryboard = Database['public']['Tables']['project_storyboards']['Row']
@@ -27,47 +28,17 @@ type CharacterWithFullReferences = ProjectCharacter & {
 }
 
 /**
- * 并发控制工具 - 限制同时执行的 Promise 数量
- * 避免一次性发起过多并发请求导致超时或资源耗尽
+ * ✅ 优化：使用 p-limit 库替代自己实现的并发控制
+ * 避免自己实现的 Bug（splice 逻辑错误）
  */
-async function pLimit<T>(
-  tasks: (() => Promise<T>)[],
-  concurrency: number
-): Promise<PromiseSettledResult<T>[]> {
-  const results: PromiseSettledResult<T>[] = []
-  const executing: Promise<void>[] = []
-
-  for (let i = 0; i < tasks.length; i++) {
-    const task = tasks[i]
-    const promise = task()
-      .then(value => {
-        results[i] = { status: 'fulfilled', value }
-      })
-      .catch(reason => {
-        results[i] = { status: 'rejected', reason }
-      })
-
-    executing.push(promise)
-
-    if (executing.length >= concurrency) {
-      await Promise.race(executing)
-      // 移除已完成的 promise
-      executing.splice(0, executing.findIndex(p => p === promise) + 1)
-    }
-  }
-
-  await Promise.all(executing)
-  return results
-}
 
 /**
- * 异步生成分镜图（后台任务）
- * 生成完一张立即更新数据库
+ * ✅ 优化后的分镜图生成函数
  *
- * 🔥 v2.0 优化：
- * - 添加并发控制，避免同时发起过多请求
- * - 默认并发数 3，可通过环境变量配置
- * - 单个图片超时后会自动重试，不影响其他图片
+ * 关键改进：
+ * - 使用 p-limit 库（稳定可靠）
+ * - 并发数 3（可配置）
+ * - 生成完一张立即更新数据库
  */
 async function generateStoryboardsAsync(
   projectId: string,
@@ -76,8 +47,6 @@ async function generateStoryboardsAsync(
   style: ImageStyle,
   aspectRatio: '16:9' | '9:16' = '16:9'
 ) {
-  // 🔥 并发控制：避免同时发起过多请求
-  // 线上环境建议 2-3 个并发，本地开发可以设置更高
   const CONCURRENCY = parseInt(process.env.STORYBOARD_CONCURRENCY || '3', 10)
 
   console.log('[Video Agent] Starting async storyboard generation', {
@@ -90,65 +59,69 @@ async function generateStoryboardsAsync(
   let successCount = 0
   let failedCount = 0
 
-  // 🔥 使用并发控制生成分镜图
-  const tasks = shots.map((shot) => async () => {
-    try {
-      console.log('[Video Agent] 🎬 Starting storyboard generation', {
-        shotNumber: shot.shot_number,
-        progress: `${successCount + failedCount + 1}/${shots.length}`
-      })
+  // ✅ 使用 p-limit 库
+  const limit = pLimit(CONCURRENCY)
 
-      const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
+  const tasks = shots.map((shot) =>
+    limit(async () => {
+      try {
+        console.log('[Video Agent] 🎬 Starting storyboard generation', {
+          shotNumber: shot.shot_number,
+          progress: `${successCount + failedCount + 1}/${shots.length}`
+        })
 
-      // 立即更新数据库
-      await supabaseAdmin
-        .from('project_storyboards')
-        .update({
-          image_url: result.image_url,
+        const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
+
+        // 立即更新数据库
+        await supabaseAdmin
+          .from('project_storyboards')
+          .update({
+            image_url: result.image_url,
+            status: result.status,
+            error_message: result.error,
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('project_id', projectId)
+          .eq('shot_number', shot.shot_number)
+          .returns<any>()
+
+        if (result.status === 'success') {
+          successCount++
+        } else {
+          failedCount++
+        }
+
+        console.log('[Video Agent] ✅ Storyboard generated', {
+          projectId,
+          shotNumber: shot.shot_number,
           status: result.status,
-          error_message: result.error,
-          updated_at: new Date().toISOString()
-        } as any)
-        .eq('project_id', projectId)
-        .eq('shot_number', shot.shot_number)
-        .returns<any>()
+          progress: `${successCount + failedCount}/${shots.length}`
+        })
 
-      if (result.status === 'success') {
-        successCount++
-      } else {
+        return result
+      } catch (error) {
         failedCount++
+        console.error('[Video Agent] ❌ Failed to generate storyboard:', error)
+
+        // 更新为失败状态
+        await supabaseAdmin
+          .from('project_storyboards')
+          .update({
+            status: 'failed',
+            error_message: error instanceof Error ? error.message : 'Unknown error',
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('project_id', projectId)
+          .eq('shot_number', shot.shot_number)
+          .returns<any>()
+
+        return null
       }
+    })
+  )
 
-      console.log('[Video Agent] ✅ Storyboard generated', {
-        projectId,
-        shotNumber: shot.shot_number,
-        status: result.status,
-        progress: `${successCount + failedCount}/${shots.length}`
-      })
-
-      return result
-    } catch (error) {
-      failedCount++
-      console.error('[Video Agent] ❌ Failed to generate storyboard:', error)
-
-      // 更新为失败状态
-      await supabaseAdmin
-        .from('project_storyboards')
-        .update({
-          status: 'failed',
-          error_message: error instanceof Error ? error.message : 'Unknown error',
-          updated_at: new Date().toISOString()
-        } as any)
-        .eq('project_id', projectId)
-        .eq('shot_number', shot.shot_number)
-        .returns<any>()
-
-      return null
-    }
-  })
-
-  // 使用并发控制执行任务
-  await pLimit(tasks, CONCURRENCY)
+  // ✅ 使用 Promise.allSettled 等待所有任务完成
+  await Promise.allSettled(tasks)
 
   // 更新项目状态
   const finalStatus = failedCount === 0 ? 'completed' : failedCount === shots.length ? 'failed' : 'partial'

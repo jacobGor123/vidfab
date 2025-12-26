@@ -8,6 +8,7 @@ import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { checkVideoStatus } from '@/lib/services/byteplus/video/seedance-api'
 import type { Database } from '@/lib/database.types'
+import pLimit from 'p-limit'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
@@ -97,9 +98,11 @@ export const GET = withAuth(async (request, { params, userId }) => {
       }))
     })
 
-    // 查询正在生成中的视频状态
+    // ✅ 优化：限制并发查询外部服务（避免触发速率限制）
+    const limit = pLimit(3)
+
     const clipsWithUpdatedStatus = await Promise.all(
-      videoClips.map(async (clip) => {
+      videoClips.map((clip) => limit(async () => {
         // 如果状态是 generating 且有 video_request_id（Veo3），查询 Veo3 状态
         if (clip.status === 'generating' && clip.video_request_id) {
           try {
@@ -215,7 +218,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
         }
 
         return clip
-      })
+      }))
     )
 
     // 统计状态

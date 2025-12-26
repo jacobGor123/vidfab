@@ -105,13 +105,11 @@ export function useVideoGeneration({
         statuses: Array.isArray(data) ? data.map((c: any) => ({ shot: c.shot_number, status: c.status, hasUrl: !!c.video_url })) : 'N/A'
       })
 
-      // 轮询去重：只在关键字段变化时才更新 state/store
+      // ✅ 优化：使用 updated_at 时间戳检测变化（更可靠）
       const signature = Array.isArray(data)
         ? data
             .map((clip: any) => {
-              const url = clip?.video_url || ''
-              const err = clip?.error_message || ''
-              return `${clip?.shot_number}:${clip?.status}:${url.length}:${err}`
+              return `${clip?.shot_number}:${clip?.updated_at || ''}`
             })
             .join('|')
         : ''

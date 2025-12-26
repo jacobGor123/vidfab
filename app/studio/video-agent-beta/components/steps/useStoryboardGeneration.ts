@@ -66,13 +66,11 @@ export function useStoryboardGeneration({
     try {
       const data = await getStoryboardsStatus(project.id)
 
-      // 轮询去重：只在关键字段变化时才更新 state/store
+      // ✅ 优化：使用 updated_at 时间戳检测变化（更可靠）
       const signature = Array.isArray(data)
         ? data
             .map((sb: any) => {
-              const url = sb?.image_url || ''
-              const err = sb?.error_message || ''
-              return `${sb?.shot_number}:${sb?.status}:${url.length}:${err}`
+              return `${sb?.shot_number}:${sb?.updated_at || ''}`
             })
             .join('|')
         : ''
