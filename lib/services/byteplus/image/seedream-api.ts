@@ -9,9 +9,18 @@ import { convertAspectRatioToSize } from './utils'
 import { BytePlusImageRequest, BytePlusImageResponse } from './types'
 
 // 创建 client，图片生成需要更长的超时时间
+// 🔥 关键配置说明：
+// - 线上环境 (Vercel Pro) 最大函数超时 60 秒
+// - 为避免 Lambda 超时，图片生成超时设置为 50 秒
+// - 如果 50 秒内未完成，会触发重试机制
+// - 总共最多 3 次尝试（1 次初始 + 2 次重试）
+const TIMEOUT_MS = parseInt(process.env.BYTEPLUS_IMAGE_TIMEOUT_MS || '50000', 10)
+const MAX_RETRIES = parseInt(process.env.BYTEPLUS_IMAGE_MAX_RETRIES || '2', 10)
+
 const client = new BytePlusClient({
-  timeoutMs: 120000, // 120 秒超时（2分钟）- 图片生成可能需要更长时间
-  maxRetries: 2 // 最多重试2次，总共3次尝试
+  timeoutMs: TIMEOUT_MS, // 默认 50 秒，避免 Vercel Lambda 60秒超时
+  maxRetries: MAX_RETRIES, // 最多重试2次，总共3次尝试
+  enableRetry: true
 })
 
 // 使用 Seedream 4.5 模型 (支持角色一致性)

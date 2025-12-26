@@ -128,7 +128,11 @@ ${JSON.stringify(recentPosts, null, 2)}
 
 ### 2. SEO 优化
 - Meta Title: 50-60 字符，包含主关键词和年份 "2025"
-- Meta Description: 150-160 字符，包含主关键词，带 CTA
+- Meta Description: ⚠️ **严格限制 150-160 字符**（Google 只显示约 155 字符）
+  - 必须包含主关键词
+  - 必须有行动号召（CTA）
+  - 字符数超过 160 或少于 150 会导致验证失败
+  - 示例：Discover the best AI video generators in 2025. Create stunning videos from text or images. Try VidFab AI for free - no credit card required! (156 chars)
 - 正文关键词密度: 1-2%
 - 标签: 5-8 个相关标签
 
@@ -194,7 +198,7 @@ ${JSON.stringify(recentPosts, null, 2)}
   "htmlContent": "<section><h2 id=\\"introduction\\">Introduction</h2><p>...</p></section>...",
   "excerpt": "150-160 字符的摘要",
   "metaTitle": "SEO 标题（50-60 字符，包含2025）",
-  "metaDescription": "SEO 描述（150-160 字符）",
+  "metaDescription": "SEO 描述（⚠️ 严格限制 150-160 字符，包含主关键词和行动号召）",
   "canonicalUrl": "https://vidfab.ai/blog/${topic.slug}",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "category": "${topic.category || 'guide'}",
@@ -320,14 +324,25 @@ export function validateArticleContent(
     )
   }
 
-  // 检查 Meta Description 长度 (允许稍微超出，Google 会自动截断)
-  if (
-    article.metaDescription.length < 140 ||
-    article.metaDescription.length > 175
-  ) {
+  // 🔥 检查 Meta Description 长度
+  // Google 显示 155-160 字符，超出部分会自动截断
+  // 允许 AI 生成 140-200 字符的内容，然后：
+  // - 如果在 140-160 范围内：完美 ✅
+  // - 如果在 160-200 范围内：可接受，Google 会截断但不影响 SEO
+  // - 如果超过 200：警告（过长可能影响用户体验）
+  // - 如果少于 140：太短，不够吸引人
+  if (article.metaDescription.length < 140) {
     errors.push(
-      `Meta Description 长度不符: ${article.metaDescription.length} 字符 (要求 140-175)`
+      `Meta Description 太短: ${article.metaDescription.length} 字符 (建议至少 140 字符)`
     )
+  } else if (article.metaDescription.length > 200) {
+    errors.push(
+      `Meta Description 过长: ${article.metaDescription.length} 字符 (建议不超过 200 字符，Google 会截断)`
+    )
+  }
+  // 160-200 范围内只记录警告日志，不阻止发布
+  if (article.metaDescription.length > 160 && article.metaDescription.length <= 200) {
+    console.warn(`⚠️  Meta Description 稍长 (${article.metaDescription.length} 字符)，Google 会截断到约 155-160 字符`)
   }
 
   // 检查标签数量

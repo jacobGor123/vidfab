@@ -27,8 +27,47 @@ type CharacterWithFullReferences = ProjectCharacter & {
 }
 
 /**
+ * 并发控制工具 - 限制同时执行的 Promise 数量
+ * 避免一次性发起过多并发请求导致超时或资源耗尽
+ */
+async function pLimit<T>(
+  tasks: (() => Promise<T>)[],
+  concurrency: number
+): Promise<PromiseSettledResult<T>[]> {
+  const results: PromiseSettledResult<T>[] = []
+  const executing: Promise<void>[] = []
+
+  for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i]
+    const promise = task()
+      .then(value => {
+        results[i] = { status: 'fulfilled', value }
+      })
+      .catch(reason => {
+        results[i] = { status: 'rejected', reason }
+      })
+
+    executing.push(promise)
+
+    if (executing.length >= concurrency) {
+      await Promise.race(executing)
+      // 移除已完成的 promise
+      executing.splice(0, executing.findIndex(p => p === promise) + 1)
+    }
+  }
+
+  await Promise.all(executing)
+  return results
+}
+
+/**
  * 异步生成分镜图（后台任务）
  * 生成完一张立即更新数据库
+ *
+ * 🔥 v2.0 优化：
+ * - 添加并发控制，避免同时发起过多请求
+ * - 默认并发数 3，可通过环境变量配置
+ * - 单个图片超时后会自动重试，不影响其他图片
  */
 async function generateStoryboardsAsync(
   projectId: string,
@@ -37,18 +76,28 @@ async function generateStoryboardsAsync(
   style: ImageStyle,
   aspectRatio: '16:9' | '9:16' = '16:9'
 ) {
+  // 🔥 并发控制：避免同时发起过多请求
+  // 线上环境建议 2-3 个并发，本地开发可以设置更高
+  const CONCURRENCY = parseInt(process.env.STORYBOARD_CONCURRENCY || '3', 10)
+
   console.log('[Video Agent] Starting async storyboard generation', {
     projectId,
     shotCount: shots.length,
-    aspectRatio
+    aspectRatio,
+    concurrency: CONCURRENCY
   })
 
   let successCount = 0
   let failedCount = 0
 
-  // 并行生成所有分镜图，每完成一张立即保存
-  const generatePromises = shots.map(async (shot) => {
+  // 🔥 使用并发控制生成分镜图
+  const tasks = shots.map((shot) => async () => {
     try {
+      console.log('[Video Agent] 🎬 Starting storyboard generation', {
+        shotNumber: shot.shot_number,
+        progress: `${successCount + failedCount + 1}/${shots.length}`
+      })
+
       const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
 
       // 立即更新数据库
@@ -70,7 +119,7 @@ async function generateStoryboardsAsync(
         failedCount++
       }
 
-      console.log('[Video Agent] Storyboard generated', {
+      console.log('[Video Agent] ✅ Storyboard generated', {
         projectId,
         shotNumber: shot.shot_number,
         status: result.status,
@@ -80,7 +129,7 @@ async function generateStoryboardsAsync(
       return result
     } catch (error) {
       failedCount++
-      console.error('[Video Agent] Failed to generate storyboard:', error)
+      console.error('[Video Agent] ❌ Failed to generate storyboard:', error)
 
       // 更新为失败状态
       await supabaseAdmin
@@ -98,8 +147,8 @@ async function generateStoryboardsAsync(
     }
   })
 
-  // 等待所有生成完成
-  await Promise.allSettled(generatePromises)
+  // 使用并发控制执行任务
+  await pLimit(tasks, CONCURRENCY)
 
   // 更新项目状态
   const finalStatus = failedCount === 0 ? 'completed' : failedCount === shots.length ? 'failed' : 'partial'
