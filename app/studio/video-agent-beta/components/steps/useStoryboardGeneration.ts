@@ -89,8 +89,8 @@ export function useStoryboardGeneration({
         })
       }
 
-      // 只有当返回数据不为空时才更新
-      if (data && data.length > 0) {
+      // ✅ 总是更新状态（包括空数组）
+      if (data) {
         setStoryboards(data)
         onUpdate({ storyboards: data })
       }
@@ -148,7 +148,9 @@ export function useStoryboardGeneration({
 
     try {
       await generateStoryboards(project.id)
-      // 开始轮询（useEffect 会自动触发）
+      // ✅ 立即轮询一次，获取刚创建的 generating 记录
+      await pollStatus()
+      // 后续轮询由 useEffect 自动触发
     } catch (err: any) {
       setError(err.message)
       setIsGenerating(false)
