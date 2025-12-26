@@ -69,11 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.5,
     },
-    {
-      route: '/studio/discover',
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    },
+    // 注意：/studio/* 页面不应出现在 sitemap 中（用户工作台，需要登录）
     {
       route: '/blog',
       changeFrequency: 'daily' as const,

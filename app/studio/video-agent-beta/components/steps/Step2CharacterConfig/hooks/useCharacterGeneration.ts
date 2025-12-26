@@ -64,9 +64,8 @@ export function useCharacterGeneration({
 
       // 更新角色状态
       const newStates = { ...characterStates }
-      let hasGenerating = false
-      let hasPendingSync = false  // 🔥 是否有等待数据库同步的角色
 
+      // 🔥 步骤 1: 从数据库同步状态到本地
       data.forEach((char: any) => {
         const characterName = char.character_name
         if (newStates[characterName]) {
@@ -79,27 +78,38 @@ export function useCharacterGeneration({
             newStates[characterName].isGenerating = false
             newStates[characterName].error = undefined
           } else if (localImageUrl && !newStates[characterName].isGenerating) {
-            // 🔥 本地有图片但数据库还没有，且不在生成中
-            // 保留本地图片，不要被覆盖（可能是数据库同步延迟）
-            console.log(`[Character Generation] Keeping local image for ${characterName} (DB sync pending)`)
-            hasPendingSync = true  // 🔥 标记为需要继续轮询
-          } else if (newStates[characterName].isGenerating) {
-            // 没有图片但标记为生成中，继续轮询
-            hasGenerating = true
+            // ✅ 本地有图片但数据库还没有，且不在生成中
+            // 这是正常情况（数据库同步延迟），保留本地图片即可
+            console.log(`[Character Generation] Keeping local image for ${characterName} (DB sync in progress)`)
+            // ✅ 不再设置 hasPendingSync，数据库同步是后台操作，不影响用户体验
           }
         }
       })
 
       setCharacterStates(newStates)
 
-      // 🔥 智能控制轮询：只有没有正在生成的角色，且没有等待同步的角色时，才停止轮询
-      const shouldPoll = hasGenerating || hasPendingSync
-      if (!shouldPoll && isPollingRef.current) {
-        console.log('[Character Generation] Stopping polling - all characters synced')
+      // 🔥 步骤 2: 检查所有本地角色状态（不仅仅是数据库中的）
+      const hasGenerating = Object.values(newStates).some(state => state.isGenerating)
+
+      // 🔍 调试日志：显示所有角色的状态
+      console.log('[Character Generation] Poll status check:', {
+        hasGenerating,
+        isPolling: isPollingRef.current,
+        characterStates: Object.entries(newStates).map(([name, state]) => ({
+          name,
+          isGenerating: state.isGenerating,
+          hasImage: !!state.imageUrl,
+          hasError: !!state.error
+        }))
+      })
+
+      // ✅ 轮询控制：只在轮询已启动的情况下检查是否停止
+      if (!hasGenerating && isPollingRef.current) {
+        console.log('[Character Generation] 🛑 Stopping polling - all generation completed')
         setIsPolling(false)
-      } else if (shouldPoll && !isPollingRef.current) {
-        console.log('[Character Generation] Starting polling - found generating or pending characters')
-        setIsPolling(true)
+      } else if (hasGenerating && !isPollingRef.current) {
+        // ⚠️ 这里不应该自动启动轮询！只有批量生成时才手动启动
+        console.warn('[Character Generation] ⚠️ Detected generating characters but polling not started. This should not happen for single generation.')
       }
     } catch (err) {
       console.error('[Character Generation] Failed to poll status:', err)
@@ -118,14 +128,8 @@ export function useCharacterGeneration({
     }
   }, [isPolling, pollCharacterStatus])
 
-  // 检查是否有正在生成的角色，自动启动轮询
-  useEffect(() => {
-    const hasGenerating = Object.values(characterStates).some(state => state.isGenerating)
-    if (hasGenerating && !isPolling) {
-      console.log('[Character Generation] Starting polling - detected generating characters')
-      setIsPolling(true)
-    }
-  }, [characterStates, isPolling])
+  // ✅ 不再自动启动轮询，只在批量生成时手动启动
+  // 单个生成是同步操作，不需要轮询
 
   // 自动生成 Prompts
   const handleGeneratePrompts = async () => {
@@ -307,10 +311,8 @@ export function useCharacterGeneration({
         // 不影响用户体验，只是数据库保存失败
       }
 
-      // 🔥 延迟1秒后启动轮询（确保数据库已完成写入）
-      setTimeout(() => {
-        setIsPolling(true)
-      }, 1000)
+      // ✅ 单个生成是同步操作，已经有最终结果，不需要轮询
+      console.log(`[Character Generation] Single generation completed for ${characterName}, no polling needed`)
     } catch (err: any) {
       console.error(`[Character Generation] Failed to generate ${characterName}:`, err)
       setCharacterStates(prev => ({

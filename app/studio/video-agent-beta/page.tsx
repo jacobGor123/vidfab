@@ -51,6 +51,7 @@ export default function VideoAgentBetaPage() {
     originalScript: string
     aspectRatio: '16:9' | '9:16'
     enableNarration: boolean
+    muteBgm: boolean
   }) => {
     // 检查登录状态
     if (!authModal.isAuthenticated) {

@@ -6,7 +6,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -17,7 +17,9 @@ import {
   Clapperboard,
   Layout,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Volume2,
+  VolumeX
 } from 'lucide-react'
 import InspirationDialog from './InspirationDialog'
 import VideoUploadDialog from './VideoUploadDialog'
@@ -50,6 +52,7 @@ interface InputStageProps {
     originalScript: string
     aspectRatio: '16:9' | '9:16'
     enableNarration: boolean
+    muteBgm: boolean
   }) => Promise<void>
 }
 
@@ -61,6 +64,7 @@ export default function InputStage({ onStart }: InputStageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9')
   const [enableNarration, setEnableNarration] = useState(false)
+  const [muteBgm, setMuteBgm] = useState(true) // 默认静音 BGM
 
   const [isGeneratingInspiration, setIsGeneratingInspiration] = useState(false)
   const [showInspirationDialog, setShowInspirationDialog] = useState(false)
@@ -68,6 +72,13 @@ export default function InputStage({ onStart }: InputStageProps) {
 
   // 🔥 新增：视频分析相关状态
   const [showVideoDialog, setShowVideoDialog] = useState(false)
+
+  // 当切换到旁白模式时，重置 BGM 为默认状态（静音）
+  useEffect(() => {
+    if (enableNarration) {
+      setMuteBgm(true)
+    }
+  }, [enableNarration])
 
   const handleSubmit = async () => {
     if (!script.trim()) {
@@ -82,7 +93,8 @@ export default function InputStage({ onStart }: InputStageProps) {
         storyStyle,
         originalScript: script,
         aspectRatio,
-        enableNarration
+        enableNarration,
+        muteBgm
       })
     } catch (error: any) {
       showError(error.message)
@@ -240,18 +252,40 @@ export default function InputStage({ onStart }: InputStageProps) {
 
             <div className="space-y-3">
               <Label className="text-white/50 text-xs font-bold uppercase tracking-widest pl-1">Audio</Label>
-              <button
-                onClick={() => setEnableNarration(!enableNarration)}
-                className={cn(
-                  "flex items-center gap-2 px-5 py-3 rounded-xl border transition-all text-sm font-medium",
-                  enableNarration
-                    ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-900/20"
-                    : "bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:border-white/10"
-                )}
-              >
-                <Mic className="w-4 h-4" />
-                <span>{enableNarration ? "Narration On" : "Narration Off"}</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setEnableNarration(!enableNarration)}
+                  className={cn(
+                    "flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all text-sm font-medium",
+                    enableNarration
+                      ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-900/20"
+                      : "bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:border-white/10"
+                  )}
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>{enableNarration ? "Narration On" : "Narration Off"}</span>
+                </button>
+
+                <button
+                  onClick={() => !enableNarration && setMuteBgm(!muteBgm)}
+                  disabled={enableNarration}
+                  className={cn(
+                    "flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all text-sm font-medium",
+                    enableNarration
+                      ? "bg-white/5 border-white/5 text-white/20 cursor-not-allowed"
+                      : muteBgm
+                      ? "bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:border-white/10"
+                      : "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/20"
+                  )}
+                >
+                  {muteBgm ? (
+                    <VolumeX className="w-4 h-4" />
+                  ) : (
+                    <Volume2 className="w-4 h-4" />
+                  )}
+                  <span>Background Music</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -25,6 +25,7 @@ export interface Database {
           original_script: string
           aspect_ratio: '16:9' | '9:16'
           enable_narration: boolean
+          mute_bgm: boolean
           status: string
           current_step: number
           script_analysis: Json | null
@@ -56,6 +57,7 @@ export interface Database {
           original_script: string
           aspect_ratio?: '16:9' | '9:16'
           enable_narration?: boolean
+          mute_bgm?: boolean
           status?: string
           current_step?: number
           script_analysis?: Json | null
@@ -87,6 +89,7 @@ export interface Database {
           original_script?: string
           aspect_ratio?: '16:9' | '9:16'
           enable_narration?: boolean
+          mute_bgm?: boolean
           status?: string
           current_step?: number
           script_analysis?: Json | null

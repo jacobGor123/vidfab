@@ -65,7 +65,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
       return NextResponse.json({
         success: true,
-        imageUrl: result.imageUrl
+        data: {
+          imageUrl: result.imageUrl
+        }
       })
     } catch (apiError) {
       console.error('[Video Agent] Image generation failed:', apiError)

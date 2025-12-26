@@ -96,6 +96,9 @@ export interface VideoAgentProject {
   duration: number
   story_style: string
   original_script: string
+  aspect_ratio?: '16:9' | '9:16'
+  enable_narration?: boolean
+  mute_bgm?: boolean
 
   // 步骤数据
   script_analysis?: ScriptAnalysis

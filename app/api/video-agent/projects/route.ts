@@ -21,6 +21,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       original_script: string
       aspect_ratio?: '16:9' | '9:16'
       enable_narration?: boolean
+      mute_bgm?: boolean
     }
 
     try {
@@ -38,7 +39,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       story_style: storyStyle,
       original_script: originalScript,
       aspect_ratio: aspectRatio = '16:9',
-      enable_narration: enableNarration = false
+      enable_narration: enableNarration = false,
+      mute_bgm: muteBgm = true
     } = body
 
     if (!duration || ![15, 30, 45, 60].includes(duration)) {
@@ -77,7 +79,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       storyStyle,
       scriptLength: originalScript.length,
       aspectRatio,
-      enableNarration
+      enableNarration,
+      muteBgm
     })
 
     // 创建项目
@@ -90,6 +93,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         original_script: originalScript,
         aspect_ratio: aspectRatio,
         enable_narration: enableNarration,
+        mute_bgm: muteBgm,
         status: 'draft',
         current_step: 1
       })
@@ -107,7 +111,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
     console.log('[Video Agent] Project created successfully', {
       projectId: data.id,
       aspectRatio: data.aspect_ratio,
-      enableNarration: data.enable_narration
+      enableNarration: data.enable_narration,
+      muteBgm: data.mute_bgm
     })
 
     return NextResponse.json({

@@ -281,9 +281,10 @@ export const POST = withAuth(async (request, { params, userId }) => {
       shotCount: shots.length
     })
 
-    // 🔥 并行启动 Suno 音乐生成（仅非旁白模式）
+    // 🔥 并行启动 Suno 音乐生成（仅非旁白模式且未静音 BGM）
     // 旁白模式下不生成背景音乐，避免与旁白音频冲突
-    if (project.music_generation_prompt && !project.enable_narration) {
+    // mute_bgm 为 true 时也不生成背景音乐
+    if (project.music_generation_prompt && !project.enable_narration && !project.mute_bgm) {
       const musicPrompt = project.music_generation_prompt // 保存到局部变量避免类型检查问题
       Promise.resolve().then(async () => {
         try {
@@ -322,8 +323,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
           // 音乐生成失败不影响主流程
         }
       })
-    } else if (project.enable_narration) {
-      console.log('[Video Agent] 🎵 Skipping music generation (narration mode enabled)', { projectId })
+    } else {
+      if (project.enable_narration) {
+        console.log('[Video Agent] 🎵 Skipping music generation (narration mode enabled)', { projectId })
+      } else if (project.mute_bgm) {
+        console.log('[Video Agent] 🎵 Skipping music generation (BGM muted)', { projectId })
+      }
     }
 
     // 立即返回，后台异步生成

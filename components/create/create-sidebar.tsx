@@ -102,8 +102,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
     'text-to-video': '/studio/text-to-video',
     'image-to-video': '/studio/image-to-video',
     'video-effects': '/studio/ai-video-effects',
-    // 🔥 Video Agent 路由已隐藏（保留占位符以满足 TypeScript）
-    'video-agent': '', // 空字符串占位，菜单中已移除
+    'video-agent': '/studio/video-agent-beta',
     'text-to-image': '/studio/text-to-image',
     'image-to-image': '/studio/image-to-image',
     'my-assets': '/studio/my-assets',
