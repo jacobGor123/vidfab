@@ -54,6 +54,24 @@ export const POST = withAuth(async (request, { params, userId }) => {
       duration: project.duration
     })
 
+    // 🔥 检查是否已经保存过（防止重复保存）
+    const wavespeedRequestId = `video-agent-${projectId}`
+    const existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
+
+    if (existingVideo) {
+      console.log('[Video Agent] ℹ️ Video already saved to my-assets', {
+        videoId: existingVideo.id
+      })
+      return NextResponse.json({
+        success: true,
+        data: {
+          videoId: existingVideo.id,
+          message: 'Video already in My Assets',
+          alreadyExists: true
+        }
+      })
+    }
+
     // 构建 prompt（使用用户输入 + 主题）
     let prompt = project.script_analysis?.user_input || 'Video Agent Generated Video'
     if (project.script_analysis?.theme) {
