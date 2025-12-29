@@ -12,8 +12,8 @@ interface ShotstackClip {
   start: number
   length: number
   transition?: {
-    in: 'fade' | 'crossfade'
-    out: 'fade' | 'crossfade'
+    in?: 'fade' | 'fadeSlow' | 'fadeFast' | 'reveal' | 'wipeLeft' | 'slideLeft'
+    out?: 'fade' | 'fadeSlow' | 'fadeFast' | 'reveal' | 'wipeRight' | 'slideRight'
   }
 }
 
@@ -70,8 +70,8 @@ export async function concatenateVideosWithShotstack(
       length: duration,
       // 添加淡入淡出过渡效果
       transition: {
-        in: i === 0 ? 'fade' : 'crossfade',
-        out: i === videoUrls.length - 1 ? 'fade' : 'crossfade'
+        in: 'fade',
+        out: 'fade'
       }
     })
 
