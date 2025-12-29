@@ -259,10 +259,12 @@ export default function VideoUploadDialog({
     </Dialog>
 
     {/* 登录认证弹框 */}
-    <UnifiedAuthModal
-      isOpen={authModal.isAuthModalOpen}
-      onClose={authModal.hideAuthModal}
-    />
+    <Dialog open={authModal.isAuthModalOpen} onOpenChange={() => authModal.hideAuthModal()}>
+      <DialogContent className="p-0 max-w-md">
+        <DialogTitle className="sr-only">user login</DialogTitle>
+        <UnifiedAuthModal className="min-h-0 p-0" />
+      </DialogContent>
+    </Dialog>
     </>
   )
 }

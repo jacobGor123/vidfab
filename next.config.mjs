@@ -68,6 +68,40 @@ const nextConfig = {
     instrumentationHook: true,
   },
 
+  // 🔥 确保 FFmpeg 二进制被打包进 Vercel Serverless
+  outputFileTracingIncludes: {
+    '/api/video-agent/**': [
+      './node_modules/@ffmpeg-installer/**',
+    ],
+  },
+
+  // 🔥 Webpack 配置：确保 ffmpeg-installer 被打包到 serverless function
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // 不要将 ffmpeg-installer 标记为 external
+      config.externals = config.externals || [];
+
+      // 如果 externals 是函数，需要特殊处理
+      if (typeof config.externals === 'function') {
+        const origExternals = config.externals;
+        config.externals = async (context, request, callback) => {
+          if (request.startsWith('@ffmpeg-installer/')) {
+            return callback();
+          }
+          return origExternals(context, request, callback);
+        };
+      } else if (Array.isArray(config.externals)) {
+        config.externals = config.externals.filter((external) => {
+          if (typeof external === 'string') {
+            return !external.startsWith('@ffmpeg-installer/');
+          }
+          return true;
+        });
+      }
+    }
+    return config;
+  },
+
   // Production build configuration
   ...(process.env.NODE_ENV === 'production' && {
     // Continue build even with warnings in production
