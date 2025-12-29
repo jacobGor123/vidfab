@@ -14,6 +14,8 @@ import { Youtube, Upload, Loader2, AlertCircle, CheckCircle2 } from 'lucide-reac
 import { cn } from '@/lib/utils'
 import { showError } from '@/lib/utils/toast'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
+import { useVideoGenerationAuth } from '@/hooks/use-auth-modal'
+import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
 
 interface VideoUploadDialogProps {
   isOpen: boolean
@@ -33,6 +35,7 @@ export default function VideoUploadDialog({
   aspectRatio
 }: VideoUploadDialogProps) {
   const { analyzeVideo } = useVideoAgentAPI()
+  const authModal = useVideoGenerationAuth()
   const [inputType, setInputType] = useState<'youtube' | 'local'>('youtube')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -54,42 +57,50 @@ export default function VideoUploadDialog({
       }
     }
 
-    setIsAnalyzing(true)
-    setProgress('Analyzing video content...')
+    // 🔥 检查用户登录状态，未登录则弹出登录弹框
+    const success = await authModal.requireAuth(async () => {
+      setIsAnalyzing(true)
+      setProgress('Analyzing video content...')
 
-    try {
-      // 调用视频分析 API
-      const data = await analyzeVideo({
-        videoSource: {
-          type: inputType,
-          url: inputType === 'youtube' ? youtubeUrl : '' // 本地文件暂时留空
-        },
-        duration,
-        storyStyle,
-        aspectRatio
-      })
+      try {
+        // 调用视频分析 API
+        const data = await analyzeVideo({
+          videoSource: {
+            type: inputType,
+            url: inputType === 'youtube' ? youtubeUrl : '' // 本地文件暂时留空
+          },
+          duration,
+          storyStyle,
+          aspectRatio
+        })
 
-      setProgress('Analysis complete!')
+        setProgress('Analysis complete!')
 
-      // 提取脚本内容
-      const scriptContent = generateScriptFromAnalysis(data)
+        // 提取脚本内容
+        const scriptContent = generateScriptFromAnalysis(data)
 
-      // 调用回调函数
-      onVideoAnalyzed(scriptContent)
+        // 调用回调函数
+        onVideoAnalyzed(scriptContent)
 
-      // 关闭对话框
-      setTimeout(() => {
-        onClose()
+        // 关闭对话框
+        setTimeout(() => {
+          onClose()
+          setIsAnalyzing(false)
+          setProgress('')
+          setYoutubeUrl('')
+        }, 500)
+
+      } catch (error: any) {
+        console.error('Video analysis error:', error)
+        showError(error.message || 'Failed to analyze video')
         setIsAnalyzing(false)
         setProgress('')
-        setYoutubeUrl('')
-      }, 500)
+      }
+    })
 
-    } catch (error: any) {
-      console.error('Video analysis error:', error)
-      showError(error.message || 'Failed to analyze video')
-      setIsAnalyzing(false)
-      setProgress('')
+    // 如果未登录，requireAuth 会返回 false 并显示登录弹框
+    if (!success) {
+      console.log('User not authenticated, showing login modal')
     }
   }
 
@@ -120,11 +131,12 @@ export default function VideoUploadDialog({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] bg-slate-950/95 border-white/10 backdrop-blur-xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white">Analyze Video</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[600px] bg-slate-950/95 border-white/10 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-white">Analyze Video</DialogTitle>
+          </DialogHeader>
 
         <div className="space-y-6 pt-4">
           {/* Input Type Selector */}
@@ -245,5 +257,12 @@ export default function VideoUploadDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* 登录认证弹框 */}
+    <UnifiedAuthModal
+      isOpen={authModal.isAuthModalOpen}
+      onClose={authModal.hideAuthModal}
+    />
+    </>
   )
 }
