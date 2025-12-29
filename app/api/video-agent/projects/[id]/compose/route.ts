@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { downloadAllClips, estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
-import { concatenateVideosWithCloudinary, addAudioToVideoWithCloudinary } from '@/lib/services/video-agent/processors/cloudinary-video-concat'
+import { concatenateVideosWithShotstack, addAudioToVideoWithShotstack } from '@/lib/services/video-agent/processors/shotstack-composer'
 import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/types/video-agent'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
 import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
@@ -115,8 +115,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
     })
 
-    // 🔥 使用 Cloudinary 云端服务进行视频合成（无需 FFmpeg）
-    console.log('[Video Agent] 🎞️ Using Cloudinary for video composition (Serverless-friendly)...')
+    // 🔥 使用 Shotstack 云端 API 进行视频合成（无需 FFmpeg）
+    console.log('[Video Agent] 🎞️ Using Shotstack API for video composition (Serverless-friendly)...')
 
     // 更新项目状态为 processing
     console.log('[Video Agent] 💾 Updating project status to processing...')
@@ -210,32 +210,60 @@ async function composeVideoAsync(
   project: any
 ) {
   try {
-    console.log('[Video Agent] 🎬 Starting Cloudinary video composition...')
+    console.log('[Video Agent] 🎬 Starting Shotstack video composition...')
 
-    // 🔥 使用 Cloudinary 云端拼接，无需下载视频到本地
+    // 🔥 使用 Shotstack 云端拼接，无需下载视频到本地
     const videoUrls = clips.map(clip => clip.video_url)
+    const clipDurations = clips.map(clip => clip.duration)
+
     console.log('[Video Agent] 📹 Video clips:', {
       count: videoUrls.length,
-      urls: videoUrls.map((url, i) => `Clip ${i + 1}: ${url.substring(0, 50)}...`)
+      totalDuration: clipDurations.reduce((a, b) => a + b, 0),
+      clips: clips.map((clip, i) => ({
+        shotNumber: clip.shot_number,
+        duration: clip.duration,
+        url: clip.video_url.substring(0, 50) + '...'
+      }))
     })
 
-    // 🔥 步骤 1: 使用 Cloudinary 拼接视频（云端处理，无需 FFmpeg）
-    console.log('[Video Agent] 🔗 Concatenating videos with Cloudinary...')
+    // 🔥 步骤 1: 使用 Shotstack 拼接视频（云端处理，无需 FFmpeg）
+    console.log('[Video Agent] 🔗 Concatenating videos with Shotstack API...')
 
-    const concatenatedUrl = await concatenateVideosWithCloudinary(videoUrls, projectId)
+    const concatenatedUrl = await concatenateVideosWithShotstack(videoUrls, {
+      aspectRatio: project.aspect_ratio || '16:9',
+      clipDurations
+    })
+
     console.log('[Video Agent] ✅ Videos concatenated:', concatenatedUrl)
 
     let finalVideoUrl = concatenatedUrl
 
-    // 🔥 TODO: 旁白和 BGM 功能暂时跳过，后续用 Cloudinary API 实现
-    if (project.enable_narration) {
-      console.log('[Video Agent] ⚠️ Narration not yet supported with Cloudinary (coming soon)')
-    }
-    if (project.music_url && !project.mute_bgm) {
-      console.log('[Video Agent] ⚠️ Background music not yet supported with Cloudinary (coming soon)')
+    // 🔥 步骤 2: 添加背景音乐（如果有且未静音）
+    if (project.music_url && !project.mute_bgm && !project.enable_narration) {
+      console.log('[Video Agent] 🎵 Adding background music...')
+      try {
+        const totalDuration = clipDurations.reduce((a, b) => a + b, 0)
+        finalVideoUrl = await addAudioToVideoWithShotstack(
+          concatenatedUrl,
+          project.music_url,
+          {
+            audioVolume: 0.3, // 背景音乐音量 30%
+            videoDuration: totalDuration
+          }
+        )
+        console.log('[Video Agent] ✅ Background music added')
+      } catch (musicError) {
+        console.error('[Video Agent] ⚠️ Failed to add music, using video without music:', musicError)
+        // 音乐失败不影响主流程
+      }
     }
 
-    // 🔥 步骤 2: 更新项目状态为完成（Cloudinary URL 直接可用）
+    // 🔥 TODO: 旁白功能暂时跳过，后续用 Shotstack API 实现
+    if (project.enable_narration) {
+      console.log('[Video Agent] ⚠️ Narration not yet supported with Shotstack (coming soon)')
+    }
+
+    // 🔥 步骤 3: 更新项目状态为完成（Shotstack URL 直接可用）
     console.log('[Video Agent] 💾 Saving final video URL...')
 
     await supabaseAdmin
@@ -244,7 +272,7 @@ async function composeVideoAsync(
         status: 'completed',
         step_6_status: 'completed',
         final_video_url: finalVideoUrl,
-        final_video_storage_path: `cloudinary:video-agent/${projectId}/concatenated`,
+        final_video_storage_path: `shotstack:${projectId}`,
         completed_at: new Date().toISOString()
       } as any)
       .eq('id', projectId)
