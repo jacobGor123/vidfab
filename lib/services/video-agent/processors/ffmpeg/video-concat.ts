@@ -15,9 +15,9 @@ export async function simpleConcatVideos(
   clips: VideoClip[],
   outputPath: string
 ): Promise<void> {
-  // 动态导入 fluent-ffmpeg
-  const ffmpegModule = await import('fluent-ffmpeg')
-  const ffmpeg = ffmpegModule.default
+  // 🔥 使用配置好的 fluent-ffmpeg（包含 FFmpeg 二进制路径）
+  const { setupFfmpeg } = await import('./ffmpeg-setup')
+  const ffmpeg = await setupFfmpeg()
 
   return new Promise((resolve, reject) => {
     const command = ffmpeg()
@@ -66,8 +66,9 @@ export async function addFadeTransitions(
   outputPath: string,
   transitionDuration: number = 0.5
 ): Promise<void> {
-  const ffmpegModule = await import('fluent-ffmpeg')
-  const ffmpeg = ffmpegModule.default
+  // 🔥 使用配置好的 fluent-ffmpeg（包含 FFmpeg 二进制路径）
+  const { setupFfmpeg } = await import('./ffmpeg-setup')
+  const ffmpeg = await setupFfmpeg()
 
   return new Promise((resolve, reject) => {
     const command = ffmpeg()

@@ -25,8 +25,9 @@ export async function addSubtitlesToVideo(
     marginV?: number  // 底部边距
   }
 ): Promise<void> {
-  const ffmpegModule = await import('fluent-ffmpeg')
-  const ffmpeg = ffmpegModule.default
+  // 🔥 使用配置好的 fluent-ffmpeg（包含 FFmpeg 二进制路径）
+  const { setupFfmpeg } = await import('./ffmpeg-setup')
+  const ffmpeg = await setupFfmpeg()
 
   // 默认字幕样式（白色字体，黑色描边，底部居中）
   const fontName = options?.fontName || 'Arial'

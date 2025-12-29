@@ -21,8 +21,9 @@ export async function addBackgroundMusic(
   musicConfig?: MusicConfig,
   videoDuration?: number
 ): Promise<void> {
-  const ffmpegModule = await import('fluent-ffmpeg')
-  const ffmpeg = ffmpegModule.default
+  // 🔥 使用配置好的 fluent-ffmpeg（包含 FFmpeg 二进制路径）
+  const { setupFfmpeg } = await import('./ffmpeg-setup')
+  const ffmpeg = await setupFfmpeg()
 
   const volume = musicConfig?.volume ?? 0.3  // 默认音量 30%
 
@@ -91,8 +92,9 @@ export async function addSilentAudioTrack(
   videoPath: string,
   outputPath: string
 ): Promise<void> {
-  const ffmpegModule = await import('fluent-ffmpeg')
-  const ffmpeg = ffmpegModule.default
+  // 🔥 使用配置好的 fluent-ffmpeg（包含 FFmpeg 二进制路径）
+  const { setupFfmpeg } = await import('./ffmpeg-setup')
+  const ffmpeg = await setupFfmpeg()
 
   return new Promise((resolve, reject) => {
     ffmpeg()
@@ -140,8 +142,9 @@ export async function addAudioToVideo(
     fadeOut?: number // 淡出时长（秒）
   } = {}
 ): Promise<void> {
-  const ffmpegModule = await import('fluent-ffmpeg')
-  const ffmpeg = ffmpegModule.default
+  // 🔥 使用配置好的 fluent-ffmpeg（包含 FFmpeg 二进制路径）
+  const { setupFfmpeg } = await import('./ffmpeg-setup')
+  const ffmpeg = await setupFfmpeg()
   const fs = await import('fs')
 
   const volume = options.volume ?? 1.0
