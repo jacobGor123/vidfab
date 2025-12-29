@@ -115,7 +115,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
     })
 
-    // 检查 FFmpeg 是否可用
+    // 🔥 检查 FFmpeg 是否可用（使用 roomx-ai 的实现方式）
     console.log('[Video Agent] 🎞️ Checking FFmpeg availability...')
     let ffmpegAvailable = false
     try {

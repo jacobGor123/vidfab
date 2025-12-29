@@ -5,26 +5,18 @@
  * 在 Vercel Serverless 环境中，使用 @ffmpeg-installer/ffmpeg 提供 FFmpeg 二进制文件
  */
 
+import { ensureFFmpegAvailable } from './ffmpeg-utils'
+
 /**
  * 检查 FFmpeg 是否可用
  * @returns FFmpeg 是否已安装
  */
 export async function checkFfmpegAvailable(): Promise<boolean> {
   try {
-    // 🔥 使用统一的 setupFfmpeg 配置（包含 FFmpeg 二进制路径）
-    const { setupFfmpeg } = await import('./ffmpeg-setup')
-    const ffmpeg = await setupFfmpeg()
-
-    return new Promise((resolve) => {
-      ffmpeg().getAvailableFormats((err: Error | null) => {
-        if (err) {
-          console.error('[FFmpegChecker] ❌ FFmpeg check failed:', err)
-        } else {
-          console.log('[FFmpegChecker] ✅ FFmpeg is available')
-        }
-        resolve(!err)
-      })
-    })
+    // 🔥 尝试获取 FFmpeg 路径（参考 roomx-ai 实现）
+    await ensureFFmpegAvailable()
+    console.log('[FFmpegChecker] ✅ FFmpeg is available')
+    return true
   } catch (error) {
     console.error('[FFmpegChecker] ❌ FFmpeg 未安装或不可用:', error)
     return false
