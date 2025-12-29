@@ -43,7 +43,7 @@ export async function concatenateVideosWithShotstack(
   } = {}
 ): Promise<string> {
   const apiKey = process.env.SHOTSTACK_API_KEY
-  const apiUrl = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/v1'
+  const apiUrl = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/edit/v1'
 
   if (!apiKey) {
     throw new Error('SHOTSTACK_API_KEY environment variable is required')
@@ -201,7 +201,7 @@ export async function addAudioToVideoWithShotstack(
   } = {}
 ): Promise<string> {
   const apiKey = process.env.SHOTSTACK_API_KEY
-  const apiUrl = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/v1'
+  const apiUrl = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/edit/v1'
 
   if (!apiKey) {
     throw new Error('SHOTSTACK_API_KEY environment variable is required')
