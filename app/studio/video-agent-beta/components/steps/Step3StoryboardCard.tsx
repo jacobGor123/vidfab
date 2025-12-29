@@ -177,7 +177,7 @@ export function Step3StoryboardCard({
             <div className="space-y-2 pt-2 border-t">
               <label className="text-xs text-muted-foreground">Custom Prompt:</label>
               <textarea
-                value={customPrompts[item.shot_number] || getDefaultPrompt(item.shot_number)}
+                value={customPrompts[item.shot_number] !== undefined ? customPrompts[item.shot_number] : getDefaultPrompt(item.shot_number)}
                 onChange={(e) => onUpdatePrompt(item.shot_number, e.target.value)}
                 className="w-full text-xs p-2 bg-muted/50 border border-muted rounded resize-none focus:outline-none focus:border-primary"
                 rows={3}
