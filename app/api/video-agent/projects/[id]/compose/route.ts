@@ -7,13 +7,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { downloadAllClips, estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
-import { concatenateVideosWithShotstack, addAudioToVideoWithShotstack } from '@/lib/services/video-agent/processors/shotstack-composer'
+import { concatenateVideosWithShotstack } from '@/lib/services/video-agent/processors/shotstack-composer'
 import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/types/video-agent'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
 import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
-import { generateNarration, ELEVENLABS_VOICES } from '@/lib/services/kie-ai/elevenlabs-tts'
-import path from 'path'
-import fs from 'fs'
 import type { Database } from '@/lib/database.types'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
@@ -226,44 +223,77 @@ async function composeVideoAsync(
       }))
     })
 
-    // 🔥 步骤 1: 使用 Shotstack 拼接视频（云端处理，无需 FFmpeg）
-    console.log('[Video Agent] 🔗 Concatenating videos with Shotstack API...')
+    // 🔥 步骤 1: 准备字幕文件（旁白模式）
+    let subtitleUrl: string | undefined
 
-    const concatenatedUrl = await concatenateVideosWithShotstack(videoUrls, {
-      aspectRatio: project.aspect_ratio || '16:9',
-      clipDurations
-    })
+    if (project.enable_narration) {
+      console.log('[Video Agent] 📝 Generating subtitles for narration mode...')
 
-    console.log('[Video Agent] ✅ Videos concatenated:', concatenatedUrl)
-
-    let finalVideoUrl = concatenatedUrl
-
-    // 🔥 步骤 2: 添加背景音乐（如果有且未静音）
-    if (project.music_url && !project.mute_bgm && !project.enable_narration) {
-      console.log('[Video Agent] 🎵 Adding background music...')
       try {
-        const totalDuration = clipDurations.reduce((a, b) => a + b, 0)
-        finalVideoUrl = await addAudioToVideoWithShotstack(
-          concatenatedUrl,
-          project.music_url,
-          {
-            audioVolume: 0.3, // 背景音乐音量 30%
-            videoDuration: totalDuration
+        // 获取分镜数据
+        const { data: shots } = await supabaseAdmin
+          .from('project_shots')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('shot_number', { ascending: true })
+          .returns<ProjectShot[]>()
+
+        if (shots && shots.length > 0) {
+          // 生成 SRT 字幕文件
+          const srtContent = generateSRTFromShots(shots)
+
+          // 上传 SRT 到 Supabase Storage
+          const bucketName = 'video-agent-files'
+          const srtPath = `${projectId}/subtitles.srt`
+
+          const { error: uploadError } = await supabaseAdmin
+            .storage
+            .from(bucketName)
+            .upload(srtPath, srtContent, {
+              contentType: 'text/plain',
+              upsert: true
+            })
+
+          if (uploadError) {
+            console.error('[Video Agent] ⚠️ Failed to upload SRT:', uploadError)
+          } else {
+            // 获取公开 URL
+            const { data: urlData } = supabaseAdmin
+              .storage
+              .from(bucketName)
+              .getPublicUrl(srtPath)
+
+            subtitleUrl = urlData.publicUrl
+            console.log('[Video Agent] ✅ Subtitles uploaded:', subtitleUrl)
           }
-        )
-        console.log('[Video Agent] ✅ Background music added')
-      } catch (musicError) {
-        console.error('[Video Agent] ⚠️ Failed to add music, using video without music:', musicError)
-        // 音乐失败不影响主流程
+        }
+      } catch (srtError) {
+        console.error('[Video Agent] ⚠️ Failed to generate subtitles:', srtError)
+        // 字幕失败不影响主流程
       }
     }
 
-    // 🔥 TODO: 旁白功能暂时跳过，后续用 Shotstack API 实现
-    if (project.enable_narration) {
-      console.log('[Video Agent] ⚠️ Narration not yet supported with Shotstack (coming soon)')
+    // 🔥 步骤 2: 确定背景音乐 URL（非旁白模式 + 未静音）
+    let backgroundMusicUrl: string | undefined
+
+    if (!project.enable_narration && !project.mute_bgm && project.music_url) {
+      backgroundMusicUrl = project.music_url
+      console.log('[Video Agent] 🎵 Background music will be added:', backgroundMusicUrl)
     }
 
-    // 🔥 步骤 3: 更新项目状态为完成（Shotstack URL 直接可用）
+    // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 音乐 + 字幕）
+    console.log('[Video Agent] 🔗 Rendering video with Shotstack API...')
+
+    const finalVideoUrl = await concatenateVideosWithShotstack(videoUrls, {
+      aspectRatio: project.aspect_ratio || '16:9',
+      clipDurations,
+      backgroundMusicUrl,
+      subtitleUrl
+    })
+
+    console.log('[Video Agent] ✅ Video rendering complete:', finalVideoUrl)
+
+    // 🔥 步骤 4: 更新项目状态为完成（Shotstack URL 直接可用）
     console.log('[Video Agent] 💾 Saving final video URL...')
 
     await supabaseAdmin

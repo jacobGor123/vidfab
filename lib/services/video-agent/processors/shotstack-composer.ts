@@ -18,6 +18,11 @@ interface ShotstackClip {
 }
 
 interface ShotstackTimeline {
+  soundtrack?: {
+    src: string
+    effect?: 'fadeIn' | 'fadeOut' | 'fadeInFadeOut'
+    volume?: number
+  }
   tracks: Array<{
     clips: ShotstackClip[]
   }>
@@ -40,6 +45,8 @@ export async function concatenateVideosWithShotstack(
   options: {
     aspectRatio?: '16:9' | '9:16'
     clipDurations?: number[] // 每个片段的时长（秒）
+    backgroundMusicUrl?: string // BGM URL（非旁白模式）
+    subtitleUrl?: string // SRT 字幕 URL（旁白模式）
   } = {}
 ): Promise<string> {
   const apiKey = process.env.SHOTSTACK_API_KEY
@@ -78,14 +85,63 @@ export async function concatenateVideosWithShotstack(
     currentTime += duration
   }
 
-  const renderRequest: ShotstackRenderRequest = {
-    timeline: {
-      tracks: [
+  // 构建时间轴
+  const timeline: ShotstackTimeline = {
+    tracks: [
+      {
+        clips
+      }
+    ]
+  }
+
+  // 🎵 添加背景音乐（如果有）
+  if (options.backgroundMusicUrl) {
+    console.log('[Shotstack] 🎵 添加背景音乐:', options.backgroundMusicUrl)
+    timeline.soundtrack = {
+      src: options.backgroundMusicUrl,
+      effect: 'fadeInFadeOut',
+      volume: 0.3 // 背景音乐音量 30%
+    }
+  }
+
+  // 📝 添加字幕轨道（如果有 SRT 文件）
+  if (options.subtitleUrl) {
+    console.log('[Shotstack] 📝 添加字幕:', options.subtitleUrl)
+    const totalDuration = options.clipDurations?.reduce((a, b) => a + b, 0) || videoUrls.length * 5
+
+    timeline.tracks.push({
+      clips: [
         {
-          clips
-        }
+          asset: {
+            type: 'caption' as any,
+            src: options.subtitleUrl
+          },
+          start: 0,
+          length: totalDuration,
+          // 字幕样式
+          style: {
+            fontSize: 24,
+            color: '#FFFFFF',
+            background: {
+              color: '#000000',
+              opacity: 0.7,
+              padding: 10,
+              borderRadius: 5
+            },
+            stroke: '#000000',
+            strokeWidth: 2
+          } as any,
+          position: 'bottom' as any,
+          offset: {
+            y: 0.1
+          } as any
+        } as any
       ]
-    },
+    })
+  }
+
+  const renderRequest: ShotstackRenderRequest = {
+    timeline,
     output: {
       format: 'mp4',
       resolution: '1080',
@@ -190,95 +246,22 @@ async function pollRenderStatus(
 }
 
 /**
- * 添加音频到视频（使用 Shotstack）
+ * 🗑️ 已废弃：音频现在通过 soundtrack 属性在 concatenateVideosWithShotstack 中添加
+ * 保留此函数以防万一需要独立添加音频的场景
  */
 export async function addAudioToVideoWithShotstack(
   videoUrl: string,
   audioUrl: string,
   options: {
-    audioVolume?: number // 0-1
+    audioVolume?: number
     videoDuration?: number
   } = {}
 ): Promise<string> {
-  const apiKey = process.env.SHOTSTACK_API_KEY
-  const apiUrl = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/edit/v1'
+  console.warn('[Shotstack] ⚠️ addAudioToVideoWithShotstack is deprecated. Use backgroundMusicUrl in concatenateVideosWithShotstack instead.')
 
-  if (!apiKey) {
-    throw new Error('SHOTSTACK_API_KEY environment variable is required')
-  }
-
-  console.log('[Shotstack] 🎵 添加音频到视频...')
-
-  const duration = options.videoDuration || 30
-
-  const renderRequest = {
-    timeline: {
-      tracks: [
-        // 视频轨道
-        {
-          clips: [
-            {
-              asset: {
-                type: 'video',
-                src: videoUrl
-              },
-              start: 0,
-              length: duration
-            }
-          ]
-        },
-        // 音频轨道
-        {
-          clips: [
-            {
-              asset: {
-                type: 'audio',
-                src: audioUrl,
-                volume: options.audioVolume || 1.0
-              },
-              start: 0,
-              length: duration
-            }
-          ]
-        }
-      ]
-    },
-    output: {
-      format: 'mp4',
-      resolution: '1080'
-    }
-  }
-
-  try {
-    const renderResponse = await fetch(`${apiUrl}/render`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey
-      },
-      body: JSON.stringify(renderRequest)
-    })
-
-    if (!renderResponse.ok) {
-      const error = await renderResponse.text()
-      throw new Error(`Shotstack render failed: ${error}`)
-    }
-
-    const renderData = await renderResponse.json()
-    const renderId = renderData.response?.id
-
-    if (!renderId) {
-      throw new Error('No render ID returned')
-    }
-
-    console.log('[Shotstack] ✅ 音频任务已提交:', renderId)
-
-    const videoUrl = await pollRenderStatus(apiUrl, apiKey, renderId)
-    console.log('[Shotstack] ✅ 音频添加完成:', videoUrl)
-    return videoUrl
-
-  } catch (error: any) {
-    console.error('[Shotstack] ❌ 添加音频失败:', error.message)
-    throw error
-  }
+  // 直接调用 concatenateVideosWithShotstack
+  return concatenateVideosWithShotstack([videoUrl], {
+    backgroundMusicUrl: audioUrl,
+    clipDurations: [options.videoDuration || 30]
+  })
 }
