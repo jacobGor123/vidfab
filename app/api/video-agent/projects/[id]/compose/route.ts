@@ -276,9 +276,13 @@ async function composeVideoAsync(
     // 🔥 步骤 2: 确定背景音乐 URL（非旁白模式 + 未静音）
     let backgroundMusicUrl: string | undefined
 
-    if (!project.enable_narration && !project.mute_bgm && project.music_url) {
-      backgroundMusicUrl = project.music_url
+    if (!project.enable_narration && !project.mute_bgm) {
+      // 优先使用 Suno 生成的音乐，如果没有则使用预设音乐
+      backgroundMusicUrl = project.music_url || 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/video-agent-files/preset-music/funny-comedy-cartoon.mp3'
       console.log('[Video Agent] 🎵 Background music will be added:', backgroundMusicUrl)
+      if (!project.music_url) {
+        console.log('[Video Agent] ℹ️  Using preset music (Suno music not available)')
+      }
     }
 
     // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 音乐 + 字幕）
