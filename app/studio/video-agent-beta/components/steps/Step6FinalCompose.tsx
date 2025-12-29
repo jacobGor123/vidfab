@@ -32,7 +32,7 @@ interface ComposeStatus {
 }
 
 export default function Step7FinalCompose({ project, onComplete, onUpdate }: Step7Props) {
-  const { getComposeStatus, composeVideo } = useVideoAgentAPI()
+  const { getComposeStatus, composeVideo, saveToAssets } = useVideoAgentAPI()
   const debugEnabled =
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('va_debug')
@@ -190,9 +190,27 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     }
   }
 
-  const handleComplete = () => {
-    onUpdate({ status: 'completed' })
-    onComplete()
+  const handleComplete = async () => {
+    try {
+      console.log('[Video Agent] 💾 Saving video to My Assets...')
+
+      // 保存视频到 my-assets
+      const result = await saveToAssets(project.id)
+
+      console.log('[Video Agent] ✅ Video saved to My Assets', { videoId: result.videoId })
+
+      // 更新项目状态为完成
+      onUpdate({ status: 'completed' })
+
+      // 完成流程
+      onComplete()
+    } catch (err) {
+      console.error('[Video Agent] ❌ Failed to save video to assets:', err)
+
+      // 即使保存失败，也允许用户继续（视频已经生成成功）
+      onUpdate({ status: 'completed' })
+      onComplete()
+    }
   }
 
   // 🔥 优先级1：合成失败（明确的 failed 状态）

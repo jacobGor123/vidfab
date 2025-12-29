@@ -416,6 +416,15 @@ export function useVideoAgentAPI() {
     })
   }, [callAPI])
 
+  /**
+   * 保存合成视频到 My Assets
+   */
+  const saveToAssets = useCallback(async (projectId: string): Promise<{ videoId: string }> => {
+    return callAPI(`/api/video-agent/projects/${projectId}/save-to-assets`, {
+      method: 'POST',
+    })
+  }, [callAPI])
+
   // ==================== 返回所有 API 方法 ====================
 
   return {
@@ -457,6 +466,7 @@ export function useVideoAgentAPI() {
     // Compose APIs
     getComposeStatus,
     composeVideo,
+    saveToAssets,
   }
 }
 
