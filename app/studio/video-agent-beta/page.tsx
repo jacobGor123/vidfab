@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthModal } from '@/hooks/use-auth-modal'
 import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
@@ -31,6 +31,10 @@ export default function VideoAgentBetaPage() {
     error,
     setError
   } = useVideoAgentStore()
+
+  // 🔥 新增：控制弹框是否打开的本地状态
+  // 刷新页面后默认不打开弹框，只有用户主动点击草稿时才打开
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   // 使用项目中的 current_step，如果项目不存在则使用默认值 1
   const currentStep = currentProject?.current_step || 1
@@ -63,13 +67,23 @@ export default function VideoAgentBetaPage() {
     // 已登录，执行创建项目
     try {
       await createProject(data)
+      // 🔥 创建成功后打开弹框
+      setIsDialogOpen(true)
     } catch (error: any) {
       console.error('创建项目失败:', error)
       setError(error.message)
     }
   }
 
+  const handleResumeProject = async (project: any) => {
+    // 🔥 用户点击草稿时，恢复项目并打开弹框
+    await resumeProject(project)
+    setIsDialogOpen(true)
+  }
+
   const handleCloseDialog = () => {
+    // 🔥 关闭弹框时清空状态
+    setIsDialogOpen(false)
     // 保存草稿并返回首页
     reset()
   }
@@ -136,23 +150,25 @@ export default function VideoAgentBetaPage() {
           )}
 
           {/* Main Content Area */}
-          {!currentProject ? (
-            <div className="space-y-16">
-              <InputStage onStart={handleStart} />
+          <div className="space-y-16">
+            <InputStage onStart={handleStart} />
 
-              <div className="border-t border-white/5 pt-16">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-bold text-white/90">Your Drafts</h2>
-                  <div className="text-sm text-slate-500">
-                    Auto-saved while you work
-                  </div>
+            <div className="border-t border-white/5 pt-16">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-white/90">Your Drafts</h2>
+                <div className="text-sm text-slate-500">
+                  Auto-saved while you work
                 </div>
-                <ProjectList onResume={resumeProject} />
               </div>
+              {/* 🔥 修改：使用新的 handleResumeProject */}
+              <ProjectList onResume={handleResumeProject} />
             </div>
-          ) : (
+          </div>
+
+          {/* 🔥 弹框始终存在，但只在 isDialogOpen 为 true 时显示 */}
+          {currentProject && (
             <StepDialog
-              open={true}
+              open={isDialogOpen}
               onOpenChange={(open) => {
                 if (!open) {
                   handleCloseDialog()
