@@ -27,6 +27,7 @@ type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row
 export const POST = withAuth(async (request, { params, userId }) => {
   try {
     const projectId = params.id
+    console.log('[Video Agent] 🎬 Compose API called', { projectId, userId })
 
     // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
@@ -36,7 +37,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('user_id', userId)
       .single<VideoAgentProject>()
 
+    console.log('[Video Agent] 📊 Project query result', {
+      found: !!project,
+      error: projectError?.message,
+      step_4_status: project?.step_4_status,
+      current_step: project?.current_step
+    })
+
     if (projectError || !project) {
+      console.error('[Video Agent] ❌ Project not found', { projectError })
       return NextResponse.json(
         { error: 'Project not found or access denied', code: 'PROJECT_NOT_FOUND' },
         { status: 404 }
@@ -62,6 +71,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
     })
 
     // 获取所有已完成的视频片段
+    console.log('[Video Agent] 📹 Querying video clips...')
     const { data: videoClips, error: clipsError } = await supabaseAdmin
       .from('project_video_clips')
       .select('*')
@@ -70,8 +80,14 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .order('shot_number', { ascending: true })
       .returns<ProjectVideoClip[]>()
 
+    console.log('[Video Agent] 📹 Video clips query result', {
+      clipsError: clipsError?.message,
+      clipsCount: videoClips?.length || 0,
+      clipStatuses: videoClips?.map(c => ({ shot: c.shot_number, status: c.status, hasUrl: !!c.video_url }))
+    })
+
     if (clipsError || !videoClips || videoClips.length === 0) {
-      console.error('[Video Agent] No completed video clips found', {
+      console.error('[Video Agent] ❌ No completed video clips found', {
         clipsError,
         videoClipsCount: videoClips?.length || 0
       })
@@ -100,10 +116,25 @@ export const POST = withAuth(async (request, { params, userId }) => {
     })
 
     // 检查 FFmpeg 是否可用
-    const ffmpegAvailable = await checkFfmpegAvailable()
+    console.log('[Video Agent] 🎞️ Checking FFmpeg availability...')
+    let ffmpegAvailable = false
+    try {
+      ffmpegAvailable = await checkFfmpegAvailable()
+      console.log('[Video Agent] 🎞️ FFmpeg check result:', { available: ffmpegAvailable })
+    } catch (ffmpegError) {
+      console.error('[Video Agent] ❌ FFmpeg check failed:', ffmpegError)
+      return NextResponse.json(
+        {
+          error: 'FFmpeg check failed',
+          code: 'FFMPEG_CHECK_FAILED',
+          details: process.env.NODE_ENV === 'development' ? (ffmpegError as Error).message : undefined
+        },
+        { status: 500 }
+      )
+    }
 
     if (!ffmpegAvailable) {
-      console.error('[Video Agent] FFmpeg not available')
+      console.error('[Video Agent] ❌ FFmpeg not available')
       return NextResponse.json(
         {
           error: 'FFmpeg not available',
@@ -115,7 +146,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
     }
 
     // 更新项目状态为 processing
-    await supabaseAdmin
+    console.log('[Video Agent] 💾 Updating project status to processing...')
+    const { error: updateError } = await supabaseAdmin
       .from('video_agent_projects')
       .update({
         status: 'processing',
@@ -125,9 +157,23 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('id', projectId)
       .returns<any>()
 
+    if (updateError) {
+      console.error('[Video Agent] ❌ Failed to update project status:', updateError)
+      return NextResponse.json(
+        {
+          error: 'Failed to update project status',
+          code: 'UPDATE_FAILED',
+          details: process.env.NODE_ENV === 'development' ? updateError.message : undefined
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log('[Video Agent] ✅ Project status updated, starting async composition...')
+
     // 异步执行合成任务
     composeVideoAsync(projectId, clips, project).catch(error => {
-      console.error('[Video Agent] Video composition failed:', error)
+      console.error('[Video Agent] ❌ Video composition failed:', error)
 
       // 更新项目状态为失败
       supabaseAdmin
@@ -141,7 +187,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
     })
 
     // 估算合成时长
+    console.log('[Video Agent] ⏱️ Estimating composition duration...')
     const estimatedDuration = estimateTotalDuration(clips)
+
+    console.log('[Video Agent] ✅ Compose API returning success', {
+      totalClips: clips.length,
+      estimatedDuration
+    })
 
     return NextResponse.json({
       success: true,
@@ -154,13 +206,19 @@ export const POST = withAuth(async (request, { params, userId }) => {
     })
 
   } catch (error) {
-    console.error('[Video Agent] Compose video error:', error)
+    console.error('[Video Agent] ❌❌❌ Compose video error:', {
+      error,
+      message: (error as Error).message,
+      stack: (error as Error).stack
+    })
     return NextResponse.json(
       {
+        success: false,
         error: 'Failed to start video composition',
         message: process.env.NODE_ENV === 'development'
           ? (error as Error).message
-          : undefined
+          : 'Internal server error',
+        code: 'COMPOSE_FAILED'
       },
       { status: 500 }
     )
