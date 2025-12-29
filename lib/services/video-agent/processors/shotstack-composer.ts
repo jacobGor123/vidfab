@@ -158,11 +158,7 @@ async function pollRenderStatus(
       const status = statusData.response?.status
       const url = statusData.response?.url
 
-      console.log(`[Shotstack] 📊 渲染进度 (${attempt}/${maxAttempts}):`, {
-        status,
-        url,
-        fullResponse: JSON.stringify(statusData)
-      })
+      console.log(`[Shotstack] 📊 渲染进度 (${attempt}/${maxAttempts}):`, status)
 
       if (status === 'done' && url) {
         return url
