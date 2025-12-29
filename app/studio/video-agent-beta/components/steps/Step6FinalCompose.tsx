@@ -359,8 +359,14 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
 
         {/* 视频预览 */}
         <Card>
-          <CardContent className="p-0">
-            <video src={url} controls className="w-full rounded-lg" />
+          <CardContent className="p-4">
+            <div className="flex justify-center">
+              <video
+                src={url}
+                controls
+                className="w-full max-h-[500px] rounded-lg object-contain"
+              />
+            </div>
           </CardContent>
         </Card>
 
