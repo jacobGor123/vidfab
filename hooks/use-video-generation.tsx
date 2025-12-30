@@ -24,7 +24,7 @@ export interface GenerationOptions {
 
 // 🎯 Hook选项（兼容组件的期望）
 interface UseVideoGenerationOptions {
-  onSuccess?: (jobId: string, requestId: string) => void
+  onSuccess?: (job: any, requestId: string) => void  // 🔥 修复：传递完整的 job 对象，避免竞态条件
   onError?: (error: string) => void
   onAuthRequired?: () => void
 }
@@ -168,13 +168,19 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         status: 'processing'
       })
 
+      // 🔥 创建更新后的完整 job 对象
+      const updatedJob = {
+        ...job,
+        requestId: data.data.requestId,
+        reservationId: data.data.reservationId,
+        status: 'processing' as const
+      }
+
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 第3层防护：延迟回调，确保 React 状态更新完成
-      queueMicrotask(() => {
-        hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
-      })
+      // 🔥 修复：直接传递完整的 job 对象，避免从 context 查找导致的竞态条件
+      hookOptionsRef.current?.onSuccess?.(updatedJob, data.data.requestId)
 
       return job.id
 
@@ -278,13 +284,19 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         status: 'processing'
       })
 
+      // 🔥 创建更新后的完整 job 对象
+      const updatedJob = {
+        ...job,
+        requestId: data.data.requestId,
+        reservationId: data.data.reservationId,
+        status: 'processing' as const
+      }
+
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 第3层防护：延迟回调，确保 React 状态更新完成
-      queueMicrotask(() => {
-        hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
-      })
+      // 🔥 修复：直接传递完整的 job 对象，避免从 context 查找导致的竞态条件
+      hookOptionsRef.current?.onSuccess?.(updatedJob, data.data.requestId)
 
       return job.id
 
@@ -406,14 +418,19 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         status: 'processing'
       })
 
+      // 🔥 创建更新后的完整 job 对象
+      const updatedJob = {
+        ...job,
+        requestId: data.data.requestId,
+        reservationId: data.data.reservationId,
+        status: 'processing' as const
+      }
 
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 第3层防护：延迟回调，确保 React 状态更新完成
-      queueMicrotask(() => {
-        hookOptionsRef.current?.onSuccess?.(job.id, data.data.requestId)
-      })
+      // 🔥 修复：直接传递完整的 job 对象，避免从 context 查找导致的竞态条件
+      hookOptionsRef.current?.onSuccess?.(updatedJob, data.data.requestId)
 
       return job.id
 

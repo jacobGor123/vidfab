@@ -28,6 +28,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
     const projectId = params.id
     const shotNumber = parseInt(params.shotNumber, 10)
 
+    // 验证 projectId 存在
+    if (!projectId) {
+      console.error('[Video Agent] Project ID is missing from params')
+      return NextResponse.json(
+        { error: 'Project ID is required', code: 'PROJECT_ID_MISSING' },
+        { status: 400 }
+      )
+    }
+
     // 获取请求体中的自定义 prompt
     const body = await request.json().catch(() => ({}))
     const customPrompt = body.customPrompt as string | undefined
@@ -42,11 +51,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
     // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
-      .select('user_id, image_style, regenerate_quota_remaining, aspect_ratio')
+      .select('user_id, image_style_id, regenerate_quota_remaining, aspect_ratio')
       .eq('id', projectId)
       .single<VideoAgentProject>()
 
     if (projectError || !project) {
+      console.error('[Video Agent] Project not found:', projectId, projectError?.message)
       return NextResponse.json(
         { error: 'Project not found', code: 'PROJECT_NOT_FOUND' },
         { status: 404 }
@@ -119,7 +129,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
     }))
 
     // 获取图片风格
-    const styleId = project.image_style || 'realistic'
+    const styleId = project.image_style_id || 'realistic'
     const imageStyle = IMAGE_STYLES[styleId] || IMAGE_STYLES.realistic
 
     console.log('[Video Agent] Regenerating storyboard with data', {

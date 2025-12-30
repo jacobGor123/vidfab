@@ -105,6 +105,7 @@ export function Step4VideoCard({
             >
               <video
                 src={item.video_url}
+                poster={item.poster_url}
                 controls
                 className="w-full h-full object-contain"
                 preload="none"

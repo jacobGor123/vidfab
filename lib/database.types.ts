@@ -32,7 +32,7 @@ export interface Database {
           music_generation_prompt: string | null
           music_url: string | null
           transition_effect: string | null
-          image_style: string | null
+          image_style_id: string | null
           regenerate_quota_remaining: number | null
           suno_task_id: string | null
           step_1_status: string | null
@@ -64,7 +64,7 @@ export interface Database {
           music_generation_prompt?: string | null
           music_url?: string | null
           transition_effect?: string | null
-          image_style?: string | null
+          image_style_id?: string | null
           regenerate_quota_remaining?: number | null
           suno_task_id?: string | null
           step_1_status?: string | null
@@ -96,7 +96,7 @@ export interface Database {
           music_generation_prompt?: string | null
           music_url?: string | null
           transition_effect?: string | null
-          image_style?: string | null
+          image_style_id?: string | null
           regenerate_quota_remaining?: number | null
           suno_task_id?: string | null
           step_1_status?: string | null

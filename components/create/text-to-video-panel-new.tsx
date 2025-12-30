@@ -109,11 +109,13 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
   const { startPolling } = videoPolling
 
   const videoGeneration = useVideoGeneration({
-    onSuccess: (jobId, requestId) => {
+    onSuccess: (job, requestId) => {
+      // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
+
       // 🔥 Analytics: 追踪后端开始生成
       GenerationAnalytics.trackGenerationStarted({
         generationType: 'text-to-video',
-        jobId,
+        jobId: job.id,
         requestId,
         modelType: params.model,
         duration: params.duration,
@@ -122,7 +124,8 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         creditsRequired: getCreditsRequired(),
       })
 
-      startPolling(jobId, requestId) // 🔥 启动轮询
+      // ✅ 直接使用传入的 job 对象，不再从 videoContext 查找
+      startPolling(job) // 🔥 启动轮询
     },
     onError: (error) => {
       console.error('Video generation failed:', error)

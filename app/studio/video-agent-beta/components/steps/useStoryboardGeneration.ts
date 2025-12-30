@@ -165,6 +165,19 @@ export function useStoryboardGeneration({
       return
     }
 
+    // 验证 project.id 存在
+    if (!project?.id) {
+      console.error('[Step3] Cannot regenerate: project.id is missing', { project })
+      showError('Project ID is missing. Please refresh the page.')
+      return
+    }
+
+    console.log('[Step3] Starting regeneration', {
+      projectId: project.id,
+      shotNumber,
+      hasCustomPrompt: !!customPrompts[shotNumber]
+    })
+
     setRegeneratingShot(shotNumber)
     setError(null)
 
@@ -182,6 +195,12 @@ export function useStoryboardGeneration({
     try {
       // 获取自定义 prompt（如果用户修改过）
       const customPrompt = customPrompts[shotNumber]
+
+      console.log('[Step3] Calling regenerateStoryboard API', {
+        projectId: project.id,
+        shotNumber,
+        customPrompt: customPrompt ? customPrompt.substring(0, 50) + '...' : undefined
+      })
 
       await regenerateStoryboard(project.id, {
         shotNumber,

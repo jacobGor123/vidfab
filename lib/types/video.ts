@@ -19,6 +19,7 @@ export interface BaseVideoGenerationRequest {
 export interface VideoGenerationRequest extends BaseVideoGenerationRequest {
   image?: string  // Base64编码的图片或图片URL，用于image-to-video
   imageStrength?: number  // 图片影响强度 0.1-1.0，默认0.8
+  generateAudio?: boolean  // 🔥 是否生成音频（仅 veo3 模型支持）
 }
 
 // 生成类型枚举

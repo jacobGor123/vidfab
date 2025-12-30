@@ -225,6 +225,19 @@ export function useVideoAgentAPI() {
     })
   }, [callAPI])
 
+  /**
+   * 从指定步骤重置项目（清空该步骤及之后的所有数据）
+   */
+  const resetProjectFromStep = useCallback(async (
+    projectId: string,
+    step: number
+  ): Promise<ProjectData> => {
+    return callAPI(`/api/video-agent/projects/${projectId}/reset-from-step`, {
+      method: 'POST',
+      body: JSON.stringify({ step }),
+    })
+  }, [callAPI])
+
   // ==================== Script Analysis APIs ====================
 
   /**
@@ -342,16 +355,22 @@ export function useVideoAgentAPI() {
     projectId: string,
     params: RegenerateStoryboardParams
   ): Promise<void> => {
-    return callAPI(
-      `/api/video-agent/projects/${projectId}/storyboards/${params.shotNumber}/regenerate`,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          image_style: params.imageStyle,
-          customPrompt: params.customPrompt
-        }),
-      }
-    )
+    const url = `/api/video-agent/projects/${projectId}/storyboards/${params.shotNumber}/regenerate`
+
+    console.log('[useVideoAgentAPI] regenerateStoryboard called', {
+      projectId,
+      shotNumber: params.shotNumber,
+      url,
+      hasCustomPrompt: !!params.customPrompt
+    })
+
+    return callAPI(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        image_style: params.imageStyle,
+        customPrompt: params.customPrompt
+      }),
+    })
   }, [callAPI])
 
   // ==================== Video APIs ====================
@@ -440,6 +459,7 @@ export function useVideoAgentAPI() {
     updateProject,
     deleteProject,
     updateProjectStep,
+    resetProjectFromStep,
 
     // Script Analysis APIs
     analyzeScript,

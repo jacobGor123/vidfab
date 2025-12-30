@@ -35,6 +35,7 @@ export interface DisplayVideoItem {
   shot_number: number
   status: 'pending' | 'generating' | 'success' | 'failed'
   video_url?: string
+  poster_url?: string  // 首帧图（使用分镜图）
   duration?: number
   error_message?: string
 }

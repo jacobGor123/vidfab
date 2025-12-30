@@ -4,6 +4,8 @@
  * 文档: https://shotstack.io/docs/guide/getting-started/core-concepts/
  */
 
+import { parseSRTFromURL } from './srt-parser'
+
 interface ShotstackClip {
   asset: {
     type: 'video'
@@ -38,6 +40,15 @@ interface ShotstackRenderRequest {
 }
 
 /**
+ * 旁白音频 Clip 接口
+ */
+export interface NarrationAudioClip {
+  url: string
+  start: number
+  length: number
+}
+
+/**
  * 使用 Shotstack API 拼接视频
  */
 export async function concatenateVideosWithShotstack(
@@ -47,6 +58,7 @@ export async function concatenateVideosWithShotstack(
     clipDurations?: number[] // 每个片段的时长（秒）
     backgroundMusicUrl?: string // BGM URL（非旁白模式）
     subtitleUrl?: string // SRT 字幕 URL（旁白模式）
+    narrationAudioClips?: NarrationAudioClip[] // 旁白音频片段（旁白模式）
   } = {}
 ): Promise<string> {
   const apiKey = process.env.SHOTSTACK_API_KEY
@@ -94,8 +106,28 @@ export async function concatenateVideosWithShotstack(
     ]
   }
 
-  // 🎵 添加背景音乐（如果有）
-  if (options.backgroundMusicUrl) {
+  // 🎙️ 添加旁白音频轨道（优先级高于背景音乐）
+  if (options.narrationAudioClips && options.narrationAudioClips.length > 0) {
+    console.log('[Shotstack] 🎙️ 添加旁白音频:', options.narrationAudioClips.length, '个片段')
+
+    const audioClips = options.narrationAudioClips.map(clip => ({
+      asset: {
+        type: 'audio' as any,
+        src: clip.url,
+        volume: 1.0 // 旁白音量 100%
+      },
+      start: clip.start,
+      length: clip.length
+    }))
+
+    timeline.tracks.push({
+      clips: audioClips as any
+    })
+
+    console.log('[Shotstack] ✅ 旁白音频轨道已添加')
+  }
+  // 🎵 添加背景音乐（仅在非旁白模式）
+  else if (options.backgroundMusicUrl) {
     console.log('[Shotstack] 🎵 添加背景音乐:', options.backgroundMusicUrl)
     timeline.soundtrack = {
       src: options.backgroundMusicUrl,
@@ -106,38 +138,40 @@ export async function concatenateVideosWithShotstack(
 
   // 📝 添加字幕轨道（如果有 SRT 文件）
   if (options.subtitleUrl) {
-    console.log('[Shotstack] 📝 添加字幕:', options.subtitleUrl)
-    const totalDuration = options.clipDurations?.reduce((a, b) => a + b, 0) || videoUrls.length * 5
+    console.log('[Shotstack] 📝 解析 SRT 字幕:', options.subtitleUrl)
 
-    timeline.tracks.push({
-      clips: [
-        {
-          asset: {
-            type: 'caption' as any,
-            src: options.subtitleUrl
-          },
-          start: 0,
-          length: totalDuration,
-          // 字幕样式
-          style: {
-            fontSize: 24,
-            color: '#FFFFFF',
-            background: {
-              color: '#000000',
-              opacity: 0.7,
-              padding: 10,
-              borderRadius: 5
-            },
-            stroke: '#000000',
-            strokeWidth: 2
-          } as any,
+    try {
+      // 1. 解析 SRT 文件
+      const subtitles = await parseSRTFromURL(options.subtitleUrl)
+
+      // 2. 为每条字幕创建一个 title clip
+      const subtitleClips = subtitles.map(sub => ({
+        asset: {
+          type: 'title' as any,
+          text: sub.text,
+          style: 'subtitle' as any,
+          color: '#ffffff',
+          size: 'small' as any,
+          background: '#000000',
           position: 'bottom' as any,
           offset: {
-            y: 0.1
-          } as any
-        } as any
-      ]
-    })
+            y: -0.35
+          }
+        },
+        start: sub.startTime,
+        length: sub.endTime - sub.startTime
+      }))
+
+      // 3. 添加字幕轨道
+      timeline.tracks.push({
+        clips: subtitleClips as any
+      })
+
+      console.log('[Shotstack] ✅ 已添加', subtitles.length, '条字幕')
+    } catch (error: any) {
+      console.error('[Shotstack] ❌ 字幕解析失败:', error.message)
+      // 字幕失败不影响视频合成，继续执行
+    }
   }
 
   const renderRequest: ShotstackRenderRequest = {

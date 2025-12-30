@@ -121,11 +121,13 @@ export function ImageToVideoPanelEnhanced() {
 
   // Video generation
   const videoGeneration = useVideoGeneration({
-    onSuccess: (jobId, requestId) => {
+    onSuccess: (job, requestId) => {
+      // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
+
       // 🔥 Analytics: 追踪后端开始生成
       GenerationAnalytics.trackGenerationStarted({
         generationType: 'image-to-video',
-        jobId,
+        jobId: job.id,
         requestId,
         modelType: params.model,
         duration: params.duration,
@@ -134,14 +136,8 @@ export function ImageToVideoPanelEnhanced() {
         creditsRequired: getCreditsRequired(),
       })
 
-      // 🔥 修复：从 videoContext 查找完整的 job 对象
-      const job = videoContext.activeJobs.find(j => j.id === jobId)
-
-      if (job) {
-        startPolling(job) // ✅ 传递完整的 VideoJob 对象
-      } else {
-        console.error(`❌ [Image-to-Video] Job not found: ${jobId}`)
-      }
+      // ✅ 直接使用传入的 job 对象，不再从 videoContext 查找
+      startPolling(job)
     },
     onError: (error) => {
       console.error('Image-to-video generation failed:', error)

@@ -226,7 +226,8 @@ async function submitGeneralVideoGeneration(
       aspect_ratio: request.aspectRatio,
       duration: DURATION_MAP[`${request.duration}s`] || request.duration,
       resolution: request.resolution,
-      generate_audio: true 
+      // 🔥 使用前端传递的 generateAudio 参数，默认为 true（开启声音）
+      generate_audio: request.generateAudio !== undefined ? request.generateAudio : true
     }
 
     // 为 image-to-video 添加 image 参数
@@ -236,6 +237,8 @@ async function submitGeneralVideoGeneration(
     } else {
       endpoint = "/google/veo3-fast"
     }
+
+    console.log(`🎵 veo3 声音参数: generate_audio = ${apiRequest.generate_audio}`)
 
   } else {
     // 原有 bytedance API 参数格式

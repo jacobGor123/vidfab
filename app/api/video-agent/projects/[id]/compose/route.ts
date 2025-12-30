@@ -11,6 +11,7 @@ import { concatenateVideosWithShotstack } from '@/lib/services/video-agent/proce
 import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/types/video-agent'
 import { sunoAPI } from '@/lib/services/suno/suno-api'
 import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
+import { generateNarrationBatch } from '@/lib/services/kie-ai/elevenlabs-tts'
 import type { Database } from '@/lib/database.types'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
@@ -223,11 +224,12 @@ async function composeVideoAsync(
       }))
     })
 
-    // 🔥 步骤 1: 准备字幕文件（旁白模式）
+    // 🔥 步骤 1: 准备旁白音频和字幕（旁白模式）
     let subtitleUrl: string | undefined
+    let narrationAudioClips: Array<{ url: string; start: number; length: number }> = []
 
     if (project.enable_narration) {
-      console.log('[Video Agent] 📝 Generating subtitles for narration mode...')
+      console.log('[Video Agent] 🎙️ Generating narration audio and subtitles...')
 
       try {
         // 获取分镜数据
@@ -239,7 +241,35 @@ async function composeVideoAsync(
           .returns<ProjectShot[]>()
 
         if (shots && shots.length > 0) {
-          // 生成 SRT 字幕文件
+          // 1. 生成旁白音频
+          console.log('[Video Agent] 🎙️ Calling ElevenLabs TTS for', shots.length, 'shots...')
+
+          const narrationTexts = shots.map(shot => shot.character_action)
+          const narrationResults = await generateNarrationBatch(narrationTexts, {
+            voice: 'Rachel',  // 默认音色，后续可配置
+            speed: 1.0
+          })
+
+          // 构建音频 clips 数组
+          let currentTime = 0
+          for (let i = 0; i < shots.length; i++) {
+            const result = narrationResults[i]
+            if (result.success && result.audio_url) {
+              narrationAudioClips.push({
+                url: result.audio_url,
+                start: currentTime,
+                length: shots[i].duration_seconds
+              })
+              console.log(`[Video Agent] ✅ Narration ${i + 1}/${shots.length}: ${result.audio_url}`)
+            } else {
+              console.error(`[Video Agent] ❌ Narration ${i + 1} failed:`, result.error)
+            }
+            currentTime += shots[i].duration_seconds
+          }
+
+          console.log('[Video Agent] 🎙️ Generated', narrationAudioClips.length, '/', shots.length, 'narration clips')
+
+          // 2. 生成 SRT 字幕文件
           const srtContent = generateSRTFromShots(shots)
 
           // 上传 SRT 到 Supabase Storage
@@ -267,9 +297,9 @@ async function composeVideoAsync(
             console.log('[Video Agent] ✅ Subtitles uploaded:', subtitleUrl)
           }
         }
-      } catch (srtError) {
-        console.error('[Video Agent] ⚠️ Failed to generate subtitles:', srtError)
-        // 字幕失败不影响主流程
+      } catch (error) {
+        console.error('[Video Agent] ⚠️ Failed to generate narration:', error)
+        // 旁白失败不影响主流程
       }
     }
 
@@ -285,14 +315,15 @@ async function composeVideoAsync(
       }
     }
 
-    // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 音乐 + 字幕）
+    // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 旁白/音乐 + 字幕）
     console.log('[Video Agent] 🔗 Rendering video with Shotstack API...')
 
     const finalVideoUrl = await concatenateVideosWithShotstack(videoUrls, {
       aspectRatio: project.aspect_ratio || '16:9',
       clipDurations,
       backgroundMusicUrl,
-      subtitleUrl
+      subtitleUrl,
+      narrationAudioClips: narrationAudioClips.length > 0 ? narrationAudioClips : undefined
     })
 
     console.log('[Video Agent] ✅ Video rendering complete:', finalVideoUrl)

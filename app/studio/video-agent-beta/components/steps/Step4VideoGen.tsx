@@ -51,7 +51,20 @@ export default function Step4VideoGen({ project, onNext, onUpdate }: Step4Props)
   const displayItems: DisplayVideoItem[] = Array.from({ length: totalShots }, (_, index) => {
     const shotNumber = index + 1
     const clip = videoClips.find(vc => vc.shot_number === shotNumber)
-    return clip || { shot_number: shotNumber, status: 'pending' as const }
+
+    // 🎬 查找对应的分镜图作为视频首帧占位
+    const storyboard = project.storyboards?.find((sb: any) => sb.shot_number === shotNumber)
+    const posterUrl = storyboard?.status === 'success' ? storyboard.image_url : undefined
+
+    if (clip) {
+      return { ...clip, poster_url: posterUrl }
+    }
+
+    return {
+      shot_number: shotNumber,
+      status: 'pending' as const,
+      poster_url: posterUrl
+    }
   })
 
   return (

@@ -149,7 +149,13 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Image-to-Video 积分扣除成功: ${creditsCheck.requiredCredits} 积分，剩余: ${deductResult.newBalance}`)
 
-    const useBytePlus = USE_BYTEPLUS || process.env.NODE_ENV === 'development'
+    // 🔥 根据模型类型决定使用哪个 API 提供商
+    // vidfab-pro (veo3) → 使用 Wavespeed
+    // vidfab-q1 (seedance) → 使用 BytePlus
+    const isVeo3Model = body.model === 'vidfab-pro'
+    const useBytePlus = !isVeo3Model && (USE_BYTEPLUS || process.env.NODE_ENV === 'development')
+
+    console.log(`🔧 API 提供商选择: ${isVeo3Model ? 'Wavespeed (veo3-fast)' : useBytePlus ? 'BytePlus (seedance)' : 'Wavespeed (seedance)'} (模型: ${body.model})`)
 
     // 🔥 根据用户订阅状态设置水印（付费用户关闭，免费用户开启）
     const { data: userData } = await supabaseAdmin
@@ -169,6 +175,7 @@ export async function POST(request: NextRequest) {
       if (useBytePlus) {
         result = await submitBytePlusVideoGeneration(body)
       } else {
+        // 🔥 vidfab-pro 或明确指定使用 Wavespeed
         result = await submitImageToVideoGeneration(body)
       }
     } catch (videoError) {

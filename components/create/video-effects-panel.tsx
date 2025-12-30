@@ -143,8 +143,9 @@ export function VideoEffectsPanel() {
 
   // Video generation
   const videoGeneration = useVideoGeneration({
-    onSuccess: (jobId, requestId) => {
-      startPolling(jobId, requestId)
+    onSuccess: (job, requestId) => {
+      // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
+      startPolling(job)
     },
     onError: (error) => {
       console.error("Video effects generation failed:", error)
