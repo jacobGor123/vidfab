@@ -52,13 +52,17 @@ export async function GET(
     if (requestId.startsWith('wavespeed:')) {
       useWavespeed = true
       actualRequestId = requestId.substring('wavespeed:'.length)
+      console.log(`🔍 检测到 Wavespeed 前缀，使用 Wavespeed API 查询状态`)
     } else if (requestId.startsWith('byteplus:')) {
       useWavespeed = false
       actualRequestId = requestId.substring('byteplus:'.length)
+      console.log(`🔍 检测到 BytePlus 前缀，使用 BytePlus API 查询状态`)
     } else {
-      // 没有前缀，使用默认逻辑
+      // 没有前缀（兼容旧数据），使用默认逻辑
+      console.warn(`⚠️ requestId 没有前缀: ${requestId}，使用默认 API 逻辑`)
       const useBytePlus = USE_BYTEPLUS || process.env.NODE_ENV === 'development'
       useWavespeed = !useBytePlus
+      console.log(`🔍 默认使用 ${useWavespeed ? 'Wavespeed' : 'BytePlus'} API 查询状态`)
     }
 
     // 查询状态

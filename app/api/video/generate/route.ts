@@ -202,11 +202,15 @@ export async function POST(request: NextRequest) {
       throw videoError
     }
 
+    // 🔥 为 requestId 添加 API 提供商前缀，便于状态查询时识别
+    const apiPrefix = useBytePlus ? 'byteplus:' : 'wavespeed:'
+    const prefixedRequestId = `${apiPrefix}${result.data.id}`
+
     // 返回成功响应
     return NextResponse.json({
       success: true,
       data: {
-        requestId: result.data.id,
+        requestId: prefixedRequestId,
         localId: `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId: session.user.uuid,
         estimatedTime: "2-5 minutes", // 可以根据参数动态计算
