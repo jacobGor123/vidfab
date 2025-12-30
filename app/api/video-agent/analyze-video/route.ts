@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
-import { analyzeVideoToScript, isValidYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
+import { analyzeVideoToScript, isValidYouTubeUrl, getYouTubeDuration } from '@/lib/services/video-agent/video-analyzer-google'
 
 export const maxDuration = 300 // 最长 5 分钟（视频分析可能较慢）
 
@@ -62,9 +62,11 @@ export const POST = withAuth(async (req, { params, userId }) => {
       )
     }
 
-    if (![15, 30, 45, 60].includes(duration)) {
+    // 🔥 对于 YouTube 视频，duration 参数仅作为备用（如果获取真实时长失败）
+    // 对于本地视频，仍然需要验证 duration
+    if (videoSource.type !== 'youtube' && ![15, 30, 45, 60].includes(duration)) {
       return NextResponse.json(
-        { success: false, error: 'Duration must be 15, 30, 45, or 60 seconds' },
+        { success: false, error: 'Duration must be 15, 30, 45, or 60 seconds for local videos' },
         { status: 400 }
       )
     }
@@ -85,14 +87,36 @@ export const POST = withAuth(async (req, { params, userId }) => {
       )
     }
 
-    // 5. 调用视频分析服务
-    console.log('[API /analyze-video] Calling video analyzer...')
+    // 5. 🔥 获取 YouTube 视频真实时长（如果是 YouTube 视频）
+    let actualDuration = duration // 默认使用用户选择的时长
+
+    if (videoSource.type === 'youtube') {
+      try {
+        console.log('[API /analyze-video] Fetching YouTube video duration...')
+        actualDuration = await getYouTubeDuration(videoSource.url)
+        console.log('[API /analyze-video] YouTube video actual duration:', actualDuration, 'seconds')
+
+        // 将实际时长四舍五入到最接近的整数
+        actualDuration = Math.round(actualDuration)
+
+      } catch (error: any) {
+        console.warn('[API /analyze-video] Failed to get YouTube duration, using user selection:', error.message)
+        // 如果获取失败，继续使用用户选择的时长
+      }
+    }
+
+    // 6. 调用视频分析服务（使用实际时长）
+    console.log('[API /analyze-video] Calling video analyzer...', {
+      userSelectedDuration: duration,
+      actualDuration,
+      isYouTube: videoSource.type === 'youtube'
+    })
 
     const startTime = Date.now()
 
     const analysis = await analyzeVideoToScript(
       videoSource,
-      duration,
+      actualDuration,  // 🔥 使用实际时长，而不是用户选择的时长
       storyStyle
     )
 
@@ -101,18 +125,21 @@ export const POST = withAuth(async (req, { params, userId }) => {
     console.log('[API /analyze-video] Video analysis completed', {
       userId,
       videoType: videoSource.type,
+      actualDuration,
       shotCount: analysis.shots.length,
       characters: analysis.characters,
       analysisTimeMs: analysisTime
     })
 
-    // 6. 返回结果
+    // 7. 返回结果
     return NextResponse.json({
       success: true,
       data: analysis,
       meta: {
         analysisTimeMs: analysisTime,
-        videoSource: videoSource.type
+        videoSource: videoSource.type,
+        actualDuration,  // 🔥 返回实际使用的时长
+        userSelectedDuration: duration  // 用户原本选择的时长
       }
     })
 

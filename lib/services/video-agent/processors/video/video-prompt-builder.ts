@@ -18,9 +18,12 @@ export function buildVideoAnalysisPrompt(
   duration: number,
   storyStyle: string
 ): string {
-  // 基于统一 5 秒时长计算分镜数量
+  // 🔥 动态计算分镜数量（支持任意时长）
+  // 优先使用映射表，如果不在表中则按 5 秒一个分镜计算
   const shotCount = SHOT_COUNT_MAP[duration] || Math.ceil(duration / UNIFIED_SEGMENT_DURATION)
   const avgShotDuration = UNIFIED_SEGMENT_DURATION
+
+  console.log('[Video Prompt Builder] Duration:', duration, 'seconds → Shot count:', shotCount)
 
   return `# 任务: 视频分析与脚本重构
 

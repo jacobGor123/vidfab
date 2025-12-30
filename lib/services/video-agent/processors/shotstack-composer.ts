@@ -149,9 +149,9 @@ export async function concatenateVideosWithShotstack(
         asset: {
           type: 'title' as any,
           text: sub.text,
-          style: 'subtitle' as any,
+          style: 'minimal' as any,      // 🎨 改用 minimal 风格（现代简约）
           color: '#ffffff',
-          size: 'small' as any,
+          size: 'medium' as any,         // 🔥 调大字号，避免截断
           background: '#000000',
           position: 'bottom' as any,
           offset: {

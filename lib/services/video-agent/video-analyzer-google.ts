@@ -24,3 +24,6 @@ export {
   extractYouTubeVideoId,
   type VideoSource
 } from './processors/video/youtube-utils'
+
+// 导出 YouTube 时长获取函数
+export { getYouTubeDuration } from './processors/video/youtube-duration'

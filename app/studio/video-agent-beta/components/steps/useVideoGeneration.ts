@@ -139,7 +139,26 @@ export function useVideoGeneration({
       if (data) {
         console.log('[Step4 Frontend] Updating videoClips state with', data.length, 'clips')
         setVideoClips(data)
-        onUpdate({ video_clips: data })
+
+        // 🔥 检查是否所有视频都完成了（成功或失败）
+        const allCompleted = data.length > 0 && data.every((vc: VideoClip) =>
+          vc.status === 'success' || vc.status === 'failed'
+        )
+
+        if (allCompleted) {
+          // 🔥 同步更新所有步骤状态，确保前端状态与后端一致
+          // 这样用户才能回溯到之前的步骤
+          console.log('[Step4 Frontend] All videos completed, updating all step statuses')
+          onUpdate({
+            video_clips: data,
+            step_1_status: 'completed' as any,  // 确保前置步骤状态正确
+            step_2_status: 'completed' as any,
+            step_3_status: 'completed' as any,
+            step_4_status: 'completed' as any
+          })
+        } else {
+          onUpdate({ video_clips: data })
+        }
       }
 
       // 检查是否有正在生成的视频
