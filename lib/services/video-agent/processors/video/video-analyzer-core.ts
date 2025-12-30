@@ -12,12 +12,12 @@ import { MODEL_NAME, UNIFIED_SEGMENT_DURATION, sleep } from '../script/constants
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
 /**
- * 清理 JSON 响应内容（移除可能的 markdown 标记）
+ * 清理 JSON 响应内容（移除可能的 markdown 标记和额外文本）
  */
 function cleanJsonResponse(content: string): string {
   let cleanContent = content.trim()
 
-  // 移除可能的 markdown 代码块标记
+  // 🔥 策略1：先尝试移除 markdown 代码块标记
   if (cleanContent.startsWith('```json')) {
     cleanContent = cleanContent.replace(/^```json\s*/, '')
   }
@@ -28,7 +28,23 @@ function cleanJsonResponse(content: string): string {
     cleanContent = cleanContent.replace(/\s*```$/, '')
   }
 
-  return cleanContent
+  // 🔥 策略2：如果第一个字符不是 {，说明前面有额外文本
+  // 提取第一个 { 到最后一个 } 之间的内容
+  const firstBrace = cleanContent.indexOf('{')
+  const lastBrace = cleanContent.lastIndexOf('}')
+
+  if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
+    // 找到了 JSON 的开始和结束位置
+    cleanContent = cleanContent.substring(firstBrace, lastBrace + 1)
+
+    console.log('[Video Analyzer Core] Extracted JSON from position', {
+      firstBrace,
+      lastBrace,
+      extractedLength: cleanContent.length
+    })
+  }
+
+  return cleanContent.trim()
 }
 
 /**
