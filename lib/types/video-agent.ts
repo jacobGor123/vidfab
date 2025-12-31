@@ -71,8 +71,8 @@ export interface VideoClipResult {
  * 转场效果配置
  */
 export interface TransitionConfig {
-  type: 'fade' | 'crossfade' | 'slide' | 'zoom'
-  duration: number              // 转场时长（秒）
+  type: 'none' | 'fade' | 'crossfade' | 'slide' | 'zoom'
+  duration: number              // 转场时长（秒），type='none' 时此字段无效
 }
 
 /**

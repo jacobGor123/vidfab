@@ -151,7 +151,16 @@ export function useVideoAgentAPI() {
       const data: APIResponse<T> = await response.json()
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || data.message || 'API call failed')
+        // 🔥 改进错误处理：包含详细信息
+        const errorMessage = data.error || data.message || 'API call failed'
+        const errorDetails = (data as any).details
+
+        // 如果有详细错误信息，记录到控制台
+        if (errorDetails) {
+          console.error('[API Error] Details:', errorDetails)
+        }
+
+        throw new Error(errorMessage)
       }
 
       return data.data as T

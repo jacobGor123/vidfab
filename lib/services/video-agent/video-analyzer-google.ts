@@ -22,6 +22,8 @@ export { buildVideoAnalysisPrompt } from './processors/video/video-prompt-builde
 export {
   isValidYouTubeUrl,
   extractYouTubeVideoId,
+  normalizeYouTubeUrl,
+  convertToStandardYouTubeUrl,
   type VideoSource
 } from './processors/video/youtube-utils'
 

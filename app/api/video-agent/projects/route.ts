@@ -43,12 +43,17 @@ export const POST = withAuth(async (request, { params, userId }) => {
       mute_bgm: muteBgm = true
     } = body
 
-    if (!duration || ![15, 30, 45, 60].includes(duration)) {
+    // 🔥 YouTube 视频复刻模式：允许 1-60 秒的任意时长
+    // 文字脚本模式：仍然推荐使用 15/30/45/60，但不强制限制
+    if (!duration || typeof duration !== 'number' || duration < 1 || duration > 60) {
       return NextResponse.json(
-        { error: 'Invalid duration. Must be 15, 30, 45, or 60 seconds' },
+        { error: 'Invalid duration. Must be between 1 and 60 seconds' },
         { status: 400 }
       )
     }
+
+    // 🔥 确保 duration 是整数（数据库字段是 integer 类型）
+    const intDuration = Math.round(duration)
 
     const validStyles = ['auto', 'comedy', 'mystery', 'moral', 'twist', 'suspense', 'warmth', 'inspiration']
     if (!storyStyle || !validStyles.includes(storyStyle)) {
@@ -75,7 +80,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     console.log('[Video Agent] Creating new project', {
       userId,
-      duration,
+      duration: intDuration,  // 🔥 使用整数
+      originalDuration: duration,  // 记录原始值用于日志
       storyStyle,
       scriptLength: originalScript.length,
       aspectRatio,
@@ -88,7 +94,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .from('video_agent_projects')
       .insert({
         user_id: userId,
-        duration,
+        duration: intDuration,  // 🔥 使用四舍五入后的整数
         story_style: storyStyle,
         original_script: originalScript,
         aspect_ratio: aspectRatio,

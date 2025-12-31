@@ -13,7 +13,8 @@ export function validateAnalysisResult(analysis: ScriptAnalysisResult): {
 } {
   const errors: string[] = []
 
-  if (!analysis.duration || ![15, 30, 45, 60].includes(analysis.duration)) {
+  // 🔥 YouTube 视频复刻模式：允许 1-60 秒的任意整数
+  if (!analysis.duration || typeof analysis.duration !== 'number' || analysis.duration < 1 || analysis.duration > 60) {
     errors.push('Invalid duration')
   }
 

@@ -49,6 +49,23 @@ export default function VideoAgentBetaPage() {
     }
   }, [])
 
+  // 🔥 监听 YouTube 视频分析完成事件
+  useEffect(() => {
+    const handleProjectCreated = (event: any) => {
+      const project = event.detail
+      console.log('[Video Agent] YouTube project created:', project.id)
+      // 恢复项目并打开弹框
+      resumeProject(project)
+      setIsDialogOpen(true)
+    }
+
+    window.addEventListener('video-agent-project-created', handleProjectCreated)
+
+    return () => {
+      window.removeEventListener('video-agent-project-created', handleProjectCreated)
+    }
+  }, [resumeProject])
+
   const handleStart = async (data: {
     duration: number
     storyStyle: string

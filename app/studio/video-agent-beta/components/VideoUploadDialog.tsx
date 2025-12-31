@@ -1,18 +1,20 @@
 /**
  * Video Upload Dialog
  * 允许用户输入 YouTube URL 或上传本地视频进行分析
+ * 🔥 YouTube 模式：分析完成后直接创建项目并跳转到步骤1
  */
 
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Youtube, Upload, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { showError } from '@/lib/utils/toast'
+import { showError, showSuccess } from '@/lib/utils/toast'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { useVideoGenerationAuth } from '@/hooks/use-auth-modal'
 import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
@@ -20,8 +22,8 @@ import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
 interface VideoUploadDialogProps {
   isOpen: boolean
   onClose: () => void
-  onVideoAnalyzed: (scriptContent: string) => void
-  duration: number
+  onVideoAnalyzed: (scriptContent: string) => void  // 保留兼容性，但 YouTube 模式不再使用
+  duration: number  // YouTube 模式下会被实际时长覆盖
   storyStyle: string
   aspectRatio: '16:9' | '9:16'
 }
@@ -34,12 +36,13 @@ export default function VideoUploadDialog({
   storyStyle,
   aspectRatio
 }: VideoUploadDialogProps) {
-  const { analyzeVideo } = useVideoAgentAPI()
+  const { analyzeVideo, createProject, updateProject, getProject } = useVideoAgentAPI()
   const authModal = useVideoGenerationAuth()
   const [inputType, setInputType] = useState<'youtube' | 'local'>('youtube')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [progress, setProgress] = useState<string>('')
+  const [createdProject, setCreatedProject] = useState<any>(null)
 
   const handleAnalyze = async () => {
     // 验证输入
@@ -63,31 +66,119 @@ export default function VideoUploadDialog({
       setProgress('Analyzing video content...')
 
       try {
-        // 调用视频分析 API
-        const data = await analyzeVideo({
+        // 🔥 步骤1: 调用视频分析 API
+        const analysisData = await analyzeVideo({
           videoSource: {
             type: inputType,
-            url: inputType === 'youtube' ? youtubeUrl : '' // 本地文件暂时留空
+            url: inputType === 'youtube' ? youtubeUrl : ''
           },
-          duration,
+          duration,  // YouTube 模式下会被实际时长覆盖
           storyStyle,
           aspectRatio
         })
 
-        setProgress('Analysis complete!')
+        setProgress('Creating project...')
 
-        // 提取脚本内容
-        const scriptContent = generateScriptFromAnalysis(data)
+        // 🔥 步骤2: 提取脚本内容并创建项目
+        const scriptContent = generateScriptFromAnalysis(analysisData)
 
-        // 调用回调函数
-        onVideoAnalyzed(scriptContent)
+        // 🔥 YouTube 模式：默认开启背景音乐，9:16 比例
+        const project = await createProject({
+          duration: Math.round(analysisData.duration || duration),  // 🔥 四舍五入为整数
+          story_style: storyStyle,
+          original_script: scriptContent,
+          aspect_ratio: '9:16',  // 🔥 默认 9:16
+          enable_narration: false,  // 🔥 非旁白模式
+          mute_bgm: false  // 🔥 开启背景音乐（默认使用预设音乐）
+        } as any)
 
-        // 关闭对话框
+        setProgress('Saving analysis results...')
+
+        // 🔥 步骤3: 直接保存视频分析结果为脚本分析结果（跳过重复分析）
+        // YouTube 模式下，视频分析已经完成了分镜脚本的生成，不需要再次调用 analyzeScript
+        // ✅ PATCH API 会自动把 script_analysis.shots 保存到 project_shots 表
+        console.log('[YouTube Mode] Saving script_analysis to project:', {
+          projectId: project.id,
+          hasAnalysisData: !!analysisData,
+          analysisKeys: analysisData ? Object.keys(analysisData) : null,
+          shotsCount: analysisData?.shots?.length || 0,
+          duration: analysisData?.duration
+        })
+
+        await updateProject(project.id, {
+          script_analysis: analysisData,  // 直接使用视频分析结果
+          step_1_status: 'completed'
+        } as any)
+
+        console.log('[YouTube Mode] ✅ script_analysis saved successfully')
+
+        // 🔥 步骤4: 自动生成角色 Prompts（YouTube 模式）
+        if (analysisData.characters && analysisData.characters.length > 0) {
+          setProgress('Generating character prompts...')
+
+          try {
+            // 调用 character-prompts API 生成角色的 prompts
+            const response = await fetch(`/api/video-agent/projects/${project.id}/character-prompts`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageStyle: 'realistic' })  // 默认使用写实风格
+            })
+
+            if (response.ok) {
+              const { data } = await response.json()
+              const characterPrompts = data.characterPrompts || []
+
+              // 将 prompts 保存到数据库
+              if (characterPrompts.length > 0) {
+                const charactersData = characterPrompts.map((cp: any) => ({
+                  name: cp.characterName,
+                  source: 'ai_generate' as const,
+                  generationPrompt: cp.prompt,
+                  negativePrompt: cp.negativePrompt
+                }))
+
+                const updateCharsResponse = await fetch(`/api/video-agent/projects/${project.id}/characters`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ characters: charactersData })
+                })
+
+                if (!updateCharsResponse.ok) {
+                  console.warn('[YouTube Mode] Failed to save character prompts, but continuing...')
+                }
+              }
+            } else {
+              console.warn('[YouTube Mode] Failed to generate character prompts, but continuing...')
+            }
+          } catch (charError) {
+            console.warn('[YouTube Mode] Character prompt generation failed (non-critical):', charError)
+            // 角色 prompt 生成失败不影响主流程，继续执行
+          }
+        }
+
+        setProgress('Loading project...')
+
+        // 🔥 步骤5: 重新获取完整项目数据（包含分析结果）
+        const fullProject = await getProject(project.id)
+
+        showSuccess('Video analyzed successfully!')
+
+        // 🔥 步骤6: 保存项目信息并关闭对话框
+        // 通过父组件的 onVideoAnalyzed 回调通知项目已创建
+        // 父组件可以通过 store 加载这个项目
+        setCreatedProject(fullProject)
+
         setTimeout(() => {
+          // 通知父组件（通过全局事件或其他方式）
+          window.dispatchEvent(new CustomEvent('video-agent-project-created', {
+            detail: fullProject
+          }))
+
           onClose()
           setIsAnalyzing(false)
           setProgress('')
           setYoutubeUrl('')
+          setCreatedProject(null)
         }, 500)
 
       } catch (error: any) {

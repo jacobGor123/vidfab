@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
-import { analyzeVideoToScript, isValidYouTubeUrl, getYouTubeDuration } from '@/lib/services/video-agent/video-analyzer-google'
+import { analyzeVideoToScript, isValidYouTubeUrl, getYouTubeDuration, convertToStandardYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
 
 export const maxDuration = 300 // 最长 5 分钟（视频分析可能较慢）
 
@@ -99,13 +99,39 @@ export const POST = withAuth(async (req, { params, userId }) => {
         // 将实际时长四舍五入到最接近的整数
         actualDuration = Math.round(actualDuration)
 
+        // 🔥 检查时长限制：YouTube 视频最大支持 60 秒
+        if (actualDuration > 60) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Video is too long (${actualDuration}s). Maximum supported duration is 60 seconds. Please use a shorter video.`,
+              code: 'VIDEO_TOO_LONG',
+              actualDuration
+            },
+            { status: 400 }
+          )
+        }
+
       } catch (error: any) {
         console.warn('[API /analyze-video] Failed to get YouTube duration, using user selection:', error.message)
         // 如果获取失败，继续使用用户选择的时长
       }
     }
 
-    // 6. 调用视频分析服务（使用实际时长）
+    // 6. 🔥 转换 YouTube URL 为标准 watch 格式
+    // Gemini API 可能只支持标准的 watch?v= 格式，不支持 Shorts
+    if (videoSource.type === 'youtube') {
+      const standardUrl = convertToStandardYouTubeUrl(videoSource.url)
+      console.log('[API /analyze-video] Converted YouTube URL to standard format:', {
+        original: videoSource.url,
+        standard: standardUrl,
+        isShorts: videoSource.url.includes('/shorts/'),
+        videoId: standardUrl.split('v=')[1]
+      })
+      videoSource.url = standardUrl
+    }
+
+    // 7. 调用视频分析服务（使用实际时长）
     console.log('[API /analyze-video] Calling video analyzer...', {
       userSelectedDuration: duration,
       actualDuration,

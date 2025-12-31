@@ -27,7 +27,7 @@ export async function composeVideo(options: VideoCompositionOptions): Promise<st
     music,
     transition,
     outputPath,
-    resolution = '1080p',
+    resolution = '720p',
     fps = 30
   } = options
 
@@ -118,13 +118,13 @@ export async function composeVideo(options: VideoCompositionOptions): Promise<st
 }
 
 /**
- * 使用 xfade 合成视频（带交叉淡化）
+ * 合成视频（无转场，直接拼接）
  *
  * @param clips 视频片段列表
  * @param outputPath 输出文件路径
  * @param music 背景音乐配置（可选）
- * @param transitionDuration 过渡时长（秒），默认 0.5
- * @param segmentDuration 每个片段时长（秒），默认 5
+ * @param transitionDuration 保留参数（向后兼容，实际不使用）
+ * @param segmentDuration 保留参数（向后兼容，实际不使用）
  * @returns 输出文件路径
  */
 export async function composeVideoWithCrossfade(
@@ -134,13 +134,11 @@ export async function composeVideoWithCrossfade(
   transitionDuration: number = 0.5,
   segmentDuration: number = 5
 ): Promise<string> {
-  const { concatenateWithCrossfadeAndAudio, addBackgroundMusic } = await import('./processors/ffmpeg')
+  const { addBackgroundMusic, simpleConcatVideos } = await import('./processors/ffmpeg')
 
-  console.log('[VideoComposer] 🔥 开始视频合成（交叉淡化）', {
+  console.log('[VideoComposer] 🔥 开始视频合成（无转场）', {
     clipCount: clips.length,
-    hasMusic: !!music,
-    transitionDuration,
-    segmentDuration
+    hasMusic: !!music
   })
 
   const tempDir = '/tmp/video-agent'
@@ -164,14 +162,15 @@ export async function composeVideoWithCrossfade(
       throw new Error('没有可用的视频片段')
     }
 
-    // 步骤 2: 🔥 使用交叉淡化拼接视频
-    console.log('[VideoComposer] 拼接视频片段（交叉淡化）...')
+    // 步骤 2: 🔥 直接拼接视频片段（无转场）
     const concatenatedPath = path.join(tempDir, 'concatenated.mp4')
-    await concatenateWithCrossfadeAndAudio(
-      localPaths,
-      concatenatedPath,
-      transitionDuration,
-      segmentDuration
+    console.log('[VideoComposer] 拼接视频片段（无转场）...')
+    await simpleConcatVideos(
+      clips.map((clip, index) => ({
+        ...clip,
+        local_path: localPaths[index]
+      })),
+      concatenatedPath
     )
 
     // 步骤 3: 添加背景音乐（如有）
@@ -185,8 +184,8 @@ export async function composeVideoWithCrossfade(
 
       // 计算视频总时长（用于正确的 fadeOut）
       const totalDuration = estimateTotalDuration(clips, {
-        type: 'crossfade',
-        duration: transitionDuration
+        type: 'none',
+        duration: 0
       })
 
       // 添加音乐

@@ -81,23 +81,6 @@ export const GET = withAuth(async (request, { params, userId }) => {
     const generatingClips = videoClips.filter(c => c.status === 'generating' && (c.seedance_task_id || c.video_request_id))
     const stuckGeneratingClips = videoClips.filter(c => c.status === 'generating' && !c.seedance_task_id && !c.video_request_id)
 
-    console.log('[Video Agent] Status check:', {
-      projectId,
-      totalClips: videoClips.length,
-      generatingCount: generatingClips.length,
-      stuckCount: stuckGeneratingClips.length,
-      generatingShots: generatingClips.map(c => ({
-        shot: c.shot_number,
-        seedanceId: c.seedance_task_id,
-        veo3Id: c.video_request_id
-      })),
-      stuckShots: stuckGeneratingClips.map(c => ({
-        shot: c.shot_number,
-        hasTaskId: false,
-        status: c.status
-      }))
-    })
-
     // ✅ 优化：限制并发查询外部服务（避免触发速率限制）
     const limit = pLimit(3)
 

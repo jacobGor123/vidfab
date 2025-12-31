@@ -13,10 +13,6 @@ interface ShotstackClip {
   }
   start: number
   length: number
-  transition?: {
-    in?: 'fade' | 'fadeSlow' | 'fadeFast' | 'reveal' | 'wipeLeft' | 'slideLeft'
-    out?: 'fade' | 'fadeSlow' | 'fadeFast' | 'reveal' | 'wipeRight' | 'slideRight'
-  }
 }
 
 interface ShotstackTimeline {
@@ -86,12 +82,7 @@ export async function concatenateVideosWithShotstack(
         src: videoUrls[i]
       },
       start: currentTime,
-      length: duration,
-      // 添加淡入淡出过渡效果
-      transition: {
-        in: 'fade',
-        out: 'fade'
-      }
+      length: duration
     })
 
     currentTime += duration

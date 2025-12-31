@@ -80,7 +80,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       source: char.source,
       template_id: char.templateId,
       generation_prompt: char.generationPrompt,
-      negative_prompt: char.negativePrompt  // 🔥 添加 negative prompt 支持
+      negative_prompt: char.negativePrompt
     }))
 
     const { data: insertedChars, error: insertError } = await supabaseAdmin

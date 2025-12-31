@@ -44,6 +44,14 @@ function cleanJsonResponse(content: string): string {
     })
   }
 
+  // 🔥 策略3：修复常见的 JSON 语法错误
+  // 移除尾随逗号（在数组或对象的最后一个元素后）
+  cleanContent = cleanContent.replace(/,(\s*[}\]])/g, '$1')
+
+  // 移除注释（单行和多行）
+  cleanContent = cleanContent.replace(/\/\*[\s\S]*?\*\//g, '')  // 多行注释
+  cleanContent = cleanContent.replace(/\/\/.*/g, '')  // 单行注释
+
   return cleanContent.trim()
 }
 
@@ -62,9 +70,13 @@ function fixCharacterArrays(analysis: ScriptAnalysisResult): string[] {
     const matchedCharacters: string[] = []
 
     allCharacters.forEach(charName => {
-      const charLower = charName.toLowerCase()
-      // 如果 description 中提到了这个角色，加入该分镜的 characters 数组
-      if (descLower.includes(charLower)) {
+      // 🔥 提取角色名称的简短形式（括号前的部分）
+      // 例如: "Mira (Asian woman, 20s...)" → "Mira"
+      const shortName = charName.split('(')[0].trim()
+      const shortNameLower = shortName.toLowerCase()
+
+      // 如果 description 中提到了这个角色的简短名称，加入该分镜的 characters 数组
+      if (descLower.includes(shortNameLower)) {
         matchedCharacters.push(charName)
       }
     })
@@ -136,19 +148,30 @@ export async function analyzeVideoToScript(
 
       console.log('[Video Analyzer Core] Sending request to Gemini with YouTube URL:', {
         videoUrl: videoSource.url,
+        videoType: videoSource.type,
         promptLength: prompt.length
       })
 
-      // 🔥 关键：Google 官方 SDK 支持直接传 YouTube URL
-      const result = await model.generateContent([
-        prompt,
+      // 🔥 根据 Google SDK 文档，YouTube 视频应该使用以下格式
+      // 参考：https://ai.google.dev/gemini-api/docs/vision?lang=node#technical-details-video
+      const parts = [
+        { text: prompt },
         {
           fileData: {
-            mimeType: 'video/*',
-            fileUri: videoSource.url  // 直接使用 YouTube URL
+            mimeType: 'video/mp4',
+            fileUri: videoSource.url
           }
         }
-      ])
+      ]
+
+      console.log('[Video Analyzer Core] Gemini request structure:', {
+        partsCount: parts.length,
+        fileUri: videoSource.url,
+        promptLength: prompt.length
+      })
+
+      // 使用简单的 generateContent 调用
+      const result = await model.generateContent(parts)
 
       const response = await result.response
       const content = response.text()
@@ -165,15 +188,27 @@ export async function analyzeVideoToScript(
       // 清理响应内容
       const cleanContent = cleanJsonResponse(content)
 
+      console.log('[Video Analyzer Core] After cleaning:', {
+        originalLength: content.length,
+        cleanedLength: cleanContent.length,
+        cleanedPreview: cleanContent.substring(0, 300)
+      })
+
       // 解析 JSON
       let analysis: ScriptAnalysisResult
       try {
         analysis = JSON.parse(cleanContent)
       } catch (parseError) {
-        console.error('[Video Analyzer Core] JSON parse error:', parseError)
-        console.error('[Video Analyzer Core] Raw content:', content)
-        console.error('[Video Analyzer Core] Cleaned content:', cleanContent)
-        throw new Error('Invalid JSON response from Gemini')
+        // 🔥 使用 console.log 而不是 console.error，确保一定能看到
+        console.log('[Video Analyzer Core] ❌❌❌ JSON PARSE FAILED ❌❌❌')
+        console.log('[Video Analyzer Core] Parse error:', parseError)
+        console.log('[Video Analyzer Core] Raw content (first 500 chars):', content.substring(0, 500))
+        console.log('[Video Analyzer Core] Raw content (last 500 chars):', content.substring(Math.max(0, content.length - 500)))
+        console.log('[Video Analyzer Core] Cleaned content (first 500 chars):', cleanContent.substring(0, 500))
+        console.log('[Video Analyzer Core] Cleaned content (last 500 chars):', cleanContent.substring(Math.max(0, cleanContent.length - 500)))
+        console.log('[Video Analyzer Core] Full cleaned content:', cleanContent)
+
+        throw new Error(`Invalid JSON response from Gemini: ${(parseError as Error).message}`)
       }
 
       // 验证结果
@@ -181,8 +216,21 @@ export async function analyzeVideoToScript(
         throw new Error('No shots generated in analysis result')
       }
 
-      // 🔥 统一分镜时长
-      unifySegmentDuration(analysis)
+      // 🔥 数据规范化：确保所有 duration_seconds 都是整数，且 >= 2 秒（BytePlus 最小值）
+      // 这很重要，因为数据库 schema 中 duration_seconds 字段是 integer 类型
+      // 同时，Gemini 可能返回过小的时长（如 0.5秒），需要强制最小值
+      analysis.shots = analysis.shots.map(shot => ({
+        ...shot,
+        duration_seconds: Math.max(2, Math.round(shot.duration_seconds))  // 🔥 最小2秒
+      }))
+
+      // 同时确保总时长也是整数
+      if (analysis.duration) {
+        analysis.duration = Math.round(analysis.duration)
+      }
+
+      // 🔥 移除强制统一时长逻辑（YouTube 视频复刻模式应保持原视频的真实时长）
+      // unifySegmentDuration(analysis)  // ❌ 已禁用：严格复刻模式不应修改时长
 
       // 🔥 修正角色数组
       const fixedShots = fixCharacterArrays(analysis)

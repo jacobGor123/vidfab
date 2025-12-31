@@ -99,12 +99,6 @@ export function useVideoGeneration({
     try {
       const data = await getVideosStatus(project.id)
 
-      console.log('[Step4 Frontend] Poll status received:', {
-        isArray: Array.isArray(data),
-        length: Array.isArray(data) ? data.length : 'N/A',
-        statuses: Array.isArray(data) ? data.map((c: any) => ({ shot: c.shot_number, status: c.status, hasUrl: !!c.video_url })) : 'N/A'
-      })
-
       // ✅ 优化：使用 updated_at 时间戳检测变化（更可靠）
       const signature = Array.isArray(data)
         ? data
@@ -114,14 +108,7 @@ export function useVideoGeneration({
             .join('|')
         : ''
 
-      console.log('[Step4 Frontend] Signature comparison:', {
-        current: signature,
-        last: lastPollSignatureRef.current,
-        willUpdate: signature !== lastPollSignatureRef.current
-      })
-
       if (signature && signature === lastPollSignatureRef.current) {
-        console.log('[Step4 Frontend] Skipping update - signature unchanged')
         return
       }
       lastPollSignatureRef.current = signature
@@ -137,7 +124,6 @@ export function useVideoGeneration({
 
       // ✅ 总是更新状态（包括空数组）
       if (data) {
-        console.log('[Step4 Frontend] Updating videoClips state with', data.length, 'clips')
         setVideoClips(data)
 
         // 🔥 检查是否所有视频都完成了（成功或失败）
@@ -148,7 +134,6 @@ export function useVideoGeneration({
         if (allCompleted) {
           // 🔥 同步更新所有步骤状态，确保前端状态与后端一致
           // 这样用户才能回溯到之前的步骤
-          console.log('[Step4 Frontend] All videos completed, updating all step statuses')
           onUpdate({
             video_clips: data,
             step_1_status: 'completed' as any,  // 确保前置步骤状态正确
@@ -163,13 +148,6 @@ export function useVideoGeneration({
 
       // 检查是否有正在生成的视频
       const hasGenerating = data && data.some((vc: VideoClip) => vc.status === 'generating')
-
-      console.log('[Step4 Frontend] Polling control check:', {
-        hasGenerating,
-        isCurrentlyGenerating: isGeneratingRef.current,
-        action: hasGenerating && !isGeneratingRef.current ? 'START' :
-                !hasGenerating && isGeneratingRef.current ? 'STOP' : 'NONE'
-      })
 
       // 根据实际状态决定是否需要轮询（使用 ref 避免闭包问题）
       if (hasGenerating && !isGeneratingRef.current) {
@@ -218,9 +196,12 @@ export function useVideoGeneration({
       await pollStatus()
       // 后续轮询由 useEffect 自动触发
     } catch (err: any) {
+      console.error('[Step4] Video generation failed:', err)
       setError(err.message)
       setIsGenerating(false)
-      setHasStartedGeneration(false)
+      // 🔥 修复无限重试 bug：失败后不要重置 hasStartedGeneration
+      // 保持 hasStartedGeneration = true，防止 useEffect 再次自动触发
+      // setHasStartedGeneration(false)  // ❌ 移除这行，避免无限重试
       setIsInitializing(true)
     }
   }

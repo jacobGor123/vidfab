@@ -201,12 +201,26 @@ async function generateBytePlusVideosSequentially(
       // 增强 prompt
       const enhancedPrompt = `Maintain exact character appearance and features from the reference image. ${shot.description}. ${shot.character_action}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
+      // 🔥 Seedance 时长限制：2-12 秒（官方文档）
+      // 参考：https://docs.byteplus.com/en/docs/ModelArk/1587798
+      const minDuration = 2
+      const maxDuration = 12
+      let clampedDuration = shot.duration_seconds
+
+      if (clampedDuration < minDuration) {
+        console.warn(`[Video Agent] Shot ${shot.shot_number} duration too short: ${shot.duration_seconds}s → ${minDuration}s (Seedance min: ${minDuration}s)`)
+        clampedDuration = minDuration
+      } else if (clampedDuration > maxDuration) {
+        console.warn(`[Video Agent] Shot ${shot.shot_number} duration too long: ${shot.duration_seconds}s → ${maxDuration}s (Seedance max: ${maxDuration}s)`)
+        clampedDuration = maxDuration
+      }
+
       const videoRequest: VideoGenerationRequest = {
         image: firstFrameUrl,
         prompt: enhancedPrompt,
         model: 'vidfab-q1',
-        duration: shot.duration_seconds,
-        resolution: '1080p',
+        duration: clampedDuration,  // 🔥 使用截断后的时长
+        resolution: '720p',
         aspectRatio: aspectRatio,
         cameraFixed: true,
         watermark: false,
@@ -298,8 +312,20 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     // 检查是否已完成分镜图生成
     if (!project.step_3_status || project.step_3_status !== 'completed') {
+      console.error('[Video Agent] ❌ Step 3 not completed:', {
+        projectId,
+        step_3_status: project.step_3_status,
+        current_step: project.current_step
+      })
       return NextResponse.json(
-        { error: 'Storyboards must be generated first', code: 'STORYBOARDS_NOT_READY' },
+        {
+          error: 'Storyboards must be generated first',
+          code: 'STORYBOARDS_NOT_READY',
+          details: {
+            step_3_status: project.step_3_status,
+            current_step: project.current_step
+          }
+        },
         { status: 400 }
       )
     }
@@ -310,17 +336,96 @@ export const POST = withAuth(async (request, { params, userId }) => {
     })
 
     // 获取分镜脚本
-    const { data: shots, error: shotsError } = await supabaseAdmin
+    // 🔥 使用 let 而不是 const，因为恢复机制可能需要重新赋值
+    let { data: shots, error: shotsError } = await supabaseAdmin
       .from('project_shots')
       .select('*')
       .eq('project_id', projectId)
       .order('shot_number', { ascending: true })
 
     if (shotsError || !shots || shots.length === 0) {
-      return NextResponse.json(
-        { error: 'No shots found for this project', code: 'NO_SHOTS' },
-        { status: 400 }
-      )
+      console.error('[Video Agent] ❌ No shots found in project_shots table:', {
+        projectId,
+        shotsError: shotsError?.message,
+        shotsCount: shots?.length || 0,
+        hasScriptAnalysis: !!project.script_analysis,
+        shotCountInAnalysis: project.script_analysis?.shots?.length
+      })
+
+      // 🔥 后备方案：如果 project_shots 表为空，但 script_analysis 有数据，直接从中提取并保存
+      if (project.script_analysis && typeof project.script_analysis === 'object') {
+        const analysis = project.script_analysis as any
+        console.log('[Video Agent] 🔄 Checking script_analysis for recovery:', {
+          hasScriptAnalysis: true,
+          hasShots: !!analysis.shots,
+          shotsIsArray: Array.isArray(analysis.shots),
+          shotsLength: analysis.shots?.length || 0
+        })
+
+        if (analysis.shots && Array.isArray(analysis.shots) && analysis.shots.length > 0) {
+          console.log('[Video Agent] 🔄 Attempting to recover shots from script_analysis:', {
+            shotsCount: analysis.shots.length,
+            firstShot: analysis.shots[0] ? {
+              shot_number: analysis.shots[0].shot_number,
+              description: analysis.shots[0].description?.substring(0, 50) + '...'
+            } : null
+          })
+
+          try {
+            const shotsToInsert = analysis.shots.map((shot: any) => ({
+              project_id: projectId,
+              shot_number: shot.shot_number,
+              time_range: shot.time_range,
+              description: shot.description,
+              camera_angle: shot.camera_angle,
+              character_action: shot.character_action,
+              mood: shot.mood,
+              duration_seconds: Math.max(2, Math.round(shot.duration_seconds))  // 🔥 最小2秒
+            }))
+
+            const { error: insertError } = await supabaseAdmin
+              .from('project_shots')
+              .upsert(shotsToInsert as any, {
+                onConflict: 'project_id,shot_number'
+              })
+
+            if (insertError) {
+              console.error('[Video Agent] Failed to insert shots from script_analysis:', insertError)
+            } else {
+              console.log('[Video Agent] ✅ Successfully recovered', shotsToInsert.length, 'shots from script_analysis')
+
+              // 重新查询 shots
+              const { data: recoveredShots } = await supabaseAdmin
+                .from('project_shots')
+                .select('*')
+                .eq('project_id', projectId)
+                .order('shot_number', { ascending: true })
+
+              if (recoveredShots && recoveredShots.length > 0) {
+                shots = recoveredShots
+                console.log('[Video Agent] ✅ Shots recovery successful, continuing with video generation')
+              }
+            }
+          } catch (recoveryError) {
+            console.error('[Video Agent] Shots recovery failed:', recoveryError)
+          }
+        }
+      }
+
+      // 如果恢复后仍然没有 shots，返回错误
+      if (!shots || shots.length === 0) {
+        return NextResponse.json(
+          {
+            error: 'No shots found for this project',
+            code: 'NO_SHOTS',
+            details: {
+              shotsError: shotsError?.message,
+              hasScriptAnalysis: !!project.script_analysis
+            }
+          },
+          { status: 400 }
+        )
+      }
     }
 
     // 获取分镜图
@@ -332,8 +437,22 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .order('shot_number', { ascending: true })
 
     if (storyboardsError || !storyboards || storyboards.length === 0) {
+      console.error('[Video Agent] ❌ No successful storyboards found:', {
+        projectId,
+        storyboardsError: storyboardsError?.message,
+        storyboardsCount: storyboards?.length || 0,
+        step_3_status: project.step_3_status
+      })
       return NextResponse.json(
-        { error: 'No successful storyboards found', code: 'NO_STORYBOARDS' },
+        {
+          error: 'No successful storyboards found',
+          code: 'NO_STORYBOARDS',
+          details: {
+            storyboardsError: storyboardsError?.message,
+            storyboardsCount: storyboards?.length || 0,
+            step_3_status: project.step_3_status
+          }
+        },
         { status: 400 }
       )
     }

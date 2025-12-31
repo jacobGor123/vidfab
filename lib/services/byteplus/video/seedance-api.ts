@@ -20,13 +20,6 @@ export async function submitVideoGeneration(
     byteplusRequest.return_last_frame = true
   }
 
-  console.log('[BytePlus Video] submit', {
-    model: byteplusRequest.model,
-    hasImage: byteplusRequest.content.some(c => c.type === 'image_url'),
-    callback: !!byteplusRequest.callback_url,
-    returnLastFrame: byteplusRequest.return_last_frame,  // 🔥 新增日志
-  })
-
   const response = await client.request<SubmitVideoResponse>(
     '/contents/generations/tasks',
     {
@@ -46,21 +39,12 @@ export async function submitVideoGeneration(
  * 查询视频生成状态
  */
 export async function checkVideoStatus(taskId: string): Promise<VideoStatusResponse> {
-  console.log('[BytePlus Video] Checking status for task:', taskId)
-
   let response: BytePlusVideoResponse
   try {
     response = await client.request<BytePlusVideoResponse>(
       `/contents/generations/tasks/${taskId}`,
       { method: 'GET' }
     )
-
-    console.log('[BytePlus Video] Status response:', {
-      taskId,
-      status: response.status,
-      hasOutputs: !!(response.outputs && response.outputs.length > 0),
-      error: response.error
-    })
   } catch (error) {
     console.error('[BytePlus Video] Failed to check status:', { taskId, error })
     // 透传 BytePlusAPIError 便于上层识别
@@ -71,12 +55,6 @@ export async function checkVideoStatus(taskId: string): Promise<VideoStatusRespo
   }
 
   const result = mapBytePlusResponseToStatus(response)
-
-  console.log('[BytePlus Video] Mapped status:', {
-    taskId,
-    status: result.data.status,
-    hasVideoUrl: !!result.data.outputs?.[0]
-  })
 
   return result
 }

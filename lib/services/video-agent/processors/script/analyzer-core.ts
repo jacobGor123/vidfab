@@ -45,9 +45,13 @@ function fixCharacterArrays(analysis: ScriptAnalysisResult): string[] {
     const matchedCharacters: string[] = []
 
     allCharacters.forEach(charName => {
-      const charLower = charName.toLowerCase()
-      // 如果 description 中提到了这个角色，加入该分镜的 characters 数组
-      if (descLower.includes(charLower)) {
+      // 🔥 提取角色名称的简短形式（括号前的部分）
+      // 例如: "Mira (Asian woman, 20s...)" → "Mira"
+      const shortName = charName.split('(')[0].trim()
+      const shortNameLower = shortName.toLowerCase()
+
+      // 如果 description 中提到了这个角色的简短名称，加入该分镜的 characters 数组
+      if (descLower.includes(shortNameLower)) {
         matchedCharacters.push(charName)
       }
     })

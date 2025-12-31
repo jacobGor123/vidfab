@@ -216,12 +216,7 @@ async function composeVideoAsync(
 
     console.log('[Video Agent] 📹 Video clips:', {
       count: videoUrls.length,
-      totalDuration: clipDurations.reduce((a, b) => a + b, 0),
-      clips: clips.map((clip, i) => ({
-        shotNumber: clip.shot_number,
-        duration: clip.duration,
-        url: clip.video_url.substring(0, 50) + '...'
-      }))
+      totalDuration: clipDurations.reduce((a, b) => a + b, 0)
     })
 
     // 🔥 步骤 1: 准备旁白音频和字幕（旁白模式）
