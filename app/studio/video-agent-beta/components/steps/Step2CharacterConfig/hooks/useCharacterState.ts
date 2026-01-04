@@ -38,7 +38,7 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
       characters.forEach(char => {
         initialStates[char] = {
           name: char,
-          prompt: '',
+          prompt: char,
           negativePrompt: '',
           isGenerating: false,
           mode: 'ai'
