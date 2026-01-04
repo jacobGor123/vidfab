@@ -49,12 +49,4 @@ export type InngestEvents = {
       triggeredBy?: string // Optional: 手动触发时的用户邮箱
     }
   }
-
-  // Video Agent events
-  'video-agent/storyboards.generate.requested': {
-    data: {
-      projectId: string
-      userId: string
-    }
-  }
 }

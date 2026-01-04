@@ -14,8 +14,6 @@ import {
   updateUserQuota,
 } from '@/lib/inngest/functions/video-processing'
 
-import { generateVideoAgentStoryboards } from '@/lib/inngest/functions/video-agent-storyboards'
-
 import { generateBlogArticle } from '@/lib/inngest/functions/blog-generation'
 
 // Export HTTP handlers for Inngest
@@ -27,9 +25,6 @@ export const { GET, POST, PUT } = serve({
     generateThumbnail,
     cleanupTempFiles,
     updateUserQuota,
-
-    // Video Agent functions
-    generateVideoAgentStoryboards,
 
     // Blog generation function
     generateBlogArticle,
