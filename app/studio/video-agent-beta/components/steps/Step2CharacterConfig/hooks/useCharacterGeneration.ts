@@ -180,31 +180,20 @@ export function useCharacterGeneration({
     try {
       const currentStates = buildPromptGenerationBaseStates()
 
-      // ✅ 关键修复：如果用户已经为某些角色手动输入 prompt，则批量生成时不要覆盖。
-      // 仅对 prompt 为空的角色生成/填充 prompt，避免出现“猫咪 → 人类”的意外替换。
-      const missingPromptCharacterNames = Object.values(currentStates)
+      // 🚫 严格规则：Generate All 绝不重新生成或覆盖 prompt。
+      // 只使用当前 UI 中已有的 prompt 进行批量生成，避免出现“猫 → 人”的意外替换。
+      // 如果某个角色没有 prompt，则提示用户先点 Prompts Only 或手动补全。
+      const missingPrompts = Object.values(currentStates)
         .filter(s => !(s.prompt || '').trim())
         .map(s => s.name)
 
-      let promptsFromApi: CharacterPrompt[] = []
-      if (missingPromptCharacterNames.length > 0) {
-        const data = await generateCharacterPrompts(project.id, { imageStyle: selectedStyle })
-        promptsFromApi = (data.characterPrompts || [])
+      if (missingPrompts.length > 0) {
+        setError(`Missing prompts for: ${missingPrompts.join(', ')}. Please click "Prompts Only" first or fill them manually.`)
+        return
       }
 
-      const newStates = { ...currentStates }
-      promptsFromApi.forEach((cp: CharacterPrompt) => {
-        if (!missingPromptCharacterNames.includes(cp.characterName)) return
-        if (newStates[cp.characterName]) {
-          newStates[cp.characterName].prompt = cp.prompt
-          newStates[cp.characterName].negativePrompt = cp.negativePrompt
-        }
-      })
-
-      setCharacterStates(newStates)
-
       // 为所有角色生成图片
-      const promptsToGenerate = Object.values(newStates)
+      const promptsToGenerate = Object.values(currentStates)
         .filter(s => (s.prompt || '').trim())
         .map(s => ({
           characterName: s.name,
@@ -212,7 +201,7 @@ export function useCharacterGeneration({
           negativePrompt: s.negativePrompt || ''
         }))
 
-      await batchGenerateImages(promptsToGenerate, newStates)
+      await batchGenerateImages(promptsToGenerate, currentStates)
 
     } catch (err: any) {
       setError(err.message)
