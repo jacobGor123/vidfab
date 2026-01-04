@@ -24,8 +24,8 @@ export const generateBlogArticle = inngest.createFunction(
     concurrency: {
       limit: 1,
     },
-    // 🔒 去重控制：相同的事件在5分钟内只执行一次
-    idempotency: '5m',
+    // 🔒 去重控制：相同的事件在24小时内只执行一次（配合数据库检查，双重保护）
+    idempotency: '24h',
   },
   { event: 'blog/generate.requested' },
   async ({ event, step }) => {
@@ -49,6 +49,69 @@ export const generateBlogArticle = inngest.createFunction(
     }
 
     logger.info('Blog generation started', { force, source, eventData: event.data })
+
+    // 🔒 数据库检查：防止同一天重复发布（除非强制模式）
+    if (!force) {
+      const alreadyPublishedToday = await step.run('check-already-published-today', async () => {
+        const { prisma } = await import('@/lib/prisma')
+
+        // 获取当前 UTC 日期的起止时间
+        const now = new Date()
+        const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+        const todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
+
+        const existingPost = await prisma.post.findFirst({
+          where: {
+            status: 'published',
+            publishedAt: {
+              gte: todayStart,
+              lte: todayEnd,
+            },
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            publishedAt: true,
+          },
+        })
+
+        if (existingPost) {
+          logger.info('Already published today, skipping generation', {
+            postId: existingPost.id,
+            title: existingPost.title,
+            slug: existingPost.slug,
+            publishedAt: existingPost.publishedAt,
+            todayStart,
+            todayEnd,
+          })
+          return {
+            alreadyPublished: true,
+            existingPost,
+          }
+        }
+
+        logger.info('No article published today, proceeding with generation', {
+          todayStart,
+          todayEnd,
+        })
+        return {
+          alreadyPublished: false,
+        }
+      })
+
+      // 如果今天已发布，直接返回
+      if (alreadyPublishedToday.alreadyPublished) {
+        return {
+          success: false,
+          skipped: true,
+          reason: 'Already published an article today',
+          existingPost: alreadyPublishedToday.existingPost,
+        }
+      }
+    } else {
+      logger.info('Force mode enabled, skip duplicate check')
+    }
 
     // 在 try 外声明 topic，以便在 catch 中访问
     let topic: any = undefined
