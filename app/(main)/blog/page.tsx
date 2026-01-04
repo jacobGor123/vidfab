@@ -11,6 +11,15 @@ import { BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import { StructuredData } from '@/components/seo/structured-data';
 import { getBlogSchema, getItemListSchema } from '@/lib/seo/structured-data';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 export const metadata: Metadata = {
   title: 'Blog | VidFab AI - Latest Updates & Guides',
@@ -53,11 +62,31 @@ export const metadata: Metadata = {
 // 减少缓存时间，避免图片更新后长时间显示旧内容
 export const revalidate = 300;
 
-export default async function BlogPage() {
-  // Fetch all published posts
+// 每页显示的文章数
+const POSTS_PER_PAGE = 20;
+
+interface BlogPageProps {
+  searchParams: {
+    page?: string;
+  };
+}
+
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  // 获取当前页码（从 URL 参数）
+  const currentPage = Number(searchParams.page) || 1;
+  const offset = (currentPage - 1) * POSTS_PER_PAGE;
+
+  // Fetch posts for current page
   const posts = await getBlogPosts({
     status: 'published',
+    limit: POSTS_PER_PAGE,
+    offset: offset,
   });
+
+  // Get total count of published posts
+  const { getBlogPostsCount } = await import('@/models/blog');
+  const totalPosts = await getBlogPostsCount('published');
+  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
 
   const displayPosts = posts || [];
 
@@ -133,12 +162,85 @@ export default async function BlogPage() {
               </p>
             </div>
           ) : (
-            // Posts Grid
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {displayPosts.map((post) => (
-                <BlogCard key={post.id} {...post} />
-              ))}
-            </div>
+            <>
+              {/* Posts Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                {displayPosts.map((post) => (
+                  <BlogCard key={post.id} {...post} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-12 flex justify-center">
+                  <Pagination className="text-white">
+                    <PaginationContent className="gap-2">
+                      {/* Previous Button */}
+                      {currentPage > 1 ? (
+                        <PaginationItem>
+                          <PaginationPrevious href={`/blog?page=${currentPage - 1}`} />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            className="pointer-events-none opacity-50"
+                          />
+                        </PaginationItem>
+                      )}
+
+                      {/* Page Numbers */}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                        // Show first page, last page, current page, and pages around current
+                        const shouldShow =
+                          pageNum === 1 ||
+                          pageNum === totalPages ||
+                          (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+
+                        // Show ellipsis
+                        const showEllipsisBefore = pageNum === currentPage - 2 && currentPage > 3;
+                        const showEllipsisAfter = pageNum === currentPage + 2 && currentPage < totalPages - 2;
+
+                        if (showEllipsisBefore || showEllipsisAfter) {
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+
+                        if (!shouldShow) return null;
+
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              href={`/blog?page=${pageNum}`}
+                              isActive={pageNum === currentPage}
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+
+                      {/* Next Button */}
+                      {currentPage < totalPages ? (
+                        <PaginationItem>
+                          <PaginationNext href={`/blog?page=${currentPage + 1}`} />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            className="pointer-events-none opacity-50"
+                          />
+                        </PaginationItem>
+                      )}
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
