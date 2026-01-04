@@ -6,11 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
-import { generateSingleStoryboard, IMAGE_STYLES } from '@/lib/services/video-agent/storyboard-generator'
+import { IMAGE_STYLES } from '@/lib/services/video-agent/storyboard-generator'
 import type { CharacterConfig, Shot, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
-import { sunoAPI } from '@/lib/services/suno/suno-api'
 import type { Database } from '@/lib/database.types'
-import pLimit from 'p-limit'
+import { inngest } from '@/lib/inngest/client'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectStoryboard = Database['public']['Tables']['project_storyboards']['Row']
@@ -33,116 +32,10 @@ type CharacterWithFullReferences = ProjectCharacter & {
  */
 
 /**
- * ✅ 优化后的分镜图生成函数
- *
- * 关键改进：
- * - 使用 p-limit 库（稳定可靠）
- * - 并发数 3（可配置）
- * - 生成完一张立即更新数据库
+ * 说明：
+ * 分镜图生成已迁移到 Inngest Cloud 执行。
+ * 这个 route 只负责初始化分镜记录并触发 Inngest 事件。
  */
-async function generateStoryboardsAsync(
-  projectId: string,
-  shots: Shot[],
-  characters: CharacterConfig[],
-  style: ImageStyle,
-  aspectRatio: '16:9' | '9:16' = '16:9'
-) {
-  const CONCURRENCY = parseInt(process.env.STORYBOARD_CONCURRENCY || '3', 10)
-
-  console.log('[Video Agent] Starting async storyboard generation', {
-    projectId,
-    shotCount: shots.length,
-    aspectRatio,
-    concurrency: CONCURRENCY
-  })
-
-  let successCount = 0
-  let failedCount = 0
-
-  // ✅ 使用 p-limit 库
-  const limit = pLimit(CONCURRENCY)
-
-  const tasks = shots.map((shot) =>
-    limit(async () => {
-      try {
-        console.log('[Video Agent] 🎬 Starting storyboard generation', {
-          shotNumber: shot.shot_number,
-          progress: `${successCount + failedCount + 1}/${shots.length}`
-        })
-
-        const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
-
-        // 立即更新数据库
-        await supabaseAdmin
-          .from('project_storyboards')
-          .update({
-            image_url: result.image_url,
-            status: result.status,
-            error_message: result.error,
-            updated_at: new Date().toISOString()
-          } as any)
-          .eq('project_id', projectId)
-          .eq('shot_number', shot.shot_number)
-          .returns<any>()
-
-        if (result.status === 'success') {
-          successCount++
-        } else {
-          failedCount++
-        }
-
-        console.log('[Video Agent] ✅ Storyboard generated', {
-          projectId,
-          shotNumber: shot.shot_number,
-          status: result.status,
-          progress: `${successCount + failedCount}/${shots.length}`
-        })
-
-        return result
-      } catch (error) {
-        failedCount++
-        console.error('[Video Agent] ❌ Failed to generate storyboard:', error)
-
-        // 更新为失败状态
-        await supabaseAdmin
-          .from('project_storyboards')
-          .update({
-            status: 'failed',
-            error_message: error instanceof Error ? error.message : 'Unknown error',
-            updated_at: new Date().toISOString()
-          } as any)
-          .eq('project_id', projectId)
-          .eq('shot_number', shot.shot_number)
-          .returns<any>()
-
-        return null
-      }
-    })
-  )
-
-  // ✅ 使用 Promise.allSettled 等待所有任务完成
-  await Promise.allSettled(tasks)
-
-  // 更新项目状态
-  const finalStatus = failedCount === 0 ? 'completed' : failedCount === shots.length ? 'failed' : 'partial'
-  await supabaseAdmin
-    .from('video_agent_projects')
-    .update({
-      step_3_status: finalStatus,
-      updated_at: new Date().toISOString()
-    } as any)
-    .eq('id', projectId)
-    .returns<any>()
-
-  console.log('[Video Agent] Async storyboard generation completed', {
-    projectId,
-    total: shots.length,
-    success: successCount,
-    failed: failedCount,
-    finalStatus
-  })
-}
-
 /**
  * 批量生成分镜图
  * POST /api/video-agent/projects/[id]/storyboards/generate
@@ -271,23 +164,26 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .from('video_agent_projects')
       .update({
         // 不更新 current_step，由前端在用户点击"继续"时更新
-        step_3_status: 'processing'
+        step_3_status: 'processing',
+        updated_at: new Date().toISOString()
       } as any)
       .eq('id', projectId)
       .returns<any>()
 
-    // 立即在数据库中创建所有分镜记录，状态为 'generating'
+    // 立即在数据库中创建所有分镜记录（幂等）
+    // 说明：不要无条件把 status 覆盖成 generating，否则重复点击/重复触发会把已完成的记录回写成 generating。
     const initialStoryboards = shots.map(shot => ({
       project_id: projectId,
       shot_number: shot.shot_number,
-      status: 'generating',
-      generation_attempts: 1
+      generation_attempts: 1,
+      updated_at: new Date().toISOString()
     }))
 
     const { error: insertError } = await supabaseAdmin
       .from('project_storyboards')
       .upsert(initialStoryboards as any, {
-        onConflict: 'project_id,shot_number'
+        onConflict: 'project_id,shot_number',
+        ignoreDuplicates: true
       })
 
     if (insertError) {
@@ -298,71 +194,37 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    console.log('[Video Agent] Storyboard generation started (async)', {
+    // 如果是首次初始化，确保 status 从 pending 进入 generating
+    // （只更新尚未进入终态的记录，避免覆盖 success/failed）
+    const { error: setGeneratingError } = await supabaseAdmin
+      .from('project_storyboards')
+      .update({
+        status: 'generating',
+        updated_at: new Date().toISOString()
+      } as any)
+      .eq('project_id', projectId)
+      .not('status', 'in', '(success,failed)')
+      .returns<any>()
+
+    if (setGeneratingError) {
+      console.warn('[Video Agent] Failed to set generating status (non-fatal):', setGeneratingError)
+    }
+
+    console.log('[Video Agent] Storyboard generation started (queued via Inngest)', {
       projectId,
       shotCount: shots.length
     })
 
-    // 🔥 并行启动 Suno 音乐生成（仅非旁白模式且未静音 BGM）
-    // 旁白模式下不生成背景音乐，避免与旁白音频冲突
-    // mute_bgm 为 true 时也不生成背景音乐
-    if (project.music_generation_prompt && !project.enable_narration && !project.mute_bgm) {
-      const musicPrompt = project.music_generation_prompt // 保存到局部变量避免类型检查问题
-      Promise.resolve().then(async () => {
-        try {
-          console.log('[Video Agent] 🎵 Starting parallel Suno music generation', {
-            projectId,
-            promptLength: musicPrompt.length,
-            mode: 'background-music'
-          })
+    // ✅ 说明：Suno 背景音乐生成已不再在 Step3 触发
+    // 现在 bgm 模式在最终合成阶段使用预设 CDN 背景音乐，不需要在这里生成。
 
-          // 启动 Suno 音乐生成（不等待完成）
-          const generateResponse = await sunoAPI.generate({
-            prompt: musicPrompt,
-            make_instrumental: true, // 🔥 纯音乐（无歌词），更适合背景音乐
-            wait_audio: false
-          })
-
-          const sunoTaskId = generateResponse.id
-
-          // 保存 Suno task ID
-          await supabaseAdmin
-            .from('video_agent_projects')
-            .update({
-              suno_task_id: sunoTaskId,
-              updated_at: new Date().toISOString()
-            } as any)
-            .eq('id', projectId)
-            .returns<any>()
-
-          console.log('[Video Agent] 🎵 Suno music generation started (parallel)', {
-            projectId,
-            taskId: sunoTaskId,
-            status: generateResponse.status
-          })
-        } catch (error) {
-          console.error('[Video Agent] ⚠️ Failed to start Suno music generation (non-critical):', error)
-          // 音乐生成失败不影响主流程
-        }
-      })
-    } else {
-      if (project.enable_narration) {
-        console.log('[Video Agent] 🎵 Skipping music generation (narration mode enabled)', { projectId })
-      } else if (project.mute_bgm) {
-        console.log('[Video Agent] 🎵 Skipping music generation (BGM muted)', { projectId })
-      }
-    }
-
-    // 立即返回，后台异步生成
-    // 使用 Promise.resolve().then() 确保在当前请求之后执行
-    Promise.resolve().then(async () => {
-      await generateStoryboardsAsync(
+    // ✅ 迁移到 Inngest Cloud：可靠后台执行，避免 Vercel Serverless 回收导致卡 generating
+    await inngest.send({
+      name: 'video-agent/storyboards.generate.requested',
+      data: {
         projectId,
-        shots,
-        characters,
-        style,
-        project.aspect_ratio || '16:9'
-      )
+        userId
+      }
     })
 
     return NextResponse.json({

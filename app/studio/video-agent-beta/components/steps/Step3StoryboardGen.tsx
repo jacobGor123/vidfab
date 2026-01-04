@@ -39,6 +39,7 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
   } = actions
 
   const { totalShots, completedShots, failedShots, generatingShots, progress } = stats
+  const status = state.statusMeta?.status
 
   // 根据项目尺寸比决定容器 aspect ratio
   const aspectRatioClass = project.aspect_ratio === '9:16' ? 'aspect-[9/16]' : 'aspect-video'
@@ -72,6 +73,7 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
         failedShots={failedShots}
         progress={progress}
         regenerateQuotaRemaining={project.regenerate_quota_remaining}
+        status={status}
       />
 
       {/* 分镜网格 - 使用占位符确保高度稳定 */}
@@ -108,7 +110,7 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
             size="lg"
             className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105"
           >
-            Confirm & Continue
+            {failedShots > 0 ? 'Continue (Some Failed)' : 'Confirm & Continue'}
           </Button>
         </div>
       )}

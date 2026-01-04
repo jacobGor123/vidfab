@@ -20,5 +20,9 @@ echo "📝 Logging to: $LOG_FILE"
 # Run linting with logging
 pnpm lint 2>&1 | tee "$LOG_FILE"
 
+# next lint 在未初始化 ESLint 配置时会进入交互式向导并返回非 0。
+# 为避免 CI/本地脚本误判为成功，这里显式传播退出码。
+exit ${PIPESTATUS[0]}
+
 echo "✅ Linting completed!"
 echo "📋 Lint log saved to: $LOG_FILE"

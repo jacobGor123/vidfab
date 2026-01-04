@@ -15,6 +15,7 @@ interface Step3ProgressCardProps {
   failedShots: number
   progress: number
   regenerateQuotaRemaining?: number
+  status?: 'pending' | 'processing' | 'completed' | 'failed' | 'partial'
 }
 
 export function Step3ProgressCard({
@@ -23,13 +24,32 @@ export function Step3ProgressCard({
   generatingShots,
   failedShots,
   progress,
-  regenerateQuotaRemaining
+  regenerateQuotaRemaining,
+  status
 }: Step3ProgressCardProps) {
+  const statusLabel =
+    status === 'partial'
+      ? 'Partial'
+      : status === 'failed'
+        ? 'Failed'
+        : status === 'completed'
+          ? 'Completed'
+          : status === 'processing'
+            ? 'Processing'
+            : undefined
+
   return (
     <Card>
       <CardContent className="pt-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Generation Progress</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold">Generation Progress</h3>
+            {statusLabel && (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                {statusLabel}
+              </span>
+            )}
+          </div>
           <span className="text-sm font-bold">
             {completedShots} / {totalShots}
           </span>
@@ -54,6 +74,12 @@ export function Step3ProgressCard({
         {regenerateQuotaRemaining !== undefined && (
           <div className="text-xs text-muted-foreground">
             Regenerate Quota: {regenerateQuotaRemaining} remaining
+          </div>
+        )}
+
+        {status === 'partial' && failedShots > 0 && (
+          <div className="text-xs text-muted-foreground">
+            Some storyboards failed. You can retry failed shots before continuing.
           </div>
         )}
       </CardContent>

@@ -19,6 +19,14 @@ export interface StoryboardGenerationState {
   customPrompts: Record<number, string>
   expandedPrompts: Record<number, boolean>
   isShowingConfirm: boolean
+  statusMeta?: {
+    status?: 'pending' | 'processing' | 'completed' | 'failed' | 'partial'
+    total?: number
+    success?: number
+    generating?: number
+    failed?: number
+    allCompleted?: boolean
+  } | null
 }
 
 export interface StoryboardGenerationActions {

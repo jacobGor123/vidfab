@@ -9,6 +9,20 @@ import { showConfirm, showSuccess, showError, showLoading } from '@/lib/utils/to
 import type { VideoAgentProject, Storyboard } from '@/lib/stores/video-agent'
 import type { StoryboardGenerationState, StoryboardGenerationActions } from './Step3StoryboardGen.types'
 
+type StoryboardsStatusMeta = {
+  status?: 'pending' | 'processing' | 'completed' | 'failed' | 'partial'
+  total?: number
+  success?: number
+  generating?: number
+  failed?: number
+  allCompleted?: boolean
+}
+
+type StoryboardsStatusResponse = {
+  data: Storyboard[]
+  meta?: StoryboardsStatusMeta
+}
+
 interface UseStoryboardGenerationProps {
   project: VideoAgentProject
   onUpdate: (updates: Partial<VideoAgentProject>) => void
@@ -38,6 +52,7 @@ export function useStoryboardGeneration({
   const [customPrompts, setCustomPrompts] = useState<Record<number, string>>({})
   const [expandedPrompts, setExpandedPrompts] = useState<Record<number, boolean>>({})
   const [isShowingConfirm, setIsShowingConfirm] = useState(false)
+  const [statusMeta, setStatusMeta] = useState<StoryboardsStatusMeta | null>(null)
 
   // 用于避免轮询返回相同数据仍触发重渲染
   const lastPollSignatureRef = useRef<string>('')
@@ -59,12 +74,19 @@ export function useStoryboardGeneration({
     ? storyboards.filter((sb) => sb.status === 'generating').length
     : 0
 
+  const effectiveTotalShots = statusMeta?.total ?? totalShots
+  const effectiveCompletedShots = statusMeta?.success ?? completedShots
+  const effectiveFailedShots = statusMeta?.failed ?? failedShots
+  const effectiveGeneratingShots = statusMeta?.generating ?? generatingShots
+
   // 轮询状态
   const pollStatus = useCallback(async () => {
     if (!project.id) return
 
     try {
-      const data = await getStoryboardsStatus(project.id)
+      const res = await getStoryboardsStatus(project.id) as StoryboardsStatusResponse
+      const data = res?.data
+      const meta = res?.meta
 
       // ✅ 优化：使用 updated_at 时间戳检测变化（更可靠）
       const signature = Array.isArray(data)
@@ -85,7 +107,8 @@ export function useStoryboardGeneration({
           count: Array.isArray(data) ? data.length : 0,
           completed: Array.isArray(data) ? data.filter((s: any) => s.status === 'success').length : 0,
           generating: Array.isArray(data) ? data.filter((s: any) => s.status === 'generating').length : 0,
-          failed: Array.isArray(data) ? data.filter((s: any) => s.status === 'failed').length : 0
+          failed: Array.isArray(data) ? data.filter((s: any) => s.status === 'failed').length : 0,
+          meta
         })
       }
 
@@ -93,6 +116,10 @@ export function useStoryboardGeneration({
       if (data) {
         setStoryboards(data)
         onUpdate({ storyboards: data })
+      }
+
+      if (meta) {
+        setStatusMeta(meta)
       }
 
       // 检查是否有正在生成的分镜图
@@ -154,7 +181,8 @@ export function useStoryboardGeneration({
     } catch (err: any) {
       setError(err.message)
       setIsGenerating(false)
-      setHasStartedGeneration(false)
+      // 🔥 避免无限重试/重复触发：失败后不要重置 hasStartedGeneration
+      // 否则自动启动 useEffect 会再次触发 generate 接口，导致重复初始化/重复任务。
     }
   }
 
@@ -279,7 +307,8 @@ export function useStoryboardGeneration({
     regeneratingShot,
     customPrompts,
     expandedPrompts,
-    isShowingConfirm
+    isShowingConfirm,
+    statusMeta
   }
 
   const actions: StoryboardGenerationActions = {
@@ -292,11 +321,11 @@ export function useStoryboardGeneration({
   }
 
   const stats = {
-    totalShots,
-    completedShots,
-    failedShots,
-    generatingShots,
-    progress: totalShots > 0 ? (completedShots / totalShots) * 100 : 0
+    totalShots: effectiveTotalShots,
+    completedShots: effectiveCompletedShots,
+    failedShots: effectiveFailedShots,
+    generatingShots: effectiveGeneratingShots,
+    progress: effectiveTotalShots > 0 ? (effectiveCompletedShots / effectiveTotalShots) * 100 : 0
   }
 
   return {

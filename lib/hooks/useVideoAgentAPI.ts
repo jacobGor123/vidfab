@@ -341,7 +341,13 @@ export function useVideoAgentAPI() {
    * 获取分镜图生成状态
    */
   const getStoryboardsStatus = useCallback(async (projectId: string): Promise<any> => {
-    return callAPI(`/api/video-agent/projects/${projectId}/storyboards/status`)
+    const res = await callAPI(`/api/video-agent/projects/${projectId}/storyboards/status`)
+
+    // ✅ 兼容：旧接口直接返回数组，新接口返回 { data: [...], meta: {...} }
+    if (Array.isArray(res)) {
+      return { data: res, meta: undefined }
+    }
+    return res
   }, [callAPI])
 
   /**

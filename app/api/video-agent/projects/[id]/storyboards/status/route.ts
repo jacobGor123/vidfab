@@ -76,36 +76,53 @@ export const GET = withAuth(async (request, { params, userId }) => {
     }
 
     // 统计状态
+    const total = storyboards.length
     const successCount = storyboards.filter(sb => sb.status === 'success').length
     const generatingCount = storyboards.filter(sb => sb.status === 'generating').length
     const failedCount = storyboards.filter(sb => sb.status === 'failed').length
 
-    // 检查是否全部完成
-    if (successCount + failedCount === storyboards.length && generatingCount === 0) {
-      // 更新项目状态
+    const allCompleted = successCount + failedCount === total && generatingCount === 0
+    const finalStatus =
+      allCompleted
+        ? (failedCount === 0 ? 'completed' : failedCount === total ? 'failed' : 'partial')
+        : 'processing'
+
+    // 如果已全部完成，更新项目状态（与 Inngest 侧 finalStatus 保持一致）
+    if (allCompleted) {
       await supabaseAdmin
         .from('video_agent_projects')
         .update({
-          step_3_status: 'completed',  // Step 3 完成
+          step_3_status: finalStatus,
           // 不更新 current_step，由前端在用户点击"继续"时更新
         } as any)
         .eq('id', projectId)
         .returns<any>()
     }
 
-    // 直接返回数组，字段名使用下划线（匹配数据库和前端）
+    const mapped = storyboards.map(sb => ({
+      id: sb.id,
+      shot_number: sb.shot_number,
+      image_url: sb.image_url,
+      status: sb.status,
+      task_id: sb.task_id,
+      error_message: sb.error_message,
+      created_at: sb.created_at,
+      updated_at: sb.updated_at
+    }))
+
+    // 兼容：data 仍然返回数组（不破坏现有前端和 e2e 脚本）
+    // 增强：额外返回 meta 聚合字段，供前端展示和调试
     return NextResponse.json({
       success: true,
-      data: storyboards.map(sb => ({
-        id: sb.id,
-        shot_number: sb.shot_number,
-        image_url: sb.image_url,
-        status: sb.status,
-        task_id: sb.task_id,
-        error_message: sb.error_message,
-        created_at: sb.created_at,
-        updated_at: sb.updated_at
-      }))
+      data: mapped,
+      meta: {
+        status: finalStatus,
+        total,
+        success: successCount,
+        generating: generatingCount,
+        failed: failedCount,
+        allCompleted
+      }
     })
 
   } catch (error) {
