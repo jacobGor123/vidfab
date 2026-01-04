@@ -53,37 +53,35 @@ export const generateBlogArticle = inngest.createFunction(
     // 🔒 数据库检查：防止同一天重复发布（除非强制模式）
     if (!force) {
       const alreadyPublishedToday = await step.run('check-already-published-today', async () => {
-        const { prisma } = await import('@/lib/prisma')
+        const { supabaseAdmin } = await import('@/lib/supabase')
 
         // 获取当前 UTC 日期的起止时间
         const now = new Date()
         const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
         const todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
 
-        const existingPost = await prisma.post.findFirst({
-          where: {
-            status: 'published',
-            publishedAt: {
-              gte: todayStart,
-              lte: todayEnd,
-            },
-          },
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            publishedAt: true,
-          },
-        })
+        const { data: existingPost, error } = await supabaseAdmin
+          .from('blog_posts')
+          .select('id, title, slug, published_at')
+          .eq('status', 'published')
+          .gte('published_at', todayStart.toISOString())
+          .lte('published_at', todayEnd.toISOString())
+          .limit(1)
+          .single()
+
+        if (error && error.code !== 'PGRST116') {
+          // PGRST116 = no rows found, 这是正常情况
+          logger.warn('Error checking published posts', error)
+        }
 
         if (existingPost) {
           logger.info('Already published today, skipping generation', {
             postId: existingPost.id,
             title: existingPost.title,
             slug: existingPost.slug,
-            publishedAt: existingPost.publishedAt,
-            todayStart,
-            todayEnd,
+            publishedAt: existingPost.published_at,
+            todayStart: todayStart.toISOString(),
+            todayEnd: todayEnd.toISOString(),
           })
           return {
             alreadyPublished: true,
@@ -92,8 +90,8 @@ export const generateBlogArticle = inngest.createFunction(
         }
 
         logger.info('No article published today, proceeding with generation', {
-          todayStart,
-          todayEnd,
+          todayStart: todayStart.toISOString(),
+          todayEnd: todayEnd.toISOString(),
         })
         return {
           alreadyPublished: false,
