@@ -30,6 +30,21 @@ function cleanJsonResponse(content: string): string {
   return cleanContent
 }
 
+function normalizeDescription(description: string): string {
+  return description.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function hasDuplicateShotDescriptions(analysis: ScriptAnalysisResult): boolean {
+  const seen = new Set<string>()
+  for (const shot of analysis.shots || []) {
+    const normalized = normalizeDescription(shot.description || '')
+    if (!normalized) continue
+    if (seen.has(normalized)) return true
+    seen.add(normalized)
+  }
+  return false
+}
+
 /**
  * 修正角色数组（基于全局角色列表和 description 自动匹配）
  */
@@ -82,6 +97,9 @@ function unifySegmentDuration(analysis: ScriptAnalysisResult): void {
   // 重新计算总时长
   const actualTotalDuration = analysis.shots.length * UNIFIED_SEGMENT_DURATION
   analysis.duration = actualTotalDuration
+
+  // 🔥 强制对齐 shot_count，避免 shots.length 与 shot_count 偶尔不一致
+  analysis.shot_count = analysis.shots.length
 }
 
 /**
@@ -114,7 +132,7 @@ export async function analyzeScript(
       const model = genAI.getGenerativeModel({
         model: MODEL_NAME,
         generationConfig: {
-          temperature: 0.2,  // 降低随机性，确保结果一致
+          temperature: retries > 0 ? 0.1 : 0.2,
           topP: 0.9,
           maxOutputTokens: 8192,
         }
@@ -172,11 +190,19 @@ export async function analyzeScript(
         autoFixedShots: fixedShots.length
       })
 
+      // 🔥 兜底：如果出现重复分镜描述，认为结果退化，触发重试
+      if (hasDuplicateShotDescriptions(analysis)) {
+        throw new Error('Duplicate shot descriptions detected')
+      }
+
       return analysis
 
     } catch (error: any) {
+      const isRateLimit = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')
+      const isDuplicateDescriptions = error.message?.includes('Duplicate shot descriptions detected')
+
       // 检查是否是 429 限流错误
-      if (error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')) {
+      if (isRateLimit) {
         const waitTime = 10
 
         console.warn(`[Script Analyzer Core] Rate limited. Retry ${retries + 1}/${maxRetries} after ${waitTime}s`, {
@@ -194,6 +220,22 @@ export async function analyzeScript(
           console.error('[Script Analyzer Core] Max retries reached')
           throw new Error(`Rate limit exceeded. Please wait a moment and try again. (Retried ${maxRetries} times)`)
         }
+      }
+
+      // 处理重复描述：降低温度并重试（不等待）
+      if (isDuplicateDescriptions) {
+        if (retries < maxRetries) {
+          retries++
+          console.warn(`[Script Analyzer Core] Duplicate descriptions detected. Retry ${retries}/${maxRetries} with lower randomness`, {
+            retries,
+            error: error.message
+          })
+          // 通过减少随机性来提升差异度稳定性
+          // 这里不改变 prompt，保持可控；降低 temperature 会在下一次 model 实例化时生效
+          continue
+        }
+
+        throw new Error('Duplicate shot descriptions detected after retries')
       }
 
       // 其他错误直接抛出

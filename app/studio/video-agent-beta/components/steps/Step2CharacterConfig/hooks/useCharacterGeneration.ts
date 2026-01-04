@@ -160,32 +160,57 @@ export function useCharacterGeneration({
     }
   }
 
+  const buildPromptGenerationBaseStates = useCallback((): Record<string, CharacterState> => {
+    const baseStates: Record<string, CharacterState> = { ...characterStates }
+    Object.values(baseStates).forEach(state => {
+      baseStates[state.name] = {
+        ...state,
+        prompt: (state.prompt || '').trim(),
+        negativePrompt: (state.negativePrompt || '').trim()
+      }
+    })
+    return baseStates
+  }, [characterStates])
+
   // 批量生成所有人物图片
   const handleBatchGenerate = async () => {
     setIsBatchGenerating(true)
     setError(null)
 
     try {
-      // 重新生成所有角色的 prompts
-      const data = await generateCharacterPrompts(project.id, { imageStyle: selectedStyle })
-      const { characterPrompts } = data
+      const currentStates = buildPromptGenerationBaseStates()
 
-      // 更新所有人物的 prompts
-      const newStates = { ...characterStates }
-      characterPrompts.forEach((cp: CharacterPrompt) => {
+      // ✅ 关键修复：如果用户已经为某些角色手动输入 prompt，则批量生成时不要覆盖。
+      // 仅对 prompt 为空的角色生成/填充 prompt，避免出现“猫咪 → 人类”的意外替换。
+      const missingPromptCharacterNames = Object.values(currentStates)
+        .filter(s => !(s.prompt || '').trim())
+        .map(s => s.name)
+
+      let promptsFromApi: CharacterPrompt[] = []
+      if (missingPromptCharacterNames.length > 0) {
+        const data = await generateCharacterPrompts(project.id, { imageStyle: selectedStyle })
+        promptsFromApi = (data.characterPrompts || [])
+      }
+
+      const newStates = { ...currentStates }
+      promptsFromApi.forEach((cp: CharacterPrompt) => {
+        if (!missingPromptCharacterNames.includes(cp.characterName)) return
         if (newStates[cp.characterName]) {
           newStates[cp.characterName].prompt = cp.prompt
           newStates[cp.characterName].negativePrompt = cp.negativePrompt
         }
       })
+
       setCharacterStates(newStates)
 
       // 为所有角色生成图片
-      const promptsToGenerate = characterPrompts.map((cp: CharacterPrompt) => ({
-        characterName: cp.characterName,
-        prompt: cp.prompt,
-        negativePrompt: cp.negativePrompt || ''
-      }))
+      const promptsToGenerate = Object.values(newStates)
+        .filter(s => (s.prompt || '').trim())
+        .map(s => ({
+          characterName: s.name,
+          prompt: s.prompt,
+          negativePrompt: s.negativePrompt || ''
+        }))
 
       await batchGenerateImages(promptsToGenerate, newStates)
 
