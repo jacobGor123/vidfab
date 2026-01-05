@@ -8,6 +8,7 @@ import { Storyboard, VideoAgentProject } from './types'
 
 export interface StoryboardGenerationState {
   storyboardPollingInterval: NodeJS.Timeout | null
+  isGeneratingStoryboards: boolean  // 🔥 新增：防重复提交
 }
 
 export interface StoryboardGenerationActions {
@@ -34,13 +35,20 @@ export const createStoryboardGenerationSlice: StateCreator<
 > = (set, get) => ({
   // 初始状态
   storyboardPollingInterval: null,
+  isGeneratingStoryboards: false,  // 🔥 新增：防重复提交
 
   // 生成分镜图
   generateStoryboards: async () => {
-    const { currentProject } = get()
+    const { currentProject, isGeneratingStoryboards } = get()
     if (!currentProject) return
 
-    set({ isLoading: true, error: null })
+    // 🔥 防重复提交：如果正在生成，直接返回
+    if (isGeneratingStoryboards) {
+      console.warn('[StoryboardGeneration] Already generating storyboards, ignoring duplicate request')
+      return
+    }
+
+    set({ isLoading: true, error: null, isGeneratingStoryboards: true })
 
     try {
       const response = await fetch(
@@ -56,10 +64,13 @@ export const createStoryboardGenerationSlice: StateCreator<
       get().startPollingStoryboards()
 
       set({ isLoading: false })
+      // 🔥 注意：不要在这里重置 isGeneratingStoryboards，因为生成还在后台进行
+      // 等轮询完成后再重置
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.message
+        error: error.message,
+        isGeneratingStoryboards: false  // 🔥 失败时重置状态
       })
       throw error
     }
@@ -118,6 +129,8 @@ export const createStoryboardGenerationSlice: StateCreator<
         // 如果全部完成,停止轮询
         if (allCompleted) {
           get().stopPollingStoryboards()
+          // 🔥 生成完成，重置防重复提交标志
+          set({ isGeneratingStoryboards: false })
         }
       } catch (error) {
         console.error('轮询分镜图状态失败:', error)

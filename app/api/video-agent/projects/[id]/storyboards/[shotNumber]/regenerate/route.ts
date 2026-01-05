@@ -182,6 +182,47 @@ export const POST = withAuth(async (request, { params, userId }) => {
       console.error('[Video Agent] Failed to update storyboard:', updateError)
     }
 
+    // 🔥 修复：检查所有分镜图是否全部完成，更新项目状态
+    if (result.status === 'success') {
+      console.log('[Video Agent] Checking if all storyboards are completed...')
+
+      const { data: allStoryboards } = await supabaseAdmin
+        .from('project_storyboards')
+        .select('status')
+        .eq('project_id', projectId)
+
+      if (allStoryboards) {
+        const successCount = allStoryboards.filter(sb => sb.status === 'success').length
+        const failedCount = allStoryboards.filter(sb => sb.status === 'failed').length
+        const totalCount = allStoryboards.length
+
+        // 根据完成情况更新项目状态
+        let newStep3Status: 'completed' | 'partial' | 'failed' = 'partial'
+        if (successCount === totalCount) {
+          newStep3Status = 'completed'
+        } else if (failedCount === totalCount) {
+          newStep3Status = 'failed'
+        }
+
+        console.log('[Video Agent] Updating project status after regeneration', {
+          projectId,
+          totalCount,
+          successCount,
+          failedCount,
+          newStep3Status
+        })
+
+        await supabaseAdmin
+          .from('video_agent_projects')
+          .update({
+            step_3_status: newStep3Status,
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('id', projectId)
+          .returns<any>()
+      }
+    }
+
     // 扣除重新生成配额 (暂时禁用以调试)
     // await supabaseAdmin
     //   .from('video_agent_projects')

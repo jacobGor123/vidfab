@@ -99,12 +99,12 @@ export const POST = withAuth(async (req, { params, userId }) => {
         // 将实际时长四舍五入到最接近的整数
         actualDuration = Math.round(actualDuration)
 
-        // 🔥 检查时长限制：YouTube 视频最大支持 60 秒
-        if (actualDuration > 60) {
+        // 🔥 检查时长限制：YouTube 视频最大支持 120 秒（2 分钟）
+        if (actualDuration > 120) {
           return NextResponse.json(
             {
               success: false,
-              error: `Video is too long (${actualDuration}s). Maximum supported duration is 60 seconds. Please use a shorter video.`,
+              error: `Video is too long (${actualDuration}s). Maximum supported duration is 120 seconds (2 minutes). Please use a shorter video.`,
               code: 'VIDEO_TOO_LONG',
               actualDuration
             },

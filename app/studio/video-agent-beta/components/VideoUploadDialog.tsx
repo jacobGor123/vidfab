@@ -83,8 +83,12 @@ export default function VideoUploadDialog({
         const scriptContent = generateScriptFromAnalysis(analysisData)
 
         // 🔥 YouTube 模式：默认开启背景音乐，9:16 比例
+        // 🔥 确保 duration 有效：优先使用分析结果，其次使用传入参数，最后使用默认值 30
+        const validDuration = analysisData.duration || duration || 30
+        const finalDuration = Math.max(1, Math.min(120, Math.round(validDuration)))  // 限制在 1-120 秒
+
         const project = await createProject({
-          duration: Math.round(analysisData.duration || duration),  // 🔥 四舍五入为整数
+          duration: finalDuration,
           story_style: storyStyle,
           original_script: scriptContent,
           aspect_ratio: '9:16',  // 🔥 默认 9:16
@@ -272,11 +276,6 @@ export default function VideoUploadDialog({
                 disabled={isAnalyzing}
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-blue-500/50"
               />
-              <p className="text-xs text-white/40">
-                Enter a public YouTube video URL to analyze its content and generate a script.
-                <br />
-                <span className="text-blue-400">Tip: YouTube Shorts URLs are automatically converted to standard format.</span>
-              </p>
             </div>
           )}
 

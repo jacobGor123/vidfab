@@ -218,7 +218,25 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 🔥 幂等性检查：检查是否已存在分镜图记录
+    // 🔥 改进的幂等性检查：先尝试插入，通过数据库唯一约束来保证幂等性
+    // 立即在数据库中创建所有分镜记录，状态为 'generating'
+    const initialStoryboards = shots.map(shot => ({
+      project_id: projectId,
+      shot_number: shot.shot_number,
+      status: 'generating',
+      generation_attempts: 1
+    }))
+
+    const { data: insertedStoryboards, error: insertError } = await supabaseAdmin
+      .from('project_storyboards')
+      .upsert(initialStoryboards as any, {
+        onConflict: 'project_id,shot_number',
+        ignoreDuplicates: false  // 🔥 关键：返回已存在的记录
+      })
+      .select()
+
+    // 🔥 如果返回为空或数量不匹配，说明已经有记录存在（被其他请求创建了）
+    // 检查现有记录的状态
     const { data: existingStoryboards } = await supabaseAdmin
       .from('project_storyboards')
       .select('*')
@@ -231,12 +249,18 @@ export const POST = withAuth(async (request, { params, userId }) => {
       const hasGenerating = existingStoryboards.some(sb => sb.status === 'generating')
       const hasCompleted = existingStoryboards.some(sb => sb.status === 'success')
 
+      // 🔥 如果已经有生成中或已完成的记录，直接返回
       if (hasGenerating || hasCompleted) {
-        console.log('[Video Agent] Storyboard generation already started', {
+        console.log('[Video Agent] Storyboard generation already in progress or completed', {
           projectId,
           totalStoryboards: existingStoryboards.length,
           hasGenerating,
-          hasCompleted
+          hasCompleted,
+          statusBreakdown: {
+            generating: existingStoryboards.filter(sb => sb.status === 'generating').length,
+            success: existingStoryboards.filter(sb => sb.status === 'success').length,
+            failed: existingStoryboards.filter(sb => sb.status === 'failed').length
+          }
         })
 
         return NextResponse.json({
@@ -276,27 +300,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('id', projectId)
       .returns<any>()
 
-    // 立即在数据库中创建所有分镜记录，状态为 'generating'
-    const initialStoryboards = shots.map(shot => ({
-      project_id: projectId,
-      shot_number: shot.shot_number,
-      status: 'generating',
-      generation_attempts: 1
-    }))
-
-    const { error: insertError } = await supabaseAdmin
-      .from('project_storyboards')
-      .upsert(initialStoryboards as any, {
-        onConflict: 'project_id,shot_number'
-      })
-
-    if (insertError) {
-      console.error('[Video Agent] Failed to initialize storyboards:', insertError)
-      return NextResponse.json(
-        { error: 'Failed to initialize storyboards' },
-        { status: 500 }
-      )
-    }
+    // 🔥 删除：已在上面的幂等性检查中完成插入
 
     console.log('[Video Agent] Storyboard generation started (async)', {
       projectId,
@@ -356,13 +360,37 @@ export const POST = withAuth(async (request, { params, userId }) => {
     // 立即返回，后台异步生成
     // 使用 Promise.resolve().then() 确保在当前请求之后执行
     Promise.resolve().then(async () => {
-      await generateStoryboardsAsync(
-        projectId,
-        shots,
-        characters,
-        style,
-        project.aspect_ratio || '16:9'
-      )
+      try {
+        console.log('[Video Agent] 🚀 Starting background storyboard generation', {
+          projectId,
+          shotCount: shots.length,
+          aspectRatio: project.aspect_ratio || '16:9'
+        })
+
+        await generateStoryboardsAsync(
+          projectId,
+          shots,
+          characters,
+          style,
+          project.aspect_ratio || '16:9'
+        )
+
+        console.log('[Video Agent] ✅ Background storyboard generation completed', { projectId })
+      } catch (error) {
+        console.error('[Video Agent] ❌ Background storyboard generation failed:', error)
+
+        // 🔥 失败时更新项目状态
+        try {
+          await supabaseAdmin
+            .from('video_agent_projects')
+            .update({
+              step_3_status: 'failed'
+            } as any)
+            .eq('id', projectId)
+        } catch (updateError) {
+          console.error('[Video Agent] Failed to update project status after error:', updateError)
+        }
+      }
     })
 
     return NextResponse.json({

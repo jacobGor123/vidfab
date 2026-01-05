@@ -18,27 +18,80 @@ export async function generateSingleStoryboard(
   customPrompt?: string  // 🔥 新增：自定义 prompt 参数
 ): Promise<StoryboardResult> {
   try {
-    // 获取涉及的人物参考图（每个角色只取第一张）
-    const characterRefs = shot.characters
-      .flatMap(charName => {
-        const char = characters.find(c => c.name === charName)
+    console.log('[Storyboard Core] Extracting character references', {
+      shotNumber: shot.shot_number,
+      shotCharacters: shot.characters,
+      availableCharacters: characters.map(c => ({ name: c.name, refCount: c.reference_images?.length || 0 }))
+    })
+
+    // 🔥 修复：获取涉及的人物参考图（每个角色只取第一张）
+    // 🔥 关键修复：按照人物在场景描述中出现的顺序来排列参考图
+    // 使用模糊匹配，因为 shot.characters 可能是完整格式 "Angela (cat, 20s...)"
+    // 而 character_name 可能只是简短名称 "Angela"
+
+    // 合并所有文本描述
+    const sceneText = `${shot.description} ${shot.character_action}`.toLowerCase()
+
+    // 为每个角色计算在场景中首次出现的位置
+    const charactersWithPosition = shot.characters.map(charName => {
+      const shortCharName = charName.split('(')[0].trim()
+      const position = sceneText.indexOf(shortCharName.toLowerCase())
+      return {
+        name: charName,
+        shortName: shortCharName,
+        position: position >= 0 ? position : 9999 // 如果没找到，放到最后
+      }
+    })
+
+    // 按照在场景中出现的位置排序
+    const sortedCharacters = charactersWithPosition.sort((a, b) => a.position - b.position)
+
+    console.log('[Storyboard Core] Character order in scene:', {
+      shotNumber: shot.shot_number,
+      original: shot.characters,
+      sorted: sortedCharacters.map(c => `${c.name} (pos: ${c.position})`)
+    })
+
+    // 按排序后的顺序提取参考图
+    const characterRefs = sortedCharacters
+      .flatMap(({ name: charName, shortName: shortCharName }) => {
+        console.log(`[Storyboard Core] Looking up character: "${charName}" (short: "${shortCharName}")`)
+
+        // 🔥 使用简短名称进行模糊匹配（不区分大小写）
+        const char = characters.find(c => {
+          const shortConfigName = c.name.split('(')[0].trim()
+          const isMatch = shortConfigName.toLowerCase() === shortCharName.toLowerCase()
+          if (isMatch) {
+            console.log(`[Storyboard Core]   ✅ Matched with: "${c.name}"`)
+          }
+          return isMatch
+        })
+
         if (!char) {
-          console.warn(`[Storyboard Core] ⚠️  Character "${charName}" not found in character configs`, {
+          console.warn(`[Storyboard Core] ❌ Character "${charName}" not found in character configs`, {
             shotNumber: shot.shot_number,
             requestedCharacter: charName,
+            shortName: shortCharName,
             availableCharacters: characters.map(c => c.name)
           })
           return []
         }
+
         if (!char.reference_images || char.reference_images.length === 0) {
           console.warn(`[Storyboard Core] ⚠️  Character "${charName}" has no reference images`, {
-            shotNumber: shot.shot_number
+            shotNumber: shot.shot_number,
+            characterName: char.name
           })
           return []
         }
+
         // 每个角色只取第一张参考图（业务规则：每个角色只允许 1 张参考图）
         const referenceImage = char.reference_images[0]
-        console.log(`[Storyboard Core] ✓ Found reference image for "${charName}": ${referenceImage}`)
+        console.log(`[Storyboard Core] 🎨 Using reference image for "${charName}":`, {
+          characterConfig: char.name,
+          imageUrl: referenceImage.substring(0, 80) + '...',
+          totalImages: char.reference_images.length
+        })
         return [referenceImage]
       })
 

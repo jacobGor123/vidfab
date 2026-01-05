@@ -54,6 +54,20 @@ export function buildNegativePrompt(style: ImageStyle, hasReferenceImages: boole
     )
   }
 
+  // 🔥 禁止人物重复出现（复制粘贴效果）
+  negatives.push(
+    'duplicate person',
+    'cloned person',
+    'repeated person',
+    'copy-paste person',
+    'same person multiple times',
+    'duplicated character',
+    'multiple copies',
+    'clone effect',
+    'repeated character',
+    'mirrored duplication'
+  )
+
   // 通用质量负面提示
   negatives.push(
     'low quality',
@@ -72,6 +86,19 @@ export function buildNegativePrompt(style: ImageStyle, hasReferenceImages: boole
 }
 
 /**
+ * 检测脚本是否涉及镜子、倒影等允许重复人物的特殊场景
+ */
+function isMirrorOrReflectionScene(shot: Shot): boolean {
+  const combinedText = `${shot.description} ${shot.character_action}`.toLowerCase()
+  const mirrorKeywords = [
+    'mirror', 'reflection', 'reflect', 'twin', 'clone', 'duplicate',
+    '镜子', '倒影', '镜像', '双胞胎', '克隆', '复制',
+    'looking glass', 'mirrored', 'glass reflection', 'water reflection'
+  ]
+  return mirrorKeywords.some(keyword => combinedText.includes(keyword))
+}
+
+/**
  * 构建分镜图 Prompt
  */
 export function buildStoryboardPrompt(
@@ -81,6 +108,7 @@ export function buildStoryboardPrompt(
   hasReferenceImages: boolean
 ): string {
   const characterNames = Array.isArray(shot.characters) ? shot.characters.join(', ') : ''
+  const isMirrorScene = isMirrorOrReflectionScene(shot)
 
   let prompt = ''
 
@@ -103,6 +131,13 @@ export function buildStoryboardPrompt(
 
   // 情绪氛围
   prompt += `Mood: ${shot.mood}. `
+
+  // 🔥 内容强化：禁止人物重复（除非是镜子场景）
+  if (!isMirrorScene && characterNames) {
+    prompt += `IMPORTANT: Each character should appear ONLY ONCE in the image. `
+    prompt += `Do NOT duplicate, clone, or copy-paste the same character multiple times. `
+    prompt += `Generate a single instance of each character in their designated position. `
+  }
 
   // 添加风格提示
   prompt += `Style: ${style.style_prompt}. `

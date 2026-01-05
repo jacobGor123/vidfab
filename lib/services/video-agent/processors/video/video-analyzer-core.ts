@@ -6,108 +6,16 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
 import { buildVideoAnalysisPrompt } from './video-prompt-builder'
 import type { VideoSource } from './youtube-utils'
-import { MODEL_NAME, UNIFIED_SEGMENT_DURATION, sleep } from '../script/constants'
+import { MODEL_NAME, sleep } from '../script/constants'
+import {
+  cleanJsonResponse,
+  getDuplicateShotDescriptions,
+  removeDuplicateShotDescriptions,
+  fixCharacterArrays
+} from '../analysis-utils'
 
 // 初始化 Google Generative AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
-
-/**
- * 清理 JSON 响应内容（移除可能的 markdown 标记和额外文本）
- */
-function cleanJsonResponse(content: string): string {
-  let cleanContent = content.trim()
-
-  // 🔥 策略1：先尝试移除 markdown 代码块标记
-  if (cleanContent.startsWith('```json')) {
-    cleanContent = cleanContent.replace(/^```json\s*/, '')
-  }
-  if (cleanContent.startsWith('```')) {
-    cleanContent = cleanContent.replace(/^```\s*/, '')
-  }
-  if (cleanContent.endsWith('```')) {
-    cleanContent = cleanContent.replace(/\s*```$/, '')
-  }
-
-  // 🔥 策略2：如果第一个字符不是 {，说明前面有额外文本
-  // 提取第一个 { 到最后一个 } 之间的内容
-  const firstBrace = cleanContent.indexOf('{')
-  const lastBrace = cleanContent.lastIndexOf('}')
-
-  if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
-    // 找到了 JSON 的开始和结束位置
-    cleanContent = cleanContent.substring(firstBrace, lastBrace + 1)
-
-    console.log('[Video Analyzer Core] Extracted JSON from position', {
-      firstBrace,
-      lastBrace,
-      extractedLength: cleanContent.length
-    })
-  }
-
-  // 🔥 策略3：修复常见的 JSON 语法错误
-  // 移除尾随逗号（在数组或对象的最后一个元素后）
-  cleanContent = cleanContent.replace(/,(\s*[}\]])/g, '$1')
-
-  // 移除注释（单行和多行）
-  cleanContent = cleanContent.replace(/\/\*[\s\S]*?\*\//g, '')  // 多行注释
-  cleanContent = cleanContent.replace(/\/\/.*/g, '')  // 单行注释
-
-  return cleanContent.trim()
-}
-
-/**
- * 修正角色数组（基于全局角色列表和 description 自动匹配）
- */
-function fixCharacterArrays(analysis: ScriptAnalysisResult): string[] {
-  const allCharacters = analysis.characters || []
-  const fixedShots: string[] = []
-
-  analysis.shots.forEach(shot => {
-    // 将 description 和 character_action 转为小写用于匹配
-    const descLower = (shot.description + ' ' + shot.character_action).toLowerCase()
-
-    // 重新生成该分镜的 characters 数组（基于全局角色列表）
-    const matchedCharacters: string[] = []
-
-    allCharacters.forEach(charName => {
-      // 🔥 提取角色名称的简短形式（括号前的部分）
-      // 例如: "Mira (Asian woman, 20s...)" → "Mira"
-      const shortName = charName.split('(')[0].trim()
-      const shortNameLower = shortName.toLowerCase()
-
-      // 如果 description 中提到了这个角色的简短名称，加入该分镜的 characters 数组
-      if (descLower.includes(shortNameLower)) {
-        matchedCharacters.push(charName)
-      }
-    })
-
-    // 如果重新匹配的结果与原 Gemini 生成的不同，记录并覆盖
-    const originalChars = shot.characters || []
-    if (JSON.stringify(matchedCharacters.sort()) !== JSON.stringify(originalChars.sort())) {
-      fixedShots.push(
-        `Shot ${shot.shot_number}: ${originalChars.join(', ') || 'none'} → ${matchedCharacters.join(', ') || 'none'}`
-      )
-      shot.characters = matchedCharacters
-    }
-  })
-
-  return fixedShots
-}
-
-/**
- * 统一分镜时长（强制设置为 5 秒）
- */
-function unifySegmentDuration(analysis: ScriptAnalysisResult): void {
-  analysis.shots = analysis.shots.map((shot, index) => ({
-    ...shot,
-    duration_seconds: UNIFIED_SEGMENT_DURATION,
-    time_range: `${index * UNIFIED_SEGMENT_DURATION}-${(index + 1) * UNIFIED_SEGMENT_DURATION}s`
-  }))
-
-  // 重新计算总时长
-  const actualTotalDuration = analysis.shots.length * UNIFIED_SEGMENT_DURATION
-  analysis.duration = actualTotalDuration
-}
 
 /**
  * 从视频分析生成脚本（使用 Google Generative AI）
@@ -140,7 +48,7 @@ export async function analyzeVideoToScript(
       const model = genAI.getGenerativeModel({
         model: MODEL_NAME,
         generationConfig: {
-          temperature: 0.3,
+          temperature: 0.2,  // 适中的创造性，避免重复
           topP: 0.9,
           maxOutputTokens: 8192,
         }
@@ -239,20 +147,55 @@ export async function analyzeVideoToScript(
         console.warn('[Video Analyzer Core] ⚠️  Auto-fixed character arrays:', fixedShots)
       }
 
+      // 🔥 自动去除重复的镜头描述
+      const duplicateInfo = getDuplicateShotDescriptions(analysis)
+
+      if (duplicateInfo.hasDuplicates) {
+        console.warn('[Video Analyzer Core] ⚠️  Detected duplicate shot descriptions, auto-removing...', {
+          duplicateCount: duplicateInfo.duplicateCount,
+          totalShots: analysis.shots.length,
+          duplicatePercentage: `${((duplicateInfo.duplicateCount / analysis.shots.length) * 100).toFixed(1)}%`,
+          details: duplicateInfo.duplicateShots.map(d => ({
+            shotNumbers: d.shotNumbers,
+            preview: d.description.substring(0, 100)
+          }))
+        })
+
+        // 自动去重
+        const deduplicateResult = removeDuplicateShotDescriptions(analysis)
+
+        // 更新 analysis 对象
+        analysis.shots = deduplicateResult.uniqueShots
+        analysis.shot_count = deduplicateResult.uniqueShots.length
+
+        // 重新计算总时长
+        const newTotalDuration = deduplicateResult.uniqueShots.reduce((sum, shot) => sum + (shot.duration_seconds || 5), 0)
+        analysis.duration = Math.round(newTotalDuration)
+
+        console.log('[Video Analyzer Core] ✅ Auto-deduplicated successfully:', {
+          originalShots: deduplicateResult.originalCount,
+          removedShots: deduplicateResult.removedCount,
+          removedShotNumbers: deduplicateResult.removedShotNumbers,
+          finalShots: deduplicateResult.uniqueShots.length,
+          newDuration: analysis.duration
+        })
+      }
+
       console.log('[Video Analyzer Core] Video analysis completed successfully', {
         shotCount: analysis.shots.length,
         globalCharacters: analysis.characters,
         requestedDuration: duration,
         actualTotalDuration: analysis.duration,
-        segmentDuration: UNIFIED_SEGMENT_DURATION,
         autoFixedShots: fixedShots.length
       })
 
       return analysis
 
     } catch (error: any) {
+      const isRateLimit = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')
+
       // 检查是否是 429 限流错误
-      if (error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')) {
+      if (isRateLimit) {
         const waitTime = 10
 
         console.warn(`[Video Analyzer Core] Rate limited. Retry ${retries + 1}/${maxRetries} after ${waitTime}s`, {

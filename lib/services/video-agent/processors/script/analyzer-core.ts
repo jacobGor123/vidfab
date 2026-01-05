@@ -6,101 +6,16 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
 import { buildScriptAnalysisPrompt } from './prompt-builder'
 import { MODEL_NAME, UNIFIED_SEGMENT_DURATION, sleep } from './constants'
+import {
+  cleanJsonResponse,
+  getDuplicateShotDescriptions,
+  removeDuplicateShotDescriptions,
+  fixCharacterArrays,
+  unifySegmentDuration
+} from '../analysis-utils'
 
 // 初始化 Google Generative AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
-
-/**
- * 清理 JSON 响应内容（移除可能的 markdown 标记）
- */
-function cleanJsonResponse(content: string): string {
-  let cleanContent = content.trim()
-
-  // 移除可能的 markdown 代码块标记
-  if (cleanContent.startsWith('```json')) {
-    cleanContent = cleanContent.replace(/^```json\s*/, '')
-  }
-  if (cleanContent.startsWith('```')) {
-    cleanContent = cleanContent.replace(/^```\s*/, '')
-  }
-  if (cleanContent.endsWith('```')) {
-    cleanContent = cleanContent.replace(/\s*```$/, '')
-  }
-
-  return cleanContent
-}
-
-function normalizeDescription(description: string): string {
-  return description.trim().toLowerCase().replace(/\s+/g, ' ')
-}
-
-function hasDuplicateShotDescriptions(analysis: ScriptAnalysisResult): boolean {
-  const seen = new Set<string>()
-  for (const shot of analysis.shots || []) {
-    const normalized = normalizeDescription(shot.description || '')
-    if (!normalized) continue
-    if (seen.has(normalized)) return true
-    seen.add(normalized)
-  }
-  return false
-}
-
-/**
- * 修正角色数组（基于全局角色列表和 description 自动匹配）
- */
-function fixCharacterArrays(analysis: ScriptAnalysisResult): string[] {
-  const allCharacters = analysis.characters || []
-  const fixedShots: string[] = []
-
-  analysis.shots.forEach(shot => {
-    // 将 description 和 character_action 转为小写用于匹配
-    const descLower = (shot.description + ' ' + shot.character_action).toLowerCase()
-
-    // 重新生成该分镜的 characters 数组（基于全局角色列表）
-    const matchedCharacters: string[] = []
-
-    allCharacters.forEach(charName => {
-      // 🔥 提取角色名称的简短形式（括号前的部分）
-      // 例如: "Mira (Asian woman, 20s...)" → "Mira"
-      const shortName = charName.split('(')[0].trim()
-      const shortNameLower = shortName.toLowerCase()
-
-      // 如果 description 中提到了这个角色的简短名称，加入该分镜的 characters 数组
-      if (descLower.includes(shortNameLower)) {
-        matchedCharacters.push(charName)
-      }
-    })
-
-    // 如果重新匹配的结果与原 Gemini 生成的不同，记录并覆盖
-    const originalChars = shot.characters || []
-    if (JSON.stringify(matchedCharacters.sort()) !== JSON.stringify(originalChars.sort())) {
-      fixedShots.push(
-        `Shot ${shot.shot_number}: ${originalChars.join(', ') || 'none'} → ${matchedCharacters.join(', ') || 'none'}`
-      )
-      shot.characters = matchedCharacters
-    }
-  })
-
-  return fixedShots
-}
-
-/**
- * 统一分镜时长（强制设置为 5 秒）
- */
-function unifySegmentDuration(analysis: ScriptAnalysisResult): void {
-  analysis.shots = analysis.shots.map((shot, index) => ({
-    ...shot,
-    duration_seconds: UNIFIED_SEGMENT_DURATION,
-    time_range: `${index * UNIFIED_SEGMENT_DURATION}-${(index + 1) * UNIFIED_SEGMENT_DURATION}s`
-  }))
-
-  // 重新计算总时长
-  const actualTotalDuration = analysis.shots.length * UNIFIED_SEGMENT_DURATION
-  analysis.duration = actualTotalDuration
-
-  // 🔥 强制对齐 shot_count，避免 shots.length 与 shot_count 偶尔不一致
-  analysis.shot_count = analysis.shots.length
-}
 
 /**
  * 分析脚本（使用 Google Generative AI）
@@ -132,7 +47,7 @@ export async function analyzeScript(
       const model = genAI.getGenerativeModel({
         model: MODEL_NAME,
         generationConfig: {
-          temperature: retries > 0 ? 0.1 : 0.2,
+          temperature: 0.2,  // 适中的创造性，避免重复
           topP: 0.9,
           maxOutputTokens: 8192,
         }
@@ -181,6 +96,39 @@ export async function analyzeScript(
         console.warn('[Script Analyzer Core] ⚠️  Auto-fixed character arrays:', fixedShots)
       }
 
+      // 🔥 自动去除重复的镜头描述
+      const duplicateInfo = getDuplicateShotDescriptions(analysis)
+
+      if (duplicateInfo.hasDuplicates) {
+        console.warn('[Script Analyzer Core] ⚠️  Detected duplicate shot descriptions, auto-removing...', {
+          duplicateCount: duplicateInfo.duplicateCount,
+          totalShots: analysis.shots.length,
+          duplicatePercentage: `${((duplicateInfo.duplicateCount / analysis.shots.length) * 100).toFixed(1)}%`,
+          details: duplicateInfo.duplicateShots.map(d => ({
+            shotNumbers: d.shotNumbers,
+            preview: d.description.substring(0, 100)
+          }))
+        })
+
+        // 自动去重
+        const deduplicateResult = removeDuplicateShotDescriptions(analysis)
+
+        // 更新 analysis 对象
+        analysis.shots = deduplicateResult.uniqueShots
+        analysis.shot_count = deduplicateResult.uniqueShots.length
+
+        // 重新统一时长（文本脚本模式）
+        unifySegmentDuration(analysis)
+
+        console.log('[Script Analyzer Core] ✅ Auto-deduplicated successfully:', {
+          originalShots: deduplicateResult.originalCount,
+          removedShots: deduplicateResult.removedCount,
+          removedShotNumbers: deduplicateResult.removedShotNumbers,
+          finalShots: deduplicateResult.uniqueShots.length,
+          newDuration: analysis.duration
+        })
+      }
+
       console.log('[Script Analyzer Core] Analysis completed successfully', {
         shotCount: analysis.shots.length,
         globalCharacters: analysis.characters,
@@ -190,16 +138,10 @@ export async function analyzeScript(
         autoFixedShots: fixedShots.length
       })
 
-      // 🔥 兜底：如果出现重复分镜描述，认为结果退化，触发重试
-      if (hasDuplicateShotDescriptions(analysis)) {
-        throw new Error('Duplicate shot descriptions detected')
-      }
-
       return analysis
 
     } catch (error: any) {
       const isRateLimit = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')
-      const isDuplicateDescriptions = error.message?.includes('Duplicate shot descriptions detected')
 
       // 检查是否是 429 限流错误
       if (isRateLimit) {
@@ -220,22 +162,6 @@ export async function analyzeScript(
           console.error('[Script Analyzer Core] Max retries reached')
           throw new Error(`Rate limit exceeded. Please wait a moment and try again. (Retried ${maxRetries} times)`)
         }
-      }
-
-      // 处理重复描述：降低温度并重试（不等待）
-      if (isDuplicateDescriptions) {
-        if (retries < maxRetries) {
-          retries++
-          console.warn(`[Script Analyzer Core] Duplicate descriptions detected. Retry ${retries}/${maxRetries} with lower randomness`, {
-            retries,
-            error: error.message
-          })
-          // 通过减少随机性来提升差异度稳定性
-          // 这里不改变 prompt，保持可控；降低 temperature 会在下一次 model 实例化时生效
-          continue
-        }
-
-        throw new Error('Duplicate shot descriptions detected after retries')
       }
 
       // 其他错误直接抛出

@@ -43,11 +43,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
       mute_bgm: muteBgm = true
     } = body
 
-    // 🔥 YouTube 视频复刻模式：允许 1-60 秒的任意时长
+    // 🔥 YouTube 视频复刻模式：允许 1-120 秒的任意时长（最多 2 分钟）
     // 文字脚本模式：仍然推荐使用 15/30/45/60，但不强制限制
-    if (!duration || typeof duration !== 'number' || duration < 1 || duration > 60) {
+    // 注意：YouTube Shorts 官方上限是 60 秒，但实际视频可能稍长，因此放宽到 120 秒
+    if (!duration || typeof duration !== 'number' || duration < 1 || duration > 120) {
       return NextResponse.json(
-        { error: 'Invalid duration. Must be between 1 and 60 seconds' },
+        { error: 'Invalid duration. Must be between 1 and 120 seconds' },
         { status: 400 }
       )
     }

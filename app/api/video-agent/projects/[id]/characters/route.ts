@@ -67,43 +67,92 @@ export const POST = withAuth(async (request, { params, userId }) => {
       characterCount: body.characters.length
     })
 
-    // 删除现有的人物配置 (如果有)
-    await supabaseAdmin
-      .from('project_characters')
-      .delete()
-      .eq('project_id', projectId)
+    // 🔥 修复：去重人物名称（防止前端传递重复数据）
+    const uniqueCharacters = body.characters.filter((char, index, self) =>
+      index === self.findIndex(c => c.name === char.name)
+    )
 
-    // 插入新的人物配置
-    const charactersToInsert = body.characters.map(char => ({
-      project_id: projectId,
-      character_name: char.name,
-      source: char.source,
-      template_id: char.templateId,
-      generation_prompt: char.generationPrompt,
-      negative_prompt: char.negativePrompt
-    }))
-
-    const { data: insertedChars, error: insertError } = await supabaseAdmin
-      .from('project_characters')
-      .insert(charactersToInsert as any)
-      .select()
-
-    if (insertError) {
-      console.error('[Video Agent] Failed to insert characters:', insertError)
-      return NextResponse.json(
-        { error: 'Failed to save characters' },
-        { status: 500 }
-      )
+    if (uniqueCharacters.length < body.characters.length) {
+      console.warn('[Video Agent] Removed duplicate characters:', {
+        original: body.characters.length,
+        unique: uniqueCharacters.length,
+        duplicates: body.characters.map(c => c.name).filter((name, index, arr) => arr.indexOf(name) !== index)
+      })
     }
 
-    // 插入参考图
-    for (let i = 0; i < body.characters.length; i++) {
-      const char = body.characters[i]
-      const insertedChar = insertedChars[i]
+    // 🔥 改进：使用增量更新逻辑，而不是先删除再插入
+    // 对于每个人物，检查是否已存在，如果存在则更新，否则插入
+    const insertedChars: any[] = []
 
+    for (const char of uniqueCharacters) {
+      // 检查人物是否已存在
+      const { data: existingChar } = await supabaseAdmin
+        .from('project_characters')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('character_name', char.name)
+        .single()
+
+      let characterRecord: any
+
+      if (existingChar) {
+        // 🔥 已存在，更新记录
+        const { data: updatedChar, error: updateError } = await supabaseAdmin
+          .from('project_characters')
+          .update({
+            source: char.source,
+            template_id: char.templateId,
+            generation_prompt: char.generationPrompt,
+            negative_prompt: char.negativePrompt
+          } as any)
+          .eq('id', existingChar.id)
+          .select()
+          .single()
+
+        if (updateError) {
+          console.error(`[Video Agent] Failed to update character ${char.name}:`, updateError)
+          continue
+        }
+
+        characterRecord = updatedChar
+
+        // 🔥 删除旧的参考图
+        await supabaseAdmin
+          .from('character_reference_images')
+          .delete()
+          .eq('character_id', existingChar.id)
+
+        console.log(`[Video Agent] Updated existing character: ${char.name}`)
+      } else {
+        // 🔥 不存在，插入新记录
+        const { data: newChar, error: insertError } = await supabaseAdmin
+          .from('project_characters')
+          .insert({
+            project_id: projectId,
+            character_name: char.name,
+            source: char.source,
+            template_id: char.templateId,
+            generation_prompt: char.generationPrompt,
+            negative_prompt: char.negativePrompt
+          } as any)
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error(`[Video Agent] Failed to insert character ${char.name}:`, insertError)
+          continue
+        }
+
+        characterRecord = newChar
+        console.log(`[Video Agent] Inserted new character: ${char.name}`)
+      }
+
+      insertedChars.push(characterRecord)
+
+      // 🔥 插入新的参考图
       if (char.referenceImages && char.referenceImages.length > 0) {
         const refImagesToInsert = char.referenceImages.map((url, index) => ({
-          character_id: insertedChar.id,
+          character_id: characterRecord.id,
           image_url: url,
           image_order: index + 1
         }))
@@ -113,7 +162,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
           .insert(refImagesToInsert)
 
         if (refImagesError) {
-          console.error('[Video Agent] Failed to insert reference images:', refImagesError)
+          console.error(`[Video Agent] Failed to insert reference images for ${char.name}:`, refImagesError)
         }
       }
     }
