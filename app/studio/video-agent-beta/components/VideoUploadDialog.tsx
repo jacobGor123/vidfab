@@ -85,7 +85,11 @@ export default function VideoUploadDialog({
         // 🔥 YouTube 模式：默认开启背景音乐，9:16 比例
         // 🔥 确保 duration 有效：优先使用分析结果，其次使用传入参数，最后使用默认值 30
         const validDuration = analysisData.duration || duration || 30
-        const finalDuration = Math.max(1, Math.min(120, Math.round(validDuration)))  // 限制在 1-120 秒
+        // 🔥 额外防御：确保 validDuration 是有效数字
+        const safeDuration = typeof validDuration === 'number' && !isNaN(validDuration) && isFinite(validDuration)
+          ? validDuration
+          : 30
+        const finalDuration = Math.max(1, Math.min(120, Math.round(safeDuration)))  // 限制在 1-120 秒
 
         const project = await createProject({
           duration: finalDuration,

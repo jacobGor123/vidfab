@@ -132,9 +132,14 @@ export async function analyzeVideoToScript(
         duration_seconds: Math.max(2, Math.round(shot.duration_seconds))  // 🔥 最小2秒
       }))
 
-      // 同时确保总时长也是整数
+      // 🔥 强制设置 duration 字段，确保永远不会是 undefined
+      // 优先级：Gemini 返回的 duration > 所有 shot 时长总和 > 传入的 duration 参数
       if (analysis.duration) {
         analysis.duration = Math.round(analysis.duration)
+      } else {
+        // 如果 Gemini 没有返回 duration，使用所有 shot 的时长总和
+        const totalDuration = analysis.shots.reduce((sum, shot) => sum + (shot.duration_seconds || 5), 0)
+        analysis.duration = Math.max(1, Math.min(120, Math.round(totalDuration || duration)))
       }
 
       // 🔥 移除强制统一时长逻辑（YouTube 视频复刻模式应保持原视频的真实时长）
@@ -168,9 +173,9 @@ export async function analyzeVideoToScript(
         analysis.shots = deduplicateResult.uniqueShots
         analysis.shot_count = deduplicateResult.uniqueShots.length
 
-        // 重新计算总时长
+        // 重新计算总时长（确保在 1-120 秒范围内）
         const newTotalDuration = deduplicateResult.uniqueShots.reduce((sum, shot) => sum + (shot.duration_seconds || 5), 0)
-        analysis.duration = Math.round(newTotalDuration)
+        analysis.duration = Math.max(1, Math.min(120, Math.round(newTotalDuration)))
 
         console.log('[Video Analyzer Core] ✅ Auto-deduplicated successfully:', {
           originalShots: deduplicateResult.originalCount,
