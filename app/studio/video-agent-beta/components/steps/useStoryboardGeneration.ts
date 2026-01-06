@@ -59,6 +59,9 @@ export function useStoryboardGeneration({
     ? storyboards.filter((sb) => sb.status === 'generating').length
     : 0
 
+  // 用于延迟停止轮询（确保最后一次状态更新已渲染）
+  const stopPollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   // 轮询状态
   const pollStatus = useCallback(async () => {
     if (!project.id) return
@@ -102,11 +105,23 @@ export function useStoryboardGeneration({
       if (hasGenerating && !isGeneratingRef.current) {
         // 发现有 generating 状态但轮询已停止，重新启动轮询
         console.log('[Step3] Starting polling - found generating storyboards')
+        // 清除可能存在的停止定时器
+        if (stopPollTimeoutRef.current) {
+          clearTimeout(stopPollTimeoutRef.current)
+          stopPollTimeoutRef.current = null
+        }
         setIsGenerating(true)
       } else if (!hasGenerating && isGeneratingRef.current) {
-        // 没有 generating 状态但轮询还在运行，停止轮询
-        console.log('[Step3] Stopping polling - all storyboards completed')
-        setIsGenerating(false)
+        // 🔥 修复：没有 generating 状态时，延迟停止轮询
+        // 等待 3 秒（一次半轮询周期）确保最后的状态已完全渲染
+        if (!stopPollTimeoutRef.current) {
+          console.log('[Step3] Scheduling polling stop in 3s - all storyboards completed')
+          stopPollTimeoutRef.current = setTimeout(() => {
+            console.log('[Step3] Stopping polling - confirmed all storyboards completed')
+            setIsGenerating(false)
+            stopPollTimeoutRef.current = null
+          }, 3000)
+        }
       }
     } catch (err) {
       console.error('Failed to poll storyboard status:', err)
@@ -135,7 +150,14 @@ export function useStoryboardGeneration({
 
       // 然后每2秒轮询一次
       const interval = setInterval(pollStatus, 2000)
-      return () => clearInterval(interval)
+      return () => {
+        clearInterval(interval)
+        // 清理停止定时器
+        if (stopPollTimeoutRef.current) {
+          clearTimeout(stopPollTimeoutRef.current)
+          stopPollTimeoutRef.current = null
+        }
+      }
     }
   }, [isGenerating, pollStatus])
 
