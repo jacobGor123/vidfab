@@ -6,6 +6,9 @@
 import { NextResponse } from 'next/server'
 import { checkBullMQRedisHealth } from '@/lib/redis-bullmq'
 
+// 🔥 强制动态渲染，避免构建时尝试连接Redis
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const redisHealthy = await checkBullMQRedisHealth()
