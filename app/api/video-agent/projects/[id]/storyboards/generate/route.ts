@@ -8,7 +8,6 @@ import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateSingleStoryboard, IMAGE_STYLES } from '@/lib/services/video-agent/storyboard-generator'
 import type { CharacterConfig, Shot, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
-import { sunoAPI } from '@/lib/services/suno/suno-api'
 import type { Database } from '@/lib/database.types'
 import pLimit from 'p-limit'
 
@@ -218,25 +217,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 🔥 改进的幂等性检查：先尝试插入，通过数据库唯一约束来保证幂等性
-    // 立即在数据库中创建所有分镜记录，状态为 'generating'
-    const initialStoryboards = shots.map(shot => ({
-      project_id: projectId,
-      shot_number: shot.shot_number,
-      status: 'generating',
-      generation_attempts: 1
-    }))
-
-    const { data: insertedStoryboards, error: insertError } = await supabaseAdmin
-      .from('project_storyboards')
-      .upsert(initialStoryboards as any, {
-        onConflict: 'project_id,shot_number',
-        ignoreDuplicates: false  // 🔥 关键：返回已存在的记录
-      })
-      .select()
-
-    // 🔥 如果返回为空或数量不匹配，说明已经有记录存在（被其他请求创建了）
-    // 检查现有记录的状态
+    // 🔥 幂等性检查：先查询是否已有记录
     const { data: existingStoryboards } = await supabaseAdmin
       .from('project_storyboards')
       .select('*')
@@ -274,6 +255,26 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
     }
 
+    // 🔥 没有记录或记录都是 failed 状态，创建新的 generating 记录
+    const initialStoryboards = shots.map(shot => ({
+      project_id: projectId,
+      shot_number: shot.shot_number,
+      status: 'generating',
+      generation_attempts: 1
+    }))
+
+    const { data: insertedStoryboards, error: insertError } = await supabaseAdmin
+      .from('project_storyboards')
+      .upsert(initialStoryboards as any, {
+        onConflict: 'project_id,shot_number',
+        ignoreDuplicates: false
+      })
+      .select()
+
+    if (insertError) {
+      console.error('[Video Agent] Failed to create storyboard records:', insertError)
+    }
+
     console.log('[Video Agent] Starting storyboard generation', {
       projectId,
       shotCount: shots.length,
@@ -307,99 +308,76 @@ export const POST = withAuth(async (request, { params, userId }) => {
       shotCount: shots.length
     })
 
-    // 🔥 并行启动 Suno 音乐生成（仅非旁白模式且未静音 BGM）
-    // 旁白模式下不生成背景音乐，避免与旁白音频冲突
-    // mute_bgm 为 true 时也不生成背景音乐
-    if (project.music_generation_prompt && !project.enable_narration && !project.mute_bgm) {
-      const musicPrompt = project.music_generation_prompt // 保存到局部变量避免类型检查问题
-      Promise.resolve().then(async () => {
-        try {
-          console.log('[Video Agent] 🎵 Starting parallel Suno music generation', {
-            projectId,
-            promptLength: musicPrompt.length,
-            mode: 'background-music'
-          })
-
-          // 启动 Suno 音乐生成（不等待完成）
-          const generateResponse = await sunoAPI.generate({
-            prompt: musicPrompt,
-            make_instrumental: true, // 🔥 纯音乐（无歌词），更适合背景音乐
-            wait_audio: false
-          })
-
-          const sunoTaskId = generateResponse.id
-
-          // 保存 Suno task ID
-          await supabaseAdmin
-            .from('video_agent_projects')
-            .update({
-              suno_task_id: sunoTaskId,
-              updated_at: new Date().toISOString()
-            } as any)
-            .eq('id', projectId)
-            .returns<any>()
-
-          console.log('[Video Agent] 🎵 Suno music generation started (parallel)', {
-            projectId,
-            taskId: sunoTaskId,
-            status: generateResponse.status
-          })
-        } catch (error) {
-          console.error('[Video Agent] ⚠️ Failed to start Suno music generation (non-critical):', error)
-          // 音乐生成失败不影响主流程
-        }
-      })
+    // 🔥 统一使用预设背景音乐（不再调用 Suno API）
+    if (project.enable_narration) {
+      console.log('[Video Agent] 🎵 Skipping music (narration mode enabled)', { projectId })
+    } else if (project.mute_bgm) {
+      console.log('[Video Agent] 🎵 Skipping music (BGM muted)', { projectId })
     } else {
-      if (project.enable_narration) {
-        console.log('[Video Agent] 🎵 Skipping music generation (narration mode enabled)', { projectId })
-      } else if (project.mute_bgm) {
-        console.log('[Video Agent] 🎵 Skipping music generation (BGM muted)', { projectId })
-      }
+      console.log('[Video Agent] 🎵 Will use preset background music', { projectId })
     }
 
-    // 立即返回，后台异步生成
-    // 使用 Promise.resolve().then() 确保在当前请求之后执行
-    Promise.resolve().then(async () => {
-      try {
-        console.log('[Video Agent] 🚀 Starting background storyboard generation', {
-          projectId,
-          shotCount: shots.length,
-          aspectRatio: project.aspect_ratio || '16:9'
-        })
+    // 🔥 使用队列系统（替代后台 Promise）
+    // 优点：任务持久化、自动重试、不会被 Vercel Lambda 打断
+    const { videoQueueManager } = await import('@/lib/queue/queue-manager')
 
-        await generateStoryboardsAsync(
+    try {
+      const jobId = await videoQueueManager.addJob(
+        'storyboard_generation',
+        {
+          jobId: `storyboard_${projectId}`,
+          userId: userId,
+          videoId: projectId,
           projectId,
           shots,
           characters,
-          style,
-          project.aspect_ratio || '16:9'
-        )
-
-        console.log('[Video Agent] ✅ Background storyboard generation completed', { projectId })
-      } catch (error) {
-        console.error('[Video Agent] ❌ Background storyboard generation failed:', error)
-
-        // 🔥 失败时更新项目状态
-        try {
-          await supabaseAdmin
-            .from('video_agent_projects')
-            .update({
-              step_3_status: 'failed'
-            } as any)
-            .eq('id', projectId)
-        } catch (updateError) {
-          console.error('[Video Agent] Failed to update project status after error:', updateError)
+          style: styleId,
+          aspectRatio: project.aspect_ratio || '16:9',
+          createdAt: new Date().toISOString()
+        },
+        {
+          priority: 'high',      // 高优先级
+          attempts: 3,           // 最多重试 3 次
+          backoff: {
+            type: 'exponential',
+            delay: 5000          // 5 秒起始延迟
+          },
+          removeOnComplete: 10,  // 保留最近 10 个已完成任务
+          removeOnFail: 20       // 保留最近 20 个失败任务
         }
-      }
-    })
+      )
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        message: 'Storyboard generation started',
-        total: shots.length
-      }
-    })
+      console.log('[Video Agent] ✅ Storyboard generation job queued', {
+        projectId,
+        jobId,
+        shotCount: shots.length
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          message: 'Storyboard generation queued',
+          jobId,
+          total: shots.length
+        }
+      })
+
+    } catch (queueError) {
+      console.error('[Video Agent] ❌ Failed to queue storyboard generation:', queueError)
+
+      // 队列失败，更新项目状态
+      await supabaseAdmin
+        .from('video_agent_projects')
+        .update({
+          step_3_status: 'failed'
+        } as any)
+        .eq('id', projectId)
+
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to queue storyboard generation'
+      }, { status: 500 })
+    }
 
   } catch (error) {
     console.error('[Video Agent] Generate storyboards error:', error)

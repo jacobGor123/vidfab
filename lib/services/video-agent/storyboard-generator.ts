@@ -23,4 +23,9 @@ export {
 } from './processors/storyboard/storyboard-core'
 
 // 导出批量生成功能
-export { batchGenerateStoryboards } from './processors/storyboard/storyboard-batch-generator'
+export {
+  batchGenerateStoryboards,
+  batchGenerateStoryboardsWithProgress,
+  type ProgressCallback,
+  type BatchGenerationResult
+} from './processors/storyboard/storyboard-batch-generator'

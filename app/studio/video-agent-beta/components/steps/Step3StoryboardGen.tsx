@@ -7,7 +7,6 @@
 
 import { Button } from '@/components/ui/button'
 import { useStoryboardGeneration } from './useStoryboardGeneration'
-import { Step3InitialState } from './Step3InitialState'
 import { Step3ProgressCard } from './Step3ProgressCard'
 import { Step3StoryboardCard } from './Step3StoryboardCard'
 import type { Step3Props, DisplayItem } from './Step3StoryboardGen.types'
@@ -43,17 +42,9 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
   // 根据项目尺寸比决定容器 aspect ratio
   const aspectRatioClass = project.aspect_ratio === '9:16' ? 'aspect-[9/16]' : 'aspect-video'
 
-  // 初始状态：未生成且从未开始过生成
-  if (!hasStartedGeneration && storyboards.length === 0 && !isGenerating) {
-    return (
-      <Step3InitialState
-        totalShots={totalShots}
-        imageStyle={project.image_style_id || 'realistic'}
-        error={error}
-        onGenerate={handleGenerate}
-      />
-    )
-  }
+  // 🔥 移除初始状态界面 - 现在自动开始生成，无需二次确认
+  // 旧逻辑：显示 "Generate Storyboards" 界面，需要用户再点一次按钮
+  // 新逻辑：直接显示生成进度，自动开始生成
 
   // 创建占位数组 - 始终显示 totalShots 个卡片
   const displayItems: DisplayItem[] = Array.from({ length: totalShots }, (_, index) => {

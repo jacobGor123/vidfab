@@ -4,8 +4,8 @@
 # VidFab AI Video Platform
 # 云原生开发环境启动脚本
 # ===========================================
-# 功能：启动 Next.js 开发服务器
-# 架构：Upstash Redis + Inngest 任务队列 + Cloudinary 视频处理
+# 功能：启动 Next.js 开发服务器 + BullMQ Worker
+# 架构：Upstash Redis + Inngest 任务队列 + BullMQ 队列 + Cloudinary 视频处理
 # 使用：./scripts/dev.sh
 # ===========================================
 
@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 echo ""
 echo -e "${PURPLE}🚀 VidFab AI 云原生开发环境启动中...${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
-echo -e "${CYAN}☁️  架构：Upstash Redis + Inngest Queue + Cloudinary${NC}"
+echo -e "${CYAN}☁️  架构：Upstash Redis + Inngest Queue + BullMQ Worker + Cloudinary${NC}"
 echo ""
 
 # 创建必要的目录
@@ -31,6 +31,9 @@ mkdir -p logs
 
 # 获取时间戳用于日志文件
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+
+# Worker PID（用于清理时关闭）
+WORKER_PID=""
 
 # ============================================
 # 清理缓存和临时文件
@@ -127,6 +130,20 @@ fi
 cleanup() {
     echo ""
     echo -e "${YELLOW}🛑 收到停止信号，正在关闭开发服务器...${NC}"
+
+    # 关闭 Worker
+    if [ ! -z "$WORKER_PID" ] && kill -0 $WORKER_PID 2>/dev/null; then
+        echo -e "${YELLOW}🛑 正在关闭 BullMQ Worker (PID: $WORKER_PID)...${NC}"
+        kill $WORKER_PID 2>/dev/null || true
+        sleep 1
+        # 如果进程仍在运行，强制终止
+        if kill -0 $WORKER_PID 2>/dev/null; then
+            echo -e "${RED}   强制终止 Worker${NC}"
+            kill -9 $WORKER_PID 2>/dev/null || true
+        fi
+        echo -e "${GREEN}✅ Worker 已关闭${NC}"
+    fi
+
     echo -e "${GREEN}✅ 开发环境已关闭${NC}"
     exit 0
 }
@@ -152,9 +169,14 @@ echo -e "${GREEN}✅ 环境配置文件存在${NC}"
 # 检查关键云服务配置
 MISSING_SERVICES=""
 
-# 检查 Upstash Redis
+# 检查 Upstash Redis (REST API)
 if ! grep -q "UPSTASH_REDIS_REST_URL=" .env.local 2>/dev/null && ! grep -q "UPSTASH_REDIS_REST_URL=" .env 2>/dev/null; then
-    MISSING_SERVICES="${MISSING_SERVICES}\n  ⚠️  Upstash Redis (UPSTASH_REDIS_REST_URL)"
+    MISSING_SERVICES="${MISSING_SERVICES}\n  ⚠️  Upstash Redis REST API (UPSTASH_REDIS_REST_URL)"
+fi
+
+# 检查 Redis Protocol URL (用于 BullMQ Worker)
+if ! grep -q "UPSTASH_REDIS_URL=" .env.local 2>/dev/null && ! grep -q "REDIS_URL=" .env.local 2>/dev/null && ! grep -q "UPSTASH_REDIS_URL=" .env 2>/dev/null && ! grep -q "REDIS_URL=" .env 2>/dev/null; then
+    MISSING_SERVICES="${MISSING_SERVICES}\n  ⚠️  Redis Protocol URL (UPSTASH_REDIS_URL 或 REDIS_URL) - BullMQ Worker 需要"
 fi
 
 # 检查 Inngest
@@ -169,10 +191,44 @@ if [ ! -z "$MISSING_SERVICES" ]; then
     echo ""
 else
     echo -e "${GREEN}✅ 云服务配置完整${NC}"
-    echo -e "${BLUE}  • Upstash Redis - 缓存和会话存储${NC}"
+    echo -e "${BLUE}  • Upstash Redis (REST API) - 缓存和会话存储${NC}"
+    echo -e "${BLUE}  • Upstash Redis (Protocol) - BullMQ 队列后端${NC}"
     echo -e "${BLUE}  • Inngest - 异步任务队列${NC}"
+    echo -e "${BLUE}  • BullMQ Worker - 分镜图生成队列${NC}"
     echo -e "${BLUE}  • Cloudinary - 视频处理和CDN${NC}"
 fi
+
+# ============================================
+# 启动 BullMQ Worker (后台运行)
+# ============================================
+echo ""
+echo -e "${CYAN}⚙️  启动 BullMQ Worker...${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+
+# Worker 日志文件
+WORKER_LOG="logs/worker-dev-$TIMESTAMP.log"
+
+echo -e "${YELLOW}🔄 正在启动 Worker...${NC}"
+echo -e "${BLUE}📝 Worker 日志: $WORKER_LOG${NC}"
+
+# 在后台启动 Worker
+pnpm worker:dev > "$WORKER_LOG" 2>&1 &
+WORKER_PID=$!
+
+# 等待 Worker 启动
+sleep 2
+
+# 检查 Worker 是否成功启动
+if kill -0 $WORKER_PID 2>/dev/null; then
+    echo -e "${GREEN}✅ Worker 已启动 (PID: $WORKER_PID)${NC}"
+    echo -e "${BLUE}   处理任务: storyboard_generation${NC}"
+else
+    echo -e "${RED}❌ Worker 启动失败，请检查日志: $WORKER_LOG${NC}"
+    echo -e "${YELLOW}⚠️  分镜图生成功能可能不可用${NC}"
+    WORKER_PID=""
+fi
+
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
 
 # ============================================
 # 启动 Next.js 开发服务器
@@ -184,7 +240,8 @@ echo -e "${BLUE}═════════════════════�
 # 启动 Next.js 开发服务器（前台运行，带日志）
 echo -e "${YELLOW}🔄 正在启动 Next.js...${NC}"
 echo ""
-echo -e "${BLUE}📝 日志文件: logs/nextjs-dev-$TIMESTAMP.log${NC}"
+echo -e "${BLUE}📝 Next.js 日志: logs/nextjs-dev-$TIMESTAMP.log${NC}"
+echo -e "${BLUE}📝 Worker 日志: $WORKER_LOG${NC}"
 echo -e "${BLUE}🌐 本地地址: http://localhost:3000${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
 echo ""
@@ -195,4 +252,16 @@ pnpm dev 2>&1 | tee "logs/nextjs-dev-$TIMESTAMP.log"
 # 如果执行到这里，说明 Next.js 进程已经结束
 echo ""
 echo -e "${YELLOW}🛑 Next.js 开发服务器已停止${NC}"
+
+# 清理 Worker
+if [ ! -z "$WORKER_PID" ] && kill -0 $WORKER_PID 2>/dev/null; then
+    echo -e "${YELLOW}🛑 正在关闭 BullMQ Worker...${NC}"
+    kill $WORKER_PID 2>/dev/null || true
+    sleep 1
+    if kill -0 $WORKER_PID 2>/dev/null; then
+        kill -9 $WORKER_PID 2>/dev/null || true
+    fi
+    echo -e "${GREEN}✅ Worker 已关闭${NC}"
+fi
+
 echo -e "${GREEN}✅ 开发环境已关闭${NC}"

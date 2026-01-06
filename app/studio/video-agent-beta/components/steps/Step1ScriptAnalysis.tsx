@@ -387,9 +387,6 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
                       <Clock className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-slate-300">{shot.time_range}</span>
                     </span>
-                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-950/50 border border-slate-800">
-                      <span className="text-slate-300">{shot.duration_seconds}s</span>
-                    </span>
                   </div>
 
                   {/* 🔥 可编辑的分镜描述 */}

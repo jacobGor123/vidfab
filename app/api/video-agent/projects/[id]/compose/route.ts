@@ -9,7 +9,6 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { downloadAllClips, estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
 import { concatenateVideosWithShotstack } from '@/lib/services/video-agent/processors/shotstack-composer'
 import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/types/video-agent'
-import { sunoAPI } from '@/lib/services/suno/suno-api'
 import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
 import { generateNarrationBatch } from '@/lib/services/kie-ai/elevenlabs-tts'
 import type { Database } from '@/lib/database.types'
@@ -302,12 +301,9 @@ async function composeVideoAsync(
     let backgroundMusicUrl: string | undefined
 
     if (!project.enable_narration && !project.mute_bgm) {
-      // 优先使用 Suno 生成的音乐，如果没有则使用预设音乐
-      backgroundMusicUrl = project.music_url || 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/video-agent-files/preset-music/funny-comedy-cartoon.mp3'
-      console.log('[Video Agent] 🎵 Background music will be added:', backgroundMusicUrl)
-      if (!project.music_url) {
-        console.log('[Video Agent] ℹ️  Using preset music (Suno music not available)')
-      }
+      // 🔥 统一使用预设背景音乐（不再使用 Suno）
+      backgroundMusicUrl = 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/video-agent-files/preset-music/funny-comedy-cartoon.mp3'
+      console.log('[Video Agent] 🎵 Using preset background music:', backgroundMusicUrl)
     }
 
     // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 旁白/音乐 + 字幕）

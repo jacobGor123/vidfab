@@ -145,6 +145,60 @@ export async function analyzeVideoToScript(
       // 🔥 移除强制统一时长逻辑（YouTube 视频复刻模式应保持原视频的真实时长）
       // unifySegmentDuration(analysis)  // ❌ 已禁用：严格复刻模式不应修改时长
 
+      // 🔥 过滤无意义的分镜（全黑、全白、纯色等）
+      const originalShotCount = analysis.shots.length
+      analysis.shots = analysis.shots.filter(shot => {
+        const desc = shot.description.toLowerCase()
+
+        // 检测无意义的分镜描述
+        const meaninglessKeywords = [
+          'black screen',
+          'white screen',
+          'solid black',
+          'solid white',
+          'pure black',
+          'pure white',
+          'fade to black',
+          'fade to white',
+          'blank screen',
+          'empty screen',
+          'loading screen',
+          'transition effect',
+          'logo screen',
+          'title card',
+          'color bar',
+          'test pattern'
+        ]
+
+        const isMeaningless = meaninglessKeywords.some(keyword => desc.includes(keyword))
+
+        if (isMeaningless) {
+          console.warn('[Video Analyzer Core] ⚠️  Filtered out meaningless shot:', {
+            shotNumber: shot.shot_number,
+            description: shot.description.substring(0, 100)
+          })
+        }
+
+        return !isMeaningless
+      })
+
+      // 重新编号分镜并更新总数
+      if (analysis.shots.length < originalShotCount) {
+        analysis.shots = analysis.shots.map((shot, index) => ({
+          ...shot,
+          shot_number: index + 1,
+          time_range: shot.time_range // 保持原时间范围
+        }))
+
+        analysis.shot_count = analysis.shots.length
+
+        console.log('[Video Analyzer Core] ✅ Filtered meaningless shots:', {
+          originalCount: originalShotCount,
+          filteredCount: originalShotCount - analysis.shots.length,
+          finalCount: analysis.shots.length
+        })
+      }
+
       // 🔥 修正角色数组
       const fixedShots = fixCharacterArrays(analysis)
 

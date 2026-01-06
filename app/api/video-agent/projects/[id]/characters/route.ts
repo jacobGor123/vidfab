@@ -116,11 +116,16 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
         characterRecord = updatedChar
 
-        // 🔥 删除旧的参考图
-        await supabaseAdmin
+        // 🔥 删除旧的参考图（检查删除结果）
+        const { error: deleteError } = await supabaseAdmin
           .from('character_reference_images')
           .delete()
           .eq('character_id', existingChar.id)
+
+        if (deleteError) {
+          console.warn(`[Video Agent] Failed to delete old reference images for ${char.name}:`, deleteError)
+          // 继续执行，因为可能已经没有旧图片了
+        }
 
         console.log(`[Video Agent] Updated existing character: ${char.name}`)
       } else {
@@ -149,7 +154,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
       insertedChars.push(characterRecord)
 
-      // 🔥 插入新的参考图
+      // 🔥 插入新的参考图（使用 upsert 避免并发冲突）
       if (char.referenceImages && char.referenceImages.length > 0) {
         const refImagesToInsert = char.referenceImages.map((url, index) => ({
           character_id: characterRecord.id,
@@ -159,10 +164,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
         const { error: refImagesError } = await supabaseAdmin
           .from('character_reference_images')
-          .insert(refImagesToInsert)
+          .upsert(refImagesToInsert, {
+            onConflict: 'character_id,image_order',
+            ignoreDuplicates: false  // 如果存在则更新，而不是忽略
+          })
 
         if (refImagesError) {
-          console.error(`[Video Agent] Failed to insert reference images for ${char.name}:`, refImagesError)
+          console.error(`[Video Agent] Failed to upsert reference images for ${char.name}:`, refImagesError)
+        } else {
+          console.log(`[Video Agent] Successfully saved ${refImagesToInsert.length} reference images for ${char.name}`)
         }
       }
     }

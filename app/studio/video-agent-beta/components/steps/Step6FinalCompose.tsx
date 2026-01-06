@@ -262,13 +262,6 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
                 <span className="text-white font-mono font-bold">{project.duration}s</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/50 border border-slate-800/50">
-                <span className="text-slate-400 text-sm">Transitions</span>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                  <span className="text-white font-semibold capitalize">{project.transition_effect || 'fade'}</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/50 border border-slate-800/50">
                 <span className="text-slate-400 text-sm">Background Music</span>
                 <div className="flex items-center gap-2">
                   <span className={cn("w-1.5 h-1.5 rounded-full", project.music_source === 'none' ? "bg-slate-500" : "bg-indigo-500")} />

@@ -131,22 +131,84 @@ export const POST = withAuth(async (request, { params, userId }) => {
       failed: finalResults.length - successCount
     })
 
-    // 5. 自动保存成功生成的人物图片到数据库
+    // 5. 自动保存成功生成的人物图片到数据库（直接调用数据库，避免 401 认证问题）
     const successfulCharacters = finalResults
       .filter(r => r.status === 'success' && r.imageUrl)
-      .map(r => ({
-        name: r.characterName,
-        source: 'ai_generate' as const,
-        referenceImages: [r.imageUrl!]
-      }))
 
     if (successfulCharacters.length > 0) {
       try {
-        await fetch(`${process.env.NEXT_BASE_URL}/api/video-agent/projects/${projectId}/characters`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ characters: successfulCharacters })
-        })
+        // 🔥 修复：直接保存到数据库，不要调用 API（避免 401 错误）
+        for (const char of successfulCharacters) {
+          // 检查角色是否已存在
+          const { data: existingChar } = await supabaseAdmin
+            .from('project_characters')
+            .select('id')
+            .eq('project_id', projectId)
+            .eq('character_name', char.characterName)
+            .single()
+
+          let characterId: string
+
+          if (existingChar) {
+            // 已存在，更新记录
+            const { data: updatedChar, error: updateError } = await supabaseAdmin
+              .from('project_characters')
+              .update({
+                source: 'ai_generate',
+                updated_at: new Date().toISOString()
+              } as any)
+              .eq('id', existingChar.id)
+              .select('id')
+              .single()
+
+            if (updateError || !updatedChar) {
+              console.error(`[API] Failed to update character ${char.characterName}:`, updateError)
+              continue
+            }
+
+            characterId = updatedChar.id
+
+            // 删除旧的参考图
+            await supabaseAdmin
+              .from('character_reference_images')
+              .delete()
+              .eq('character_id', characterId)
+          } else {
+            // 不存在，插入新记录
+            const { data: newChar, error: insertError } = await supabaseAdmin
+              .from('project_characters')
+              .insert({
+                project_id: projectId,
+                character_name: char.characterName,
+                source: 'ai_generate'
+              } as any)
+              .select('id')
+              .single()
+
+            if (insertError || !newChar) {
+              console.error(`[API] Failed to insert character ${char.characterName}:`, insertError)
+              continue
+            }
+
+            characterId = newChar.id
+          }
+
+          // 插入新的参考图
+          const { error: refError } = await supabaseAdmin
+            .from('character_reference_images')
+            .upsert({
+              character_id: characterId,
+              image_url: char.imageUrl!,
+              image_order: 1
+            }, {
+              onConflict: 'character_id,image_order',
+              ignoreDuplicates: false
+            })
+
+          if (refError) {
+            console.error(`[API] Failed to save reference image for ${char.characterName}:`, refError)
+          }
+        }
 
         console.log('[API] Auto-saved characters to database:', successfulCharacters.length)
       } catch (saveError) {

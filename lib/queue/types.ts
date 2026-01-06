@@ -9,6 +9,7 @@ export type JobType =
   | 'generate_thumbnail'  // Generate thumbnail from video
   | 'cleanup_temp'        // Clean up temporary files
   | 'update_quota'        // Update user storage quota
+  | 'storyboard_generation'  // Generate storyboards for video-agent projects
 
 // Job status values
 export type JobStatus =
@@ -73,12 +74,40 @@ export interface UpdateQuotaJobData extends BaseJobData {
   videoCount?: number
 }
 
+export interface StoryboardGenerationJobData extends BaseJobData {
+  type: 'storyboard_generation'
+  projectId: string
+  // 🔥 使用完整的 Shot 类型（从 video-agent types 导入）
+  // 包含所有必需字段，避免数据丢失
+  shots: Array<{
+    shot_number: number
+    time_range: string           // 时间范围，如 "00:00-00:05"
+    description: string           // 场景描述
+    camera_angle: string          // 镜头角度
+    character_action: string      // 角色动作描述
+    characters: string[]          // 出现的角色列表
+    mood: string                  // 情绪氛围
+    duration_seconds: number      // 时长（秒）
+    seed?: number                 // 可选：生成视频时的随机种子
+  }>
+  // 🔥 使用完整的 CharacterConfig 类型
+  characters: Array<{
+    name: string
+    description: string
+    reference_image_url?: string
+    // 可能还有其他字段，保持与 video-agent types 一致
+  }>
+  style: string
+  aspectRatio: '16:9' | '9:16'
+}
+
 // Union type for all job data
 export type VideoJobData =
   | DownloadVideoJobData
   | GenerateThumbnailJobData
   | CleanupTempJobData
   | UpdateQuotaJobData
+  | StoryboardGenerationJobData
 
 // Job configuration
 export interface JobConfig {

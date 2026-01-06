@@ -114,11 +114,16 @@ export function useStoryboardGeneration({
   }, [project.id, onUpdate, debugEnabled, getStoryboardsStatus])
 
   // 页面加载时，如果有正在生成的分镜，自动开始轮询（恢复未完成的任务）
+  // 🔥 如果从未开始过生成，也自动开始（移除二次确认界面）
   useEffect(() => {
     if (generatingShots > 0 && !isGenerating) {
       console.log('[Step3] Resuming polling for generating storyboards:', generatingShots)
       setIsGenerating(true)
       setHasStartedGeneration(true)  // 🔥 标记已开始生成，避免显示初始界面
+    } else if (!hasStartedGeneration && !isGenerating && storyboards.length === 0) {
+      // 🔥 首次进入 Step 3，自动开始生成（无需用户再次点击）
+      console.log('[Step3] Auto-starting storyboard generation on first visit')
+      handleGenerate()
     }
   }, []) // 只在组件挂载时执行一次
 
@@ -133,9 +138,6 @@ export function useStoryboardGeneration({
       return () => clearInterval(interval)
     }
   }, [isGenerating, pollStatus])
-
-  // 🔥 删除自动开始生成的逻辑
-  // 现在只由用户手动点击 "Generate Storyboards" 按钮触发
 
   const handleGenerate = async () => {
     setIsGenerating(true)

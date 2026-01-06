@@ -4,7 +4,7 @@
  */
 
 import { Queue, Worker, Job } from 'bullmq'
-import { redis } from '../redis'
+import { redisBullMQ } from '../redis-bullmq'
 import {
   VideoJobData,
   JobType,
@@ -39,7 +39,7 @@ export class VideoQueueManager {
   constructor() {
     // Initialize the queue
     this.queue = new Queue(QUEUE_CONFIG.name, {
-      connection: redis,
+      connection: redisBullMQ,
       defaultJobOptions: QUEUE_CONFIG.defaultJobOptions,
     })
 
@@ -88,7 +88,7 @@ export class VideoQueueManager {
         QUEUE_CONFIG.name,
         async (job) => this.processJob(job),
         {
-          connection: redis,
+          connection: redisBullMQ,
           concurrency: QUEUE_CONFIG.concurrency,
           stalledInterval: 30000,
           maxStalledCount: 1,
@@ -254,6 +254,10 @@ export class VideoQueueManager {
 
         case 'update_quota':
           result = await this.processUpdateQuota(job)
+          break
+
+        case 'storyboard_generation':
+          result = await this.processStoryboardGeneration(job)
           break
 
         default:
@@ -652,6 +656,60 @@ export class VideoQueueManager {
 
     } catch (error) {
       console.error(`❌ Quota update failed for user ${jobData.userId}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Process storyboard generation job
+   */
+  private async processStoryboardGeneration(job: Job): Promise<any> {
+    const { batchGenerateStoryboardsWithProgress, IMAGE_STYLES } = await import('../services/video-agent/storyboard-generator')
+    const jobData = job.data as import('./types').StoryboardGenerationJobData
+
+    try {
+      console.log('[Queue] Starting storyboard generation', {
+        projectId: jobData.projectId,
+        shotCount: jobData.shots.length
+      })
+
+      // 获取风格配置
+      const style = IMAGE_STYLES[jobData.style] || IMAGE_STYLES['realistic']
+
+      // 调用批量生成逻辑（带进度回调）
+      const result = await batchGenerateStoryboardsWithProgress(
+        jobData.projectId,
+        jobData.shots,
+        jobData.characters,
+        style,
+        jobData.aspectRatio,
+        // 进度回调
+        (progress) => {
+          job.updateProgress({
+            percent: progress.percent,
+            message: progress.message,
+            processed: progress.completed,
+            total: progress.total
+          }).catch(console.error)
+        }
+      )
+
+      console.log('[Queue] Storyboard generation completed', {
+        projectId: jobData.projectId,
+        result
+      })
+
+      return {
+        generated: true,
+        projectId: jobData.projectId,
+        total: result.total,
+        completed: result.completed,
+        failed: result.failed,
+        finalStatus: result.finalStatus
+      }
+
+    } catch (error) {
+      console.error(`❌ Storyboard generation failed for project ${jobData.projectId}:`, error)
       throw error
     }
   }
