@@ -83,7 +83,7 @@
     "input-otp": "1.4.1",
     "ioredis": "^5.7.0",
     "lucide-react": "^0.454.0",
-    "next": "14.2.17",
+    "next": "14.2.35",
     "next-auth": "4.24.8",
     "next-axiom": "^1.9.3",
     "next-intl": "^3.26.3",
