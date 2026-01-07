@@ -259,11 +259,11 @@ export function useVideoGeneration({
     }
   }
 
-  // 获取默认 prompt
+  // 获取默认 prompt（只显示 description，用户修改后会作为新的 description）
   const getDefaultPrompt = (shotNumber: number): string => {
     const shot = project.script_analysis?.shots.find(s => s.shot_number === shotNumber)
     if (!shot) return ''
-    return `${shot.description}. ${shot.character_action}`
+    return shot.description || ''
   }
 
   // 切换 prompt 展开/收起

@@ -10,8 +10,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
-import { Film, Users, Clock, Video, Smile, User, Edit3, Save, X } from 'lucide-react'
+import { Film, Users, Clock, Video, Smile, User, Edit3, Save, X, Trash2 } from 'lucide-react'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
+import { showConfirm } from '@/lib/utils/toast'
 
 interface Step1Props {
   project: VideoAgentProject
@@ -20,13 +21,14 @@ interface Step1Props {
 }
 
 export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1Props) {
-  const { analyzeScript, updateProject } = useVideoAgentAPI()
+  const { analyzeScript, updateProject, deleteShot } = useVideoAgentAPI()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<ScriptAnalysis | null>(
     project.script_analysis || null
   )
   const [error, setError] = useState<string | null>(null)
   const [hasStarted, setHasStarted] = useState(false) // 防止重复触发
+  const [deletingShot, setDeletingShot] = useState<number | null>(null) // 正在删除的分镜
 
   // 性能观测：分析请求 + 首次渲染耗时
   const [analysisReceivedAt, setAnalysisReceivedAt] = useState<number | null>(null)
@@ -203,6 +205,71 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     return editedShots[shotNumber] || originalDescription
   }
 
+  // 🔥 删除分镜
+  const handleDeleteShot = async (shotNumber: number) => {
+    if (!analysis || deletingShot !== null) {
+      return
+    }
+
+    // 如果只剩一个分镜，不允许删除
+    if (analysis.shots.length === 1) {
+      setError('Cannot delete the last shot. At least one shot is required.')
+      return
+    }
+
+    // 显示确认对话框
+    const confirmed = await showConfirm(
+      `This will delete Shot ${shotNumber} and all related storyboards and videos. This action cannot be undone.`,
+      {
+        title: 'Delete Shot',
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingShot(shotNumber)
+    setError(null)
+
+    try {
+      // 调用删除 API
+      const result = await deleteShot(project.id, shotNumber)
+
+      console.log('[Step1] Shot deleted:', result)
+
+      // 重新获取项目数据以获取最新的 script_analysis
+      // 因为后端已经重新编号和更新了角色列表
+      const updatedAnalysis: ScriptAnalysis = {
+        ...analysis,
+        shots: analysis.shots
+          .filter(s => s.shot_number !== shotNumber)
+          .map((shot, index) => ({
+            ...shot,
+            shot_number: index + 1
+          })),
+        characters: result.newCharacters,
+        shot_count: result.newShotCount
+      }
+
+      setAnalysis(updatedAnalysis)
+      onUpdate({ script_analysis: updatedAnalysis })
+
+      // 清除所有编辑状态（因为 shot_number 已经改变）
+      setEditedShots({})
+      setHasUnsavedChanges(false)
+
+      console.log('[Step1] Local state updated after deletion')
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete shot')
+      console.error('[Step1] Delete shot failed:', err)
+    } finally {
+      setDeletingShot(null)
+    }
+  }
+
   const handleConfirm = async () => {
     // 如果有未保存的修改，先保存
     if (hasUnsavedChanges) {
@@ -370,6 +437,20 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
               key={shot.shot_number}
               className="group relative bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-8 transition-all duration-300"
             >
+              {/* 🔥 删除按钮 */}
+              <button
+                onClick={() => handleDeleteShot(shot.shot_number)}
+                disabled={deletingShot !== null}
+                className="absolute top-4 right-4 p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Delete this shot"
+              >
+                {deletingShot === shot.shot_number ? (
+                  <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </button>
+
               <div className="flex gap-8">
                 {/* Shot Number Column - Clean Style */}
                 <div className="flex-shrink-0 flex flex-col items-center gap-4 pt-1">

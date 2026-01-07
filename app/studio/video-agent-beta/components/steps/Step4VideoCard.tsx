@@ -5,14 +5,18 @@
 
 'use client'
 
+import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import ViewportMount from './ViewportMount'
 import { showConfirm } from '@/lib/utils/toast'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, FileText, Clapperboard } from 'lucide-react'  // 🔥 添加图标
+import { FieldsEditor, type Field } from '../common/FieldsEditor'
 import type { DisplayVideoItem } from './Step4VideoGen.types'
+import type { Shot } from '@/lib/types/video-agent'
 
 interface Step4VideoCardProps {
   item: DisplayVideoItem
+  shot: Shot | undefined  // 🔥 新增：完整的 Shot 对象
   aspectRatioClass: string
   retryingShot: number | null
   isShowingConfirm: boolean
@@ -21,12 +25,13 @@ interface Step4VideoCardProps {
   onRetryClick: (shotNumber: number) => void
   onTogglePrompt: (shotNumber: number) => void
   onUpdatePrompt: (shotNumber: number, prompt: string) => void
-  getDefaultPrompt: (shotNumber: number) => string
+  getDefaultPrompt: (shotNumber: number) => string  // 保留用于向后兼容
   setIsShowingConfirm: (value: boolean) => void
 }
 
 export function Step4VideoCard({
   item,
+  shot,  // 🔥 新增
   aspectRatioClass,
   retryingShot,
   isShowingConfirm,
@@ -38,6 +43,34 @@ export function Step4VideoCard({
   getDefaultPrompt,
   setIsShowingConfirm
 }: Step4VideoCardProps) {
+  // 🔥 字段编辑状态
+  const [editFields, setEditFields] = useState<{
+    description: string
+    character_action: string
+  } | null>(null)
+
+  // 🔥 从 customPrompts 解析字段（如果是 JSON 格式）
+  const parsedFields = useMemo(() => {
+    const customPrompt = customPrompts[item.shot_number]
+    if (!customPrompt) return null
+
+    try {
+      const parsed = JSON.parse(customPrompt)
+      if (parsed && typeof parsed === 'object') {
+        return parsed as typeof editFields
+      }
+    } catch {
+      // 不是 JSON，忽略
+    }
+    return null
+  }, [customPrompts, item.shot_number])
+
+  // 🔥 获取当前编辑字段（优先使用本地状态，其次使用 parsedFields，最后使用 shot 原始值）
+  const currentFields = editFields || parsedFields || {
+    description: shot?.description || getDefaultPrompt(item.shot_number),
+    character_action: shot?.character_action || ''
+  }
+
   const handleRetryClick = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -59,9 +92,54 @@ export function Step4VideoCard({
     setIsShowingConfirm(false)
 
     if (confirmed) {
+      // 🔥 如果有编辑字段，将其序列化为 JSON 字符串
+      if (editFields) {
+        const customPrompt = JSON.stringify(editFields)
+        onUpdatePrompt(item.shot_number, customPrompt)
+      }
       onRetryClick(item.shot_number)
     }
   }
+
+  // 🔥 处理字段变化
+  const handleFieldChange = (name: string, value: string) => {
+    setEditFields(prev => ({
+      ...(prev || currentFields),
+      [name]: value
+    }))
+  }
+
+  // 🔥 重置字段
+  const handleReset = () => {
+    setEditFields(null)
+    onUpdatePrompt(item.shot_number, '')
+  }
+
+  // 🔥 字段定义
+  const fields: Field[] = [
+    {
+      name: 'description',
+      label: 'Scene Description',
+      value: currentFields.description,
+      placeholder: 'Describe what is happening in this scene...',
+      required: true,
+      rows: 3,
+      maxLength: 500,
+      helpText: 'What is the main focus of this scene?',
+      icon: FileText
+    },
+    {
+      name: 'character_action',
+      label: 'Character Action',
+      value: currentFields.character_action,
+      placeholder: 'What are the characters doing?',
+      required: true,
+      rows: 3,
+      maxLength: 500,
+      helpText: 'Describe character movements and interactions',
+      icon: Clapperboard
+    }
+  ]
 
   return (
     <Card key={item.shot_number} className="overflow-hidden">
@@ -183,21 +261,14 @@ export function Step4VideoCard({
             <p className="text-xs text-destructive">{item.error_message}</p>
           )}
 
-          {/* Prompt 输入框 */}
+          {/* 🔥 字段编辑器 */}
           {expandedPrompts[item.shot_number] && (
-            <div className="space-y-2 pt-2 border-t">
-              <label className="text-xs text-muted-foreground">Custom Prompt:</label>
-              <textarea
-                value={customPrompts[item.shot_number] || getDefaultPrompt(item.shot_number)}
-                onChange={(e) => onUpdatePrompt(item.shot_number, e.target.value)}
-                className="w-full text-xs p-2 bg-muted/50 border border-muted rounded resize-none focus:outline-none focus:border-primary"
-                rows={3}
-                placeholder="Enter custom prompt for video generation..."
-              />
-              <p className="text-xs text-muted-foreground/70">
-                Modify the prompt and click regenerate to create a new video
-              </p>
-            </div>
+            <FieldsEditor
+              fields={fields}
+              onChange={handleFieldChange}
+              onReset={handleReset}
+              autoAddedInfo="Character consistency (BytePlus mode) and subtitle restrictions will be automatically added"
+            />
           )}
         </div>
       </CardContent>

@@ -123,6 +123,13 @@ interface ScriptInspiration {
   hashtags: string[]
 }
 
+interface DeleteShotResponse {
+  deletedShotNumber: number
+  newShotCount: number
+  newCharacters: string[]
+  charactersRemoved: string[]
+}
+
 // ==================== Hook ====================
 
 export function useVideoAgentAPI() {
@@ -273,6 +280,18 @@ export function useVideoAgentAPI() {
    */
   const getInspirations = useCallback(async (): Promise<ScriptInspiration[]> => {
     return callAPI('/api/video-agent/inspirations')
+  }, [callAPI])
+
+  /**
+   * 删除指定分镜
+   */
+  const deleteShot = useCallback(async (
+    projectId: string,
+    shotNumber: number
+  ): Promise<DeleteShotResponse> => {
+    return callAPI(`/api/video-agent/projects/${projectId}/shots/${shotNumber}`, {
+      method: 'DELETE',
+    })
   }, [callAPI])
 
   // ==================== Character APIs ====================
@@ -474,6 +493,7 @@ export function useVideoAgentAPI() {
     analyzeScript,
     analyzeVideo,
     getInspirations,
+    deleteShot,
 
     // Character APIs
     getCharacters,
@@ -516,4 +536,5 @@ export type {
   ComposeVideoParams,
   AnalyzeVideoParams,
   ScriptInspiration,
+  DeleteShotResponse,
 }

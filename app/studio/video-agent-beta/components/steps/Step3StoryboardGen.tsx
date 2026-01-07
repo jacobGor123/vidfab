@@ -24,6 +24,7 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
     storyboards,
     error,
     regeneratingShot,
+    deletingShot,
     customPrompts,
     expandedPrompts,
     isShowingConfirm
@@ -41,6 +42,18 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
 
   // 根据项目尺寸比决定容器 aspect ratio
   const aspectRatioClass = project.aspect_ratio === '9:16' ? 'aspect-[9/16]' : 'aspect-video'
+
+  // 🔥 调试：按钮显示条件
+  const shouldShowButton = !isGenerating && generatingShots === 0 && (completedShots + failedShots === totalShots) && totalShots > 0
+  console.log('[Step3] Button visibility check:', {
+    shouldShowButton,
+    isGenerating,
+    generatingShots,
+    completedShots,
+    failedShots,
+    totalShots,
+    sum: completedShots + failedShots
+  })
 
   // 🔥 移除初始状态界面 - 现在自动开始生成，无需二次确认
   // 旧逻辑：显示 "Generate Storyboards" 界面，需要用户再点一次按钮
@@ -67,22 +80,30 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
 
       {/* 分镜网格 - 使用占位符确保高度稳定 */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {displayItems.map((item) => (
-          <Step3StoryboardCard
-            key={item.shot_number}
-            item={item}
-            aspectRatioClass={aspectRatioClass}
-            regeneratingShot={regeneratingShot}
-            isShowingConfirm={isShowingConfirm}
-            expandedPrompts={expandedPrompts}
-            customPrompts={customPrompts}
-            onRegenerateClick={actions.handleRegenerate}
-            onTogglePrompt={togglePromptExpand}
-            onUpdatePrompt={updateCustomPrompt}
-            getDefaultPrompt={getDefaultPrompt}
-            setIsShowingConfirm={setIsShowingConfirm}
-          />
-        ))}
+        {displayItems.map((item) => {
+          // 🔥 获取对应的 Shot 对象
+          const shot = project.script_analysis?.shots.find(s => s.shot_number === item.shot_number)
+
+          return (
+            <Step3StoryboardCard
+              key={item.shot_number}
+              item={item}
+              shot={shot}  // 🔥 传递完整的 Shot 对象
+              aspectRatioClass={aspectRatioClass}
+              regeneratingShot={regeneratingShot}
+              deletingShot={deletingShot}
+              isShowingConfirm={isShowingConfirm}
+              expandedPrompts={expandedPrompts}
+              customPrompts={customPrompts}
+              onRegenerateClick={actions.handleRegenerate}
+              onDeleteClick={actions.handleDelete}
+              onTogglePrompt={togglePromptExpand}
+              onUpdatePrompt={updateCustomPrompt}
+              getDefaultPrompt={getDefaultPrompt}
+              setIsShowingConfirm={setIsShowingConfirm}
+            />
+          )
+        })}
       </div>
 
       {error && (
@@ -92,7 +113,7 @@ export default function Step3StoryboardGen({ project, onNext, onUpdate }: Step3P
       )}
 
       {/* 确认按钮 - 只有在所有分镜都完成（成功或失败）且不在生成中时才显示 */}
-      {!isGenerating && generatingShots === 0 && (completedShots + failedShots === totalShots) && totalShots > 0 && (
+      {shouldShowButton && (
         <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent flex justify-center pt-8 pb-8 z-10">
           <Button
             onClick={handleConfirm}

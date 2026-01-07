@@ -20,7 +20,7 @@ export function useStoryboardGeneration({
   onUpdate,
   onNext
 }: UseStoryboardGenerationProps) {
-  const { getStoryboardsStatus, generateStoryboards, regenerateStoryboard } = useVideoAgentAPI()
+  const { getStoryboardsStatus, generateStoryboards, regenerateStoryboard, deleteShot } = useVideoAgentAPI()
   const debugEnabled =
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('va_debug')
@@ -35,6 +35,7 @@ export function useStoryboardGeneration({
   )
   const [error, setError] = useState<string | null>(null)
   const [regeneratingShot, setRegeneratingShot] = useState<number | null>(null)
+  const [deletingShot, setDeletingShot] = useState<number | null>(null)
   const [customPrompts, setCustomPrompts] = useState<Record<number, string>>({})
   const [expandedPrompts, setExpandedPrompts] = useState<Record<number, boolean>>({})
   const [isShowingConfirm, setIsShowingConfirm] = useState(false)
@@ -112,15 +113,14 @@ export function useStoryboardGeneration({
         }
         setIsGenerating(true)
       } else if (!hasGenerating && isGeneratingRef.current) {
-        // 🔥 修复：没有 generating 状态时，延迟停止轮询
-        // 等待 3 秒（一次半轮询周期）确保最后的状态已完全渲染
-        if (!stopPollTimeoutRef.current) {
-          console.log('[Step3] Scheduling polling stop in 3s - all storyboards completed')
-          stopPollTimeoutRef.current = setTimeout(() => {
-            console.log('[Step3] Stopping polling - confirmed all storyboards completed')
-            setIsGenerating(false)
-            stopPollTimeoutRef.current = null
-          }, 3000)
+        // 🔥 修复：没有 generating 状态时，立即停止轮询
+        // 不再延迟，立即显示按钮
+        console.log('[Step3] ✅ Stopping polling - all storyboards completed')
+        setIsGenerating(false)
+        // 清除可能存在的停止定时器
+        if (stopPollTimeoutRef.current) {
+          clearTimeout(stopPollTimeoutRef.current)
+          stopPollTimeoutRef.current = null
         }
       }
     } catch (err) {
@@ -250,6 +250,86 @@ export function useStoryboardGeneration({
     }
   }
 
+  const handleDelete = async (shotNumber: number) => {
+    if (!project.script_analysis || deletingShot !== null) {
+      return
+    }
+
+    // 如果只剩一个分镜，不允许删除
+    if (project.script_analysis.shots.length === 1) {
+      showError('Cannot delete the last shot. At least one shot is required.')
+      return
+    }
+
+    // 显示确认对话框
+    const confirmed = await showConfirm(
+      `This will delete Shot ${shotNumber} and all related storyboards and videos. This action cannot be undone.`,
+      {
+        title: 'Delete Shot',
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingShot(shotNumber)
+    setError(null)
+
+    const dismissLoading = showLoading(`Deleting shot ${shotNumber}...`)
+    try {
+      // 调用删除 API
+      const result = await deleteShot(project.id, shotNumber)
+
+      console.log('[Step3] Shot deleted:', result)
+
+      // 更新 script_analysis
+      const updatedScriptAnalysis = {
+        ...project.script_analysis,
+        shots: project.script_analysis.shots
+          .filter(s => s.shot_number !== shotNumber)
+          .map((shot, index) => ({
+            ...shot,
+            shot_number: index + 1
+          })),
+        characters: result.newCharacters,
+        shot_count: result.newShotCount
+      }
+
+      // 更新 storyboards（过滤掉被删除的，重新编号）
+      const updatedStoryboards = storyboards
+        .filter(sb => sb.shot_number !== shotNumber)
+        .map((sb, index) => ({
+          ...sb,
+          shot_number: index + 1
+        }))
+
+      setStoryboards(updatedStoryboards)
+      onUpdate({
+        script_analysis: updatedScriptAnalysis,
+        storyboards: updatedStoryboards
+      })
+
+      // 清除所有编辑状态（因为 shot_number 已经改变）
+      setCustomPrompts({})
+      setExpandedPrompts({})
+
+      dismissLoading()
+      showSuccess(`Shot ${shotNumber} deleted successfully`)
+
+      console.log('[Step3] Local state updated after deletion')
+    } catch (err: any) {
+      dismissLoading()
+      setError(err.message || 'Failed to delete shot')
+      showError(err.message || 'Failed to delete shot')
+      console.error('[Step3] Delete shot failed:', err)
+    } finally {
+      setDeletingShot(null)
+    }
+  }
+
   const handleConfirm = async () => {
     if (failedShots > 0) {
       const confirmed = await showConfirm(
@@ -268,7 +348,7 @@ export function useStoryboardGeneration({
     onNext()
   }
 
-  // 获取默认 prompt（description + character_action）
+  // 获取默认 prompt（只显示 description，用户修改后会作为新的 description）
   const getDefaultPrompt = (shotNumber: number): string => {
     const shot = project.script_analysis?.shots.find(s => s.shot_number === shotNumber)
     if (!shot) return ''
@@ -297,6 +377,7 @@ export function useStoryboardGeneration({
     storyboards,
     error,
     regeneratingShot,
+    deletingShot,
     customPrompts,
     expandedPrompts,
     isShowingConfirm
@@ -305,6 +386,7 @@ export function useStoryboardGeneration({
   const actions: StoryboardGenerationActions = {
     handleGenerate,
     handleRegenerate,
+    handleDelete,
     handleConfirm,
     getDefaultPrompt,
     updateCustomPrompt,

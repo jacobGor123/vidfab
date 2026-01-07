@@ -16,6 +16,7 @@ export interface StoryboardGenerationState {
   storyboards: Storyboard[]
   error: string | null
   regeneratingShot: number | null
+  deletingShot: number | null
   customPrompts: Record<number, string>
   expandedPrompts: Record<number, boolean>
   isShowingConfirm: boolean
@@ -24,6 +25,7 @@ export interface StoryboardGenerationState {
 export interface StoryboardGenerationActions {
   handleGenerate: () => Promise<void>
   handleRegenerate: (shotNumber: number) => Promise<void>
+  handleDelete: (shotNumber: number) => Promise<void>
   handleConfirm: () => Promise<void>
   getDefaultPrompt: (shotNumber: number) => string
   updateCustomPrompt: (shotNumber: number, prompt: string) => void

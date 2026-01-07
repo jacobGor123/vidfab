@@ -122,10 +122,38 @@ export const POST = withAuth(async (request, { params, userId }) => {
         throw new Error('No reference image available for Veo3.1 generation')
       }
 
-      // 🔥 Prompt 优先级：用户自定义 > 增强 prompt（描述 + 动作）
-      let finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
+      // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
+      let finalPrompt: string
+      if (customPrompt && customPrompt.trim()) {
+        try {
+          // 尝试解析为 JSON 字段
+          const parsedFields = JSON.parse(customPrompt)
 
-      // 🔥 强制添加禁止字幕指令（无论是自定义还是默认 prompt）
+          if (parsedFields && typeof parsedFields === 'object') {
+            // 🔥 JSON 字段模式：提取 description 和 character_action
+            const description = parsedFields.description || shot.description
+            const characterAction = parsedFields.character_action || shot.character_action
+            finalPrompt = `${description}. ${characterAction}`
+            console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
+              description: description.substring(0, 50) + '...',
+              characterAction: characterAction.substring(0, 50) + '...'
+            })
+          } else {
+            // JSON 解析成功但不是对象，作为纯文本处理
+            finalPrompt = `${customPrompt.trim()}. ${shot.character_action}`
+            console.log(`[Video Agent] 🔄 Using custom description (fallback) for shot ${shotNumber}`)
+          }
+        } catch {
+          // 🔥 纯文本模式（向后兼容）：将整个 customPrompt 作为 description
+          finalPrompt = `${customPrompt.trim()}. ${shot.character_action}`
+          console.log(`[Video Agent] 🔄 Using custom description (text mode) for shot ${shotNumber}`)
+        }
+      } else {
+        // 使用默认 prompt
+        finalPrompt = `${shot.description}. ${shot.character_action}`
+      }
+
+      // 🔥 强制添加禁止字幕指令
       if (!finalPrompt.includes('No text') && !finalPrompt.includes('no subtitles')) {
         finalPrompt += '. No text, no subtitles, no captions, no words on screen.'
       }
@@ -165,13 +193,44 @@ export const POST = withAuth(async (request, { params, userId }) => {
       // 🔥 重新生成时使用新的随机 seed，确保生成不同的视频
       const newSeed = Math.floor(Math.random() * 1000000)
 
-      // 🔥 Prompt 优先级：用户自定义 > 增强 prompt（描述 + 动作）
-      let finalPrompt = customPrompt || `${shot.description}. ${shot.character_action}`
+      // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
+      let finalPrompt: string
+      let description: string
+      let characterAction: string
 
-      // 🔥 强制添加禁止字幕指令（无论是自定义还是默认 prompt）
-      if (!finalPrompt.includes('No text') && !finalPrompt.includes('no subtitles')) {
-        finalPrompt += '. No text, no subtitles, no captions, no words on screen.'
+      if (customPrompt && customPrompt.trim()) {
+        try {
+          // 尝试解析为 JSON 字段
+          const parsedFields = JSON.parse(customPrompt)
+
+          if (parsedFields && typeof parsedFields === 'object') {
+            // 🔥 JSON 字段模式：提取 description 和 character_action
+            description = parsedFields.description || shot.description
+            characterAction = parsedFields.character_action || shot.character_action
+            console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
+              description: description.substring(0, 50) + '...',
+              characterAction: characterAction.substring(0, 50) + '...'
+            })
+          } else {
+            // JSON 解析成功但不是对象，作为纯文本处理
+            description = customPrompt.trim()
+            characterAction = shot.character_action
+            console.log(`[Video Agent] 🔄 Using custom description (fallback) for shot ${shotNumber}`)
+          }
+        } catch {
+          // 🔥 纯文本模式（向后兼容）：将整个 customPrompt 作为 description
+          description = customPrompt.trim()
+          characterAction = shot.character_action
+          console.log(`[Video Agent] 🔄 Using custom description (text mode) for shot ${shotNumber}`)
+        }
+      } else {
+        // 使用默认值
+        description = shot.description
+        characterAction = shot.character_action
       }
+
+      // 构建完整 prompt（包含角色一致性约束和禁止字幕指令）
+      finalPrompt = `Maintain exact character appearance and features from the reference image. ${description}. ${characterAction}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
       const videoRequest: VideoGenerationRequest = {
         image: storyboard.image_url,
@@ -185,7 +244,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         seed: newSeed  // 🔥 使用新的随机 seed
       }
 
-      console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced'} prompt for shot ${shotNumber}:`, finalPrompt)
+      console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced (with character consistency)'} prompt for shot ${shotNumber}:`, finalPrompt.substring(0, 150) + '...')
       console.log(`[Video Agent] 🔄 Using new random seed: ${newSeed} (old: ${shot.seed})`)
 
       const result = await submitVideoGeneration(videoRequest, {

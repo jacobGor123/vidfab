@@ -80,22 +80,28 @@ export default function Step4VideoGen({ project, onNext, onUpdate }: Step4Props)
 
       {/* 视频网格 - 使用占位符确保高度稳定 */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {displayItems.map((item) => (
-          <Step4VideoCard
-            key={item.shot_number}
-            item={item}
-            aspectRatioClass={aspectRatioClass}
-            retryingShot={retryingShot}
-            isShowingConfirm={isShowingConfirm}
-            expandedPrompts={expandedPrompts}
-            customPrompts={customPrompts}
-            onRetryClick={actions.handleRetry}
-            onTogglePrompt={togglePromptExpand}
-            onUpdatePrompt={updateCustomPrompt}
-            getDefaultPrompt={getDefaultPrompt}
-            setIsShowingConfirm={setIsShowingConfirm}
-          />
-        ))}
+        {displayItems.map((item) => {
+          // 🔥 获取对应的 Shot 对象
+          const shot = project.script_analysis?.shots.find(s => s.shot_number === item.shot_number)
+
+          return (
+            <Step4VideoCard
+              key={item.shot_number}
+              item={item}
+              shot={shot}  // 🔥 传递完整的 Shot 对象
+              aspectRatioClass={aspectRatioClass}
+              retryingShot={retryingShot}
+              isShowingConfirm={isShowingConfirm}
+              expandedPrompts={expandedPrompts}
+              customPrompts={customPrompts}
+              onRetryClick={actions.handleRetry}
+              onTogglePrompt={togglePromptExpand}
+              onUpdatePrompt={updateCustomPrompt}
+              getDefaultPrompt={getDefaultPrompt}
+              setIsShowingConfirm={setIsShowingConfirm}
+            />
+          )
+        })}
       </div>
 
       {error && (

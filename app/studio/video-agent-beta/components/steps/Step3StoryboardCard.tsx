@@ -5,38 +5,80 @@
 
 'use client'
 
+import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import ViewportMount from './ViewportMount'
 import { showConfirm } from '@/lib/utils/toast'
+import { FieldsEditor, type Field } from '../common/FieldsEditor'
+import { FileText, Camera, Clapperboard, Drama, Trash2 } from 'lucide-react'  // 🔥 添加 Trash2 图标
 import type { DisplayItem } from './Step3StoryboardGen.types'
+import type { Shot } from '@/lib/types/video-agent'
 
 interface Step3StoryboardCardProps {
   item: DisplayItem
+  shot: Shot | undefined  // 🔥 新增：完整的 Shot 对象
   aspectRatioClass: string
   regeneratingShot: number | null
+  deletingShot: number | null  // 🔥 新增
   isShowingConfirm: boolean
   expandedPrompts: Record<number, boolean>
   customPrompts: Record<number, string>
   onRegenerateClick: (shotNumber: number) => void
+  onDeleteClick: (shotNumber: number) => void  // 🔥 新增
   onTogglePrompt: (shotNumber: number) => void
   onUpdatePrompt: (shotNumber: number, prompt: string) => void
-  getDefaultPrompt: (shotNumber: number) => string
+  getDefaultPrompt: (shotNumber: number) => string  // 保留用于向后兼容
   setIsShowingConfirm: (value: boolean) => void
 }
 
 export function Step3StoryboardCard({
   item,
+  shot,  // 🔥 新增
   aspectRatioClass,
   regeneratingShot,
+  deletingShot,  // 🔥 新增
   isShowingConfirm,
   expandedPrompts,
   customPrompts,
   onRegenerateClick,
+  onDeleteClick,  // 🔥 新增
   onTogglePrompt,
   onUpdatePrompt,
   getDefaultPrompt,
   setIsShowingConfirm
 }: Step3StoryboardCardProps) {
+  // 🔥 字段编辑状态
+  const [editFields, setEditFields] = useState<{
+    description: string
+    camera_angle: string
+    character_action: string
+    mood: string
+  } | null>(null)
+
+  // 🔥 从 customPrompts 解析字段（如果是 JSON 格式）
+  const parsedFields = useMemo(() => {
+    const customPrompt = customPrompts[item.shot_number]
+    if (!customPrompt) return null
+
+    try {
+      const parsed = JSON.parse(customPrompt)
+      if (parsed && typeof parsed === 'object') {
+        return parsed as typeof editFields
+      }
+    } catch {
+      // 不是 JSON，忽略
+    }
+    return null
+  }, [customPrompts, item.shot_number])
+
+  // 🔥 获取当前编辑字段（优先使用本地状态，其次使用 parsedFields，最后使用 shot 原始值）
+  const currentFields = editFields || parsedFields || {
+    description: shot?.description || getDefaultPrompt(item.shot_number),
+    camera_angle: shot?.camera_angle || '',
+    character_action: shot?.character_action || '',
+    mood: shot?.mood || ''
+  }
+
   const handleRegenerateClick = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -58,13 +100,92 @@ export function Step3StoryboardCard({
     setIsShowingConfirm(false)
 
     if (confirmed) {
+      // 🔥 如果有编辑字段，将其序列化为 JSON 字符串
+      if (editFields) {
+        const customPrompt = JSON.stringify(editFields)
+        onUpdatePrompt(item.shot_number, customPrompt)
+      }
       onRegenerateClick(item.shot_number)
     }
   }
 
+  // 🔥 处理字段变化
+  const handleFieldChange = (name: string, value: string) => {
+    setEditFields(prev => ({
+      ...(prev || currentFields),
+      [name]: value
+    }))
+  }
+
+  // 🔥 重置字段
+  const handleReset = () => {
+    setEditFields(null)
+    onUpdatePrompt(item.shot_number, '')
+  }
+
+  // 🔥 字段定义
+  const fields: Field[] = [
+    {
+      name: 'description',
+      label: 'Scene Description',
+      value: currentFields.description,
+      placeholder: 'Describe what is happening in this scene...',
+      required: true,
+      rows: 3,
+      maxLength: 500,
+      helpText: 'What is the main focus of this scene?',
+      icon: FileText
+    },
+    {
+      name: 'camera_angle',
+      label: 'Camera Angle',
+      value: currentFields.camera_angle,
+      placeholder: 'e.g., Wide shot, Close-up, Over-the-shoulder...',
+      rows: 2,
+      maxLength: 200,
+      helpText: 'Shot composition and framing',
+      icon: Camera
+    },
+    {
+      name: 'character_action',
+      label: 'Character Action',
+      value: currentFields.character_action,
+      placeholder: 'What are the characters doing?',
+      required: true,
+      rows: 3,
+      maxLength: 500,
+      helpText: 'Describe character movements and interactions',
+      icon: Clapperboard
+    },
+    {
+      name: 'mood',
+      label: 'Mood/Atmosphere',
+      value: currentFields.mood,
+      placeholder: 'e.g., Warm and welcoming, Tense, Mysterious...',
+      rows: 2,
+      maxLength: 200,
+      helpText: 'Emotional tone and ambiance',
+      icon: Drama
+    }
+  ]
+
   return (
-    <Card key={item.shot_number} className="overflow-hidden">
-      <CardContent className="p-0">
+    <Card key={item.shot_number} className="overflow-hidden group">
+      <CardContent className="p-0 relative">
+        {/* 🔥 删除按钮 */}
+        <button
+          onClick={() => onDeleteClick(item.shot_number)}
+          disabled={deletingShot !== null || regeneratingShot !== null}
+          className="absolute top-2 right-2 z-10 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Delete this shot"
+        >
+          {deletingShot === item.shot_number ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Trash2 className="w-4 h-4" />
+          )}
+        </button>
+
         <div className={`relative ${aspectRatioClass} bg-muted`}>
           {item.status === 'pending' ? (
             // 骨架屏占位
@@ -172,21 +293,14 @@ export function Step3StoryboardCard({
             )}
           </div>
 
-          {/* Prompt 输入框 */}
+          {/* 🔥 字段编辑器 */}
           {expandedPrompts[item.shot_number] && (
-            <div className="space-y-2 pt-2 border-t">
-              <label className="text-xs text-muted-foreground">Custom Prompt:</label>
-              <textarea
-                value={customPrompts[item.shot_number] !== undefined ? customPrompts[item.shot_number] : getDefaultPrompt(item.shot_number)}
-                onChange={(e) => onUpdatePrompt(item.shot_number, e.target.value)}
-                className="w-full text-xs p-2 bg-muted/50 border border-muted rounded resize-none focus:outline-none focus:border-primary"
-                rows={3}
-                placeholder="Enter custom prompt for storyboard generation..."
-              />
-              <p className="text-xs text-muted-foreground/70">
-                Modify the prompt and click regenerate to create a new storyboard
-              </p>
-            </div>
+            <FieldsEditor
+              fields={fields}
+              onChange={handleFieldChange}
+              onReset={handleReset}
+              autoAddedInfo="Character consistency, visual style, and quality constraints will be automatically added"
+            />
           )}
 
           {item.error_message && (

@@ -97,8 +97,47 @@ export async function generateSingleStoryboard(
 
     // 构建 prompt，传递是否有参考图的信息
     const hasReferenceImages = characterRefs.length > 0
-    // 🔥 如果提供了自定义 prompt，直接使用；否则构建默认 prompt
-    const prompt = customPrompt || buildStoryboardPrompt(shot, style, characters, hasReferenceImages)
+
+    // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
+    let prompt: string
+    if (customPrompt && customPrompt.trim()) {
+      try {
+        // 尝试解析为 JSON 字段
+        const parsedFields = JSON.parse(customPrompt)
+
+        if (parsedFields && typeof parsedFields === 'object') {
+          // 🔥 JSON 字段模式：提取各个字段并构建完整的 Shot 对象
+          const modifiedShot = {
+            ...shot,
+            description: parsedFields.description || shot.description,
+            camera_angle: parsedFields.camera_angle || shot.camera_angle,
+            character_action: parsedFields.character_action || shot.character_action,
+            mood: parsedFields.mood || shot.mood
+          }
+          prompt = buildStoryboardPrompt(modifiedShot, style, characters, hasReferenceImages)
+          console.log('[Storyboard Core] Using custom fields (JSON mode):', {
+            description: parsedFields.description?.substring(0, 50) + '...',
+            camera_angle: parsedFields.camera_angle,
+            character_action: parsedFields.character_action?.substring(0, 50) + '...',
+            mood: parsedFields.mood
+          })
+        } else {
+          // JSON 解析成功但不是对象，作为纯文本处理
+          const modifiedShot = { ...shot, description: customPrompt.trim() }
+          prompt = buildStoryboardPrompt(modifiedShot, style, characters, hasReferenceImages)
+          console.log('[Storyboard Core] Using custom description (fallback):', customPrompt.substring(0, 100))
+        }
+      } catch {
+        // 🔥 纯文本模式（向后兼容）：将整个 customPrompt 作为 description
+        const modifiedShot = { ...shot, description: customPrompt.trim() }
+        prompt = buildStoryboardPrompt(modifiedShot, style, characters, hasReferenceImages)
+        console.log('[Storyboard Core] Using custom description (text mode):', customPrompt.substring(0, 100))
+      }
+    } else {
+      // 使用默认的完整 prompt
+      prompt = buildStoryboardPrompt(shot, style, characters, hasReferenceImages)
+    }
+
     const negativePrompt = buildNegativePrompt(style, hasReferenceImages)
 
     console.log('[Storyboard Core] Generating storyboard', {
