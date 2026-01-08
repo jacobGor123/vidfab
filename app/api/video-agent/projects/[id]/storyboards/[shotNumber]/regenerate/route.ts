@@ -78,12 +78,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
     //   )
     // }
 
-    console.log('[Video Agent] Regenerating storyboard', {
-      projectId,
-      shotNumber,
-      remainingQuota: project.regenerate_quota_remaining
-    })
-
     // 获取分镜脚本 - 从 project 的 script_analysis 中读取
     const { data: projectData, error: projectDataError } = await supabaseAdmin
       .from('video_agent_projects')
@@ -132,23 +126,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
     const styleId = project.image_style_id || 'realistic'
     const imageStyle = IMAGE_STYLES[styleId] || IMAGE_STYLES.realistic
 
-    console.log('[Video Agent] Regenerating storyboard with data', {
-      projectId,
-      shotNumber,
-      shot: {
-        shot_number: shot.shot_number,
-        description: shot.description?.substring(0, 50) + '...',
-        characters: shot.characters
-      },
-      characters: characterConfigs.map(c => ({
-        name: c.name,
-        referenceImageCount: c.reference_images.length,
-        referenceImages: c.reference_images
-      })),
-      style: imageStyle.name,
-      usingCustomPrompt: !!customPrompt
-    })
-
     // 调用重新生成服务
     const result = await regenerateStoryboard(
       shot as Shot,
@@ -158,12 +135,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       undefined,  // seed (暂时不使用)
       customPrompt  // 🔥 传递自定义 prompt
     )
-
-    console.log('[Video Agent] Storyboard regeneration result', {
-      projectId,
-      shotNumber,
-      status: result.status
-    })
 
     // 更新数据库中的分镜图记录
     const { error: updateError } = await supabaseAdmin
@@ -184,8 +155,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     // 🔥 修复：检查所有分镜图是否全部完成，更新项目状态
     if (result.status === 'success') {
-      console.log('[Video Agent] Checking if all storyboards are completed...')
-
       const { data: allStoryboards } = await supabaseAdmin
         .from('project_storyboards')
         .select('status')
@@ -203,14 +172,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
         } else if (failedCount === totalCount) {
           newStep3Status = 'failed'
         }
-
-        console.log('[Video Agent] Updating project status after regeneration', {
-          projectId,
-          totalCount,
-          successCount,
-          failedCount,
-          newStep3Status
-        })
 
         await supabaseAdmin
           .from('video_agent_projects')

@@ -202,7 +202,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
 
   // 🔥 获取分镜描述（优先使用编辑后的）
   const getShotDescription = (shotNumber: number, originalDescription: string) => {
-    return editedShots[shotNumber] || originalDescription
+    return shotNumber in editedShots ? editedShots[shotNumber] : originalDescription
   }
 
   // 🔥 删除分镜

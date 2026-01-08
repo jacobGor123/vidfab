@@ -41,14 +41,6 @@ async function generateVideosAsync(
   enableNarration: boolean = false,
   aspectRatio: '16:9' | '9:16' = '16:9'
 ) {
-  console.log('[Video Agent] 🔥 Starting optimized video generation', {
-    projectId,
-    clipsCount: storyboards.length,
-    enableNarration,
-    aspectRatio,
-    mode: enableNarration ? 'concurrent_veo3' : 'sequential_byteplus'
-  })
-
   if (enableNarration) {
     // ✅ 旁白模式（Veo3.1）：并发生成
     // 每个视频独立生成，不需要首尾帧链式，可以并发
@@ -58,8 +50,6 @@ async function generateVideosAsync(
     // 需要上一个视频的末尾帧，必须顺序，但不阻塞轮询
     await generateBytePlusVideosSequentially(projectId, storyboards, shots, aspectRatio)
   }
-
-  console.log('[Video Agent] Video generation tasks submitted', { projectId })
 }
 
 /**
@@ -73,8 +63,6 @@ async function generateVeo3VideosInParallel(
   aspectRatio: '16:9' | '9:16'
 ) {
   const limit = pLimit(3)  // 并发数限制为 3
-
-  console.log('[Video Agent] 🎬 Generating Veo3 videos in parallel (concurrency: 3)')
 
   const tasks = storyboards.map((storyboard, index) =>
     limit(async () => {
@@ -95,8 +83,6 @@ async function generateVeo3VideosInParallel(
       }
 
       try {
-        console.log(`[Video Agent] Submitting Veo3 task for shot ${shot.shot_number} (${index + 1}/${storyboards.length})`)
-
         // 获取下一个分镜图（用于流畅过渡）
         const nextStoryboard = storyboards.find(sb => sb.shot_number === shot.shot_number + 1)
         const images = getVideoGenerationImages(
@@ -131,8 +117,6 @@ async function generateVeo3VideosInParallel(
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
           .returns<any>()
-
-        console.log(`[Video Agent] ✅ Veo3 task ${requestId} submitted for shot ${shot.shot_number}`)
       } catch (error) {
         console.error(`[Video Agent] ❌ Failed to submit Veo3 task for shot ${shot.shot_number}:`, error)
 
@@ -152,8 +136,6 @@ async function generateVeo3VideosInParallel(
 
   // 等待所有任务提交完成（不等待视频生成完成）
   await Promise.allSettled(tasks)
-
-  console.log('[Video Agent] ✅ All Veo3 tasks submitted')
 }
 
 /**
@@ -167,8 +149,6 @@ async function generateBytePlusVideosSequentially(
   shots: Shot[],
   aspectRatio: '16:9' | '9:16'
 ) {
-  console.log('[Video Agent] 🎬 Generating BytePlus videos sequentially (chain mode)')
-
   // ⚠️ 注意：这里只提交第一个视频
   // 后续视频需要等第一个完成后，由 /videos/status API 或单独的后台任务触发
   // 为了简化，我们仍然顺序提交所有任务，但使用分镜图作为首帧（不等待 last_frame）
@@ -192,8 +172,6 @@ async function generateBytePlusVideosSequentially(
     }
 
     try {
-      console.log(`[Video Agent] Submitting BytePlus task for shot ${shot.shot_number} (${i + 1}/${storyboards.length})`)
-
       // ✅ 简化：都使用分镜图作为首帧
       // 如果需要首尾帧链式，需要更复杂的任务队列逻辑
       const firstFrameUrl = storyboard.image_url
@@ -243,9 +221,6 @@ async function generateBytePlusVideosSequentially(
         .eq('project_id', projectId)
         .eq('shot_number', shot.shot_number)
         .returns<any>()
-
-      console.log(`[Video Agent] ✅ BytePlus task ${result.data.id} submitted for shot ${shot.shot_number}`)
-
     } catch (error) {
       console.error(`[Video Agent] ❌ Failed to submit BytePlus task for shot ${shot.shot_number}:`, error)
 
@@ -282,8 +257,6 @@ async function generateBytePlusVideosSequentially(
       break  // 终止循环
     }
   }
-
-  console.log('[Video Agent] ✅ All BytePlus tasks submitted')
 }
 
 /**
@@ -330,11 +303,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    console.log('[Video Agent] Starting batch video generation', {
-      projectId,
-      currentStep: project.current_step
-    })
-
     // 获取分镜脚本
     // 🔥 使用 let 而不是 const，因为恢复机制可能需要重新赋值
     let { data: shots, error: shotsError } = await supabaseAdmin
@@ -355,22 +323,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       // 🔥 后备方案：如果 project_shots 表为空，但 script_analysis 有数据，直接从中提取并保存
       if (project.script_analysis && typeof project.script_analysis === 'object') {
         const analysis = project.script_analysis as any
-        console.log('[Video Agent] 🔄 Checking script_analysis for recovery:', {
-          hasScriptAnalysis: true,
-          hasShots: !!analysis.shots,
-          shotsIsArray: Array.isArray(analysis.shots),
-          shotsLength: analysis.shots?.length || 0
-        })
 
         if (analysis.shots && Array.isArray(analysis.shots) && analysis.shots.length > 0) {
-          console.log('[Video Agent] 🔄 Attempting to recover shots from script_analysis:', {
-            shotsCount: analysis.shots.length,
-            firstShot: analysis.shots[0] ? {
-              shot_number: analysis.shots[0].shot_number,
-              description: analysis.shots[0].description?.substring(0, 50) + '...'
-            } : null
-          })
-
           try {
             const shotsToInsert = analysis.shots.map((shot: any) => ({
               project_id: projectId,
@@ -392,8 +346,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
             if (insertError) {
               console.error('[Video Agent] Failed to insert shots from script_analysis:', insertError)
             } else {
-              console.log('[Video Agent] ✅ Successfully recovered', shotsToInsert.length, 'shots from script_analysis')
-
               // 重新查询 shots
               const { data: recoveredShots } = await supabaseAdmin
                 .from('project_shots')
@@ -403,7 +355,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
               if (recoveredShots && recoveredShots.length > 0) {
                 shots = recoveredShots
-                console.log('[Video Agent] ✅ Shots recovery successful, continuing with video generation')
               }
             }
           } catch (recoveryError) {
@@ -471,13 +422,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       const hasCompleted = existingClips.some(clip => clip.status === 'success')
 
       if (hasGenerating || hasCompleted) {
-        console.log('[Video Agent] Video generation already in progress or completed', {
-          projectId,
-          hasGenerating,
-          hasCompleted,
-          existingClipsCount: existingClips.length
-        })
-
         return NextResponse.json({
           success: true,
           data: {
@@ -521,13 +465,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
         { status: 500 }
       )
     }
-
-    console.log('[Video Agent] Video generation started (async)', {
-      projectId,
-      clipsCount: storyboards.length,
-      enableNarration: project.enable_narration,
-      aspectRatio: project.aspect_ratio
-    })
 
     // 立即返回，后台异步生成
     Promise.resolve().then(async () => {

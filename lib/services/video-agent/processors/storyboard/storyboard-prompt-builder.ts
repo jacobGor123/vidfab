@@ -4,6 +4,163 @@
 
 import type { CharacterConfig, Shot, ImageStyle } from '@/lib/types/video-agent'
 
+// ==================== 角色类型识别工具 ====================
+
+/**
+ * 解析后的角色信息
+ */
+interface ParsedCharacter {
+  fullName: string   // 完整格式：'Ginger (orange tabby cat, animated)'
+  shortName: string  // 简短名称：'Ginger'
+  type: string       // 类型：'cat' | 'man' | 'woman' | etc.
+}
+
+/**
+ * 从角色描述中提取简化的类型
+ *
+ * @param description 角色描述，例如 'orange tabby cat, animated'
+ * @returns 简化的类型，例如 'cat'
+ */
+function extractCharacterType(description: string): string {
+  const descLower = description.toLowerCase()
+
+  // 🔥 动物类型（按优先级排序，更具体的放前面）
+  if (descLower.includes('cat')) return 'cat'
+  if (descLower.includes('dog')) return 'dog'
+  if (descLower.includes('bird')) return 'bird'
+  if (descLower.includes('rabbit')) return 'rabbit'
+  if (descLower.includes('bear')) return 'bear'
+  if (descLower.includes('lion')) return 'lion'
+  if (descLower.includes('tiger')) return 'tiger'
+  if (descLower.includes('elephant')) return 'elephant'
+  if (descLower.includes('monkey')) return 'monkey'
+  if (descLower.includes('panda')) return 'panda'
+  if (descLower.includes('fox')) return 'fox'
+  if (descLower.includes('wolf')) return 'wolf'
+  if (descLower.includes('horse')) return 'horse'
+  if (descLower.includes('fish')) return 'fish'
+  if (descLower.includes('animal')) return 'animal'
+
+  // 🔥 人类类型（按优先级：更具体的放前面）
+  if (descLower.includes('boy')) return 'boy'
+  if (descLower.includes('girl')) return 'girl'
+  if (descLower.includes('man')) return 'man'
+  if (descLower.includes('woman')) return 'woman'
+  if (descLower.includes('child')) return 'child'
+  if (descLower.includes('kid')) return 'child'
+  if (descLower.includes('adult')) return 'adult'
+  if (descLower.includes('person')) return 'person'
+  if (descLower.includes('human')) return 'person'
+
+  // 🔥 职业相关（次优先级）
+  if (descLower.includes('employee')) return 'person'
+  if (descLower.includes('cashier')) return 'person'
+  if (descLower.includes('worker')) return 'person'
+  if (descLower.includes('staff')) return 'person'
+
+  // 如果没有匹配，返回空字符串（不添加类型标识）
+  return ''
+}
+
+/**
+ * 转义正则表达式特殊字符
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * 解析角色列表，提取名称和类型
+ *
+ * @param characters 角色列表，例如 ['Ginger (orange tabby cat, animated)', 'Store Employee (white man, 30s)']
+ * @returns 解析后的角色信息数组
+ */
+function parseCharacters(characters: string[]): ParsedCharacter[] {
+  return characters.map(char => {
+    // 提取简短名称（括号前的部分）
+    const shortName = char.split('(')[0].trim()
+
+    // 提取描述（括号内的部分）
+    const descMatch = char.match(/\(([^)]+)\)/)
+    const description = descMatch ? descMatch[1] : ''
+
+    // 从描述中提取类型
+    const type = extractCharacterType(description)
+
+    return {
+      fullName: char,
+      shortName,
+      type
+    }
+  })
+}
+
+/**
+ * 在文本中为角色名添加类型标识（仅首次出现）
+ *
+ * 例如：
+ * - "Ginger stands on its hind legs" → "the cat Ginger stands on its hind legs"
+ * - "Store Employee smiles" → "the person Store Employee smiles"
+ *
+ * @param description 场景描述
+ * @param characterAction 角色动作
+ * @param parsedCharacters 解析后的角色信息
+ * @returns 处理后的描述和动作
+ */
+function annotateCharacterTypes(
+  description: string,
+  characterAction: string,
+  parsedCharacters: ParsedCharacter[]
+): { description: string; characterAction: string } {
+  let newDescription = description
+  let newCharacterAction = characterAction
+
+  // 为每个角色添加类型标识
+  for (const char of parsedCharacters) {
+    // 如果没有识别出类型，跳过
+    if (!char.type) {
+      continue
+    }
+
+    // 创建正则表达式：匹配完整单词（避免部分匹配）
+    const regex = new RegExp(`\\b${escapeRegex(char.shortName)}\\b`, 'i')
+    const replacement = `the ${char.type} ${char.shortName}`
+
+    // 🔥 优先在 description 中查找并替换首次出现
+    if (regex.test(newDescription)) {
+      newDescription = newDescription.replace(regex, replacement)
+    }
+    // 如果 description 中没有，才在 character_action 中替换
+    else if (regex.test(newCharacterAction)) {
+      newCharacterAction = newCharacterAction.replace(regex, replacement)
+    }
+  }
+
+  return {
+    description: newDescription,
+    characterAction: newCharacterAction
+  }
+}
+
+/**
+ * 构建简化的角色声明
+ *
+ * 例如：'Ginger (orange tabby cat, animated)' → 'Ginger (cat)'
+ *
+ * @param parsedCharacters 解析后的角色信息
+ * @returns 简化的角色声明字符串
+ */
+function buildSimplifiedCharacterList(parsedCharacters: ParsedCharacter[]): string {
+  return parsedCharacters
+    .map(char => {
+      if (char.type) {
+        return `${char.shortName} (${char.type})`
+      }
+      return char.shortName
+    })
+    .join(', ')
+}
+
 /**
  * 构建负面提示词
  * 🔥 不限制风格，专注于角色一致性和图片质量
@@ -107,33 +264,47 @@ export function buildStoryboardPrompt(
   characters: CharacterConfig[],
   hasReferenceImages: boolean
 ): string {
-  const characterNames = Array.isArray(shot.characters) ? shot.characters.join(', ') : ''
   const isMirrorScene = isMirrorOrReflectionScene(shot)
+
+  // 🔥 解析角色列表，提取名称和类型
+  const parsedCharacters = parseCharacters(shot.characters || [])
+  const simplifiedCharacterList = buildSimplifiedCharacterList(parsedCharacters)
+
+  // 🔥 在描述中添加角色类型标识（仅首次出现）
+  const annotated = annotateCharacterTypes(
+    shot.description,
+    shot.character_action,
+    parsedCharacters
+  )
 
   let prompt = ''
 
+  // 🔥 简化的角色声明（开头）
+  if (parsedCharacters.length > 0) {
+    prompt += `Characters: ${simplifiedCharacterList}. `
+  }
+
   // 🔥 如果有参考图，在最开头用强烈语气强调角色一致性
-  if (hasReferenceImages && characterNames) {
-    prompt += `CRITICAL REQUIREMENT: Generate EXACTLY THE SAME characters as shown in the reference images. `
-    prompt += `Characters in this scene: ${characterNames}. `
-    prompt += `MUST maintain 100% identical appearance: same face, same facial features, same hair, same clothing, same body type, same skin tone. `
+  if (hasReferenceImages && parsedCharacters.length > 0) {
+    prompt += `CRITICAL: Generate EXACTLY THE SAME characters as shown in the reference images. `
+    prompt += `MUST maintain 100% identical appearance: same face, facial features, hair, clothing, body type, skin tone. `
     prompt += `DO NOT change or modify the character's appearance in ANY way. `
   }
 
-  // 场景描述
-  prompt += `Scene: ${shot.description}. `
+  // 🔥 场景描述（已标注角色类型）
+  prompt += `Scene: ${annotated.description}. `
 
   // 镜头角度
   prompt += `Camera: ${shot.camera_angle}. `
 
-  // 角色动作
-  prompt += `Action: ${shot.character_action}. `
+  // 🔥 角色动作（已标注角色类型）
+  prompt += `Action: ${annotated.characterAction}. `
 
   // 情绪氛围
   prompt += `Mood: ${shot.mood}. `
 
   // 🔥 内容强化：禁止人物重复（除非是镜子场景）
-  if (!isMirrorScene && characterNames) {
+  if (!isMirrorScene && parsedCharacters.length > 0) {
     prompt += `IMPORTANT: Each character should appear ONLY ONCE in the image. `
     prompt += `Do NOT duplicate, clone, or copy-paste the same character multiple times. `
     prompt += `Generate a single instance of each character in their designated position. `
@@ -143,8 +314,9 @@ export function buildStoryboardPrompt(
   prompt += `Style: ${style.style_prompt}. `
 
   // 🔥 如果有参考图，再次用强烈语气强调保持一致性
-  if (hasReferenceImages && characterNames) {
-    prompt += `REMINDER: The character(s) ${characterNames} MUST look EXACTLY like the reference images provided. `
+  if (hasReferenceImages && parsedCharacters.length > 0) {
+    const characterNamesList = parsedCharacters.map(c => c.shortName).join(', ')
+    prompt += `REMINDER: The character(s) ${characterNamesList} MUST look EXACTLY like the reference images provided. `
     prompt += `Keep facial structure, eye color, nose shape, mouth shape, hair style, hair color, clothing style, body proportions, and all other details IDENTICAL. `
     prompt += `This is the SAME character from the reference images, not a similar character. `
   }

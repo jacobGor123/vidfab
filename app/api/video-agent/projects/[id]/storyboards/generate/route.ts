@@ -48,13 +48,6 @@ async function generateStoryboardsAsync(
 ) {
   const CONCURRENCY = parseInt(process.env.STORYBOARD_CONCURRENCY || '3', 10)
 
-  console.log('[Video Agent] Starting async storyboard generation', {
-    projectId,
-    shotCount: shots.length,
-    aspectRatio,
-    concurrency: CONCURRENCY
-  })
-
   let successCount = 0
   let failedCount = 0
 
@@ -64,11 +57,6 @@ async function generateStoryboardsAsync(
   const tasks = shots.map((shot) =>
     limit(async () => {
       try {
-        console.log('[Video Agent] 🎬 Starting storyboard generation', {
-          shotNumber: shot.shot_number,
-          progress: `${successCount + failedCount + 1}/${shots.length}`
-        })
-
         const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
 
         // 立即更新数据库
@@ -89,13 +77,6 @@ async function generateStoryboardsAsync(
         } else {
           failedCount++
         }
-
-        console.log('[Video Agent] ✅ Storyboard generated', {
-          projectId,
-          shotNumber: shot.shot_number,
-          status: result.status,
-          progress: `${successCount + failedCount}/${shots.length}`
-        })
 
         return result
       } catch (error) {
@@ -132,14 +113,6 @@ async function generateStoryboardsAsync(
     } as any)
     .eq('id', projectId)
     .returns<any>()
-
-  console.log('[Video Agent] Async storyboard generation completed', {
-    projectId,
-    total: shots.length,
-    success: successCount,
-    failed: failedCount,
-    finalStatus
-  })
 }
 
 /**
@@ -232,18 +205,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
       // 🔥 如果已经有生成中或已完成的记录，直接返回
       if (hasGenerating || hasCompleted) {
-        console.log('[Video Agent] Storyboard generation already in progress or completed', {
-          projectId,
-          totalStoryboards: existingStoryboards.length,
-          hasGenerating,
-          hasCompleted,
-          statusBreakdown: {
-            generating: existingStoryboards.filter(sb => sb.status === 'generating').length,
-            success: existingStoryboards.filter(sb => sb.status === 'success').length,
-            failed: existingStoryboards.filter(sb => sb.status === 'failed').length
-          }
-        })
-
         return NextResponse.json({
           success: true,
           data: {
@@ -275,22 +236,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       console.error('[Video Agent] Failed to create storyboard records:', insertError)
     }
 
-    console.log('[Video Agent] Starting storyboard generation', {
-      projectId,
-      shotCount: shots.length,
-      characterCount: characters.length,
-      characters: characters.map(c => ({
-        name: c.name,
-        referenceImageCount: c.reference_images.length,
-        referenceImages: c.reference_images
-      })),
-      shotCharacters: shots.map(s => ({
-        shotNumber: s.shot_number,
-        characters: s.characters
-      })),
-      style: style.name
-    })
-
     // 更新项目状态
     await supabaseAdmin
       .from('video_agent_projects')
@@ -302,20 +247,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .returns<any>()
 
     // 🔥 删除：已在上面的幂等性检查中完成插入
-
-    console.log('[Video Agent] Storyboard generation started (async)', {
-      projectId,
-      shotCount: shots.length
-    })
-
-    // 🔥 统一使用预设背景音乐（不再调用 Suno API）
-    if (project.enable_narration) {
-      console.log('[Video Agent] 🎵 Skipping music (narration mode enabled)', { projectId })
-    } else if (project.mute_bgm) {
-      console.log('[Video Agent] 🎵 Skipping music (BGM muted)', { projectId })
-    } else {
-      console.log('[Video Agent] 🎵 Will use preset background music', { projectId })
-    }
 
     // 🔥 使用队列系统（替代后台 Promise）
     // 优点：任务持久化、自动重试、不会被 Vercel Lambda 打断
@@ -346,12 +277,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
           removeOnFail: 20       // 保留最近 20 个失败任务
         }
       )
-
-      console.log('[Video Agent] ✅ Storyboard generation job queued', {
-        projectId,
-        jobId,
-        shotCount: shots.length
-      })
 
       return NextResponse.json({
         success: true,

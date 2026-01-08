@@ -45,12 +45,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       })
     }
 
-    console.log('[Video Agent] Analyzing script for project', {
-      projectId,
-      duration: project.duration,
-      storyStyle: project.story_style
-    })
-
     // 调用脚本分析服务
     let analysis
     try {
@@ -91,7 +85,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
         project.story_style,
         analysis.shots
       )
-      console.log('[Video Agent] Music prompt generated:', musicPrompt)
     } catch (musicError) {
       console.warn('[Video Agent] Failed to generate music prompt (non-critical):', musicError)
       // 音乐 prompt 生成失败不影响主流程，使用默认值
@@ -140,12 +133,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       console.error('[Video Agent] Failed to save shots:', shotsError)
       // 不返回错误,因为主要数据已经保存在 script_analysis 字段中
     }
-
-    console.log('[Video Agent] Script analysis completed', {
-      projectId,
-      shotCount: analysis.shots.length,
-      characters: analysis.characters
-    })
 
     return NextResponse.json({
       success: true,

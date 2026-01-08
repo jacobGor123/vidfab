@@ -24,7 +24,6 @@ type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row
 export const POST = withAuth(async (request, { params, userId }) => {
   try {
     const projectId = params.id
-    console.log('[Video Agent] 🎬 Compose API called', { projectId, userId })
 
     // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
@@ -33,13 +32,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('id', projectId)
       .eq('user_id', userId)
       .single<VideoAgentProject>()
-
-    console.log('[Video Agent] 📊 Project query result', {
-      found: !!project,
-      error: projectError?.message,
-      step_4_status: project?.step_4_status,
-      current_step: project?.current_step
-    })
 
     if (projectError || !project) {
       console.error('[Video Agent] ❌ Project not found', { projectError })
@@ -61,14 +53,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    console.log('[Video Agent] Starting video composition', {
-      projectId,
-      hasMusic: !!project.music_url,
-      transitionEffect: project.transition_effect
-    })
-
     // 获取所有已完成的视频片段
-    console.log('[Video Agent] 📹 Querying video clips...')
     const { data: videoClips, error: clipsError } = await supabaseAdmin
       .from('project_video_clips')
       .select('*')
@@ -76,12 +61,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('status', 'success')  // 修复：使用 'success' 而不是 'completed'
       .order('shot_number', { ascending: true })
       .returns<ProjectVideoClip[]>()
-
-    console.log('[Video Agent] 📹 Video clips query result', {
-      clipsError: clipsError?.message,
-      clipsCount: videoClips?.length || 0,
-      clipStatuses: videoClips?.map(c => ({ shot: c.shot_number, status: c.status, hasUrl: !!c.video_url }))
-    })
 
     if (clipsError || !videoClips || videoClips.length === 0) {
       console.error('[Video Agent] ❌ No completed video clips found', {
@@ -113,10 +92,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
     })
 
     // 🔥 使用 Shotstack 云端 API 进行视频合成（无需 FFmpeg）
-    console.log('[Video Agent] 🎞️ Using Shotstack API for video composition (Serverless-friendly)...')
 
     // 更新项目状态为 processing
-    console.log('[Video Agent] 💾 Updating project status to processing...')
     const { error: updateError } = await supabaseAdmin
       .from('video_agent_projects')
       .update({
@@ -139,8 +116,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    console.log('[Video Agent] ✅ Project status updated, starting async composition...')
-
     // 异步执行合成任务
     composeVideoAsync(projectId, clips, project).catch(error => {
       console.error('[Video Agent] ❌ Video composition failed:', error)
@@ -157,13 +132,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
     })
 
     // 估算合成时长
-    console.log('[Video Agent] ⏱️ Estimating composition duration...')
     const estimatedDuration = estimateTotalDuration(clips)
-
-    console.log('[Video Agent] ✅ Compose API returning success', {
-      totalClips: clips.length,
-      estimatedDuration
-    })
 
     return NextResponse.json({
       success: true,
@@ -207,24 +176,15 @@ async function composeVideoAsync(
   project: any
 ) {
   try {
-    console.log('[Video Agent] 🎬 Starting Shotstack video composition...')
-
     // 🔥 使用 Shotstack 云端拼接，无需下载视频到本地
     const videoUrls = clips.map(clip => clip.video_url)
     const clipDurations = clips.map(clip => clip.duration)
-
-    console.log('[Video Agent] 📹 Video clips:', {
-      count: videoUrls.length,
-      totalDuration: clipDurations.reduce((a, b) => a + b, 0)
-    })
 
     // 🔥 步骤 1: 准备旁白音频和字幕（旁白模式）
     let subtitleUrl: string | undefined
     let narrationAudioClips: Array<{ url: string; start: number; length: number }> = []
 
     if (project.enable_narration) {
-      console.log('[Video Agent] 🎙️ Generating narration audio and subtitles...')
-
       try {
         // 获取分镜数据
         const { data: shots } = await supabaseAdmin
@@ -236,8 +196,6 @@ async function composeVideoAsync(
 
         if (shots && shots.length > 0) {
           // 1. 生成旁白音频
-          console.log('[Video Agent] 🎙️ Calling ElevenLabs TTS for', shots.length, 'shots...')
-
           const narrationTexts = shots.map(shot => shot.character_action)
           const narrationResults = await generateNarrationBatch(narrationTexts, {
             voice: 'Rachel',  // 默认音色，后续可配置
@@ -254,14 +212,11 @@ async function composeVideoAsync(
                 start: currentTime,
                 length: shots[i].duration_seconds
               })
-              console.log(`[Video Agent] ✅ Narration ${i + 1}/${shots.length}: ${result.audio_url}`)
             } else {
               console.error(`[Video Agent] ❌ Narration ${i + 1} failed:`, result.error)
             }
             currentTime += shots[i].duration_seconds
           }
-
-          console.log('[Video Agent] 🎙️ Generated', narrationAudioClips.length, '/', shots.length, 'narration clips')
 
           // 2. 生成 SRT 字幕文件
           const srtContent = generateSRTFromShots(shots)
@@ -288,7 +243,6 @@ async function composeVideoAsync(
               .getPublicUrl(srtPath)
 
             subtitleUrl = urlData.publicUrl
-            console.log('[Video Agent] ✅ Subtitles uploaded:', subtitleUrl)
           }
         }
       } catch (error) {
@@ -303,12 +257,9 @@ async function composeVideoAsync(
     if (!project.enable_narration && !project.mute_bgm) {
       // 🔥 统一使用预设背景音乐（不再使用 Suno）
       backgroundMusicUrl = 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/video-agent-files/preset-music/funny-comedy-cartoon.mp3'
-      console.log('[Video Agent] 🎵 Using preset background music:', backgroundMusicUrl)
     }
 
     // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 旁白/音乐 + 字幕）
-    console.log('[Video Agent] 🔗 Rendering video with Shotstack API...')
-
     const finalVideoUrl = await concatenateVideosWithShotstack(videoUrls, {
       aspectRatio: project.aspect_ratio || '16:9',
       clipDurations,
@@ -317,11 +268,7 @@ async function composeVideoAsync(
       narrationAudioClips: narrationAudioClips.length > 0 ? narrationAudioClips : undefined
     })
 
-    console.log('[Video Agent] ✅ Video rendering complete:', finalVideoUrl)
-
     // 🔥 步骤 4: 更新项目状态为完成（Shotstack URL 直接可用）
-    console.log('[Video Agent] 💾 Saving final video URL...')
-
     await supabaseAdmin
       .from('video_agent_projects')
       .update({
@@ -333,12 +280,6 @@ async function composeVideoAsync(
       } as any)
       .eq('id', projectId)
       .returns<any>()
-
-    console.log('[Video Agent] ✅ Project completed successfully:', {
-      projectId,
-      finalVideoUrl
-    })
-
   } catch (error) {
     console.error('[Video Agent] ❌ Composition async error:', error)
 
