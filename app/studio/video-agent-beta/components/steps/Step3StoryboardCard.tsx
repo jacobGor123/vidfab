@@ -172,19 +172,21 @@ export function Step3StoryboardCard({
   return (
     <Card key={item.shot_number} className="overflow-hidden group">
       <CardContent className="p-0 relative">
-        {/* 🔥 删除按钮 */}
-        <button
-          onClick={() => onDeleteClick(item.shot_number)}
-          disabled={deletingShot !== null || regeneratingShot !== null}
-          className="absolute top-2 right-2 z-10 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Delete this shot"
-        >
-          {deletingShot === item.shot_number ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Trash2 className="w-4 h-4" />
-          )}
-        </button>
+        {/* 🔥 删除按钮 - 只在分镜图生成成功后显示 */}
+        {item.status === 'success' && item.image_url && (
+          <button
+            onClick={() => onDeleteClick(item.shot_number)}
+            disabled={deletingShot !== null || regeneratingShot !== null}
+            className="absolute top-2 right-2 z-10 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Delete this shot"
+          >
+            {deletingShot === item.shot_number ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
+        )}
 
         <div className={`relative ${aspectRatioClass} bg-muted`}>
           {item.status === 'pending' ? (
