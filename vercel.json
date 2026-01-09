@@ -4,12 +4,6 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "crons": [
-    {
-      "path": "/api/cron/generate-blog",
-      "schedule": "0 10 * * *"
-    }
-  ],
   "env": {
     "NODE_ENV": "production"
   },
