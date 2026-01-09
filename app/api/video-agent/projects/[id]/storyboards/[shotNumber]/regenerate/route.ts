@@ -37,9 +37,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 获取请求体中的自定义 prompt
+    // 获取请求体中的自定义 prompt 和字段更新
     const body = await request.json().catch(() => ({}))
     const customPrompt = body.customPrompt as string | undefined
+    const fieldsUpdate = body.fieldsUpdate as {
+      description?: string
+      camera_angle?: string
+      character_action?: string
+      mood?: string
+    } | undefined
 
     if (isNaN(shotNumber)) {
       return NextResponse.json(
@@ -151,6 +157,53 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     if (updateError) {
       console.error('[Video Agent] Failed to update storyboard:', updateError)
+    }
+
+    // 🔥 如果用户修改了字段，同时更新 script_analysis.shots
+    if (fieldsUpdate && Object.keys(fieldsUpdate).length > 0) {
+      console.log('[Video Agent] Updating shot fields in script_analysis:', fieldsUpdate)
+
+      // 获取当前的 script_analysis
+      const { data: currentProject, error: fetchError } = await supabaseAdmin
+        .from('video_agent_projects')
+        .select('script_analysis')
+        .eq('id', projectId)
+        .single<VideoAgentProject>()
+
+      if (fetchError) {
+        console.error('[Video Agent] Failed to fetch project for field update:', fetchError)
+        // 不抛出错误，因为分镜图已经生成成功，只是字段更新失败
+      } else if (currentProject?.script_analysis) {
+        const scriptAnalysis = currentProject.script_analysis as unknown as ScriptAnalysisResult
+        const updatedShots = scriptAnalysis.shots.map((s: Shot) => {
+          if (s.shot_number === shotNumber) {
+            return {
+              ...s,
+              ...fieldsUpdate // 合并用户修改的字段
+            }
+          }
+          return s
+        })
+
+        // 更新 script_analysis
+        const { error: updateFieldsError } = await supabaseAdmin
+          .from('video_agent_projects')
+          .update({
+            script_analysis: {
+              ...scriptAnalysis,
+              shots: updatedShots
+            } as any,
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('id', projectId)
+
+        if (updateFieldsError) {
+          console.error('[Video Agent] Failed to update shot fields in script_analysis:', updateFieldsError)
+          // 不抛出错误，因为分镜图已经生成成功，只是字段更新失败
+        } else {
+          console.log('[Video Agent] Shot fields updated in script_analysis')
+        }
+      }
     }
 
     // 🔥 修复：检查所有分镜图是否全部完成，更新项目状态

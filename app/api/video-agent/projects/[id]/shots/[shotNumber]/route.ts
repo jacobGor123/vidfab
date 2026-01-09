@@ -32,6 +32,26 @@ function extractUniqueCharacters(shots: Shot[]): string[] {
 }
 
 /**
+ * 重新计算所有shot的time_range
+ * 确保时间范围连续且正确
+ * 格式：与原始脚本分析保持一致 "0.0-5.0s"
+ */
+function recalculateTimeRanges(shots: Shot[]): Shot[] {
+  let currentTime = 0
+
+  return shots.map(shot => {
+    const startTime = currentTime
+    const endTime = currentTime + shot.duration_seconds
+    currentTime = endTime
+
+    return {
+      ...shot,
+      time_range: `${startTime.toFixed(1)}-${endTime.toFixed(1)}s`
+    }
+  })
+}
+
+/**
  * 删除指定的 Shot
  * DELETE /api/video-agent/projects/[id]/shots/[shotNumber]
  */
@@ -100,33 +120,42 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
     })
 
     // 5. 删除 shot 并重新编号
-    const newShots = shots
+    let newShots = shots
       .filter(s => s.shot_number !== shotNumber)
       .map((shot, index) => ({
         ...shot,
         shot_number: index + 1  // 重新编号从 1 开始
       }))
 
-    // 6. 重新提取角色列表
+    // 6. 🔥 重新计算time_range，确保时间连续
+    newShots = recalculateTimeRanges(newShots)
+
+    // 7. 🔥 重新计算总时长
+    const newDuration = newShots.reduce((sum, shot) => sum + shot.duration_seconds, 0)
+
+    // 8. 重新提取角色列表
     const newCharacters = extractUniqueCharacters(newShots)
 
     console.log('[Video Agent] After deletion:', {
       oldShotCount: shots.length,
       newShotCount: newShots.length,
+      oldDuration: scriptAnalysis.duration,
+      newDuration: newDuration,
       oldCharacters: scriptAnalysis.characters,
       newCharacters: newCharacters,
       charactersChanged: JSON.stringify(scriptAnalysis.characters) !== JSON.stringify(newCharacters)
     })
 
-    // 7. 更新 script_analysis
+    // 9. 更新 script_analysis
     const newScriptAnalysis: ScriptAnalysisResult = {
       ...scriptAnalysis,
       shots: newShots,
       characters: newCharacters,
-      shot_count: newShots.length
+      shot_count: newShots.length,
+      duration: newDuration  // 🔥 更新总时长
     }
 
-    // 8. 更新项目数据库
+    // 10. 更新项目数据库
     const { error: updateError } = await supabaseAdmin
       .from('video_agent_projects')
       .update({
@@ -140,7 +169,7 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
       throw new Error(`Failed to update project: ${updateError.message}`)
     }
 
-    // 9. 级联删除：删除对应的 storyboard 记录
+    // 11. 级联删除：删除对应的 storyboard 记录
     const { error: deleteStoryboardError } = await supabaseAdmin
       .from('project_storyboards')
       .delete()
@@ -153,7 +182,7 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
       console.log('[Video Agent] Deleted storyboard for shot:', shotNumber)
     }
 
-    // 10. 级联删除：删除对应的 video_clip 记录
+    // 12. 级联删除：删除对应的 video_clip 记录
     const { error: deleteVideoError } = await supabaseAdmin
       .from('project_video_clips')
       .delete()
@@ -166,7 +195,7 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
       console.log('[Video Agent] Deleted video clip for shot:', shotNumber)
     }
 
-    // 11. 级联更新：更新后续 storyboards 的 shot_number
+    // 13. 级联更新：更新后续 storyboards 的 shot_number
     // 对于所有 shot_number > deletedNumber 的记录，shot_number 都要 -1
     if (shotNumber < shots.length) {
       console.log('[Video Agent] Updating storyboard shot_numbers after deletion...')
@@ -184,7 +213,7 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
       }
     }
 
-    // 12. 级联更新：更新后续 video_clips 的 shot_number
+    // 14. 级联更新：更新后续 video_clips 的 shot_number
     if (shotNumber < shots.length) {
       console.log('[Video Agent] Updating video clip shot_numbers after deletion...')
 
@@ -201,7 +230,7 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
       }
     }
 
-    // 13. 如果角色列表发生变化，删除不再需要的角色记录
+    // 15. 如果角色列表发生变化，删除不再需要的角色记录
     if (JSON.stringify(scriptAnalysis.characters) !== JSON.stringify(newCharacters)) {
       console.log('[Video Agent] Characters changed, cleaning up character records...')
 
@@ -226,7 +255,7 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
       }
     }
 
-    // 14. 如果项目已经进行到后续步骤，重置相关步骤状态
+    // 16. 如果项目已经进行到后续步骤，重置相关步骤状态
     // 因为 shots 发生了变化，后续步骤的数据可能不一致
     if (project.current_step && project.current_step >= 2) {
       console.log('[Video Agent] Resetting project steps from step 2...')

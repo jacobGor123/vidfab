@@ -216,15 +216,40 @@ export function useStoryboardGeneration({
       // 获取自定义 prompt（如果用户修改过）
       const customPrompt = customPrompts[shotNumber]
 
+      // 🔥 尝试解析 customPrompt，如果是JSON则提取字段更新
+      let fieldsUpdate: any = undefined
+      if (customPrompt) {
+        try {
+          const parsed = JSON.parse(customPrompt)
+          if (parsed && typeof parsed === 'object') {
+            // 🔥 只包含有值的字段，过滤掉 undefined
+            fieldsUpdate = {}
+            if (parsed.description) fieldsUpdate.description = parsed.description
+            if (parsed.camera_angle) fieldsUpdate.camera_angle = parsed.camera_angle
+            if (parsed.character_action) fieldsUpdate.character_action = parsed.character_action
+            if (parsed.mood) fieldsUpdate.mood = parsed.mood
+
+            // 如果没有任何字段，设置为 undefined
+            if (Object.keys(fieldsUpdate).length === 0) {
+              fieldsUpdate = undefined
+            }
+          }
+        } catch {
+          // 不是JSON，忽略
+        }
+      }
+
       console.log('[Step3] Calling regenerateStoryboard API', {
         projectId: project.id,
         shotNumber,
-        customPrompt: customPrompt ? customPrompt.substring(0, 50) + '...' : undefined
+        customPrompt: customPrompt ? customPrompt.substring(0, 50) + '...' : undefined,
+        fieldsUpdate: fieldsUpdate ? 'yes' : 'no'
       })
 
       await regenerateStoryboard(project.id, {
         shotNumber,
-        customPrompt: customPrompt || undefined
+        customPrompt: customPrompt || undefined,
+        fieldsUpdate: fieldsUpdate  // 🔥 传递字段更新
       })
 
       dismissLoading()
@@ -285,32 +310,21 @@ export function useStoryboardGeneration({
 
       console.log('[Step3] Shot deleted:', result)
 
-      // 更新 script_analysis
-      const updatedScriptAnalysis = {
-        ...project.script_analysis,
-        shots: project.script_analysis.shots
-          .filter(s => s.shot_number !== shotNumber)
-          .map((shot, index) => ({
-            ...shot,
-            shot_number: index + 1
-          })),
-        characters: result.newCharacters,
-        shot_count: result.newShotCount
+      // 🔥 重新获取完整的项目数据，因为后端已经重新计算了 duration 和 time_range
+      const response = await fetch(`/api/video-agent/projects/${project.id}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch updated project data')
       }
 
-      // 更新 storyboards（过滤掉被删除的，重新编号）
-      const updatedStoryboards = storyboards
-        .filter(sb => sb.shot_number !== shotNumber)
-        .map((sb, index) => ({
-          ...sb,
-          shot_number: index + 1
-        }))
+      const { data: updatedProject } = await response.json()
+      const updatedScriptAnalysis = updatedProject.script_analysis
 
-      setStoryboards(updatedStoryboards)
       onUpdate({
-        script_analysis: updatedScriptAnalysis,
-        storyboards: updatedStoryboards
+        script_analysis: updatedScriptAnalysis
       })
+
+      // 🔥 立即轮询获取最新的 storyboards 状态（后端已经删除并重新编号了）
+      await pollStatus()
 
       // 清除所有编辑状态（因为 shot_number 已经改变）
       setCustomPrompts({})
@@ -319,7 +333,7 @@ export function useStoryboardGeneration({
       dismissLoading()
       showSuccess(`Shot ${shotNumber} deleted successfully`)
 
-      console.log('[Step3] Local state updated after deletion')
+      console.log('[Step3] Local state updated after deletion, storyboards synced from database')
     } catch (err: any) {
       dismissLoading()
       setError(err.message || 'Failed to delete shot')

@@ -87,6 +87,12 @@ interface RegenerateStoryboardParams {
   shotNumber: number
   imageStyle?: string
   customPrompt?: string
+  fieldsUpdate?: {  // 🔥 新增：字段更新（会同步到 script_analysis.shots）
+    description?: string
+    camera_angle?: string
+    character_action?: string
+    mood?: string
+  }
 }
 
 interface GenerateVideosParams {
@@ -389,14 +395,16 @@ export function useVideoAgentAPI() {
       projectId,
       shotNumber: params.shotNumber,
       url,
-      hasCustomPrompt: !!params.customPrompt
+      hasCustomPrompt: !!params.customPrompt,
+      hasFieldsUpdate: !!params.fieldsUpdate
     })
 
     return callAPI(url, {
       method: 'POST',
       body: JSON.stringify({
         image_style: params.imageStyle,
-        customPrompt: params.customPrompt
+        customPrompt: params.customPrompt,
+        fieldsUpdate: params.fieldsUpdate  // 🔥 传递字段更新
       }),
     })
   }, [callAPI])

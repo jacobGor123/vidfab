@@ -9,6 +9,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
 import { Film, Users, Clock, Video, Smile, User, Edit3, Save, X, Trash2 } from 'lucide-react'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
@@ -71,7 +72,11 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   }, [analysis, visibleShotCount])
 
   // 🔥 编辑状态管理
-  const [editedShots, setEditedShots] = useState<Record<number, string>>({}) // 记录修改的分镜描述
+  const [editedShots, setEditedShots] = useState<Record<number, {
+    description?: string
+    camera_angle?: string
+    mood?: string
+  }>>({}) // 记录修改的分镜字段
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false) // 是否有未保存的修改
   const [isSaving, setIsSaving] = useState(false) // 是否正在保存
 
@@ -138,11 +143,14 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     })
   }, [analysisReceivedAt, analysis, project.id])
 
-  // 🔥 处理分镜描述修改
-  const handleShotDescriptionChange = (shotNumber: number, newDescription: string) => {
+  // 🔥 处理字段修改（通用函数）
+  const handleFieldChange = (shotNumber: number, field: 'description' | 'camera_angle' | 'mood', value: string) => {
     setEditedShots(prev => ({
       ...prev,
-      [shotNumber]: newDescription
+      [shotNumber]: {
+        ...prev[shotNumber],
+        [field]: value
+      }
     }))
     setHasUnsavedChanges(true)
   }
@@ -159,10 +167,14 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     try {
       // 创建更新后的 shots 数组
       const updatedShots = analysis.shots.map(shot => {
-        if (editedShots[shot.shot_number]) {
+        const edits = editedShots[shot.shot_number]
+        if (edits) {
           return {
             ...shot,
-            description: editedShots[shot.shot_number]
+            // 🔥 使用 !== undefined 而不是 && 来允许保存空字符串
+            ...(edits.description !== undefined && { description: edits.description }),
+            ...(edits.camera_angle !== undefined && { camera_angle: edits.camera_angle }),
+            ...(edits.mood !== undefined && { mood: edits.mood })
           }
         }
         return shot
@@ -200,9 +212,10 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     setHasUnsavedChanges(false)
   }
 
-  // 🔥 获取分镜描述（优先使用编辑后的）
-  const getShotDescription = (shotNumber: number, originalDescription: string) => {
-    return shotNumber in editedShots ? editedShots[shotNumber] : originalDescription
+  // 🔥 获取字段值（优先使用编辑后的）
+  const getFieldValue = (shotNumber: number, field: 'description' | 'camera_angle' | 'mood', originalValue: string) => {
+    const edits = editedShots[shotNumber]
+    return edits?.[field] ?? originalValue
   }
 
   // 🔥 删除分镜
@@ -240,22 +253,22 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
 
       console.log('[Step1] Shot deleted:', result)
 
-      // 重新获取项目数据以获取最新的 script_analysis
-      // 因为后端已经重新编号和更新了角色列表
-      const updatedAnalysis: ScriptAnalysis = {
-        ...analysis,
-        shots: analysis.shots
-          .filter(s => s.shot_number !== shotNumber)
-          .map((shot, index) => ({
-            ...shot,
-            shot_number: index + 1
-          })),
-        characters: result.newCharacters,
-        shot_count: result.newShotCount
+      // 🔥 重新获取完整的项目数据，因为后端已经重新计算了 duration 和 time_range
+      // 不要手动构建，而是从API获取最新数据
+      const response = await fetch(`/api/video-agent/projects/${project.id}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch updated project data')
       }
 
+      const { data: updatedProject } = await response.json()
+      const updatedAnalysis = updatedProject.script_analysis
+
       setAnalysis(updatedAnalysis)
-      onUpdate({ script_analysis: updatedAnalysis })
+      onUpdate({
+        script_analysis: updatedAnalysis
+        // 🔥 不清空storyboards，让Step3的轮询机制自动同步最新状态
+        // 后端已经删除了对应的storyboard记录并重新编号，pollStatus会获取正确的数据
+      })
 
       // 清除所有编辑状态（因为 shot_number 已经改变）
       setEditedShots({})
@@ -472,28 +485,51 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
 
                   {/* 🔥 可编辑的分镜描述 */}
                   <Textarea
-                    value={getShotDescription(shot.shot_number, shot.description)}
-                    onChange={(e) => handleShotDescriptionChange(shot.shot_number, e.target.value)}
+                    value={getFieldValue(shot.shot_number, 'description', shot.description)}
+                    onChange={(e) => handleFieldChange(shot.shot_number, 'description', e.target.value)}
                     className="text-lg text-slate-200 leading-relaxed font-light tracking-wide bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[80px]"
                     placeholder="Describe this shot..."
                   />
 
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-xs font-bold text-indigo-300 uppercase tracking-wide">
-                      <Video className="w-3.5 h-3.5" />
-                      {shot.camera_angle}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                    {/* 🔥 可编辑的 Camera Angle */}
+                    <div className="space-y-1.5">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                        <Video className="w-3.5 h-3.5" />
+                        Camera Angle
+                      </label>
+                      <Input
+                        value={getFieldValue(shot.shot_number, 'camera_angle', shot.camera_angle)}
+                        onChange={(e) => handleFieldChange(shot.shot_number, 'camera_angle', e.target.value)}
+                        className="bg-slate-900/50 border-slate-700/50 focus:border-indigo-500/50 text-indigo-300 font-medium"
+                        placeholder="e.g. Close-up, Wide shot"
+                      />
                     </div>
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-500/5 border border-rose-500/10 text-xs font-bold text-rose-300 uppercase tracking-wide">
-                      <Smile className="w-3.5 h-3.5" />
-                      {shot.mood}
+
+                    {/* 🔥 可编辑的 Mood */}
+                    <div className="space-y-1.5">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                        <Smile className="w-3.5 h-3.5" />
+                        Mood
+                      </label>
+                      <Input
+                        value={getFieldValue(shot.shot_number, 'mood', shot.mood)}
+                        onChange={(e) => handleFieldChange(shot.shot_number, 'mood', e.target.value)}
+                        className="bg-slate-900/50 border-slate-700/50 focus:border-rose-500/50 text-rose-300 font-medium"
+                        placeholder="e.g. Tense, Joyful"
+                      />
                     </div>
-                    {shot.characters && shot.characters.length > 0 && (
+                  </div>
+
+                  {/* 角色信息（只读） */}
+                  {shot.characters && shot.characters.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-wide">
                         <Users className="w-3.5 h-3.5" />
                         {shot.characters.join(', ')}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -519,14 +555,27 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       </div>
 
       {/* Confirm Action */}
-      <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent flex justify-center pt-8 pb-8 z-10">
-        <Button
-          onClick={handleConfirm}
-          size="lg"
-          className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105"
-        >
-          Confirm & Continue
-        </Button>
+      <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-8 pb-8 z-10">
+        {/* 🔥 提示：有未保存修改时显示提醒 */}
+        {hasUnsavedChanges && (
+          <div className="flex justify-center mb-3">
+            <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm text-blue-300 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Your changes will be automatically saved when you continue</span>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-center">
+          <Button
+            onClick={handleConfirm}
+            size="lg"
+            className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105"
+          >
+            {hasUnsavedChanges ? 'Save & Continue' : 'Confirm & Continue'}
+          </Button>
+        </div>
       </div>
     </div>
   )

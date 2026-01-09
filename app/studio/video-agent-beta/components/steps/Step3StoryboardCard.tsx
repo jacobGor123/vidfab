@@ -90,7 +90,7 @@ export function Step3StoryboardCard({
 
     setIsShowingConfirm(true)
     const confirmed = await showConfirm(
-      'The current image will be replaced.',
+      'The current image will be replaced. Your field edits will be saved.',
       {
         title: 'Regenerate Storyboard',
         confirmText: 'Regenerate',
@@ -100,7 +100,7 @@ export function Step3StoryboardCard({
     setIsShowingConfirm(false)
 
     if (confirmed) {
-      // 🔥 如果有编辑字段，将其序列化为 JSON 字符串
+      // 🔥 如果有编辑字段，传递给重新生成API（会更新script_analysis）
       if (editFields) {
         const customPrompt = JSON.stringify(editFields)
         onUpdatePrompt(item.shot_number, customPrompt)
