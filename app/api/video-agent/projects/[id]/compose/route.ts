@@ -260,7 +260,7 @@ async function composeVideoAsync(
     }
 
     // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 旁白/音乐 + 字幕）
-    const finalVideoUrl = await concatenateVideosWithShotstack(videoUrls, {
+    const videoMetadata = await concatenateVideosWithShotstack(videoUrls, {
       aspectRatio: project.aspect_ratio || '16:9',
       clipDurations,
       backgroundMusicUrl,
@@ -274,7 +274,9 @@ async function composeVideoAsync(
       .update({
         status: 'completed',
         step_6_status: 'completed',
-        final_video_url: finalVideoUrl,
+        final_video_url: videoMetadata.url,
+        final_video_file_size: videoMetadata.fileSize,
+        final_video_resolution: videoMetadata.resolution,
         final_video_storage_path: `shotstack:${projectId}`,
         completed_at: new Date().toISOString()
       } as any)

@@ -184,8 +184,31 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     }
   }
 
-  const handleDownload = () => {
-    if (composeStatus.finalVideo?.url) {
+  const handleDownload = async () => {
+    if (!composeStatus.finalVideo?.url) return
+
+    try {
+      // 使用 fetch + Blob 方式下载，可以绕过跨域限制（Supabase CDN）
+      const response = await fetch(composeStatus.finalVideo.url)
+      if (!response.ok) throw new Error('Failed to fetch video')
+
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+
+      // 创建隐藏的 <a> 标签触发下载
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `vidfab-video-${project.id}.mp4`
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // 释放 Blob URL
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100)
+    } catch (err) {
+      console.error('Failed to download video:', err)
+      // 降级方案：如果 fetch 失败，直接打开新标签页
       window.open(composeStatus.finalVideo.url, '_blank')
     }
   }

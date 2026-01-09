@@ -45,6 +45,16 @@ export interface NarrationAudioClip {
 }
 
 /**
+ * Shotstack 视频元数据
+ */
+export interface VideoMetadata {
+  url: string
+  fileSize: number      // 文件大小（字节）
+  resolution: string    // 分辨率，如 "1920x1080"
+  duration: number      // 时长（秒）
+}
+
+/**
  * 使用 Shotstack API 拼接视频
  */
 export async function concatenateVideosWithShotstack(
@@ -56,7 +66,7 @@ export async function concatenateVideosWithShotstack(
     subtitleUrl?: string // SRT 字幕 URL（旁白模式）
     narrationAudioClips?: NarrationAudioClip[] // 旁白音频片段（旁白模式）
   } = {}
-): Promise<string> {
+): Promise<VideoMetadata> {
   const apiKey = process.env.SHOTSTACK_API_KEY
   const apiUrl = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/edit/v1'
 
@@ -202,10 +212,10 @@ export async function concatenateVideosWithShotstack(
 
     // 步骤 2: 轮询渲染状态
     console.log('[Shotstack] ⏳ 等待渲染完成...')
-    const videoUrl = await pollRenderStatus(apiUrl, apiKey, renderId)
+    const metadata = await pollRenderStatus(apiUrl, apiKey, renderId)
 
-    console.log('[Shotstack] ✅ 视频合成完成:', videoUrl)
-    return videoUrl
+    console.log('[Shotstack] ✅ 视频合成完成:', metadata)
+    return metadata
 
   } catch (error: any) {
     console.error('[Shotstack] ❌ 视频合成失败:', error.message)
@@ -222,7 +232,7 @@ async function pollRenderStatus(
   renderId: string,
   maxAttempts: number = 60, // 最多等待 5 分钟（每 5 秒检查一次）
   intervalMs: number = 5000
-): Promise<string> {
+): Promise<VideoMetadata> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const statusResponse = await fetch(`${apiUrl}/render/${renderId}`, {
@@ -238,11 +248,20 @@ async function pollRenderStatus(
       const statusData = await statusResponse.json()
       const status = statusData.response?.status
       const url = statusData.response?.url
+      const size = statusData.response?.size
+      const width = statusData.response?.width
+      const height = statusData.response?.height
+      const duration = statusData.response?.duration
 
       console.log(`[Shotstack] 📊 渲染进度 (${attempt}/${maxAttempts}):`, status)
 
       if (status === 'done' && url) {
-        return url
+        return {
+          url,
+          fileSize: size || 0,
+          resolution: width && height ? `${width}x${height}` : '1920x1080',
+          duration: duration || 0
+        }
       }
 
       if (status === 'failed') {
@@ -281,7 +300,7 @@ export async function addAudioToVideoWithShotstack(
     audioVolume?: number
     videoDuration?: number
   } = {}
-): Promise<string> {
+): Promise<VideoMetadata> {
   console.warn('[Shotstack] ⚠️ addAudioToVideoWithShotstack is deprecated. Use backgroundMusicUrl in concatenateVideosWithShotstack instead.')
 
   // 直接调用 concatenateVideosWithShotstack
