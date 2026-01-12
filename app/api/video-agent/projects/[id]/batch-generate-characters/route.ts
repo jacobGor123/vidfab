@@ -154,8 +154,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
             const { data: updatedChar, error: updateError } = await supabaseAdmin
               .from('project_characters')
               .update({
-                source: 'ai_generate',
-                updated_at: new Date().toISOString()
+                source: 'ai_generate'
+                // 移除 updated_at：project_characters 表中没有此字段
               } as any)
               .eq('id', existingChar.id)
               .select('id')

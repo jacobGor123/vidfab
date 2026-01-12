@@ -94,14 +94,20 @@ export const GET = withAuth(async (request, { params, userId }) => {
     }
 
     // 直接返回数组，字段名使用下划线（匹配数据库和前端）
+    // 🔥 优先使用 CDN URL (cdn_url → image_url_external → image_url)
     return NextResponse.json({
       success: true,
       data: storyboards.map(sb => ({
         id: sb.id,
         shot_number: sb.shot_number,
-        image_url: sb.image_url,
+        image_url: sb.cdn_url || sb.image_url_external || sb.image_url,  // 优先使用 CDN URL
+        image_url_external: sb.image_url_external,
+        cdn_url: sb.cdn_url,
+        storage_path: sb.storage_path,
+        storage_status: sb.storage_status,
+        file_size: sb.file_size,
         status: sb.status,
-        task_id: sb.task_id,
+        seedream_task_id: sb.seedream_task_id,  // 修复：使用正确的字段名
         error_message: sb.error_message,
         created_at: sb.created_at,
         updated_at: sb.updated_at

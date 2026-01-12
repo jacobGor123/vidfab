@@ -260,6 +260,14 @@ export class VideoQueueManager {
           result = await this.processStoryboardGeneration(job)
           break
 
+        case 'storyboard_download':
+          result = await this.processStoryboardDownload(job)
+          break
+
+        case 'video_clip_download':
+          result = await this.processVideoClipDownload(job)
+          break
+
         default:
           throw new Error(`Unknown job type: ${job.name}`)
       }
@@ -710,6 +718,114 @@ export class VideoQueueManager {
 
     } catch (error) {
       console.error(`❌ Storyboard generation failed for project ${jobData.projectId}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Process storyboard download job
+   * 下载分镜图到 Supabase Storage
+   */
+  private async processStoryboardDownload(job: Job): Promise<any> {
+    const { VideoAgentStorageManager } = await import('../services/video-agent/storage-manager')
+    const jobData = job.data as import('./types').StoryboardDownloadJobData
+
+    try {
+      console.log('[Queue] Starting storyboard download', {
+        projectId: jobData.projectId,
+        shotNumber: jobData.shotNumber,
+        externalUrl: jobData.externalUrl
+      })
+
+      await job.updateProgress({
+        percent: 10,
+        message: `Downloading storyboard shot ${jobData.shotNumber}...`
+      })
+
+      // 下载并存储分镜图
+      const result = await VideoAgentStorageManager.downloadAndStoreStoryboard(
+        jobData.userId,
+        jobData.projectId,
+        jobData.shotNumber,
+        jobData.externalUrl
+      )
+
+      await job.updateProgress({
+        percent: 100,
+        message: 'Download completed'
+      })
+
+      console.log('[Queue] Storyboard download completed', {
+        projectId: jobData.projectId,
+        shotNumber: jobData.shotNumber,
+        cdnUrl: result.cdnUrl
+      })
+
+      return {
+        downloaded: true,
+        projectId: jobData.projectId,
+        shotNumber: jobData.shotNumber,
+        storagePath: result.storagePath,
+        cdnUrl: result.cdnUrl,
+        fileSize: result.fileSize
+      }
+
+    } catch (error) {
+      console.error(`❌ Storyboard download failed for project ${jobData.projectId}, shot ${jobData.shotNumber}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Process video clip download job
+   * 下载视频片段到 Supabase Storage
+   */
+  private async processVideoClipDownload(job: Job): Promise<any> {
+    const { VideoAgentStorageManager } = await import('../services/video-agent/storage-manager')
+    const jobData = job.data as import('./types').VideoClipDownloadJobData
+
+    try {
+      console.log('[Queue] Starting video clip download', {
+        projectId: jobData.projectId,
+        shotNumber: jobData.shotNumber,
+        externalUrl: jobData.externalUrl
+      })
+
+      await job.updateProgress({
+        percent: 10,
+        message: `Downloading video clip shot ${jobData.shotNumber}...`
+      })
+
+      // 下载并存储视频片段
+      const result = await VideoAgentStorageManager.downloadAndStoreVideoClip(
+        jobData.userId,
+        jobData.projectId,
+        jobData.shotNumber,
+        jobData.externalUrl
+      )
+
+      await job.updateProgress({
+        percent: 100,
+        message: 'Download completed'
+      })
+
+      console.log('[Queue] Video clip download completed', {
+        projectId: jobData.projectId,
+        shotNumber: jobData.shotNumber,
+        cdnUrl: result.cdnUrl
+      })
+
+      return {
+        downloaded: true,
+        projectId: jobData.projectId,
+        shotNumber: jobData.shotNumber,
+        storagePath: result.storagePath,
+        cdnUrl: result.cdnUrl,
+        fileSize: result.fileSize
+      }
+
+    } catch (error) {
+      console.error(`❌ Video clip download failed for project ${jobData.projectId}, shot ${jobData.shotNumber}:`, error)
       throw error
     }
   }
