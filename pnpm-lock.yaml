@@ -209,6 +209,9 @@ importers:
       ioredis:
         specifier: ^5.7.0
         version: 5.8.0
+      jsonrepair:
+        specifier: ^3.13.1
+        version: 3.13.1
       lucide-react:
         specifier: ^0.454.0
         version: 0.454.0(react@18.3.1)
@@ -3932,6 +3935,10 @@ packages:
 
   json-stringify-safe@5.0.1:
     resolution: {integrity: sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA==}
+
+  jsonrepair@3.13.1:
+    resolution: {integrity: sha512-WJeiE0jGfxYmtLwBTEk8+y/mYcaleyLXWaqp5bJu0/ZTSeG0KQq/wWQ8pmnkKenEdN6pdnn6QtcoSUkbqDHWNw==}
+    hasBin: true
 
   jwa@2.0.1:
     resolution: {integrity: sha512-hRF04fqJIP8Abbkq5NKGN0Bbr3JxlQ+qhZufXVr0DvujKy93ZCbXZMHDL4EOtodSbCWxOqR8MS1tXA5hwqCXDg==}
@@ -9651,6 +9658,8 @@ snapshots:
       ts-algebra: 2.0.0
 
   json-stringify-safe@5.0.1: {}
+
+  jsonrepair@3.13.1: {}
 
   jwa@2.0.1:
     dependencies:

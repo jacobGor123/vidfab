@@ -230,5 +230,15 @@ export function cleanJsonResponse(content: string): string {
   cleanContent = cleanContent.replace(/\/\*[\s\S]*?\*\//g, '')  // 多行注释
   cleanContent = cleanContent.replace(/\/\/.*/g, '')  // 单行注释
 
+  // 🔥 策略4：使用 jsonrepair 库自动修复 JSON 语法错误
+  // 这个库可以处理：缺少逗号、引号、括号不匹配等问题
+  try {
+    const { jsonrepair } = require('jsonrepair')
+    cleanContent = jsonrepair(cleanContent)
+  } catch (repairError) {
+    // 如果 jsonrepair 失败，继续使用原来的清理结果
+    console.warn('[Analysis Utils] JSON repair failed, using basic cleaning:', (repairError as Error).message)
+  }
+
   return cleanContent.trim()
 }
