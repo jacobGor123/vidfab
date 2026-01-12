@@ -10,6 +10,8 @@ export type JobType =
   | 'cleanup_temp'        // Clean up temporary files
   | 'update_quota'        // Update user storage quota
   | 'storyboard_generation'  // Generate storyboards for video-agent projects
+  | 'storyboard_download'    // Download storyboard image to Supabase Storage
+  | 'video_clip_download'    // Download video clip to Supabase Storage
 
 // Job status values
 export type JobStatus =
@@ -101,6 +103,20 @@ export interface StoryboardGenerationJobData extends BaseJobData {
   aspectRatio: '16:9' | '9:16'
 }
 
+export interface StoryboardDownloadJobData extends BaseJobData {
+  type: 'storyboard_download'
+  projectId: string
+  shotNumber: number
+  externalUrl: string
+}
+
+export interface VideoClipDownloadJobData extends BaseJobData {
+  type: 'video_clip_download'
+  projectId: string
+  shotNumber: number
+  externalUrl: string
+}
+
 // Union type for all job data
 export type VideoJobData =
   | DownloadVideoJobData
@@ -108,6 +124,8 @@ export type VideoJobData =
   | CleanupTempJobData
   | UpdateQuotaJobData
   | StoryboardGenerationJobData
+  | StoryboardDownloadJobData
+  | VideoClipDownloadJobData
 
 // Job configuration
 export interface JobConfig {

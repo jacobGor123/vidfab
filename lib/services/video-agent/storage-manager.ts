@@ -1,0 +1,261 @@
+/**
+ * Video Agent Storage Manager
+ * 处理分镜图和视频片段的下载、上传到 Supabase Storage
+ */
+
+import { supabaseAdmin } from '@/lib/supabase'
+import { STORAGE_CONFIG } from '@/lib/storage'
+import fetch from 'node-fetch'
+
+export class VideoAgentStorageManager {
+  /**
+   * 下载分镜图并上传到 Supabase Storage
+   */
+  static async downloadAndStoreStoryboard(
+    userId: string,
+    projectId: string,
+    shotNumber: number,
+    externalUrl: string
+  ) {
+    try {
+      console.log(`[Storage Manager] 📥 Downloading storyboard shot ${shotNumber}...`)
+
+      // 1. 下载图片
+      const response = await fetch(externalUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.statusText}`)
+      }
+
+      const buffer = await response.buffer()
+      const fileSize = buffer.length
+
+      console.log(`[Storage Manager] Downloaded ${fileSize} bytes`)
+
+      // 2. 生成存储路径
+      const storagePath = STORAGE_CONFIG.paths.getVideoAgentStoryboardPath(
+        userId,
+        projectId,
+        shotNumber
+      )
+
+      // 3. 上传到 Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from(STORAGE_CONFIG.buckets.images)
+        .upload(storagePath, buffer, {
+          contentType: 'image/jpeg',
+          upsert: true, // 覆盖已存在的文件
+        })
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`)
+      }
+
+      console.log(`[Storage Manager] ✅ Uploaded to: ${storagePath}`)
+
+      // 4. 获取公开 URL（CDN）
+      const { data: urlData } = supabaseAdmin.storage
+        .from(STORAGE_CONFIG.buckets.images)
+        .getPublicUrl(storagePath)
+
+      const cdnUrl = urlData.publicUrl
+
+      // 5. 更新数据库记录
+      const { error: updateError } = await supabaseAdmin
+        .from('project_storyboards')
+        .update({
+          image_url_external: externalUrl, // 保存原始外部 URL
+          storage_path: storagePath,
+          cdn_url: cdnUrl,
+          storage_status: 'completed',
+          file_size: fileSize,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('project_id', projectId)
+        .eq('shot_number', shotNumber)
+
+      if (updateError) {
+        console.error(`[Storage Manager] Failed to update database:`, updateError)
+        throw updateError
+      }
+
+      console.log(`[Storage Manager] ✅ Storyboard shot ${shotNumber} stored successfully`)
+
+      return {
+        success: true,
+        storagePath,
+        cdnUrl,
+        fileSize,
+      }
+    } catch (error) {
+      console.error(`[Storage Manager] ❌ Failed to store storyboard shot ${shotNumber}:`, error)
+
+      // 更新失败状态
+      await supabaseAdmin
+        .from('project_storyboards')
+        .update({
+          storage_status: 'failed',
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('project_id', projectId)
+        .eq('shot_number', shotNumber)
+
+      throw error
+    }
+  }
+
+  /**
+   * 下载视频片段并上传到 Supabase Storage
+   */
+  static async downloadAndStoreVideoClip(
+    userId: string,
+    projectId: string,
+    shotNumber: number,
+    externalUrl: string
+  ) {
+    try {
+      console.log(`[Storage Manager] 📥 Downloading video clip shot ${shotNumber}...`)
+
+      // 1. 下载视频
+      const response = await fetch(externalUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.statusText}`)
+      }
+
+      const buffer = await response.buffer()
+      const fileSize = buffer.length
+
+      console.log(`[Storage Manager] Downloaded ${(fileSize / 1024 / 1024).toFixed(2)} MB`)
+
+      // 2. 生成存储路径
+      const storagePath = STORAGE_CONFIG.paths.getVideoAgentClipPath(
+        userId,
+        projectId,
+        shotNumber
+      )
+
+      // 3. 上传到 Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from(STORAGE_CONFIG.buckets.videos)
+        .upload(storagePath, buffer, {
+          contentType: 'video/mp4',
+          upsert: true,
+        })
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`)
+      }
+
+      console.log(`[Storage Manager] ✅ Uploaded to: ${storagePath}`)
+
+      // 4. 获取公开 URL（CDN）
+      const { data: urlData } = supabaseAdmin.storage
+        .from(STORAGE_CONFIG.buckets.videos)
+        .getPublicUrl(storagePath)
+
+      const cdnUrl = urlData.publicUrl
+
+      // 5. 更新数据库记录
+      const { error: updateError } = await supabaseAdmin
+        .from('project_video_clips')
+        .update({
+          video_url_external: externalUrl, // 保存原始外部 URL
+          storage_path: storagePath,
+          cdn_url: cdnUrl,
+          storage_status: 'completed',
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('project_id', projectId)
+        .eq('shot_number', shotNumber)
+
+      if (updateError) {
+        console.error(`[Storage Manager] Failed to update database:`, updateError)
+        throw updateError
+      }
+
+      console.log(`[Storage Manager] ✅ Video clip shot ${shotNumber} stored successfully`)
+
+      return {
+        success: true,
+        storagePath,
+        cdnUrl,
+        fileSize,
+      }
+    } catch (error) {
+      console.error(`[Storage Manager] ❌ Failed to store video clip shot ${shotNumber}:`, error)
+
+      // 更新失败状态
+      await supabaseAdmin
+        .from('project_video_clips')
+        .update({
+          storage_status: 'failed',
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('project_id', projectId)
+        .eq('shot_number', shotNumber)
+
+      throw error
+    }
+  }
+
+  /**
+   * 批量下载分镜图（带进度追踪）
+   */
+  static async batchDownloadStoryboards(
+    userId: string,
+    projectId: string,
+    storyboards: Array<{ shotNumber: number; externalUrl: string }>
+  ) {
+    const results = []
+
+    for (const sb of storyboards) {
+      try {
+        const result = await this.downloadAndStoreStoryboard(
+          userId,
+          projectId,
+          sb.shotNumber,
+          sb.externalUrl
+        )
+        results.push({ shotNumber: sb.shotNumber, success: true, ...result })
+      } catch (error) {
+        results.push({
+          shotNumber: sb.shotNumber,
+          success: false,
+          error: (error as Error).message,
+        })
+      }
+    }
+
+    return results
+  }
+
+  /**
+   * 批量下载视频片段（带进度追踪）
+   */
+  static async batchDownloadVideoClips(
+    userId: string,
+    projectId: string,
+    clips: Array<{ shotNumber: number; externalUrl: string }>
+  ) {
+    const results = []
+
+    for (const clip of clips) {
+      try {
+        const result = await this.downloadAndStoreVideoClip(
+          userId,
+          projectId,
+          clip.shotNumber,
+          clip.externalUrl
+        )
+        results.push({ shotNumber: clip.shotNumber, success: true, ...result })
+      } catch (error) {
+        results.push({
+          shotNumber: clip.shotNumber,
+          success: false,
+          error: (error as Error).message,
+        })
+      }
+    }
+
+    return results
+  }
+}

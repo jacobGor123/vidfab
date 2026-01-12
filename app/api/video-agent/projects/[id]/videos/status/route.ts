@@ -14,6 +14,87 @@ type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['R
 type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
 
 /**
+ * 触发视频片段下载到 Supabase Storage
+ * 策略：优先使用队列系统（可靠），降级为直接下载（快速）
+ */
+async function triggerVideoClipDownload(
+  projectId: string,
+  shotNumber: number,
+  externalUrl: string
+): Promise<void> {
+  try {
+    // 🔥 策略 1：尝试使用队列系统（推荐，但需要 Redis 可用）
+    try {
+      const { videoQueueManager } = await import('@/lib/queue/queue-manager')
+
+      // 获取项目信息以获取 userId
+      const { data: project } = await supabaseAdmin
+        .from('video_agent_projects')
+        .select('user_id')
+        .eq('id', projectId)
+        .single()
+
+      if (!project) {
+        throw new Error('Project not found')
+      }
+
+      await videoQueueManager.addJob(
+        'video_clip_download',
+        {
+          jobId: `video_clip_download_${projectId}_${shotNumber}`,
+          userId: project.user_id,
+          videoId: projectId,
+          projectId,
+          shotNumber,
+          externalUrl,
+          createdAt: new Date().toISOString()
+        },
+        {
+          priority: 'normal',
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 }
+        }
+      )
+
+      console.log(`[Download Trigger] Queued video clip download for shot ${shotNumber}`)
+      return
+    } catch (queueError) {
+      console.warn(`[Download Trigger] Queue unavailable, falling back to direct download:`, queueError)
+    }
+
+    // 🔥 策略 2：降级为直接下载（不依赖 Redis）
+    const { VideoAgentStorageManager } = await import('@/lib/services/video-agent/storage-manager')
+
+    // 获取项目信息
+    const { data: project } = await supabaseAdmin
+      .from('video_agent_projects')
+      .select('user_id')
+      .eq('id', projectId)
+      .single()
+
+    if (!project) {
+      throw new Error('Project not found')
+    }
+
+    // 后台异步下载（不阻塞）
+    VideoAgentStorageManager.downloadAndStoreVideoClip(
+      project.user_id,
+      projectId,
+      shotNumber,
+      externalUrl
+    ).then(() => {
+      console.log(`[Download Trigger] Direct download completed for video clip shot ${shotNumber}`)
+    }).catch(err => {
+      console.error(`[Download Trigger] Direct download failed for video clip shot ${shotNumber}:`, err)
+    })
+
+  } catch (error) {
+    console.error(`[Download Trigger] Failed to trigger video clip download for shot ${shotNumber}:`, error)
+    throw error
+  }
+}
+
+/**
  * 查询视频生成状态
  * GET /api/video-agent/projects/[id]/videos/status
  *
@@ -113,6 +194,8 @@ export const GET = withAuth(async (request, { params, userId }) => {
                 .update({
                   status: 'success',
                   video_url: statusResult.videoUrl,
+                  video_url_external: statusResult.videoUrl, // 保存外部 URL
+                  storage_status: 'pending', // 标记为待下载
                   updated_at: new Date().toISOString()
                 } as any)
                 .eq('id', clip.id)
@@ -121,6 +204,12 @@ export const GET = withAuth(async (request, { params, userId }) => {
                 console.error(`[Video Status API] Failed to update clip ${clip.shot_number}:`, updateError)
               } else {
                 console.log(`[Video Status API] Successfully updated clip ${clip.shot_number} to success`)
+
+                // 🔥 触发下载到 Supabase Storage（后台异步）
+                triggerVideoClipDownload(projectId, clip.shot_number, statusResult.videoUrl)
+                  .catch(err => {
+                    console.error(`[Video Status API] Failed to trigger download for clip ${clip.shot_number}:`, err)
+                  })
               }
 
               return {
@@ -166,9 +255,19 @@ export const GET = withAuth(async (request, { params, userId }) => {
                 .update({
                   status: 'success',  // 修复：使用 'success' 而不是 'completed'
                   video_url: videoUrl,
+                  video_url_external: videoUrl, // 保存外部 URL
+                  storage_status: 'pending', // 标记为待下载
                   updated_at: new Date().toISOString()
                 } as any)
                 .eq('id', clip.id)
+
+              // 🔥 触发下载到 Supabase Storage（后台异步）
+              if (videoUrl) {
+                triggerVideoClipDownload(projectId, clip.shot_number, videoUrl)
+                  .catch(err => {
+                    console.error(`[Video Status API] Failed to trigger download for clip ${clip.shot_number}:`, err)
+                  })
+              }
 
               return {
                 ...clip,
