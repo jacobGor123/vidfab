@@ -222,9 +222,13 @@ export const GET = withAuth(async (request, { params, userId }) => {
     }
 
     // 直接返回数组（匹配前端期望）
+    // 🔥 优先使用 CDN URL (cdn_url → video_url_external → video_url)
     return NextResponse.json({
       success: true,
-      data: clipsWithUpdatedStatus
+      data: clipsWithUpdatedStatus.map(clip => ({
+        ...clip,
+        video_url: clip.cdn_url || clip.video_url_external || clip.video_url  // 优先使用 CDN URL
+      }))
     })
 
   } catch (error) {

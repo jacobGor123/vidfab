@@ -224,34 +224,55 @@ export interface Database {
           id: string
           project_id: string
           shot_number: number
-          image_url: string
+          image_url: string | null
+          image_storage_path: string | null
+          generation_attempts: number
           status: string
-          task_id: string | null
           error_message: string | null
+          seedream_task_id: string | null
           created_at: string
           updated_at: string
+          image_url_external: string | null
+          storage_path: string | null
+          cdn_url: string | null
+          storage_status: string | null
+          file_size: number | null
         }
         Insert: {
           id?: string
           project_id: string
           shot_number: number
-          image_url: string
+          image_url?: string | null
+          image_storage_path?: string | null
+          generation_attempts?: number
           status?: string
-          task_id?: string | null
           error_message?: string | null
+          seedream_task_id?: string | null
           created_at?: string
           updated_at?: string
+          image_url_external?: string | null
+          storage_path?: string | null
+          cdn_url?: string | null
+          storage_status?: string | null
+          file_size?: number | null
         }
         Update: {
           id?: string
           project_id?: string
           shot_number?: number
-          image_url?: string
+          image_url?: string | null
+          image_storage_path?: string | null
+          generation_attempts?: number
           status?: string
-          task_id?: string | null
           error_message?: string | null
+          seedream_task_id?: string | null
           created_at?: string
           updated_at?: string
+          image_url_external?: string | null
+          storage_path?: string | null
+          cdn_url?: string | null
+          storage_status?: string | null
+          file_size?: number | null
         }
       }
       project_video_clips: {
@@ -259,40 +280,70 @@ export interface Database {
           id: string
           project_id: string
           shot_number: number
-          video_url: string
+          video_url: string | null
+          video_storage_path: string | null
+          duration: number | null
+          retry_count: number
           status: string
-          video_status: string | null
-          seedance_task_id: string | null
-          video_request_id: string | null
           error_message: string | null
+          seedance_task_id: string | null
           created_at: string
           updated_at: string
+          video_request_id: string | null
+          video_status: string | null
+          video_error: string | null
+          last_frame_url: string | null
+          last_frame_storage_path: string | null
+          video_url_external: string | null
+          storage_path: string | null
+          cdn_url: string | null
+          storage_status: string | null
         }
         Insert: {
           id?: string
           project_id: string
           shot_number: number
-          video_url: string
+          video_url?: string | null
+          video_storage_path?: string | null
+          duration?: number | null
+          retry_count?: number
           status?: string
-          video_status?: string | null
-          seedance_task_id?: string | null
-          video_request_id?: string | null
           error_message?: string | null
+          seedance_task_id?: string | null
           created_at?: string
           updated_at?: string
+          video_request_id?: string | null
+          video_status?: string | null
+          video_error?: string | null
+          last_frame_url?: string | null
+          last_frame_storage_path?: string | null
+          video_url_external?: string | null
+          storage_path?: string | null
+          cdn_url?: string | null
+          storage_status?: string | null
         }
         Update: {
           id?: string
           project_id?: string
           shot_number?: number
-          video_url?: string
+          video_url?: string | null
+          video_storage_path?: string | null
+          duration?: number | null
+          retry_count?: number
           status?: string
-          video_status?: string | null
-          seedance_task_id?: string | null
-          video_request_id?: string | null
           error_message?: string | null
+          seedance_task_id?: string | null
           created_at?: string
           updated_at?: string
+          video_request_id?: string | null
+          video_status?: string | null
+          video_error?: string | null
+          last_frame_url?: string | null
+          last_frame_storage_path?: string | null
+          video_url_external?: string | null
+          storage_path?: string | null
+          cdn_url?: string | null
+          storage_status?: string | null
         }
       }
       blog_posts: {
