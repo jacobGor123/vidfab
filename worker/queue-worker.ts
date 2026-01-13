@@ -24,7 +24,7 @@ async function main() {
     // 启动 Worker
     await videoQueueManager.startWorker({
       onActive: (job) => {
-        console.log(`🔥 Processing job: ${job.type}`, {
+        console.log(`🔥 Processing job: ${(job as any).type || 'unknown'}`, {
           userId: job.userId,
           videoId: job.videoId,
           jobId: job.jobId
@@ -33,13 +33,13 @@ async function main() {
 
       onProgress: (job, progress) => {
         console.log(`⏳ Progress: ${progress.percent}% - ${progress.message}`, {
-          jobType: job.type,
+          jobType: (job as any).type || 'unknown',
           jobId: job.jobId
         })
       },
 
       onCompleted: (job, result) => {
-        console.log(`✅ Completed: ${job.type}`, {
+        console.log(`✅ Completed: ${(job as any).type || 'unknown'}`, {
           jobId: job.jobId,
           duration: result.duration,
           retries: result.retryCount
@@ -47,14 +47,14 @@ async function main() {
       },
 
       onFailed: (job, error) => {
-        console.error(`❌ Failed: ${job.type}`, {
+        console.error(`❌ Failed: ${(job as any).type || 'unknown'}`, {
           jobId: job.jobId,
           error: error.message
         })
       },
 
       onStalled: (job) => {
-        console.warn(`⚠️  Stalled: ${job.type}`, {
+        console.warn(`⚠️  Stalled: ${(job as any).type || 'unknown'}`, {
           jobId: job.jobId
         })
       }
