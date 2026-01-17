@@ -78,38 +78,20 @@ export function useCharacterGeneration({
             newStates[characterName].isGenerating = false
             newStates[characterName].error = undefined
           } else if (localImageUrl && !newStates[characterName].isGenerating) {
-            // ✅ 本地有图片但数据库还没有，且不在生成中
+            // 本地有图片但数据库还没有，且不在生成中
             // 这是正常情况（数据库同步延迟），保留本地图片即可
-            console.log(`[Character Generation] Keeping local image for ${characterName} (DB sync in progress)`)
-            // ✅ 不再设置 hasPendingSync，数据库同步是后台操作，不影响用户体验
           }
         }
       })
 
       setCharacterStates(newStates)
 
-      // 🔥 步骤 2: 检查所有本地角色状态（不仅仅是数据库中的）
+      // 检查所有本地角色状态
       const hasGenerating = Object.values(newStates).some(state => state.isGenerating)
 
-      // 🔍 调试日志：显示所有角色的状态
-      console.log('[Character Generation] Poll status check:', {
-        hasGenerating,
-        isPolling: isPollingRef.current,
-        characterStates: Object.entries(newStates).map(([name, state]) => ({
-          name,
-          isGenerating: state.isGenerating,
-          hasImage: !!state.imageUrl,
-          hasError: !!state.error
-        }))
-      })
-
-      // ✅ 轮询控制：只在轮询已启动的情况下检查是否停止
+      // 轮询控制：只在轮询已启动的情况下检查是否停止
       if (!hasGenerating && isPollingRef.current) {
-        console.log('[Character Generation] 🛑 Stopping polling - all generation completed')
         setIsPolling(false)
-      } else if (hasGenerating && !isPollingRef.current) {
-        // ⚠️ 这里不应该自动启动轮询！只有批量生成时才手动启动
-        console.warn('[Character Generation] ⚠️ Detected generating characters but polling not started. This should not happen for single generation.')
       }
     } catch (err) {
       console.error('[Character Generation] Failed to poll status:', err)
@@ -174,6 +156,11 @@ export function useCharacterGeneration({
 
   // 批量生成所有人物图片
   const handleBatchGenerate = async () => {
+    // 防止重复调用
+    if (isBatchGenerating) {
+      return
+    }
+
     setIsBatchGenerating(true)
     setError(null)
 
@@ -236,28 +223,64 @@ export function useCharacterGeneration({
     })
     setCharacterStates(newStates)
 
-    const data = await batchGenerateCharacters(project.id, { characterPrompts: promptsToGenerate })
-    const { results } = data
+    const data = await batchGenerateCharacters(project.id, { characterPrompts: promptsToGenerate }) as any
+    const results = data?.results || []
 
-    // 更新生成结果（临时状态，用于立即反馈）
+    // 更新生成结果
     const tempStates = { ...currentStates }
-    results.forEach((result: any) => {
-      if (tempStates[result.characterName]) {
-        tempStates[result.characterName].isGenerating = false
-        if (result.status === 'success') {
-          tempStates[result.characterName].imageUrl = result.imageUrl
-        } else {
-          tempStates[result.characterName].error = result.error
+    let allSuccess = true
+
+    if (results.length > 0) {
+      results.forEach((result: any) => {
+        if (tempStates[result.characterName]) {
+          tempStates[result.characterName].isGenerating = false
+          if (result.status === 'success' && result.imageUrl) {
+            tempStates[result.characterName].imageUrl = result.imageUrl
+          } else {
+            tempStates[result.characterName].error = result.error || 'Generation failed'
+            allSuccess = false
+          }
         }
-      }
-    })
+      })
+    } else {
+      // 如果没有返回结果，标记所有为失败
+      Object.keys(tempStates).forEach(key => {
+        if (tempStates[key].isGenerating) {
+          tempStates[key].isGenerating = false
+          tempStates[key].error = 'No results returned from API'
+          allSuccess = false
+        }
+      })
+    }
+
     setCharacterStates(tempStates)
 
-    // 🔥 启动智能轮询，自动同步数据库状态
-    // 轮询会持续检查数据库，直到所有角色都生成完成
-    // 这比固定延迟（如2秒）更可靠，能处理任何生成时长
-    setIsPolling(true)
-    console.log('[Character Generation] Started polling after batch generation')
+    // 只有在需要同步数据库状态时才启动轮询（例如需要刷新持久化的图片 URL）
+    // 如果所有结果都成功返回了，不需要轮询
+    if (allSuccess && results.length === promptsToGenerate.length) {
+      // 不需要轮询，所有图片都已生成成功
+    } else {
+      // 启动轮询来同步数据库状态
+      setIsPolling(true)
+
+      // 添加超时保护：15 秒后自动停止轮询
+      setTimeout(() => {
+        if (isPollingRef.current) {
+          setIsPolling(false)
+          // 清理仍在生成中的状态
+          setCharacterStates(prev => {
+            const updated = { ...prev }
+            Object.keys(updated).forEach(key => {
+              if (updated[key].isGenerating) {
+                updated[key].isGenerating = false
+                updated[key].error = 'Generation timeout'
+              }
+            })
+            return updated
+          })
+        }
+      }, 15000)
+    }
   }
 
   // 单个人物生成
@@ -285,9 +308,7 @@ export function useCharacterGeneration({
         throw new Error('No image URL returned from API')
       }
 
-      console.log(`[Character Generation] Image generated for ${characterName}:`, result.imageUrl)
-
-      // 🔥 立即更新本地状态（用户能看到图片）
+      // 立即更新本地状态
       setCharacterStates(prev => ({
         ...prev,
         [characterName]: {
@@ -312,21 +333,11 @@ export function useCharacterGeneration({
         })
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          console.error(`[Character Generation] Save API returned error:`, {
-            status: response.status,
-            error: errorData
-          })
-        } else {
-          console.log(`[Character Generation] Saved ${characterName} to database`)
+          // Silent fail - save error doesn't affect user experience
         }
       } catch (saveError) {
-        console.error(`[Character Generation] Failed to save ${characterName} to database:`, saveError)
-        // 不影响用户体验，只是数据库保存失败
+        // Silent fail - save error doesn't affect user experience
       }
-
-      // ✅ 单个生成是同步操作，已经有最终结果，不需要轮询
-      console.log(`[Character Generation] Single generation completed for ${characterName}, no polling needed`)
     } catch (err: any) {
       console.error(`[Character Generation] Failed to generate ${characterName}:`, err)
       setCharacterStates(prev => ({

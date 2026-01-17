@@ -89,7 +89,7 @@ docker logs vidfab-redis -f
 ## 🛑 停止服务
 
 - **统一开发环境**: 使用 `Ctrl+C` 优雅停止所有服务
-- **单独服务**: 使用各自的停止命令或 `docker-compose down`
+- **单独服务**: 使用各自的停止脚本
 
 ## 💡 开发建议
 

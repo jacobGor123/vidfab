@@ -4,7 +4,7 @@
  */
 
 import { Queue, Worker, Job } from 'bullmq'
-import { redisBullMQ } from '../redis-bullmq'
+import { redisBullMQ, redisBullMQWorker } from '../redis-bullmq'
 import {
   VideoJobData,
   JobType,
@@ -88,7 +88,7 @@ export class VideoQueueManager {
         QUEUE_CONFIG.name,
         async (job) => this.processJob(job),
         {
-          connection: redisBullMQ,
+          connection: redisBullMQWorker,  // 🔥 Worker 必须使用 maxRetriesPerRequest: null 的连接
           concurrency: QUEUE_CONFIG.concurrency,
           stalledInterval: 30000,
           maxStalledCount: 1,

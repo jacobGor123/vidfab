@@ -20,6 +20,7 @@ export interface Shot {
   mood: string                  // 情绪氛围
   duration_seconds: number      // 时长（秒）
   seed?: number                 // 可选：生成视频时的随机种子
+  video_prompt?: string         // 可选：视频生成提示词
 }
 
 /**

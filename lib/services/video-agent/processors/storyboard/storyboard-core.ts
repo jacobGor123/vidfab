@@ -26,47 +26,23 @@ export async function generateSingleStoryboard(
     // 合并所有文本描述
     const sceneText = `${shot.description} ${shot.character_action}`.toLowerCase()
 
-    // 为每个角色计算在场景中首次出现的位置
-    const charactersWithPosition = shot.characters.map(charName => {
-      const shortCharName = charName.split('(')[0].trim()
-      const position = sceneText.indexOf(shortCharName.toLowerCase())
-      return {
-        name: charName,
-        shortName: shortCharName,
-        position: position >= 0 ? position : 9999 // 如果没找到，放到最后
-      }
-    })
-
-    // 按照在场景中出现的位置排序
-    const sortedCharacters = charactersWithPosition.sort((a, b) => a.position - b.position)
-
-    // 按排序后的顺序提取参考图
-    const characterRefs = sortedCharacters
-      .flatMap(({ name: charName, shortName: shortCharName }) => {
-        // 🔥 使用简短名称进行模糊匹配（不区分大小写）
-        const char = characters.find(c => {
-          const shortConfigName = c.name.split('(')[0].trim()
-          return shortConfigName.toLowerCase() === shortCharName.toLowerCase()
-        })
-
-        if (!char) {
-          console.warn(`[Storyboard Core] Character "${charName}" not found in configs`, {
-            shotNumber: shot.shot_number,
-            shortName: shortCharName
-          })
-          return []
+    // 使用传入的 characters 配置（用户选择的角色）来提取参考图
+    const charactersWithRefs = characters
+      .filter(c => c.reference_images && c.reference_images.length > 0)
+      .map(c => {
+        const shortName = c.name.split('(')[0].trim()
+        const position = sceneText.indexOf(shortName.toLowerCase())
+        return {
+          name: c.name,
+          position: position >= 0 ? position : 9999,
+          refImage: c.reference_images[0]
         }
-
-        if (!char.reference_images || char.reference_images.length === 0) {
-          console.warn(`[Storyboard Core] Character "${charName}" has no reference images`, {
-            shotNumber: shot.shot_number
-          })
-          return []
-        }
-
-        // 每个角色只取第一张参考图（业务规则：每个角色只允许 1 张参考图）
-        return [char.reference_images[0]]
       })
+      // 按照在场景描述中出现的顺序排序
+      .sort((a, b) => a.position - b.position)
+
+    // 提取参考图
+    const characterRefs = charactersWithRefs.map(c => c.refImage)
 
     // 构建 prompt，传递是否有参考图的信息
     const hasReferenceImages = characterRefs.length > 0

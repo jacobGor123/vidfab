@@ -1,6 +1,6 @@
 /**
  * Video Agent Beta - 进度条组件
- * 显示 7 个步骤的完成进度，支持点击回溯
+ * 显示步骤的完成进度，支持新旧两种流程
  */
 
 'use client'
@@ -8,11 +8,20 @@
 interface ProgressBarProps {
   currentStep: number
   totalSteps: number
+  isNewProject?: boolean  // 新增：是否是新项目（3 步流程）
   stepStatuses?: Record<number, 'pending' | 'processing' | 'completed' | 'failed' | undefined>
   onStepClick?: (step: number) => void
 }
 
-const STEP_LABELS = [
+// 新流程（3 步）
+const NEW_STEP_LABELS = [
+  'Script & Setup',
+  'Video Generation',
+  'Final Composition'
+]
+
+// 旧流程（5 步）
+const OLD_STEP_LABELS = [
   'Script',
   'Characters',
   'Storyboard',
@@ -23,9 +32,12 @@ const STEP_LABELS = [
 export default function ProgressBar({
   currentStep,
   totalSteps,
+  isNewProject = true,  // 默认使用新流程
   stepStatuses = {},
   onStepClick
 }: ProgressBarProps) {
+  // 根据流程类型选择标签
+  const STEP_LABELS = isNewProject ? NEW_STEP_LABELS : OLD_STEP_LABELS
   // 调整步骤从 1 开始，显示时减 1
   const displayStep = currentStep - 1
 
@@ -124,10 +136,9 @@ export default function ProgressBar({
                     w-8 h-8 rounded-full border-2 flex items-center justify-center
                     transition-all duration-300 z-10
                     ${getStepColorClass(stepStatus, isCompleted, isCurrent)}
-                    ${
-                      isClickable
-                        ? 'cursor-pointer hover:scale-110 hover:shadow-lg active:scale-95'
-                        : 'cursor-not-allowed opacity-50'
+                    ${isClickable
+                      ? 'cursor-pointer hover:scale-110 hover:shadow-lg active:scale-95'
+                      : 'cursor-not-allowed opacity-50'
                     }
                   `}
                   title={

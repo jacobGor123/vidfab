@@ -185,6 +185,7 @@ export interface Database {
           duration_seconds: number
           storyboard_url: string | null
           video_url: string | null
+          video_prompt: string | null
           created_at: string
           updated_at: string
         }
@@ -200,6 +201,7 @@ export interface Database {
           duration_seconds: number
           storyboard_url?: string | null
           video_url?: string | null
+          video_prompt?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -215,6 +217,7 @@ export interface Database {
           duration_seconds?: number
           storyboard_url?: string | null
           video_url?: string | null
+          video_prompt?: string | null
           created_at?: string
           updated_at?: string
         }

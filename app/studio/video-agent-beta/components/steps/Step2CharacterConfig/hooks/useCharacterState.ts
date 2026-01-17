@@ -55,7 +55,18 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
 
         // 回填已保存的数据
         if (data && Array.isArray(data)) {
-          data.forEach((char: any) => {
+          // 🔥 去重：按 character_name 去重，保留最后一个
+          const uniqueData = data.reduce((acc: any[], char: any) => {
+            const existingIndex = acc.findIndex((c: any) => c.character_name === char.character_name)
+            if (existingIndex >= 0) {
+              acc[existingIndex] = char
+            } else {
+              acc.push(char)
+            }
+            return acc
+          }, [])
+
+          uniqueData.forEach((char: any) => {
             dbCharacterNames.push(char.character_name)
 
             // 兼容性处理：如果数据库中的角色名在 script_analysis 中不存在
@@ -113,41 +124,51 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
     dbCharacterNames: string[],
     initialStates: Record<string, CharacterState>
   ) => {
-    console.log('[useCharacterState] 🔧 Auto-syncing character names from database')
-
     const nameMapping: Record<string, string> = {}
     characters.forEach((oldName, index) => {
       const newName = dbCharacterNames[index]
       if (newName && oldName !== newName) {
         nameMapping[oldName] = newName
-        // 更新 initialStates 的 name 字段
-        if (initialStates[oldName]) {
-          initialStates[oldName].name = newName
-        }
       }
     })
 
-    if (Object.keys(nameMapping).length > 0 && project.script_analysis) {
-      const updatedAnalysis = { ...project.script_analysis }
+    // 🔥 修复：不仅更新 name 属性，还要重新构建对象的 key
+    if (Object.keys(nameMapping).length > 0) {
+      // 重新构建 initialStates，使用新的 key
+      const newInitialStates: Record<string, CharacterState> = {}
+      Object.entries(initialStates).forEach(([oldKey, state]) => {
+        const newKey = nameMapping[oldKey] || oldKey
+        newInitialStates[newKey] = {
+          ...state,
+          name: newKey  // 确保 name 也同步更新
+        }
+      })
 
-      // 更新全局角色列表
-      updatedAnalysis.characters = updatedAnalysis.characters.map(
-        name => nameMapping[name] || name
-      )
+      // 清空并重新填充 initialStates
+      Object.keys(initialStates).forEach(key => delete initialStates[key])
+      Object.assign(initialStates, newInitialStates)
 
-      // 更新每个 shot 的 characters 数组
-      updatedAnalysis.shots = updatedAnalysis.shots.map(shot => ({
-        ...shot,
-        characters: shot.characters.map(name => nameMapping[name] || name)
-      }))
+      if (project.script_analysis) {
+        const updatedAnalysis = { ...project.script_analysis }
 
-      // 保存到数据库
-      try {
-        await updateProject(project.id, { script_analysis: updatedAnalysis })
-        onUpdate({ script_analysis: updatedAnalysis })
-        console.log('[useCharacterState] ✅ Auto-synced character names:', nameMapping)
-      } catch (error) {
-        console.error('[useCharacterState] Failed to auto-sync:', error)
+        // 更新全局角色列表
+        updatedAnalysis.characters = updatedAnalysis.characters.map(
+          name => nameMapping[name] || name
+        )
+
+        // 更新每个 shot 的 characters 数组
+        updatedAnalysis.shots = updatedAnalysis.shots.map(shot => ({
+          ...shot,
+          characters: shot.characters.map(name => nameMapping[name] || name)
+        }))
+
+        // 保存到数据库
+        try {
+          await updateProject(project.id, { script_analysis: updatedAnalysis })
+          onUpdate({ script_analysis: updatedAnalysis })
+        } catch (error) {
+          // Silent fail - auto-sync is best effort
+        }
       }
     }
   }

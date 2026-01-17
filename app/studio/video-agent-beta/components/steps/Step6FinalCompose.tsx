@@ -37,6 +37,16 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('va_debug')
 
+  // 🔥 判断是否是新项目（3 步流程）
+  const isNewProject = (() => {
+    const cutoffDate = new Date('2026-01-10T00:00:00Z')
+    const createdAt = new Date(project.created_at)
+    return createdAt >= cutoffDate
+  })()
+
+  // 🔥 新流程最后一步是 3，旧流程是 5
+  const finalStepNumber = isNewProject ? 3 : 5
+
   const [isComposing, setIsComposing] = useState(false)
   const [composeStatus, setComposeStatus] = useState<ComposeStatus>({ status: 'pending' })
   const [error, setError] = useState<string | null>(null)
@@ -94,7 +104,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
         onUpdate({
           final_video: data.finalVideo,
           status: 'completed',
-          current_step: 5  // 修复：现在是步骤 5（Final Composition）
+          current_step: finalStepNumber  // 新流程是 3，旧流程是 5
         })
       } else if (data.status === 'failed') {
         setIsComposing(false)
@@ -187,10 +197,18 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   const handleDownload = async () => {
     if (!composeStatus.finalVideo?.url) return
 
+    const videoUrl = composeStatus.finalVideo.url
+
     try {
-      // 使用 fetch + Blob 方式下载，可以绕过跨域限制（Supabase CDN）
-      const response = await fetch(composeStatus.finalVideo.url)
-      if (!response.ok) throw new Error('Failed to fetch video')
+      // 方法1：尝试直接 fetch（对于同源或允许 CORS 的 URL）
+      const response = await fetch(videoUrl, {
+        mode: 'cors',
+        credentials: 'omit'
+      })
+
+      if (!response.ok) {
+        throw new Error(`Fetch failed with status ${response.status}`)
+      }
 
       const blob = await response.blob()
       const blobUrl = URL.createObjectURL(blob)
@@ -205,11 +223,22 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
       document.body.removeChild(link)
 
       // 释放 Blob URL
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 100)
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
     } catch (err) {
-      console.error('Failed to download video:', err)
-      // 降级方案：如果 fetch 失败，直接打开新标签页
-      window.open(composeStatus.finalVideo.url, '_blank')
+      // 方法2：尝试使用 download 属性的链接（可能被浏览器阻止）
+      try {
+        const link = document.createElement('a')
+        link.href = videoUrl
+        link.download = `vidfab-video-${project.id}.mp4`
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } catch (linkErr) {
+        // 最后降级方案：直接打开新标签页
+        window.open(videoUrl, '_blank')
+      }
     }
   }
 
@@ -262,7 +291,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
 
   // 🔥 优先级2：初始状态/未开始合成（pending 或其他未知状态）
   if (composeStatus.status === 'pending' ||
-      (composeStatus.status !== 'processing' && composeStatus.status !== 'completed')) {
+    (composeStatus.status !== 'processing' && composeStatus.status !== 'completed')) {
     return (
       <div className="space-y-8">
         {/* Composition Summary */}
@@ -404,26 +433,6 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
           </CardContent>
         </Card>
 
-        {/* 视频信息 */}
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-sm font-semibold mb-4">Video Details</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold">{duration}s</div>
-                <div className="text-xs text-muted-foreground mt-1">Duration</div>
-              </div>
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold">{resolution}</div>
-                <div className="text-xs text-muted-foreground mt-1">Resolution</div>
-              </div>
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold">{fileSizeMB}MB</div>
-                <div className="text-xs text-muted-foreground mt-1">File Size</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* 操作按钮 */}
         <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent flex justify-center items-center gap-4 pt-8 pb-8 z-10">

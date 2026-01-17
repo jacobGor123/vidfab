@@ -219,8 +219,52 @@ export async function batchGenerateStoryboardsWithProgress(
           currentShot: shot.shot_number
         })
 
-        // 生成分镜
-        const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
+        // 🔥 增强的角色匹配逻辑
+        // 优先使用 shot.characters，如果为空则从 description/character_action 中提取
+        let shotCharacters = shot.characters || []
+
+        // 🔥 备用方案：如果 shot.characters 为空，从描述文本中提取角色
+        if (shotCharacters.length === 0 && characters.length > 0) {
+          const sceneText = `${shot.description} ${shot.character_action}`.toLowerCase()
+
+          // 检查每个已配置角色是否在场景描述中被提及
+          const mentionedCharacters = characters
+            .filter(char => {
+              const shortName = char.name.split('(')[0].trim().toLowerCase()
+              return sceneText.includes(shortName)
+            })
+            .map(char => char.name)
+
+          if (mentionedCharacters.length > 0) {
+            shotCharacters = mentionedCharacters
+            console.log('[Storyboard Batch Generator] 🔍 Extracted characters from description for shot', shot.shot_number, mentionedCharacters)
+          }
+        }
+
+        let relevantCharacters = characters.filter(char => {
+          // 使用模糊匹配（不区分大小写，只匹配简短名称）
+          const shortCharName = char.name.split('(')[0].trim().toLowerCase()
+          return shotCharacters.some(shotChar => {
+            const shortShotChar = shotChar.split('(')[0].trim().toLowerCase()
+            return shortCharName === shortShotChar
+          })
+        })
+
+        // 🔥 第三层备用：如果仍然没有匹配到任何角色，使用所有角色
+        // 这样可以保证生成的图像风格至少与参考图一致
+        if (relevantCharacters.length === 0 && characters.length > 0) {
+          relevantCharacters = characters
+          console.log('[Storyboard Batch Generator] ⚠️ No character match for shot', shot.shot_number, '- using all characters')
+        }
+
+        console.log('[Storyboard Batch Generator] Characters for shot', shot.shot_number, {
+          allCharacters: characters.map(c => c.name),
+          shotCharacters,
+          relevantCharacters: relevantCharacters.map(c => c.name)
+        })
+
+        // 生成分镜（只传递相关角色）
+        const result = await generateSingleStoryboard(shot, relevantCharacters, style, aspectRatio)
 
         // 立即更新数据库
         await supabaseAdmin
@@ -331,8 +375,8 @@ export async function batchGenerateStoryboardsWithProgress(
   onProgress?.({
     percent: 100,
     message: finalStatus === 'completed' ? '全部分镜生成完成！' :
-             finalStatus === 'failed' ? '分镜生成失败' :
-             `分镜生成完成（${successCount} 成功，${failedCount} 失败）`,
+      finalStatus === 'failed' ? '分镜生成失败' :
+        `分镜生成完成（${successCount} 成功，${failedCount} 失败）`,
     completed: successCount,
     failed: failedCount,
     total: shots.length

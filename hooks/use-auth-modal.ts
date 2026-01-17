@@ -58,12 +58,15 @@ export function useAuthModal(
   const requireAuth = useCallback(async (
     action: () => void | Promise<void>
   ): Promise<boolean> => {
-    // 如果正在加载登录状态，等待
+    // 如果正在加载登录状态，等待一小段时间让 session 加载完成
+    // 避免在 session 还在加载时就判断用户未登录
     if (isLoading) {
-      return false
+      // 短暂等待，让 session 有机会加载完成
+      await new Promise(resolve => setTimeout(resolve, 500))
     }
 
-    // 如果已经登录，直接执行操作
+    // 再次检查认证状态（此时 session 应该已经加载完成了）
+    // 使用最新的 session 数据进行判断
     if (isAuthenticated) {
       try {
         await action()

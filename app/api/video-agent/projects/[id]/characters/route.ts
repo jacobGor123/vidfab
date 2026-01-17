@@ -154,26 +154,24 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
       insertedChars.push(characterRecord)
 
-      // 🔥 插入新的参考图（使用 upsert 避免并发冲突）
+      // 插入新的参考图（使用 delete + insert 策略，确保新图片能正确保存）
       if (char.referenceImages && char.referenceImages.length > 0) {
+        // 先删除该角色的所有旧参考图
+        await supabaseAdmin
+          .from('character_reference_images')
+          .delete()
+          .eq('character_id', characterRecord.id)
+
+        // 然后插入新的参考图
         const refImagesToInsert = char.referenceImages.map((url, index) => ({
           character_id: characterRecord.id,
           image_url: url,
           image_order: index + 1
         }))
 
-        const { error: refImagesError } = await supabaseAdmin
+        await supabaseAdmin
           .from('character_reference_images')
-          .upsert(refImagesToInsert, {
-            onConflict: 'character_id,image_order',
-            ignoreDuplicates: false  // 如果存在则更新，而不是忽略
-          })
-
-        if (refImagesError) {
-          console.error(`[Video Agent] Failed to upsert reference images for ${char.name}:`, refImagesError)
-        } else {
-          console.log(`[Video Agent] Successfully saved ${refImagesToInsert.length} reference images for ${char.name}`)
-        }
+          .insert(refImagesToInsert)
       }
     }
 
@@ -257,9 +255,28 @@ export const GET = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // 🔥 去重：按 character_name 去重，保留最新的记录（最后一个）
+    const uniqueCharacters = (characters || []).reduce((acc: any[], char: any) => {
+      const existingIndex = acc.findIndex((c: any) => c.character_name === char.character_name)
+      if (existingIndex >= 0) {
+        // 已存在，用新的替换（保留最新的）
+        acc[existingIndex] = char
+      } else {
+        acc.push(char)
+      }
+      return acc
+    }, [])
+
+    if (uniqueCharacters.length < (characters || []).length) {
+      console.warn('[Video Agent] Detected duplicate characters in DB:', {
+        original: (characters || []).length,
+        unique: uniqueCharacters.length
+      })
+    }
+
     return NextResponse.json({
       success: true,
-      data: characters || []
+      data: uniqueCharacters
     })
 
   } catch (error) {

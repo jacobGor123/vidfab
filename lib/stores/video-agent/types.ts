@@ -25,6 +25,7 @@ export interface Shot {
   duration_seconds: number
   characters: string[]
   seed?: number
+  video_prompt?: string  // 视频生成提示词
 }
 
 export interface ScriptAnalysis {

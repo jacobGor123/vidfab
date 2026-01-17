@@ -36,9 +36,49 @@ export const GET = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // 🔥 查询 storyboards
+    const { data: storyboards, error: storyboardsError } = await supabaseAdmin
+      .from('project_storyboards')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('shot_number', { ascending: true })
+
+    if (storyboardsError) {
+      console.error('[Video Agent] Failed to fetch storyboards:', storyboardsError)
+    }
+
+    // 🔥 查询 characters
+    const { data: characters, error: charactersError } = await supabaseAdmin
+      .from('project_characters')
+      .select('*')
+      .eq('project_id', projectId)
+
+    if (charactersError) {
+      console.error('[Video Agent] Failed to fetch characters:', charactersError)
+    }
+
+    // 🔥 查询 video_clips
+    const { data: videoClips, error: videoClipsError } = await supabaseAdmin
+      .from('project_video_clips')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('shot_number', { ascending: true })
+
+    if (videoClipsError) {
+      console.error('[Video Agent] Failed to fetch video clips:', videoClipsError)
+    }
+
+    // 🔥 组合返回数据
+    const projectWithRelations = {
+      ...project,
+      storyboards: storyboards || [],
+      characters: characters || [],
+      video_clips: videoClips || []
+    }
+
     return NextResponse.json({
       success: true,
-      data: project
+      data: projectWithRelations
     })
   } catch (error) {
     console.error('[Video Agent] GET /projects/[id] error:', error)

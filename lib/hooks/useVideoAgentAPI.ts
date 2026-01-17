@@ -52,8 +52,14 @@ interface CharacterPromptParams {
   storyStyle: string
 }
 
+
 interface BatchGenerateCharactersParams {
-  characters: Array<{
+  characterPrompts?: Array<{
+    characterName: string
+    prompt: string
+    negativePrompt: string
+  }>
+  characters?: Array<{
     name: string
     generation_prompt: string
     negative_prompt?: string
@@ -87,6 +93,7 @@ interface RegenerateStoryboardParams {
   shotNumber: number
   imageStyle?: string
   customPrompt?: string
+  selectedCharacterNames?: string[]  // 🔥 新增：选中的人物名称列表
   fieldsUpdate?: {  // 🔥 新增：字段更新（会同步到 script_analysis.shots）
     description?: string
     camera_angle?: string
@@ -154,6 +161,7 @@ export function useVideoAgentAPI() {
       setError(null)
 
       const response = await fetch(url, {
+        credentials: 'include', // 确保发送 session cookies
         headers: {
           'Content-Type': 'application/json',
           ...options?.headers,
@@ -396,6 +404,8 @@ export function useVideoAgentAPI() {
       shotNumber: params.shotNumber,
       url,
       hasCustomPrompt: !!params.customPrompt,
+      hasSelectedCharacters: !!params.selectedCharacterNames,
+      selectedCharactersCount: params.selectedCharacterNames?.length || 0,
       hasFieldsUpdate: !!params.fieldsUpdate
     })
 
@@ -404,6 +414,7 @@ export function useVideoAgentAPI() {
       body: JSON.stringify({
         image_style: params.imageStyle,
         customPrompt: params.customPrompt,
+        selectedCharacterNames: params.selectedCharacterNames,  // 🔥 传递选中的人物
         fieldsUpdate: params.fieldsUpdate  // 🔥 传递字段更新
       }),
     })

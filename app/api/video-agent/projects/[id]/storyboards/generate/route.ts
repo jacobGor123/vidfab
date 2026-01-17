@@ -248,60 +248,116 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     // 🔥 删除：已在上面的幂等性检查中完成插入
 
-    // 🔥 使用队列系统（替代后台 Promise）
-    // 优点：任务持久化、自动重试、不会被 Vercel Lambda 打断
-    const { videoQueueManager } = await import('@/lib/queue/queue-manager')
+    // 🔥 队列系统开关
+    // - 设置 ENABLE_QUEUE=true 可在任意环境启用队列（需要运行 Worker）
+    // - 默认：开发环境同步生成，生产环境使用队列
+    const USE_QUEUE = process.env.ENABLE_QUEUE === 'true'
 
-    try {
-      const jobId = await videoQueueManager.addJob(
-        'storyboard_generation',
-        {
-          jobId: `storyboard_${projectId}`,
-          userId: userId,
-          videoId: projectId,
+    if (USE_QUEUE) {
+      // 使用队列系统（替代后台 Promise）
+      // 优点：任务持久化、自动重试、不会被 Vercel Lambda 打断
+      const { videoQueueManager } = await import('@/lib/queue/queue-manager')
+
+      try {
+        const jobId = await videoQueueManager.addJob(
+          'storyboard_generation',
+          {
+            jobId: `storyboard_${projectId}`,
+            userId: userId,
+            videoId: projectId,
+            projectId,
+            shots,
+            characters,
+            style: styleId,
+            aspectRatio: project.aspect_ratio || '16:9',
+            createdAt: new Date().toISOString()
+          },
+          {
+            priority: 'high',
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 5000
+            },
+            removeOnComplete: 10,
+            removeOnFail: 20
+          }
+        )
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            message: 'Storyboard generation queued',
+            jobId,
+            total: shots.length
+          }
+        })
+
+      } catch (queueError) {
+        console.error('[Video Agent] ❌ Failed to queue storyboard generation:', queueError)
+
+        // 队列失败，更新项目状态
+        await supabaseAdmin
+          .from('video_agent_projects')
+          .update({
+            step_3_status: 'failed'
+          } as any)
+          .eq('id', projectId)
+
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to queue storyboard generation'
+        }, { status: 500 })
+      }
+    } else {
+      // 🔥 开发环境：直接在 API 中同步生成（无需 Worker）
+      console.log('[Video Agent] 🔧 Using direct generation (no queue)')
+
+      try {
+        // 使用完整的批量生成函数（带进度回调和错误处理）
+        const { batchGenerateStoryboardsWithProgress } = await import('@/lib/services/video-agent/processors/storyboard/storyboard-batch-generator')
+
+        const result = await batchGenerateStoryboardsWithProgress(
           projectId,
           shots,
           characters,
-          style: styleId,
-          aspectRatio: project.aspect_ratio || '16:9',
-          createdAt: new Date().toISOString()
-        },
-        {
-          priority: 'high',      // 高优先级
-          attempts: 3,           // 最多重试 3 次
-          backoff: {
-            type: 'exponential',
-            delay: 5000          // 5 秒起始延迟
-          },
-          removeOnComplete: 10,  // 保留最近 10 个已完成任务
-          removeOnFail: 20       // 保留最近 20 个失败任务
-        }
-      )
+          style,
+          project.aspect_ratio || '16:9'
+        )
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          message: 'Storyboard generation queued',
-          jobId,
-          total: shots.length
-        }
-      })
+        console.log('[Video Agent] Direct generation completed:', {
+          total: result.total,
+          completed: result.completed,
+          failed: result.failed,
+          finalStatus: result.finalStatus
+        })
 
-    } catch (queueError) {
-      console.error('[Video Agent] ❌ Failed to queue storyboard generation:', queueError)
+        return NextResponse.json({
+          success: true,
+          data: {
+            message: 'Storyboard generation completed',
+            total: result.total,
+            completed: result.completed,
+            failed: result.failed,
+            finalStatus: result.finalStatus
+          }
+        })
+      } catch (genError) {
+        console.error('[Video Agent] ❌ Direct generation failed:', genError)
 
-      // 队列失败，更新项目状态
-      await supabaseAdmin
-        .from('video_agent_projects')
-        .update({
-          step_3_status: 'failed'
-        } as any)
-        .eq('id', projectId)
+        // 更新项目状态为失败
+        await supabaseAdmin
+          .from('video_agent_projects')
+          .update({
+            step_3_status: 'failed'
+          } as any)
+          .eq('id', projectId)
 
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to queue storyboard generation'
-      }, { status: 500 })
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to generate storyboards'
+        }, { status: 500 })
+      }
     }
 
   } catch (error) {

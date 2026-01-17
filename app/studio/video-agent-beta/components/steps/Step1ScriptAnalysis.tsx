@@ -13,7 +13,19 @@ import { Input } from '@/components/ui/input'
 import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
 import { Film, Users, Clock, Video, Smile, User, Edit3, Save, X, Trash2 } from 'lucide-react'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
-import { showConfirm } from '@/lib/utils/toast'
+import { CharacterGenerationSection } from './Step1ScriptAnalysis/CharacterGenerationSection'
+import { StoryboardSection } from './Step1ScriptAnalysis/StoryboardSection'
+import { StoryboardEditDialog } from './Step1ScriptAnalysis/StoryboardEditDialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface Step1Props {
   project: VideoAgentProject
@@ -22,7 +34,7 @@ interface Step1Props {
 }
 
 export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1Props) {
-  const { analyzeScript, updateProject, deleteShot } = useVideoAgentAPI()
+  const { analyzeScript, updateProject, deleteShot, regenerateStoryboard } = useVideoAgentAPI()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<ScriptAnalysis | null>(
     project.script_analysis || null
@@ -30,9 +42,12 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   const [error, setError] = useState<string | null>(null)
   const [hasStarted, setHasStarted] = useState(false) // 防止重复触发
   const [deletingShot, setDeletingShot] = useState<number | null>(null) // 正在删除的分镜
-
-  // 性能观测：分析请求 + 首次渲染耗时
-  const [analysisReceivedAt, setAnalysisReceivedAt] = useState<number | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false) // 删除确认弹框
+  const [shotToDelete, setShotToDelete] = useState<number | null>(null) // 待删除的分镜编号
+  const [characterStatus, setCharacterStatus] = useState<'idle' | 'generating' | 'completed' | 'failed'>('idle') // 人物生成状态
+  const [storyboardStatus, setStoryboardStatus] = useState<'idle' | 'generating' | 'completed' | 'failed'>('idle') // 分镜生成状态
+  const [editDialogOpen, setEditDialogOpen] = useState(false) // 编辑弹框开关
+  const [editingShotNumber, setEditingShotNumber] = useState<number | null>(null) // 当前编辑的分镜编号
 
   // 首次渲染分镜卡片数量限制：避免 analysis 返回后一次性渲染过多 DOM 导致卡顿
   const INITIAL_RENDER_SHOTS = 12
@@ -76,6 +91,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     description?: string
     camera_angle?: string
     mood?: string
+    video_prompt?: string
   }>>({}) // 记录修改的分镜字段
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false) // 是否有未保存的修改
   const [isSaving, setIsSaving] = useState(false) // 是否正在保存
@@ -96,7 +112,6 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     try {
       const data = await analyzeScript(project.id)
       setAnalysis(data)
-      setAnalysisReceivedAt(performance.now())
       onUpdate({ script_analysis: data })
     } catch (err: any) {
       console.error('[Step1] Script analysis failed:', err.message)
@@ -111,7 +126,6 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   useEffect(() => {
     if (project.script_analysis) {
       setAnalysis(project.script_analysis)
-      setAnalysisReceivedAt(performance.now())
       setHasStarted(true)
       isAnalyzingRef.current = false
       return
@@ -124,24 +138,6 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     handleAnalyze()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project.script_analysis, project.id])
-
-  // 性能观测：analysis 数据到位后，首帧渲染（commit+paint）大概耗时
-  useEffect(() => {
-    if (!analysisReceivedAt || !analysis) return
-
-    const start = analysisReceivedAt
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const costMs = performance.now() - start
-        console.log('[Perf][Step1] analysis->first paint (approx):', {
-          projectId: project.id,
-          shotCount: analysis.shot_count,
-          characters: analysis.characters?.length ?? 0,
-          costMs: Math.round(costMs)
-        })
-      })
-    })
-  }, [analysisReceivedAt, analysis, project.id])
 
   // 🔥 处理字段修改（通用函数）
   const handleFieldChange = (shotNumber: number, field: 'description' | 'camera_angle' | 'mood', value: string) => {
@@ -174,7 +170,8 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
             // 🔥 使用 !== undefined 而不是 && 来允许保存空字符串
             ...(edits.description !== undefined && { description: edits.description }),
             ...(edits.camera_angle !== undefined && { camera_angle: edits.camera_angle }),
-            ...(edits.mood !== undefined && { mood: edits.mood })
+            ...(edits.mood !== undefined && { mood: edits.mood }),
+            ...(edits.video_prompt !== undefined && { video_prompt: edits.video_prompt })
           }
         }
         return shot
@@ -218,8 +215,70 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     return edits?.[field] ?? originalValue
   }
 
-  // 🔥 删除分镜
-  const handleDeleteShot = async (shotNumber: number) => {
+  // 🔥 添加新分镜
+  const MAX_SHOTS = 40  // 分镜数量上限
+  const [isAddingShot, setIsAddingShot] = useState(false)
+
+  const handleAddShot = async () => {
+    if (!analysis || isAddingShot) return
+
+    // 检查是否已达到分镜数量上限
+    if (analysis.shots.length >= MAX_SHOTS) {
+      setError(`Cannot add more shots. Maximum ${MAX_SHOTS} shots allowed.`)
+      return
+    }
+
+    setIsAddingShot(true)
+    setError(null)
+
+    try {
+      // 计算新的 shot_number (当前最大值 + 1)
+      const maxShotNumber = Math.max(...analysis.shots.map(s => s.shot_number))
+      const newShotNumber = maxShotNumber + 1
+
+      // 创建新的 shot 数据
+      const newShot = {
+        shot_number: newShotNumber,
+        time_range: '',
+        description: 'New shot - describe the scene here',
+        camera_angle: 'Medium shot',
+        character_action: '',
+        mood: 'Neutral',
+        duration_seconds: 5,
+        characters: [],
+        video_prompt: ''
+      }
+
+      // 更新本地 analysis
+      const updatedShots = [...analysis.shots, newShot]
+      const updatedAnalysis = {
+        ...analysis,
+        shots: updatedShots,
+        shot_count: updatedShots.length
+      }
+
+      // 🔥 立即保存到数据库
+      await updateProject(project.id, {
+        script_analysis: updatedAnalysis
+      })
+
+      setAnalysis(updatedAnalysis)
+      onUpdate({ script_analysis: updatedAnalysis })
+
+      console.log('[Step1] New shot added:', newShotNumber)
+    } catch (err: any) {
+      setError(err.message || 'Failed to add shot')
+      console.error('[Step1] Add shot failed:', err)
+    } finally {
+      setIsAddingShot(false)
+    }
+  }
+
+  // 检查是否可以添加分镜
+  const canAddShot = analysis ? analysis.shots.length < MAX_SHOTS : false
+
+  // 🔥 请求删除分镜（显示确认弹框）
+  const requestDeleteShot = (shotNumber: number) => {
     if (!analysis || deletingShot !== null) {
       return
     }
@@ -230,26 +289,24 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       return
     }
 
-    // 显示确认对话框
-    const confirmed = await showConfirm(
-      `This will delete Shot ${shotNumber} and all related storyboards and videos. This action cannot be undone.`,
-      {
-        title: 'Delete Shot',
-        confirmText: 'Delete',
-        cancelText: 'Cancel'
-      }
-    )
+    // 打开确认弹框
+    setShotToDelete(shotNumber)
+    setDeleteConfirmOpen(true)
+  }
 
-    if (!confirmed) {
+  // 🔥 确认删除分镜（实际执行删除）
+  const confirmDeleteShot = async () => {
+    if (!analysis || !shotToDelete) {
       return
     }
 
-    setDeletingShot(shotNumber)
+    setDeleteConfirmOpen(false)
+    setDeletingShot(shotToDelete)
     setError(null)
 
     try {
       // 调用删除 API
-      const result = await deleteShot(project.id, shotNumber)
+      const result = await deleteShot(project.id, shotToDelete)
 
       console.log('[Step1] Shot deleted:', result)
 
@@ -280,7 +337,14 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       console.error('[Step1] Delete shot failed:', err)
     } finally {
       setDeletingShot(null)
+      setShotToDelete(null)
     }
+  }
+
+  // 🔥 取消删除分镜
+  const cancelDeleteShot = () => {
+    setDeleteConfirmOpen(false)
+    setShotToDelete(null)
   }
 
   const handleConfirm = async () => {
@@ -289,6 +353,49 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       await handleSaveChanges()
     }
     onNext()
+  }
+
+  // 判断是否显示集成功能（人物生成+分镜生成）
+  const shouldShowIntegratedFeatures = useMemo(() => {
+    const cutoffDate = new Date('2026-01-10T00:00:00Z')
+    const createdAt = new Date(project.created_at)
+    return createdAt >= cutoffDate
+  }, [project.created_at])
+
+  // 🔥 处理编辑分镜点击
+  const handleEditClick = (shotNumber: number) => {
+    setEditingShotNumber(shotNumber)
+    setEditDialogOpen(true)
+  }
+
+  // 🔥 处理重新生成分镜
+  const handleRegenerateStoryboard = async (shotNumber: number, prompt: string, characterNames: string[]) => {
+    try {
+      console.log('[Step1] Regenerating storyboard:', { shotNumber, prompt, characterNames })
+
+      // 调用重新生成 API（修正参数结构）
+      await regenerateStoryboard(project.id, {
+        shotNumber: shotNumber,
+        customPrompt: prompt,
+        selectedCharacterNames: characterNames
+      })
+
+      // 重新获取项目数据以更新 storyboards
+      const response = await fetch(`/api/video-agent/projects/${project.id}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch updated project data')
+      }
+
+      const { data: updatedProject } = await response.json()
+
+      // 更新本地状态
+      onUpdate({
+        storyboards: updatedProject.storyboards
+      })
+    } catch (error: any) {
+      console.error('[Step1] Regenerate storyboard failed:', error)
+      throw error
+    }
   }
 
   // Analyzing State
@@ -386,173 +493,183 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
         </div>
       </div>
 
-      {/* Characters Detected */}
-      {analysis && analysis.characters.length > 0 && (
-        <div className="flex flex-wrap gap-4 items-center p-6 bg-white/5 border border-white/5 rounded-2xl">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mr-2 flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Cast Detected
-          </span>
-          {analysis.characters.map((char, idx) => (
-            <span
-              key={idx}
-              className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-slate-300 shadow-sm flex items-center gap-2 transition-colors hover:bg-slate-800 hover:border-slate-600"
-            >
-              <User className="w-3.5 h-3.5 opacity-50" />
-              {char}
-            </span>
-          ))}
-        </div>
+      {/* 🔥 新增：人物生成区域（只对新项目显示） */}
+      {shouldShowIntegratedFeatures && analysis && (
+        <CharacterGenerationSection
+          project={project}
+          analysis={analysis}
+          onStatusChange={setCharacterStatus}
+          onUpdate={onUpdate}
+        />
       )}
 
-      {/* 2. Storyboard Cards */}
-      <div>
-        <div className="flex items-center justify-between mb-6 px-1">
-          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Film className="w-5 h-5 text-slate-400" />
-            <span>Storyboard Breakdown</span>
-          </h3>
+      {/* 🔥 新增：分镜生成区域（只对新项目显示，且需等待人物生成完成） */}
+      {shouldShowIntegratedFeatures && analysis && characterStatus === 'completed' && (
+        <StoryboardSection
+          project={project}
+          analysis={analysis}
+          onStatusChange={setStoryboardStatus}
+          onUpdate={onUpdate}
+          onEditClick={handleEditClick}
+          onFieldChange={handleFieldChange}
+          getFieldValue={getFieldValue}
+          onDeleteShot={requestDeleteShot}
+          onAddShot={canAddShot ? handleAddShot : undefined}
+        />
+      )}
 
-          {/* 🔥 保存/取消按钮 */}
-          {hasUnsavedChanges && (
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleCancelChanges}
-                variant="ghost"
-                size="sm"
-                className="text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-                size="sm"
-                className="bg-blue-500 hover:bg-blue-600"
-              >
-                {isSaving ? (
-                  <>Saving...</>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-1" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-        </div>
+      {/* 2. Storyboard Cards（旧项目保留） */}
+      {!shouldShowIntegratedFeatures && (
+        <div>
+          <div>
+            <div className="flex items-center justify-between mb-6 px-1">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Film className="w-5 h-5 text-slate-400" />
+                <span>Storyboard Breakdown</span>
+              </h3>
 
-        <div className="space-y-6">
-          {visibleShots.map((shot) => (
-            <div
-              key={shot.shot_number}
-              className="group relative bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-8 transition-all duration-300"
-            >
-              {/* 🔥 删除按钮 */}
-              <button
-                onClick={() => handleDeleteShot(shot.shot_number)}
-                disabled={deletingShot !== null}
-                className="absolute top-4 right-4 p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Delete this shot"
-              >
-                {deletingShot === shot.shot_number ? (
-                  <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-              </button>
-
-              <div className="flex gap-8">
-                {/* Shot Number Column - Clean Style */}
-                <div className="flex-shrink-0 flex flex-col items-center gap-4 pt-1">
-                  <div className="text-3xl font-bold text-slate-600 group-hover:text-blue-500 transition-colors font-mono">
-                    {shot.shot_number.toString().padStart(2, '0')}
-                  </div>
-                  {/* Vertical Line */}
-                  <div className="w-px h-full bg-gradient-to-b from-slate-800 to-transparent group-hover:from-blue-500/20" />
+              {/* 🔥 保存/取消按钮 */}
+              {hasUnsavedChanges && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleCancelChanges}
+                    variant="ghost"
+                    size="sm"
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                    size="sm"
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    {isSaving ? (
+                      <>Saving...</>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-1" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
                 </div>
+              )}
+            </div>
 
-                {/* Content Column */}
-                <div className="flex-1 space-y-5">
-                  <div className="flex items-center gap-4 text-xs font-mono text-slate-500">
-                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-950/50 border border-slate-800">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-slate-300">{shot.time_range}</span>
-                    </span>
-                  </div>
+            <div className="space-y-6">
+              {visibleShots.map((shot) => (
+                <div
+                  key={shot.shot_number}
+                  className="group relative bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-8 transition-all duration-300"
+                >
+                  {/* 🔥 删除按钮 */}
+                  <button
+                    onClick={() => requestDeleteShot(shot.shot_number)}
+                    disabled={deletingShot !== null}
+                    className="absolute top-4 right-4 p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete this shot"
+                  >
+                    {deletingShot === shot.shot_number ? (
+                      <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
 
-                  {/* 🔥 可编辑的分镜描述 */}
-                  <Textarea
-                    value={getFieldValue(shot.shot_number, 'description', shot.description)}
-                    onChange={(e) => handleFieldChange(shot.shot_number, 'description', e.target.value)}
-                    className="text-lg text-slate-200 leading-relaxed font-light tracking-wide bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[80px]"
-                    placeholder="Describe this shot..."
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                    {/* 🔥 可编辑的 Camera Angle */}
-                    <div className="space-y-1.5">
-                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                        <Video className="w-3.5 h-3.5" />
-                        Camera Angle
-                      </label>
-                      <Input
-                        value={getFieldValue(shot.shot_number, 'camera_angle', shot.camera_angle)}
-                        onChange={(e) => handleFieldChange(shot.shot_number, 'camera_angle', e.target.value)}
-                        className="bg-slate-900/50 border-slate-700/50 focus:border-indigo-500/50 text-indigo-300 font-medium"
-                        placeholder="e.g. Close-up, Wide shot"
-                      />
-                    </div>
-
-                    {/* 🔥 可编辑的 Mood */}
-                    <div className="space-y-1.5">
-                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                        <Smile className="w-3.5 h-3.5" />
-                        Mood
-                      </label>
-                      <Input
-                        value={getFieldValue(shot.shot_number, 'mood', shot.mood)}
-                        onChange={(e) => handleFieldChange(shot.shot_number, 'mood', e.target.value)}
-                        className="bg-slate-900/50 border-slate-700/50 focus:border-rose-500/50 text-rose-300 font-medium"
-                        placeholder="e.g. Tense, Joyful"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 角色信息（只读） */}
-                  {shot.characters && shot.characters.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-wide">
-                        <Users className="w-3.5 h-3.5" />
-                        {shot.characters.join(', ')}
+                  <div className="flex gap-8">
+                    {/* Shot Number Column - Clean Style */}
+                    <div className="flex-shrink-0 flex flex-col items-center gap-4 pt-1">
+                      <div className="text-3xl font-bold text-slate-600 group-hover:text-blue-500 transition-colors font-mono">
+                        {shot.shot_number.toString().padStart(2, '0')}
                       </div>
+                      {/* Vertical Line */}
+                      <div className="w-px h-full bg-gradient-to-b from-slate-800 to-transparent group-hover:from-blue-500/20" />
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
-        {/* 分批渲染：先让首屏可交互，再逐步加载更多分镜 */}
-        {analysis && visibleShotCount < analysis.shots.length && (
-          <div className="pt-4 flex justify-center">
-            <Button
-              onClick={() =>
-                setVisibleShotCount((prev) =>
-                  Math.min(prev + RENDER_BATCH, analysis.shots.length)
-                )
-              }
-              variant="outline"
-              className="border-white/10 text-slate-200 hover:bg-white/5"
-            >
-              Load More ({visibleShotCount}/{analysis.shots.length})
-            </Button>
+                    {/* Content Column */}
+                    <div className="flex-1 space-y-5">
+                      <div className="flex items-center gap-4 text-xs font-mono text-slate-500">
+                        <span className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-950/50 border border-slate-800">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-slate-300">{shot.time_range}</span>
+                        </span>
+                      </div>
+
+                      {/* 🔥 可编辑的分镜描述 */}
+                      <Textarea
+                        value={getFieldValue(shot.shot_number, 'description', shot.description)}
+                        onChange={(e) => handleFieldChange(shot.shot_number, 'description', e.target.value)}
+                        className="text-lg text-slate-200 leading-relaxed font-light tracking-wide bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[80px]"
+                        placeholder="Describe this shot..."
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                        {/* 🔥 可编辑的 Camera Angle */}
+                        <div className="space-y-1.5">
+                          <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                            <Video className="w-3.5 h-3.5" />
+                            Camera Angle
+                          </label>
+                          <Input
+                            value={getFieldValue(shot.shot_number, 'camera_angle', shot.camera_angle)}
+                            onChange={(e) => handleFieldChange(shot.shot_number, 'camera_angle', e.target.value)}
+                            className="bg-slate-900/50 border-slate-700/50 focus:border-indigo-500/50 text-indigo-300 font-medium"
+                            placeholder="e.g. Close-up, Wide shot"
+                          />
+                        </div>
+
+                        {/* 🔥 可编辑的 Mood */}
+                        <div className="space-y-1.5">
+                          <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                            <Smile className="w-3.5 h-3.5" />
+                            Mood
+                          </label>
+                          <Input
+                            value={getFieldValue(shot.shot_number, 'mood', shot.mood)}
+                            onChange={(e) => handleFieldChange(shot.shot_number, 'mood', e.target.value)}
+                            className="bg-slate-900/50 border-slate-700/50 focus:border-rose-500/50 text-rose-300 font-medium"
+                            placeholder="e.g. Tense, Joyful"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 角色信息（只读） */}
+                      {shot.characters && shot.characters.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-wide">
+                            <Users className="w-3.5 h-3.5" />
+                            {shot.characters.join(', ')}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 分批渲染：先让首屏可交互，再逐步加载更多分镜 */}
+            {analysis && visibleShotCount < analysis.shots.length && (
+              <div className="pt-4 flex justify-center">
+                <Button
+                  onClick={() =>
+                    setVisibleShotCount((prev) =>
+                      Math.min(prev + RENDER_BATCH, analysis.shots.length)
+                    )
+                  }
+                  variant="outline"
+                  className="border-white/10 text-slate-200 hover:bg-white/5"
+                >
+                  Load More ({visibleShotCount}/{analysis.shots.length})
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Confirm Action */}
       <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-8 pb-8 z-10">
@@ -570,13 +687,49 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
         <div className="flex justify-center">
           <Button
             onClick={handleConfirm}
+            disabled={shouldShowIntegratedFeatures && storyboardStatus !== 'completed'}
             size="lg"
-            className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105"
+            className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {hasUnsavedChanges ? 'Save & Continue' : 'Confirm & Continue'}
           </Button>
         </div>
       </div>
+
+      {/* 🔥 分镜编辑对话框 */}
+      <StoryboardEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        project={project}
+        shotNumber={editingShotNumber}
+        onRegenerate={handleRegenerateStoryboard}
+      />
+
+      {/* 🔥 删除确认对话框 */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Shot {shotToDelete}</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              This will delete Shot {shotToDelete} and all related storyboards and videos. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={cancelDeleteShot}
+              className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteShot}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

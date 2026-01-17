@@ -37,9 +37,10 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 获取请求体中的自定义 prompt 和字段更新
+    // 获取请求体中的自定义 prompt、字段更新和选中的人物名称
     const body = await request.json().catch(() => ({}))
     const customPrompt = body.customPrompt as string | undefined
+    const selectedCharacterNames = body.selectedCharacterNames as string[] | undefined
     const fieldsUpdate = body.fieldsUpdate as {
       description?: string
       camera_angle?: string
@@ -121,12 +122,39 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('project_id', projectId)
       .returns<CharacterWithReferences[]>()
 
-    const characterConfigs: CharacterConfig[] = (charactersData || []).map(char => ({
+    // 映射人物配置
+    let characterConfigs: CharacterConfig[] = (charactersData || []).map(char => ({
       name: char.character_name,
       reference_images: (char.character_reference_images || [])
         .sort((a: any, b: any) => a.image_order - b.image_order)
         .map((img: any) => img.image_url)
     }))
+
+    // 🔥 如果前端明确传递了 selectedCharacterNames（包括空数组），则使用该选择
+    // undefined: 使用所有角色（默认行为，向后兼容）
+    // 空数组: 不使用任何角色参考图
+    // 非空数组: 只使用选中的角色
+    if (selectedCharacterNames !== undefined) {
+      if (selectedCharacterNames.length === 0) {
+        // 用户明确选择不使用任何角色参考图
+        console.log('[Video Agent] User explicitly selected NO characters')
+        characterConfigs = []
+      } else {
+        // 用户选中了特定角色
+        console.log('[Video Agent] Filtering characters by selectedCharacterNames:', selectedCharacterNames)
+
+        // 使用模糊匹配（不区分大小写，只匹配简短名称）
+        characterConfigs = characterConfigs.filter(config => {
+          const shortConfigName = config.name.split('(')[0].trim().toLowerCase()
+          return selectedCharacterNames.some(selectedName => {
+            const shortSelectedName = selectedName.split('(')[0].trim().toLowerCase()
+            return shortConfigName === shortSelectedName
+          })
+        })
+
+        console.log('[Video Agent] Filtered character configs:', characterConfigs.map(c => c.name))
+      }
+    }
 
     // 获取图片风格
     const styleId = project.image_style_id || 'realistic'
@@ -139,7 +167,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       imageStyle as ImageStyle,
       project.aspect_ratio || '16:9',
       undefined,  // seed (暂时不使用)
-      customPrompt  // 🔥 传递自定义 prompt
+      customPrompt
     )
 
     // 更新数据库中的分镜图记录

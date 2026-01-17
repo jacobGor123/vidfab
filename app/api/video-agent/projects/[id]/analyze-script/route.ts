@@ -111,6 +111,21 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // 🔥 为每个 shot 生成 video_prompt（基于其他字段合成）
+    const generateVideoPrompt = (shot: any): string => {
+      let prompt = shot.description || ''
+      if (shot.character_action) {
+        prompt += `. ${shot.character_action}`
+      }
+      if (shot.camera_angle) {
+        prompt += `. ${shot.camera_angle}`
+      }
+      if (shot.mood) {
+        prompt += `. Mood: ${shot.mood}`
+      }
+      return prompt
+    }
+
     // 保存分镜数据到 project_shots 表
     const shotsToInsert = analysis.shots.map(shot => ({
       project_id: projectId,
@@ -120,8 +135,27 @@ export const POST = withAuth(async (request, { params, userId }) => {
       camera_angle: shot.camera_angle,
       character_action: shot.character_action,
       mood: shot.mood,
-      duration_seconds: shot.duration_seconds
+      duration_seconds: shot.duration_seconds,
+      video_prompt: generateVideoPrompt(shot)  // 🔥 自动生成 video_prompt
     })) as any
+
+    // 🔥 同时更新 analysis.shots 中的 video_prompt，确保 script_analysis 和 project_shots 一致
+    analysis.shots = analysis.shots.map(shot => ({
+      ...shot,
+      video_prompt: generateVideoPrompt(shot)
+    }))
+
+    // 🔥 重新保存 script_analysis（包含 video_prompt）
+    const { error: updateAnalysisError } = await supabaseAdmin
+      .from('video_agent_projects')
+      .update({
+        script_analysis: analysis as any
+      } as any)
+      .eq('id', projectId)
+
+    if (updateAnalysisError) {
+      console.warn('[Video Agent] Failed to update script_analysis with video_prompt:', updateAnalysisError)
+    }
 
     const { error: shotsError } = await supabaseAdmin
       .from('project_shots')

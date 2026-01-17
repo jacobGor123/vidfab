@@ -19,12 +19,28 @@ import Redis from 'ioredis'
  * - REDIS_URL: 本地或其他 Redis URL (redis://...)
  */
 const getBullMQRedisConfig = () => {
+  // 🔥 BullMQ 推荐配置：防止无限重试导致请求爆炸
+  const commonConfig = {
+    maxRetriesPerRequest: 3, // 限制重试次数（原来是 null = 无限重试）
+    enableReadyCheck: false,
+    retryStrategy: (times: number) => {
+      // 重试策略：指数退避，最多重试 10 次
+      if (times > 10) {
+        console.error('[BullMQ Redis] ❌ Max retries reached, giving up')
+        return null // 停止重试
+      }
+      const delay = Math.min(times * 100, 3000) // 最多等待 3 秒
+      console.warn(`[BullMQ Redis] ⚠️ Retry ${times} in ${delay}ms`)
+      return delay
+    },
+    enableOfflineQueue: false, // 禁用离线队列，避免积压大量命令
+  }
+
   // 优先级 1: 专门为 BullMQ 配置的 Redis
   if (process.env.BULLMQ_REDIS_URL) {
     return {
       url: process.env.BULLMQ_REDIS_URL,
-      maxRetriesPerRequest: null, // BullMQ 要求
-      enableReadyCheck: false,
+      ...commonConfig,
     }
   }
 
@@ -33,8 +49,7 @@ const getBullMQRedisConfig = () => {
   if (process.env.UPSTASH_REDIS_URL) {
     return {
       url: process.env.UPSTASH_REDIS_URL,
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
+      ...commonConfig,
       tls: {
         rejectUnauthorized: false, // Upstash 使用自签名证书
       },
@@ -45,8 +60,7 @@ const getBullMQRedisConfig = () => {
   if (process.env.REDIS_URL) {
     return {
       url: process.env.REDIS_URL,
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
+      ...commonConfig,
     }
   }
 
@@ -56,8 +70,7 @@ const getBullMQRedisConfig = () => {
     port: parseInt(process.env.REDIS_PORT || '6379'),
     password: process.env.REDIS_PASSWORD || undefined,
     db: parseInt(process.env.REDIS_DB || '0'),
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
+    ...commonConfig,
   }
 }
 
@@ -86,30 +99,63 @@ See: docs/queue-setup-guide.md for detailed instructions
   `)
 }
 
-// 创建 Redis 实例（用于 BullMQ）
+// 🔥 为 Queue 创建连接（有限重试，防止请求爆炸）
 export const redisBullMQ = config.url
   ? new Redis(config.url, {
       maxRetriesPerRequest: config.maxRetriesPerRequest,
       enableReadyCheck: config.enableReadyCheck,
+      retryStrategy: config.retryStrategy,
+      enableOfflineQueue: config.enableOfflineQueue,
       tls: config.tls,
     })
   : new Redis(config)
 
-// 连接事件处理
+// 🔥 为 Worker 创建连接（必须 null，BullMQ 要求）
+export const redisBullMQWorker = config.url
+  ? new Redis(config.url, {
+      maxRetriesPerRequest: null,  // Worker 必须是 null
+      enableReadyCheck: false,
+      retryStrategy: config.retryStrategy,  // 保留连接级别的重试
+      enableOfflineQueue: false,
+      tls: config.tls,
+    })
+  : new Redis({
+      ...config,
+      maxRetriesPerRequest: null,  // Worker 必须是 null
+    })
+
+// 连接事件处理 - Queue
 redisBullMQ.on('connect', () => {
-  console.log('[BullMQ Redis] ✅ Connected to Redis')
+  console.log('[BullMQ Redis Queue] ✅ Connected')
 })
 
 redisBullMQ.on('ready', () => {
-  console.log('[BullMQ Redis] ✅ Ready to process jobs')
+  console.log('[BullMQ Redis Queue] ✅ Ready')
 })
 
 redisBullMQ.on('error', (error) => {
-  console.error('[BullMQ Redis] ❌ Connection error:', error)
+  console.error('[BullMQ Redis Queue] ❌ Error:', error)
 })
 
 redisBullMQ.on('close', () => {
-  console.log('[BullMQ Redis] 🔌 Connection closed')
+  console.log('[BullMQ Redis Queue] 🔌 Closed')
+})
+
+// 连接事件处理 - Worker
+redisBullMQWorker.on('connect', () => {
+  console.log('[BullMQ Redis Worker] ✅ Connected')
+})
+
+redisBullMQWorker.on('ready', () => {
+  console.log('[BullMQ Redis Worker] ✅ Ready to process jobs')
+})
+
+redisBullMQWorker.on('error', (error) => {
+  console.error('[BullMQ Redis Worker] ❌ Error:', error)
+})
+
+redisBullMQWorker.on('close', () => {
+  console.log('[BullMQ Redis Worker] 🔌 Closed')
 })
 
 // 健康检查
@@ -126,10 +172,13 @@ export async function checkBullMQRedisHealth(): Promise<boolean> {
 // 优雅关闭
 export async function closeBullMQRedisConnection(): Promise<void> {
   try {
-    await redisBullMQ.quit()
-    console.log('[BullMQ Redis] ✅ Connection closed gracefully')
+    await Promise.all([
+      redisBullMQ.quit(),
+      redisBullMQWorker.quit()
+    ])
+    console.log('[BullMQ Redis] ✅ All connections closed gracefully')
   } catch (error) {
-    console.error('[BullMQ Redis] Error closing connection:', error)
+    console.error('[BullMQ Redis] Error closing connections:', error)
   }
 }
 
