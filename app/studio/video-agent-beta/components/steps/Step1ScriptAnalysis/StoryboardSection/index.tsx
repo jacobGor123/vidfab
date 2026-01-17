@@ -3,10 +3,9 @@
  *
  * 分镜生成区域主组件
  * 职责：
- * 1. 自动触发分镜图批量生成（等待人物完成）
- * 2. 显示生成进度
- * 3. 显示分镜卡片（带图片和 Edit 按钮）
- * 4. 触发编辑弹框
+ * 1. 显示分镜卡片（带拖位图或已生成的图片）
+ * 2. 提供“批量生成分镜图”按钮（用户手动触发）
+ * 3. 触发编辑弹框
  */
 
 'use client'
@@ -15,7 +14,7 @@ import { useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, RefreshCw, Check, Film, Plus } from 'lucide-react'
+import { AlertCircle, RefreshCw, Check, Film, Plus, Wand2 } from 'lucide-react'
 import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
 import { useStoryboardAutoGeneration } from './useStoryboardAutoGeneration'
 import { StoryboardLoadingState } from './StoryboardLoadingState'
@@ -65,33 +64,18 @@ export function StoryboardSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
-  // 自动开始生成（仅触发一次，且只在初始没有分镜图时）
-  useEffect(() => {
-    if (hasStartedGenerationRef.current) {
-      return
-    }
+  // 🔥 移除自动触发逻辑，改为用户手动点击按钮触发
+  // 不再自动 startGeneration()
 
-    // 🔥 检查是否已有分镜图（无论状态如何）
-    const hasExistingStoryboards = project.storyboards && project.storyboards.length > 0
+  // 🔥 检查是否有未生成图片的分镜（用于显示批量生成按钮）
+  const hasUngeneratedStoryboards = analysis.shots.some(
+    shot => !storyboards[shot.shot_number]?.image_url
+  )
 
-    // 🔥 检查 storyboards 中是否有任何图片已生成
-    const hasAnyGeneratedImages = storyboards && Object.values(storyboards).some(s => s?.image_url)
-
-    // 只有在完全没有分镜图数据时才自动开始
-    const shouldAutoStart =
-      status === 'idle' &&
-      !hasExistingStoryboards &&
-      !hasAnyGeneratedImages
-
-    if (shouldAutoStart) {
-      hasStartedGenerationRef.current = true
-      startGeneration()
-    } else if (hasExistingStoryboards || hasAnyGeneratedImages) {
-      // 已有分镜图，标记为已启动，防止后续触发
-      hasStartedGenerationRef.current = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status])
+  // 检查是否所有分镜都已有图片
+  const allStoryboardsGenerated = analysis.shots.every(
+    shot => storyboards[shot.shot_number]?.image_url
+  )
 
   // 🔥 同步 storyboards 数据到 project.storyboards，供 StoryboardEditDialog 使用
   const lastSyncedStoryboardsRef = useRef<string | null>(null)
@@ -124,7 +108,32 @@ export function StoryboardSection({
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <Film className="w-5 h-5" />
           Storyboard Generation
+          {allStoryboardsGenerated && (
+            <Badge variant="outline" className="ml-2 bg-green-950/30 text-green-400 border-green-800">
+              <Check className="w-3 h-3 mr-1" />
+              All Generated
+            </Badge>
+          )}
         </h2>
+
+        {/* 🔥 批量生成分镜图按钮 */}
+        {hasUngeneratedStoryboards && status !== 'generating' && (
+          <Button
+            onClick={startGeneration}
+            className="gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white shadow-lg"
+          >
+            <Wand2 className="w-4 h-4" />
+            Generate All Storyboards
+          </Button>
+        )}
+
+        {/* 生成中状态 */}
+        {status === 'generating' && (
+          <div className="flex items-center gap-2 text-blue-400">
+            <div className="w-4 h-4 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+            <span className="text-sm">Generating {progress.current}/{progress.total}...</span>
+          </div>
+        )}
       </div>
 
       {/* 🔥 始终显示分镜卡片（即使图片还没生成） */}
