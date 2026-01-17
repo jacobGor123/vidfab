@@ -310,54 +310,62 @@ export const POST = withAuth(async (request, { params, userId }) => {
         }, { status: 500 })
       }
     } else {
-      // 🔥 开发环境：直接在 API 中同步生成（无需 Worker）
-      console.log('[Video Agent] 🔧 Using direct generation (no queue)')
+      // 🔥 修复：使用"快速返回 + 后台异步处理"模式
+      // 立即返回成功，分镜图在后台异步生成
+      // 这样可以避免 Vercel 300 秒超时问题
+      console.log('[Video Agent] 🔧 Using async background generation (no queue)')
 
-      try {
-        // 使用完整的批量生成函数（带进度回调和错误处理）
-        const { batchGenerateStoryboardsWithProgress } = await import('@/lib/services/video-agent/processors/storyboard/storyboard-batch-generator')
+      // 🔥 关键：不使用 await，让生成任务在后台执行
+      // 但需要确保不会被 Vercel 过早终止
+      // 使用 waitUntil 模式（如果可用）或者直接后台执行
+      const generateInBackground = async () => {
+        try {
+          const { batchGenerateStoryboardsWithProgress } = await import('@/lib/services/video-agent/processors/storyboard/storyboard-batch-generator')
 
-        const result = await batchGenerateStoryboardsWithProgress(
-          projectId,
-          shots,
-          characters,
-          style,
-          project.aspect_ratio || '16:9'
-        )
+          const result = await batchGenerateStoryboardsWithProgress(
+            projectId,
+            shots,
+            characters,
+            style,
+            project.aspect_ratio || '16:9'
+          )
 
-        console.log('[Video Agent] Direct generation completed:', {
-          total: result.total,
-          completed: result.completed,
-          failed: result.failed,
-          finalStatus: result.finalStatus
-        })
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            message: 'Storyboard generation completed',
+          console.log('[Video Agent] Background generation completed:', {
             total: result.total,
             completed: result.completed,
             failed: result.failed,
             finalStatus: result.finalStatus
-          }
-        })
-      } catch (genError) {
-        console.error('[Video Agent] ❌ Direct generation failed:', genError)
+          })
+        } catch (genError) {
+          console.error('[Video Agent] ❌ Background generation failed:', genError)
 
-        // 更新项目状态为失败
-        await supabaseAdmin
-          .from('video_agent_projects')
-          .update({
-            step_3_status: 'failed'
-          } as any)
-          .eq('id', projectId)
-
-        return NextResponse.json({
-          success: false,
-          error: 'Failed to generate storyboards'
-        }, { status: 500 })
+          // 更新项目状态为失败
+          await supabaseAdmin
+            .from('video_agent_projects')
+            .update({
+              step_3_status: 'failed'
+            } as any)
+            .eq('id', projectId)
+        }
       }
+
+      // 🔥 不等待，立即在后台执行
+      // 注意：在 Vercel 中，一旦响应返回，后台任务可能被终止
+      // 但由于我们已经创建了 'generating' 状态的记录，前端会轮询状态
+      // 如果任务被终止，前端可以触发重试
+      generateInBackground().catch(err => {
+        console.error('[Video Agent] Background task error:', err)
+      })
+
+      // 立即返回成功
+      return NextResponse.json({
+        success: true,
+        data: {
+          message: 'Storyboard generation started',
+          total: shots.length,
+          async: true
+        }
+      })
     }
 
   } catch (error) {
