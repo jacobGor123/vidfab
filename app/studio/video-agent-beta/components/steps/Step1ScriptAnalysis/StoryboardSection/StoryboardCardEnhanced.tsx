@@ -239,7 +239,7 @@ export function StoryboardCardEnhanced({
                       <span className="text-xs">Generating...</span>
                     </div>
                   </div>
-                ) : resolvedStoryboardSrc && isValidImageSrc(resolvedStoryboardSrc) ? (
+                ) : storyboard && resolvedStoryboardSrc && isValidImageSrc(resolvedStoryboardSrc) ? (
                   <>
                     <img
                       key={`storyboard-${storyboard.id}-${storyboard.updated_at || 'initial'}`}
