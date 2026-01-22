@@ -21,19 +21,23 @@ import Redis from 'ioredis'
 const getBullMQRedisConfig = () => {
   // 🔥 BullMQ 推荐配置：防止无限重试导致请求爆炸
   const commonConfig = {
-    maxRetriesPerRequest: 3, // 限制重试次数（原来是 null = 无限重试）
+    maxRetriesPerRequest: 10, // 🔥 增加重试次数，应对 Upstash 远程连接不稳定
     enableReadyCheck: false,
     retryStrategy: (times: number) => {
-      // 重试策略：指数退避，最多重试 10 次
-      if (times > 10) {
+      // 重试策略：指数退避，最多重试 20 次
+      if (times > 20) {
         console.error('[BullMQ Redis] ❌ Max retries reached, giving up')
         return null // 停止重试
       }
-      const delay = Math.min(times * 100, 3000) // 最多等待 3 秒
+      const delay = Math.min(times * 200, 5000) // 最多等待 5 秒
       console.warn(`[BullMQ Redis] ⚠️ Retry ${times} in ${delay}ms`)
       return delay
     },
-    enableOfflineQueue: false, // 禁用离线队列，避免积压大量命令
+    enableOfflineQueue: true, // 🔥 修复：启用离线队列，允许连接恢复后继续执行
+    lazyConnect: false, // 立即连接
+    keepAlive: 30000, // 保持连接活跃 (30秒)
+    connectTimeout: 10000, // 连接超时 (10秒)
+    commandTimeout: 10000, // 命令超时 (10秒)
   }
 
   // 优先级 1: 专门为 BullMQ 配置的 Redis
@@ -113,15 +117,20 @@ export const redisBullMQ = config.url
 // 🔥 为 Worker 创建连接（必须 null，BullMQ 要求）
 export const redisBullMQWorker = config.url
   ? new Redis(config.url, {
-      maxRetriesPerRequest: null,  // Worker 必须是 null
+      maxRetriesPerRequest: null,  // Worker 必须是 null（BullMQ 要求）
       enableReadyCheck: false,
       retryStrategy: config.retryStrategy,  // 保留连接级别的重试
-      enableOfflineQueue: false,
+      enableOfflineQueue: true,  // 🔥 修复：启用离线队列
+      lazyConnect: false,
+      keepAlive: 30000,
+      connectTimeout: 10000,
+      commandTimeout: 10000,
       tls: config.tls,
     })
   : new Redis({
       ...config,
       maxRetriesPerRequest: null,  // Worker 必须是 null
+      enableOfflineQueue: true,  // 🔥 修复：启用离线队列
     })
 
 // 连接事件处理 - Queue

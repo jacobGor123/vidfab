@@ -39,9 +39,13 @@ const DEFAULT_IMAGE_MODEL = 'seedream-4-5-251128'
 export async function submitImageGeneration(
   request: ImageGenerationRequest
 ): Promise<ImageGenerationResponse & { imageUrl?: string }> {
+  // BytePlus can return identical URLs if the request is treated as identical and cached upstream.
+  // Add a harmless, unique token to the prompt to force a new generation.
+  const promptNonce = `\n\n[regen_nonce:${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}]`
+
   const byteplusRequest: BytePlusImageRequest = {
     model: DEFAULT_IMAGE_MODEL,
-    prompt: request.prompt,
+    prompt: `${request.prompt}${promptNonce}`,
     size: convertAspectRatioToSize(request.aspectRatio),
     sequential_image_generation: 'disabled',  // 单张生成
     response_format: 'url',

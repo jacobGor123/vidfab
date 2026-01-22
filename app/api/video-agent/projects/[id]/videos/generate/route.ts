@@ -73,7 +73,7 @@ async function generateVeo3VideosInParallel(
           .from('project_video_clips')
           .update({
             status: 'failed',
-            error_message: '未找到对应的分镜脚本',
+            error_message: 'Shot not found in script analysis',
             updated_at: new Date().toISOString()
           } as any)
           .eq('project_id', projectId)
@@ -85,6 +85,7 @@ async function generateVeo3VideosInParallel(
       try {
         // 获取下一个分镜图（用于流畅过渡）
         const nextStoryboard = storyboards.find(sb => sb.shot_number === shot.shot_number + 1)
+
         const images = getVideoGenerationImages(
           { imageUrl: storyboard.image_url },
           nextStoryboard ? { imageUrl: nextStoryboard.image_url } : undefined
@@ -94,8 +95,8 @@ async function generateVeo3VideosInParallel(
           throw new Error('No reference image available for Veo3.1 generation')
         }
 
-        // 增强 prompt：结合场景描述 + 角色动作 + 禁止字幕
-        const enhancedPrompt = `${shot.description}. ${shot.character_action}. No text, no subtitles, no captions, no words on screen.`
+        // 增强 prompt：场景描述（已包含角色动作）+ 禁止字幕
+        const enhancedPrompt = `${shot.description}. No text, no subtitles, no captions, no words on screen.`
 
         const { requestId } = await generateVeo3Video({
           prompt: enhancedPrompt,
@@ -124,7 +125,7 @@ async function generateVeo3VideosInParallel(
           .from('project_video_clips')
           .update({
             status: 'failed',
-            error_message: error instanceof Error ? error.message : '提交视频生成任务失败',
+            error_message: error instanceof Error ? error.message : 'Failed to submit video generation task',
             updated_at: new Date().toISOString()
           } as any)
           .eq('project_id', projectId)
@@ -162,7 +163,7 @@ async function generateBytePlusVideosSequentially(
         .from('project_video_clips')
         .update({
           status: 'failed',
-          error_message: '未找到对应的分镜脚本',
+          error_message: 'Shot not found in script analysis',
           updated_at: new Date().toISOString()
         } as any)
         .eq('project_id', projectId)
@@ -176,8 +177,8 @@ async function generateBytePlusVideosSequentially(
       // 如果需要首尾帧链式，需要更复杂的任务队列逻辑
       const firstFrameUrl = storyboard.image_url
 
-      // 增强 prompt
-      const enhancedPrompt = `Maintain exact character appearance and features from the reference image. ${shot.description}. ${shot.character_action}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
+      // 增强 prompt（description 已包含角色动作）
+      const enhancedPrompt = `Maintain exact character appearance and features from the reference image. ${shot.description}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
       // 🔥 Seedance 时长限制：2-12 秒（官方文档）
       // 参考：https://docs.byteplus.com/en/docs/ModelArk/1587798
@@ -215,7 +216,7 @@ async function generateBytePlusVideosSequentially(
         .from('project_video_clips')
         .update({
           seedance_task_id: result.data.id,
-            status: 'generating',
+          status: 'generating',
           updated_at: new Date().toISOString()
         } as any)
         .eq('project_id', projectId)
@@ -228,7 +229,7 @@ async function generateBytePlusVideosSequentially(
         .from('project_video_clips')
         .update({
           status: 'failed',
-          error_message: error instanceof Error ? error.message : '提交视频生成任务失败',
+          error_message: error instanceof Error ? error.message : 'Failed to submit video generation task',
           updated_at: new Date().toISOString()
         } as any)
         .eq('project_id', projectId)
@@ -245,7 +246,7 @@ async function generateBytePlusVideosSequentially(
             .from('project_video_clips')
             .update({
               status: 'failed',
-              error_message: '前序片段生成失败，链条中断',
+              error_message: 'Previous shot generation failed, chain interrupted',
               updated_at: new Date().toISOString()
             } as any)
             .eq('project_id', projectId)
@@ -283,25 +284,42 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 检查是否已完成分镜图生成
-    if (!project.step_3_status || project.step_3_status !== 'completed') {
-      console.error('[Video Agent] ❌ Step 3 not completed:', {
+    // 🔥 检查是否有足够的分镜图（移除 step_3_status 检查，支持 Step 1 集成）
+    const { data: existingStoryboards, error: sbCheckError } = await supabaseAdmin
+      .from('project_storyboards')
+      .select('shot_number, status')
+      .eq('project_id', projectId)
+      .eq('status', 'success')
+
+    if (sbCheckError) {
+      console.error('[Video Agent] Error checking storyboards:', sbCheckError)
+      return NextResponse.json(
+        { error: 'Failed to check storyboard status', code: 'STORYBOARD_CHECK_ERROR' },
+        { status: 500 }
+      )
+    }
+
+    if (!existingStoryboards || existingStoryboards.length === 0) {
+      console.error('[Video Agent] ❌ No successful storyboards found:', {
         projectId,
-        step_3_status: project.step_3_status,
-        current_step: project.current_step
+        storyboardCount: existingStoryboards?.length || 0
       })
       return NextResponse.json(
         {
           error: 'Storyboards must be generated first',
           code: 'STORYBOARDS_NOT_READY',
           details: {
-            step_3_status: project.step_3_status,
-            current_step: project.current_step
+            storyboardCount: existingStoryboards?.length || 0
           }
         },
         { status: 400 }
       )
     }
+
+    console.log('[Video Agent] ✅ Found storyboards:', {
+      projectId,
+      successfulStoryboards: existingStoryboards.length
+    })
 
     // 获取分镜脚本
     // 🔥 使用 let 而不是 const，因为恢复机制可能需要重新赋值
@@ -332,7 +350,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
               time_range: shot.time_range,
               description: shot.description,
               camera_angle: shot.camera_angle,
-              character_action: shot.character_action,
               mood: shot.mood,
               duration_seconds: Math.max(2, Math.round(shot.duration_seconds))  // 🔥 最小2秒
             }))
@@ -417,19 +434,67 @@ export const POST = withAuth(async (request, { params, userId }) => {
     const hasExistingClips = existingClips && existingClips.length > 0
 
     if (hasExistingClips) {
-      // 已经有记录，检查是否有正在生成或已完成的视频
-      const hasGenerating = existingClips.some(clip => clip.status === 'generating')
+      // 检查是否有已完成的视频
       const hasCompleted = existingClips.some(clip => clip.status === 'success')
 
-      if (hasGenerating || hasCompleted) {
+      if (hasCompleted) {
         return NextResponse.json({
           success: true,
           data: {
-            message: 'Video generation already started',
+            message: 'Video generation already completed',
             totalClips: existingClips.length,
             alreadyStarted: true
           }
         })
+      }
+
+      // 检查是否有正在生成的视频（需要验证任务是否真的在运行）
+      const generatingClips = existingClips.filter(clip => clip.status === 'generating')
+
+      if (generatingClips.length > 0) {
+        // 🔥 改进：检查是否真的有任务在运行
+        const hasRealTasks = generatingClips.some(clip =>
+          clip.seedance_task_id || clip.video_request_id
+        )
+
+        // 🔥 检查是否卡住（超过 10 分钟）
+        const now = new Date()
+        const TIMEOUT_MS = 10 * 60 * 1000  // 10 分钟
+        const hasStuckTasks = generatingClips.some(clip => {
+          const updatedAt = new Date(clip.updated_at)
+          return (now.getTime() - updatedAt.getTime()) > TIMEOUT_MS
+        })
+
+        if (hasRealTasks && !hasStuckTasks) {
+          // 有真实任务在运行，且未超时
+          return NextResponse.json({
+            success: true,
+            data: {
+              message: 'Video generation already in progress',
+              totalClips: existingClips.length,
+              alreadyStarted: true
+            }
+          })
+        } else {
+          // 任务提交失败或卡住，重置这些记录
+          console.warn('[Video Agent] ⚠️ Resetting stuck/failed video generation tasks', {
+            projectId,
+            stuckCount: generatingClips.length,
+            hasRealTasks,
+            hasStuckTasks
+          })
+
+          await supabaseAdmin
+            .from('project_video_clips')
+            .update({
+              status: 'idle',
+              error_message: 'Previous generation attempt failed or timed out',
+              updated_at: new Date().toISOString()
+            } as any)
+            .eq('project_id', projectId)
+            .eq('status', 'generating')
+            .returns<any>()
+        }
       }
     }
 

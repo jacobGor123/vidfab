@@ -144,9 +144,10 @@ export function CharacterGenerationSection({
     if (isInitialLoading) return
     if (Object.keys(characterStates).length === 0) return
 
-    // 转换 characterStates 为 project.characters 格式
+    // Convert characterStates to project.characters format for StoryboardEditDialog.
+    // IMPORTANT: preserve the real DB id from Step2 if present; do NOT synthesize `char-...` ids.
     const projectCharacters = Object.values(characterStates).map(state => ({
-      id: `char-${state.name}`,
+      id: (state as any).id || `char-${state.name}`,
       character_name: state.name,
       name: state.name,
       generation_prompt: state.prompt,

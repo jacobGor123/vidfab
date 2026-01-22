@@ -383,20 +383,6 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
             <Progress value={simulatedProgress} className="h-2" />
           </CardContent>
         </Card>
-
-        <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <div className="flex gap-3">
-              <div className="text-xl">⏳</div>
-              <div className="flex-1 text-sm">
-                <p className="font-semibold mb-1">Please Wait</p>
-                <p className="text-muted-foreground">
-                  Do not close this window. The composition process is running...
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     )
   }

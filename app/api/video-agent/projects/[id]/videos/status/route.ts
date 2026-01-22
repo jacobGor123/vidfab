@@ -189,6 +189,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
               console.log(`[Video Status API] Updating clip ${clip.shot_number} to success with URL:`, statusResult.videoUrl)
 
               // 更新数据库
+              const now = new Date().toISOString()
               const { error: updateError } = await supabaseAdmin
                 .from('project_video_clips')
                 .update({
@@ -196,7 +197,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
                   video_url: statusResult.videoUrl,
                   video_url_external: statusResult.videoUrl, // 保存外部 URL
                   storage_status: 'pending', // 标记为待下载
-                  updated_at: new Date().toISOString()
+                  updated_at: now
                 } as any)
                 .eq('id', clip.id)
 
@@ -212,28 +213,33 @@ export const GET = withAuth(async (request, { params, userId }) => {
                   })
               }
 
+              // 🔥 修复：返回正确的 updated_at
               return {
                 ...clip,
                 status: 'success',
-                video_url: statusResult.videoUrl
+                video_url: statusResult.videoUrl,
+                updated_at: now
               }
             } else if (statusResult.status === 'failed') {
               // 更新为失败状态
               const errorMessage = statusResult.error || 'Veo3 video generation failed'
+              const now = new Date().toISOString()
 
               await supabaseAdmin
                 .from('project_video_clips')
                 .update({
                   status: 'failed',
                   error_message: errorMessage,
-                  updated_at: new Date().toISOString()
+                  updated_at: now
                 } as any)
                 .eq('id', clip.id)
 
+              // 🔥 修复：返回正确的 updated_at
               return {
                 ...clip,
                 status: 'failed',
-                error_message: errorMessage
+                error_message: errorMessage,
+                updated_at: now
               }
             }
           } catch (error) {
@@ -244,11 +250,22 @@ export const GET = withAuth(async (request, { params, userId }) => {
         // 如果状态是 generating 且有 seedance_task_id (BytePlus),查询 BytePlus 状态
         else if (clip.status === 'generating' && clip.seedance_task_id) {
           try {
+            console.log(`[Video Status API] Checking BytePlus status for shot ${clip.shot_number}:`, {
+              taskId: clip.seedance_task_id
+            })
+
             const statusResult = await checkVideoStatus(clip.seedance_task_id)
+
+            console.log(`[Video Status API] BytePlus status result for shot ${clip.shot_number}:`, {
+              status: statusResult.data.status,
+              hasOutputs: !!statusResult.data.outputs?.length,
+              error: statusResult.data.error
+            })
 
             if (statusResult.data.status === 'completed') {
               // 更新数据库
               const videoUrl = statusResult.data.outputs?.[0] || null
+              const now = new Date().toISOString()
 
               await supabaseAdmin
                 .from('project_video_clips')
@@ -257,7 +274,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
                   video_url: videoUrl,
                   video_url_external: videoUrl, // 保存外部 URL
                   storage_status: 'pending', // 标记为待下载
-                  updated_at: new Date().toISOString()
+                  updated_at: now
                 } as any)
                 .eq('id', clip.id)
 
@@ -269,30 +286,36 @@ export const GET = withAuth(async (request, { params, userId }) => {
                   })
               }
 
+              // 🔥 修复：返回正确的 updated_at
               return {
                 ...clip,
                 status: 'success',  // 修复：使用 'success' 而不是 'completed'
-                video_url: videoUrl
+                video_url: videoUrl,
+                updated_at: now
               }
             } else if (statusResult.data.status === 'failed') {
               // 更新为失败状态
               const errorMessage = statusResult.data.error || 'Video generation failed'
+              const now = new Date().toISOString()
 
               await supabaseAdmin
                 .from('project_video_clips')
                 .update({
                   status: 'failed',
                   error_message: errorMessage,
-                  updated_at: new Date().toISOString()
+                  updated_at: now
                 } as any)
                 .eq('id', clip.id)
 
+              // 🔥 修复：返回正确的 updated_at
               return {
                 ...clip,
                 status: 'failed',
-                error_message: errorMessage
+                error_message: errorMessage,
+                updated_at: now
               }
             }
+            // status 仍为 'generating'，继续轮询
           } catch (error) {
             console.error(`[Video Agent] Failed to check status for clip ${clip.shot_number}:`, error)
             // 保持原状态

@@ -46,6 +46,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   const [shotToDelete, setShotToDelete] = useState<number | null>(null) // 待删除的分镜编号
   const [characterStatus, setCharacterStatus] = useState<'idle' | 'generating' | 'completed' | 'failed'>('idle') // 人物生成状态
   const [storyboardStatus, setStoryboardStatus] = useState<'idle' | 'generating' | 'completed' | 'failed'>('idle') // 分镜生成状态
+  const [videoCanProceed, setVideoCanProceed] = useState(false) // 🆕 视频是否全部生成完成
   const [editDialogOpen, setEditDialogOpen] = useState(false) // 编辑弹框开关
   const [editingShotNumber, setEditingShotNumber] = useState<number | null>(null) // 当前编辑的分镜编号
 
@@ -369,15 +370,79 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   }
 
   // 🔥 处理重新生成分镜
-  const handleRegenerateStoryboard = async (shotNumber: number, prompt: string, characterNames: string[]) => {
+  const handleRegenerateStoryboard = async (
+    shotNumber: number,
+    prompt: string,
+    characterNames: string[],
+    characterIds: string[]
+  ) => {
     try {
-      console.log('[Step1] Regenerating storyboard:', { shotNumber, prompt, characterNames })
+      // 🔥 Immediate UI sync: update the local analysis (and store) right away so the left description
+      // and the right default video prompt reflect the newly used regenerate prompt without waiting
+      // for any async field-extraction/network calls.
+      if (analysis) {
+        const oldShot = analysis.shots.find(s => s.shot_number === shotNumber)
+        const nextAnalysis: ScriptAnalysis = {
+          ...analysis,
+          shots: analysis.shots.map(s =>
+            s.shot_number === shotNumber
+              ? {
+                ...s,
+                characters: characterNames,
+                description: prompt,
+                video_prompt: prompt,
+                // Preserve other fields unless the user explicitly edits them elsewhere.
+                camera_angle: s.camera_angle,
+                character_action: s.character_action,
+                mood: s.mood,
+                // Keep any legacy text replacements for character name swaps (if present).
+                ...(oldShot
+                  ? (() => {
+                    const fields: Array<keyof Pick<Shot, 'camera_angle' | 'mood'>> =
+                      ['camera_angle', 'mood']
+
+                    const escapeRe = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                    const replacements: Array<[RegExp, string]> = []
+
+                    ;(oldShot.characters || []).forEach((oldName, idx) => {
+                      const newName = characterNames[idx]
+                      if (!oldName || !newName || oldName === newName) return
+                      replacements.push([new RegExp(`\\b${escapeRe(String(oldName))}\\b`, 'gi'), String(newName)])
+                    })
+
+                    const apply = (text: any) => {
+                      if (typeof text !== 'string') return text
+                      return replacements.reduce((acc, [re, rep]) => acc.replace(re, rep), text)
+                    }
+
+                    const patch: any = {}
+                    fields.forEach(f => {
+                      patch[f] = apply((s as any)[f])
+                    })
+                    return patch
+                  })()
+                  : {})
+              }
+              : s
+          )
+        }
+
+        setAnalysis(nextAnalysis)
+        onUpdate({ script_analysis: nextAnalysis })
+      }
 
       // 调用重新生成 API（修正参数结构）
       await regenerateStoryboard(project.id, {
         shotNumber: shotNumber,
         customPrompt: prompt,
-        selectedCharacterNames: characterNames
+        selectedCharacterNames: characterNames,
+        // Prefer ids to avoid name-matching pitfalls and stale reference mismatches.
+        selectedCharacterIds: characterIds,
+        // 🔥 同步 prompt 相关字段：后端会提取字段并写回 script_analysis；这里先保证 UI 立刻跟随。
+        fieldsUpdate: {
+          description: prompt,
+          video_prompt: prompt as any
+        } as any
       })
 
       // 重新获取项目数据以更新 storyboards
@@ -388,9 +453,9 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
 
       const { data: updatedProject } = await response.json()
 
-      // 更新本地状态
+      // 更新本地状态 - 🔥 创建新数组引用，确保触发重新渲染
       onUpdate({
-        storyboards: updatedProject.storyboards
+        storyboards: [...(updatedProject.storyboards || [])]
       })
     } catch (error: any) {
       console.error('[Step1] Regenerate storyboard failed:', error)
@@ -515,6 +580,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
           getFieldValue={getFieldValue}
           onDeleteShot={requestDeleteShot}
           onAddShot={canAddShot ? handleAddShot : undefined}
+          onVideoStatusChange={setVideoCanProceed}
         />
       )}
 
@@ -687,11 +753,14 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
         <div className="flex justify-center">
           <Button
             onClick={handleConfirm}
-            disabled={shouldShowIntegratedFeatures && storyboardStatus !== 'completed'}
+            disabled={shouldShowIntegratedFeatures && (!videoCanProceed)}
             size="lg"
             className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {hasUnsavedChanges ? 'Save & Continue' : 'Confirm & Continue'}
+            {!videoCanProceed && shouldShowIntegratedFeatures
+              ? 'Generate All Videos to Continue'
+              : hasUnsavedChanges ? 'Save & Continue' : 'Confirm & Continue'
+            }
           </Button>
         </div>
       </div>

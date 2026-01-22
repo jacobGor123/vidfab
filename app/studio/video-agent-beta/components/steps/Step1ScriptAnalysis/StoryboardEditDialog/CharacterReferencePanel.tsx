@@ -25,13 +25,18 @@ interface Character {
 interface CharacterReferencePanelProps {
   characters: Character[]
   selectedCharacterNames: string[]
+  selectedCharacterIds?: string[]
   onToggle: (characterName: string) => void
+  onToggleById?: (characterId: string) => void
 }
 
 export function CharacterReferencePanel({
   characters,
   selectedCharacterNames,
+  selectedCharacterIds,
   onToggle
+  ,
+  onToggleById
 }: CharacterReferencePanelProps) {
   return (
     <div className="space-y-4">
@@ -50,7 +55,9 @@ export function CharacterReferencePanel({
           </div>
         ) : (
           characters.map((character) => {
-            const isSelected = selectedCharacterNames.includes(character.character_name)
+            const isSelected = selectedCharacterIds
+              ? selectedCharacterIds.includes(character.id)
+              : selectedCharacterNames.includes(character.character_name)
             const imageUrl = character.character_reference_images?.[0]?.image_url
 
             return (
@@ -62,7 +69,13 @@ export function CharacterReferencePanel({
                     ? "border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/20"
                     : "border-slate-700 bg-slate-900/50 hover:border-slate-600 hover:bg-slate-900"
                 )}
-                onClick={() => onToggle(character.character_name)}
+                onClick={() => {
+                  if (onToggleById) {
+                    onToggleById(character.id)
+                  } else {
+                    onToggle(character.character_name)
+                  }
+                }}
               >
                 <CardContent className="p-3">
                   <div className="flex items-center gap-3">

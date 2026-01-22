@@ -37,7 +37,7 @@ export async function batchGenerateVideosWithTransition(
   const results: VideoClipResult[] = []
   let previousLastFrameUrl: string | undefined = undefined
 
-  console.log('[VideoAgent] 开始链式生成视频片段', {
+  console.log('[VideoAgent] Starting sequential video generation with transitions', {
     totalShots: storyboards.length,
     mode: 'sequential_with_transition'
   })
@@ -48,8 +48,8 @@ export async function batchGenerateVideosWithTransition(
     const shot = shots.find(s => s.shot_number === storyboard.shot_number)
 
     if (!shot || storyboard.status !== 'success') {
-      const error = !shot ? '未找到对应的分镜脚本' : '分镜图生成失败'
-      console.error(`[VideoAgent] 片段 ${storyboard.shot_number} 跳过:`, error)
+      const error = !shot ? 'Shot not found in script analysis' : 'Storyboard generation failed'
+      console.error(`[VideoAgent] Shot ${storyboard.shot_number} skipped:`, error)
 
       results.push({
         shot_number: storyboard.shot_number,
@@ -65,7 +65,7 @@ export async function batchGenerateVideosWithTransition(
       const firstFrameUrl = i === 0 ? storyboard.image_url : previousLastFrameUrl
 
       if (!firstFrameUrl) {
-        throw new Error(`片段 ${shot.shot_number} 缺少首帧图像（上一个片段可能未返回末尾帧）`)
+        throw new Error(`Shot ${shot.shot_number} missing first frame (previous shot may not have returned last frame)`)
       }
 
       // 构建视频生成 Prompt
@@ -84,7 +84,7 @@ export async function batchGenerateVideosWithTransition(
         seed: shot.seed
       }
 
-      console.log(`[VideoAgent] 生成片段 ${i + 1}/${storyboards.length}`, {
+      console.log(`[VideoAgent] Generating shot ${i + 1}/${storyboards.length}`, {
         shot_number: shot.shot_number,
         firstFrameSource: i === 0 ? 'storyboard' : 'previous_last_frame',
         firstFrameUrl: firstFrameUrl.substring(0, 60) + '...',
@@ -96,7 +96,7 @@ export async function batchGenerateVideosWithTransition(
         returnLastFrame: true
       })
 
-      console.log(`[VideoAgent] 片段 ${shot.shot_number} 任务已提交，等待完成...`, {
+      console.log(`[VideoAgent] Shot ${shot.shot_number} task submitted, waiting for completion...`, {
         task_id: submitResult.data.id
       })
 
@@ -104,7 +104,7 @@ export async function batchGenerateVideosWithTransition(
       const pollResult = await pollVideoStatus(submitResult.data.id)
 
       if (pollResult.status === 'failed') {
-        throw new Error(pollResult.error || '视频生成失败')
+        throw new Error(pollResult.error || 'Video generation failed')
       }
 
       // 保存末尾帧 URL，供下一个片段使用
@@ -118,32 +118,32 @@ export async function batchGenerateVideosWithTransition(
         status: 'completed'
       })
 
-      console.log(`[VideoAgent] 片段 ${shot.shot_number} 完成 ✓`, {
+      console.log(`[VideoAgent] Shot ${shot.shot_number} completed ✓`, {
         video_url: pollResult.video_url?.substring(0, 60) + '...',
         hasLastFrame: !!pollResult.lastFrameUrl,
         lastFrameUrl: pollResult.lastFrameUrl?.substring(0, 60) + '...'
       })
 
     } catch (error: any) {
-      console.error(`[VideoAgent] 片段 ${shot.shot_number} 生成失败:`, error)
+      console.error(`[VideoAgent] Shot ${shot.shot_number} generation failed:`, error)
 
       results.push({
         shot_number: shot.shot_number,
         status: 'failed',
-        error: error.message || '视频生成失败'
+        error: error.message || 'Video generation failed'
       })
 
       // 生成失败时，终止后续片段（因为链条断裂）
       const remainingCount = storyboards.length - i - 1
       if (remainingCount > 0) {
-        console.warn(`[VideoAgent] ⚠️ 链式生成中断，剩余 ${remainingCount} 个片段将跳过`)
+        console.warn(`[VideoAgent] ⚠️ Sequential generation interrupted, remaining ${remainingCount} shots will be skipped`)
 
         // 标记剩余片段为失败
         for (let j = i + 1; j < storyboards.length; j++) {
           results.push({
             shot_number: storyboards[j].shot_number,
             status: 'failed',
-            error: '前序片段生成失败，链条中断'
+            error: 'Previous shot generation failed, chain interrupted'
           })
         }
       }
@@ -152,7 +152,7 @@ export async function batchGenerateVideosWithTransition(
     }
   }
 
-  console.log('[VideoAgent] 链式生成完成', {
+  console.log('[VideoAgent] Sequential generation completed', {
     total: storyboards.length,
     completed: results.filter(r => r.status === 'completed').length,
     failed: results.filter(r => r.status === 'failed').length

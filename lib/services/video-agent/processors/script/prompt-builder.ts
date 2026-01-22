@@ -60,21 +60,17 @@ ${getStyleGuide(storyStyle)}
 
 **a) description (场景视觉描述)**
 - 用英文描述场景的核心视觉元素
+- **必须包含角色的具体动作和行为**（如：walking, jumping, looking, talking 等）
 - 包含环境、人物位置、主要物体
 - 具体且可视化（避免抽象概念）
-- 示例: "A young woman standing at a bus stop in the rain, holding a red umbrella"
+- 示例: "A young woman standing at a bus stop in the rain, holding a red umbrella, looking at her watch nervously, then glancing down the street"
 
 **b) camera_angle (镜头角度)**
 - 镜头类型: Wide shot / Medium shot / Close-up / Extreme close-up / Over-the-shoulder
 - 摄像机角度: Eye level / High angle / Low angle / Bird's eye view / Dutch angle
 - 示例: "Medium shot, eye level"
 
-**c) character_action (角色动作)**
-- 描述角色的具体动作和行为
-- 用英文，动词清晰
-- 示例: "Looking at her watch nervously, then glancing down the street"
-
-**d) characters (出现的角色)**
+**c) characters (出现的角色)**
 - **重要：仔细检查 description 中提到的所有命名实体**
 - 列出该分镜中出现的所有角色名称（包括人类、动物、生物、机器人等）
 - 使用与全局角色列表（characters 字段）完全一致的名称
@@ -82,11 +78,11 @@ ${getStyleGuide(storyStyle)}
 - 示例：如果 description 是 "A man and a cat looking at a robot"，则 characters 应该是 ["Man", "Cat", "Robot"]
 - 只有在没有任何命名实体时才返回空数组
 
-**e) mood (情绪氛围)**
+**d) mood (情绪氛围)**
 - 用 2-4 个英文形容词描述场景的情绪基调
 - 示例: "Anxious and hopeful" / "Mysterious and tense" / "Warm and nostalgic"
 
-**f) duration_seconds (分镜时长)**
+**e) duration_seconds (分镜时长)**
 - 该分镜的持续时间（秒）
 - 所有分镜时长之和必须等于 ${duration} 秒
 
@@ -103,9 +99,8 @@ ${getStyleGuide(storyStyle)}
     {
       "shot_number": 1,
       "time_range": "0-${avgShotDuration}s",
-      "description": "Detailed visual description in English",
+      "description": "Detailed visual description in English, including character actions",
       "camera_angle": "Shot type and camera angle",
-      "character_action": "Specific character action in English",
       "characters": ["Character1"],
       "mood": "Emotional tone",
       "duration_seconds": ${avgShotDuration}

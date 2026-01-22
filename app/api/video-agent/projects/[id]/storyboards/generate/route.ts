@@ -63,7 +63,9 @@ async function generateStoryboardsAsync(
         await supabaseAdmin
           .from('project_storyboards')
           .update({
+            // Keep image_url in sync with the externally accessible URL.
             image_url: result.image_url,
+            image_url_external: result.image_url,
             status: result.status,
             error_message: result.error,
             updated_at: new Date().toISOString()
@@ -201,19 +203,22 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     if (hasExistingStoryboards) {
       const hasGenerating = existingStoryboards.some(sb => sb.status === 'generating')
-      const hasCompleted = existingStoryboards.some(sb => sb.status === 'success')
 
-      // 🔥 如果已经有生成中或已完成的记录，直接返回
-      if (hasGenerating || hasCompleted) {
+      // 🔥 修复：只阻止重复生成中的请求，允许重新生成已完成的分镜图
+      // 这样用户更换人物后可以重新生成分镜图
+      if (hasGenerating) {
         return NextResponse.json({
           success: true,
           data: {
-            message: 'Storyboard generation already started',
+            message: 'Storyboard generation already in progress',
             total: existingStoryboards.length,
             alreadyStarted: true
           }
         })
       }
+
+      // 如果有已完成的记录，删除它们，允许重新生成
+      console.log('[Video Agent] Found existing completed storyboards, will regenerate')
     }
 
     // 🔥 没有记录或记录都是 failed 状态，创建新的 generating 记录

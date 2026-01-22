@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { regenerateStoryboard, IMAGE_STYLES } from '@/lib/services/video-agent/storyboard-generator'
+import { videoQueueManager } from '@/lib/queue/queue-manager'
+import { VideoAgentStorageManager } from '@/lib/services/video-agent/storage-manager'
+import { extractFieldsFromPrompt } from '@/lib/services/video-agent/prompt-field-extractor'
 import type { Shot, CharacterConfig, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
 import type { Database } from '@/lib/database.types'
 
@@ -15,7 +18,7 @@ type ProjectCharacter = Database['public']['Tables']['project_characters']['Row'
 type CharacterReferenceImage = Database['public']['Tables']['character_reference_images']['Row']
 
 // 人物查询结果类型（包含关联的参考图）
-type CharacterWithReferences = Pick<ProjectCharacter, 'character_name'> & {
+type CharacterWithReferences = Pick<ProjectCharacter, 'id' | 'character_name'> & {
   character_reference_images: Pick<CharacterReferenceImage, 'image_url' | 'image_order'>[]
 }
 
@@ -37,10 +40,18 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 获取请求体中的自定义 prompt、字段更新和选中的人物名称
+    // 获取请求体中的自定义 prompt、字段更新和选中的人物
     const body = await request.json().catch(() => ({}))
     const customPrompt = body.customPrompt as string | undefined
     const selectedCharacterNames = body.selectedCharacterNames as string[] | undefined
+    // Be defensive: the client should send UUID ids, but older UI flows may accidentally
+    // send character names/descriptions in selectedCharacterIds.
+    const selectedCharacterIdsRaw = body.selectedCharacterIds as unknown
+    const selectedCharacterIds = Array.isArray(selectedCharacterIdsRaw)
+      ? (selectedCharacterIdsRaw as any[]).map(v => String(v))
+      : undefined
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    const selectedCharacterIdsValid = selectedCharacterIds?.filter(id => uuidRe.test(id))
     const fieldsUpdate = body.fieldsUpdate as {
       description?: string
       camera_angle?: string
@@ -76,6 +87,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
         { status: 403 }
       )
     }
+
+    console.log('[Video Agent] Regenerate request received:', {
+      projectId,
+      shotNumber,
+      hasCustomPrompt: !!customPrompt,
+      selectedCharacterNamesCount: selectedCharacterNames?.length ?? null,
+      selectedCharacterIdsCount: selectedCharacterIds?.length ?? null,
+      selectedCharacterIdsValidCount: selectedCharacterIdsValid?.length ?? null
+    })
 
     // 检查重新生成配额 (暂时禁用以调试)
     // if (project.regenerate_quota_remaining <= 0) {
@@ -113,6 +133,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
     const { data: charactersData } = await supabaseAdmin
       .from('project_characters')
       .select(`
+        id,
         character_name,
         character_reference_images (
           image_url,
@@ -122,6 +143,11 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('project_id', projectId)
       .returns<CharacterWithReferences[]>()
 
+    console.log('[Video Agent] Loaded project_characters:', {
+      count: (charactersData || []).length,
+      ids: (charactersData || []).map(c => c.id)
+    })
+
     // 映射人物配置
     let characterConfigs: CharacterConfig[] = (charactersData || []).map(char => ({
       name: char.character_name,
@@ -130,20 +156,81 @@ export const POST = withAuth(async (request, { params, userId }) => {
         .map((img: any) => img.image_url)
     }))
 
-    // 🔥 如果前端明确传递了 selectedCharacterNames（包括空数组），则使用该选择
-    // undefined: 使用所有角色（默认行为，向后兼容）
-    // 空数组: 不使用任何角色参考图
-    // 非空数组: 只使用选中的角色
-    if (selectedCharacterNames !== undefined) {
-      if (selectedCharacterNames.length === 0) {
-        // 用户明确选择不使用任何角色参考图
-        console.log('[Video Agent] User explicitly selected NO characters')
+    // 🔥 选择策略：优先使用 selectedCharacterIds（稳定、避免同名/别名/括号问题）
+    // - undefined: 使用所有角色（默认行为，向后兼容）
+    // - 空数组: 不使用任何角色参考图
+    // - 非空: 只使用选中的角色
+    if (selectedCharacterIds !== undefined) {
+      if (selectedCharacterIdsValid && selectedCharacterIdsValid.length === 0) {
+        console.warn('[Video Agent] selectedCharacterIds present but none look like UUIDs; ignoring ids and falling back to names')
+      } else if (selectedCharacterIds.length === 0) {
+        console.log('[Video Agent] User explicitly selected NO characters (by id)')
         characterConfigs = []
       } else {
-        // 用户选中了特定角色
-        console.log('[Video Agent] Filtering characters by selectedCharacterNames:', selectedCharacterNames)
+        const idsToUse = selectedCharacterIdsValid || selectedCharacterIds
+        console.log('[Video Agent] Filtering characters by selectedCharacterIds:', idsToUse)
 
-        // 使用模糊匹配（不区分大小写，只匹配简短名称）
+        const availableIds = new Set((charactersData || []).map(c => c.id))
+        const missingIds = idsToUse.filter(id => !availableIds.has(id))
+        if (missingIds.length > 0) {
+          console.warn('[Video Agent] selectedCharacterIds missing in DB query result:', {
+            missingIds,
+            availableCount: availableIds.size
+          })
+        }
+
+        const selectedIdSet = new Set(idsToUse)
+        characterConfigs = (charactersData || [])
+          .filter(c => selectedIdSet.has(c.id))
+          .map(c => ({
+            name: c.character_name,
+            reference_images: (c.character_reference_images || [])
+              .sort((a: any, b: any) => a.image_order - b.image_order)
+              .map((img: any) => img.image_url)
+          }))
+
+        console.log(
+          '[Video Agent] Selected characters reference images (by id):',
+          characterConfigs.map(c => ({
+            name: c.name,
+            refCount: c.reference_images?.length || 0,
+            first: c.reference_images?.[0],
+            last: c.reference_images?.[c.reference_images.length - 1]
+          }))
+        )
+
+        console.log('[Video Agent] Filtered character configs (by id):', {
+          count: characterConfigs.length,
+          names: characterConfigs.map(c => c.name)
+        })
+
+        // Safety net: if ids were provided but resulted in 0 configs, fallback to name-based selection
+        // to avoid silently generating without reference images.
+        if (characterConfigs.length === 0 && selectedCharacterNames && selectedCharacterNames.length > 0) {
+          console.warn('[Video Agent] 0 configs after id filtering; falling back to name filtering')
+          characterConfigs = characterConfigs = (charactersData || [])
+            .filter(c => {
+              const shortConfigName = c.character_name.split('(')[0].trim().toLowerCase()
+              return selectedCharacterNames.some(selectedName => {
+                const shortSelectedName = selectedName.split('(')[0].trim().toLowerCase()
+                return shortConfigName === shortSelectedName
+              })
+            })
+            .map(c => ({
+              name: c.character_name,
+              reference_images: (c.character_reference_images || [])
+                .sort((a: any, b: any) => a.image_order - b.image_order)
+                .map((img: any) => img.image_url)
+            }))
+        }
+      }
+    } else if (selectedCharacterNames !== undefined) {
+      // 向后兼容：仍支持按名称选择
+      if (selectedCharacterNames.length === 0) {
+        console.log('[Video Agent] User explicitly selected NO characters (by name)')
+        characterConfigs = []
+      } else {
+        console.log('[Video Agent] Filtering characters by selectedCharacterNames:', selectedCharacterNames)
         characterConfigs = characterConfigs.filter(config => {
           const shortConfigName = config.name.split('(')[0].trim().toLowerCase()
           return selectedCharacterNames.some(selectedName => {
@@ -151,8 +238,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
             return shortConfigName === shortSelectedName
           })
         })
-
-        console.log('[Video Agent] Filtered character configs:', characterConfigs.map(c => c.name))
+        console.log('[Video Agent] Filtered character configs (by name):', characterConfigs.map(c => c.name))
       }
     }
 
@@ -170,14 +256,23 @@ export const POST = withAuth(async (request, { params, userId }) => {
       customPrompt
     )
 
+    console.log('[Video Agent] regenerateStoryboard result:', {
+      status: result.status,
+      hasImageUrl: !!result.image_url,
+      imageUrl: result.image_url
+    })
+
     // 更新数据库中的分镜图记录
+    const now = new Date().toISOString()
     const { error: updateError } = await supabaseAdmin
       .from('project_storyboards')
       .update({
         image_url: result.image_url || null,
+        image_url_external: result.image_url || null,
         status: result.status,
+        storage_status: result.image_url ? 'pending' : null,
         error_message: result.error || null,
-        updated_at: new Date().toISOString()
+        updated_at: now
       } as any)
       .eq('project_id', projectId)
       .eq('shot_number', shotNumber)
@@ -185,6 +280,124 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     if (updateError) {
       console.error('[Video Agent] Failed to update storyboard:', updateError)
+    } else {
+      console.log('[Video Agent] Storyboard DB updated:', {
+        projectId,
+        shotNumber,
+        updatedAt: now,
+        imageUrl: result.image_url
+      })
+    }
+
+    // 🔥 Stable output (async): enqueue a download job so the request can return quickly.
+    // The worker will retry/backoff, which is critical on flaky networks.
+    if (result.status === 'success' && result.image_url) {
+      try {
+        await videoQueueManager.addJob(
+          'storyboard_download',
+          {
+            jobId: `storyboard_download_${projectId}_${shotNumber}`,
+            userId,
+            videoId: projectId,
+            projectId,
+            shotNumber,
+            externalUrl: result.image_url,
+            createdAt: new Date().toISOString(),
+          },
+          {
+            priority: 'normal',
+            attempts: 6,
+            backoff: { type: 'exponential', delay: 10000 },
+          }
+        )
+
+        console.log('[Video Agent] Queued storyboard download after regenerate', {
+          projectId,
+          shotNumber,
+        })
+      } catch (queueErr) {
+        console.error('[Video Agent] Failed to enqueue storyboard download:', queueErr)
+
+        // Queue can be unavailable in local dev (no Redis). Fallback to a detached direct download.
+        // We DO NOT await this to avoid blocking the request.
+        VideoAgentStorageManager.downloadAndStoreStoryboard(
+          userId,
+          projectId,
+          shotNumber,
+          result.image_url
+        ).catch((downloadErr) => {
+          console.error('[Video Agent] Fallback direct download failed:', downloadErr)
+        })
+      }
+    }
+
+    // 🔥 新增：如果用户提供了自定义 prompt，自动提取字段并更新 script_analysis
+    if (customPrompt) {
+      try {
+        console.log('[Video Agent] Extracting fields from custom prompt...')
+
+        const extractedFields = await extractFieldsFromPrompt(customPrompt)
+
+        console.log('[Video Agent] Extracted fields:', extractedFields)
+
+        // 获取当前的 script_analysis
+        const { data: currentProject, error: fetchError } = await supabaseAdmin
+          .from('video_agent_projects')
+          .select('script_analysis')
+          .eq('id', projectId)
+          .single<VideoAgentProject>()
+
+        if (fetchError) {
+          console.error('[Video Agent] Failed to fetch project for field extraction:', fetchError)
+        } else if (currentProject?.script_analysis) {
+          const scriptAnalysis = currentProject.script_analysis as unknown as ScriptAnalysisResult
+
+          // 更新对应 shot 的字段
+          const updatedShots = scriptAnalysis.shots.map((s: Shot) => {
+            if (s.shot_number === shotNumber) {
+              return {
+                ...s,
+                description: extractedFields.description,
+                camera_angle: extractedFields.camera_angle,
+                character_action: extractedFields.character_action,
+                mood: extractedFields.mood,
+                video_prompt: extractedFields.video_prompt  // 🔥 同时更新 video_prompt
+              }
+            }
+            return s
+          })
+
+          // 保存更新
+          const { error: updateFieldsError } = await supabaseAdmin
+            .from('video_agent_projects')
+            .update({
+              script_analysis: {
+                ...scriptAnalysis,
+                shots: updatedShots
+              } as any,
+              updated_at: new Date().toISOString()
+            } as any)
+            .eq('id', projectId)
+
+          if (updateFieldsError) {
+            console.error('[Video Agent] Failed to update extracted fields in script_analysis:', updateFieldsError)
+          } else {
+            console.log('[Video Agent] Extracted fields updated in script_analysis')
+          }
+        }
+
+        // 🔥 标记关联视频为 outdated（因为 prompt 已经变化）
+        await supabaseAdmin
+          .from('project_video_clips')
+          .update({ status: 'outdated' } as any)
+          .eq('project_id', projectId)
+          .eq('shot_number', shotNumber)
+          .eq('status', 'success')
+
+      } catch (error: any) {
+        console.error('[Video Agent] Field extraction failed:', error)
+        // 不阻塞主流程，继续执行
+      }
     }
 
     // 🔥 如果用户修改了字段，同时更新 script_analysis.shots

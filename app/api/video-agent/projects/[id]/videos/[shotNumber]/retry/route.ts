@@ -88,17 +88,33 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 更新状态为 generating
-    await supabaseAdmin
+    // 🔥 使用 UPSERT 确保记录存在（解决首次生成时没有记录的问题）
+    // 🔥 修复：清除旧的视频 URL 和任务 ID，避免数据混乱
+    const { error: upsertError } = await supabaseAdmin
       .from('project_video_clips')
-      .update({
+      .upsert({
+        project_id: projectId,
+        shot_number: shotNumber,
         status: 'generating',
         error_message: null,
+        retry_count: 0,
+        video_url: null,
+        video_url_external: null,
+        cdn_url: null,
+        seedance_task_id: null,
+        video_request_id: null,
         updated_at: new Date().toISOString()
-      } as any)
-      .eq('project_id', projectId)
-      .eq('shot_number', shotNumber)
-      .returns<any>()
+      } as any, {
+        onConflict: 'project_id,shot_number'
+      })
+
+    if (upsertError) {
+      console.error('[Video Agent] Failed to upsert video clip:', upsertError)
+      return NextResponse.json(
+        { error: 'Failed to initialize video clip', code: 'UPSERT_FAILED' },
+        { status: 500 }
+      )
+    }
 
     // 根据是否启用旁白选择不同的生成方式
     if (project.enable_narration) {
@@ -123,6 +139,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
 
       // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
+      // ✅ description 现在已包含角色动作，无需单独拼接 character_action
       let finalPrompt: string
       if (customPrompt && customPrompt.trim()) {
         try {
@@ -130,27 +147,25 @@ export const POST = withAuth(async (request, { params, userId }) => {
           const parsedFields = JSON.parse(customPrompt)
 
           if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description 和 character_action
+            // 🔥 JSON 字段模式：提取 description（已包含动作）
             const description = parsedFields.description || shot.description
-            const characterAction = parsedFields.character_action || shot.character_action
-            finalPrompt = `${description}. ${characterAction}`
+            finalPrompt = description
             console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
-              description: description.substring(0, 50) + '...',
-              characterAction: characterAction.substring(0, 50) + '...'
+              description: description.substring(0, 50) + '...'
             })
           } else {
             // JSON 解析成功但不是对象，作为纯文本处理
-            finalPrompt = `${customPrompt.trim()}. ${shot.character_action}`
+            finalPrompt = customPrompt.trim()
             console.log(`[Video Agent] 🔄 Using custom description (fallback) for shot ${shotNumber}`)
           }
         } catch {
           // 🔥 纯文本模式（向后兼容）：将整个 customPrompt 作为 description
-          finalPrompt = `${customPrompt.trim()}. ${shot.character_action}`
+          finalPrompt = customPrompt.trim()
           console.log(`[Video Agent] 🔄 Using custom description (text mode) for shot ${shotNumber}`)
         }
       } else {
-        // 使用默认 prompt
-        finalPrompt = `${shot.description}. ${shot.character_action}`
+        // 使用默认 prompt（description 已包含动作）
+        finalPrompt = shot.description
       }
 
       // 🔥 强制添加禁止字幕指令
@@ -237,7 +252,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         prompt: finalPrompt,
         model: 'vidfab-q1',
         duration: shot.duration_seconds,
-        resolution: '1080p',
+        resolution: '720p',  // 🔥 修复：使用 720p（更快，缓存优化）
         aspectRatio: project.aspect_ratio || '16:9',
         cameraFixed: true,
         watermark: false,

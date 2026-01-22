@@ -43,7 +43,17 @@ export function useStoryboardAutoGeneration(
 
   // 🔥 同步 project.storyboards 到内部状态（处理 Edit Dialog 重新生成后的更新）
   useEffect(() => {
-    if (!project.storyboards || project.storyboards.length === 0) return
+    // 🔥 修复：只处理有数据的情况，避免清空已加载的数据
+    if (!project.storyboards || project.storyboards.length === 0) {
+      // 不做任何操作，保持当前状态
+      // 这样可以避免在数据加载时误清空
+      return
+    }
+
+    // 🔥 如果正在生成中，仍然允许更新已完成的分镜图
+    if (hasStartedRef.current || status === 'generating') {
+      // 继续执行同步逻辑
+    }
 
     // 将 project.storyboards 转换为 Record 格式
     const projectStoryboardMap: Record<number, Storyboard> = {}
@@ -54,23 +64,33 @@ export function useStoryboardAutoGeneration(
         image_url: sb.image_url,
         status: sb.status,
         error_message: sb.error_message,
-        generation_attempts: sb.generation_attempts || 0
+        generation_attempts: sb.generation_attempts || 0,
+        updated_at: sb.updated_at  // 🔥 关键修复：包含 updated_at 字段以支持缓存清除
       }
     })
 
     // 合并更新，保留最新的图片
     setStoryboards(prev => {
       const merged = { ...prev }
+      let hasChanges = false
+
       Object.entries(projectStoryboardMap).forEach(([key, value]) => {
         const shotNum = parseInt(key)
-        // 如果 project 中有更新的图片，使用它
-        if (value.image_url) {
+        const oldValue = prev[shotNum]
+
+        // 🔥 如果 project 中有图片，或者 updated_at 发生变化，则更新
+        // 这确保了重新生成的分镜图（即使 URL 相同）也会触发更新
+        const shouldUpdate = value.image_url || (value as any).updated_at !== (oldValue as any)?.updated_at
+        if (shouldUpdate) {
           merged[shotNum] = value
+          hasChanges = true
         }
       })
-      return merged
+
+      // 只有在有变化时才返回新对象，避免无限循环
+      return hasChanges ? merged : prev
     })
-  }, [project.storyboards])
+  }, [project.storyboards, status])
 
   // 追踪轮询开始时间，用于超时保护
   const pollStartTimeRef = useRef<number | null>(null)
@@ -118,9 +138,13 @@ export function useStoryboardAutoGeneration(
             id: item.id,
             shot_number: item.shot_number,
             image_url: item.image_url,
+            image_url_external: item.image_url_external,
+            cdn_url: item.cdn_url,
+            storage_status: item.storage_status,
             status: item.status,
             error_message: item.error_message,
-            generation_attempts: item.generation_attempts || 0
+            generation_attempts: item.generation_attempts || 0,
+            updated_at: item.updated_at  // 🔥 关键修复：包含 updated_at 字段以支持缓存清除
           }
         }
       })
@@ -172,19 +196,34 @@ export function useStoryboardAutoGeneration(
 
   // 开始生成
   const startGeneration = useCallback(async () => {
+    console.log('[StoryboardAutoGen] 🎬 startGeneration called:', {
+      hasStarted: hasStartedRef.current,
+      currentStatus: status,
+      projectId: project.id,
+      shotCount: analysis.shot_count,
+      timestamp: new Date().toISOString()
+    })
+
     if (hasStartedRef.current) {
+      console.warn('[StoryboardAutoGen] ⚠️ Generation already started, skipping', {
+        hasStarted: hasStartedRef.current,
+        status
+      })
       return
     }
 
+    console.log('[StoryboardAutoGen] ✅ Starting generation flow...')
     hasStartedRef.current = true
     setStatus('generating')
     setProgress({ current: 0, total: analysis.shot_count })
 
     try {
+      console.log('[StoryboardAutoGen] 📤 Calling generateStoryboards API...')
       // 调用批量生成 API
       await generateStoryboards(project.id, {
         imageStyle: project.image_style_id || 'realistic'
       })
+      console.log('[StoryboardAutoGen] ✅ generateStoryboards API completed')
 
       // 设置轮询开始时间，用于超时保护
       pollStartTimeRef.current = Date.now()
@@ -193,10 +232,11 @@ export function useStoryboardAutoGeneration(
       pollIntervalRef.current = setInterval(pollStoryboards, 2000)
 
       // 立即执行一次轮询
+      console.log('[StoryboardAutoGen] 🔄 Starting polling...')
       await pollStoryboards()
 
     } catch (error) {
-      console.error('[StoryboardAutoGen] Failed to start generation:', error)
+      console.error('[StoryboardAutoGen] ❌ Failed to start generation:', error)
       setStatus('failed')
       hasStartedRef.current = false
       clearPoll()
@@ -208,6 +248,7 @@ export function useStoryboardAutoGeneration(
     generateStoryboards,
     pollStoryboards,
     clearPoll
+    // 🔥 移除 status 依赖，避免闭包问题和不必要的重新创建
   ])
 
   // 重试生成

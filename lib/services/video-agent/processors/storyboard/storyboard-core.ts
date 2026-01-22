@@ -23,19 +23,22 @@ export async function generateSingleStoryboard(
     // 使用模糊匹配，因为 shot.characters 可能是完整格式 "Angela (cat, 20s...)"
     // 而 character_name 可能只是简短名称 "Angela"
 
-    // 合并所有文本描述
-    const sceneText = `${shot.description} ${shot.character_action}`.toLowerCase()
+    // 合并所有文本描述（description 现在已包含角色动作）
+    const sceneText = shot.description.toLowerCase()
 
-    // 使用传入的 characters 配置（用户选择的角色）来提取参考图
+    // Use the passed-in characters config (selected on the server) to extract reference images.
+    // IMPORTANT: choose the LAST image as the “latest” to reflect recent user updates.
+    // We don't have created_at here, but the server already sorts by image_order.
     const charactersWithRefs = characters
       .filter(c => c.reference_images && c.reference_images.length > 0)
       .map(c => {
         const shortName = c.name.split('(')[0].trim()
         const position = sceneText.indexOf(shortName.toLowerCase())
+        const latestRef = c.reference_images[c.reference_images.length - 1]
         return {
           name: c.name,
           position: position >= 0 ? position : 9999,
-          refImage: c.reference_images[0]
+          refImage: latestRef
         }
       })
       // 按照在场景描述中出现的顺序排序
@@ -56,11 +59,11 @@ export async function generateSingleStoryboard(
 
         if (parsedFields && typeof parsedFields === 'object') {
           // 🔥 JSON 字段模式：提取各个字段并构建完整的 Shot 对象
+          // ✅ description 现在已包含角色动作，无需单独处理 character_action
           const modifiedShot = {
             ...shot,
             description: parsedFields.description || shot.description,
             camera_angle: parsedFields.camera_angle || shot.camera_angle,
-            character_action: parsedFields.character_action || shot.character_action,
             mood: parsedFields.mood || shot.mood
           }
           prompt = buildStoryboardPrompt(modifiedShot, style, characters, hasReferenceImages)

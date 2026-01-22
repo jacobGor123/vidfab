@@ -8,16 +8,15 @@
 interface ProgressBarProps {
   currentStep: number
   totalSteps: number
-  isNewProject?: boolean  // 新增：是否是新项目（3 步流程）
+  isNewProject?: boolean  // 新增：是否是新项目（2 步流程）
   stepStatuses?: Record<number, 'pending' | 'processing' | 'completed' | 'failed' | undefined>
   onStepClick?: (step: number) => void
 }
 
-// 新流程（3 步）
+// 新流程（2 步）- 视频生成已集成到 Step 1
 const NEW_STEP_LABELS = [
-  'Script & Setup',
-  'Video Generation',
-  'Final Composition'
+  'Create',           // Script + Character + Storyboard + Video
+  'Compose'           // Final Composition
 ]
 
 // 旧流程（5 步）

@@ -75,6 +75,7 @@ interface GenerateCharacterImageParams {
 
 interface UpdateCharactersParams {
   characters: Array<{
+    id?: string
     name: string
     source: 'template' | 'upload' | 'ai_generate'
     templateId?: string
@@ -94,6 +95,7 @@ interface RegenerateStoryboardParams {
   imageStyle?: string
   customPrompt?: string
   selectedCharacterNames?: string[]  // 🔥 新增：选中的人物名称列表
+  selectedCharacterIds?: string[]  // 🔥 新增：选中的人物 id 列表（稳定）
   fieldsUpdate?: {  // 🔥 新增：字段更新（会同步到 script_analysis.shots）
     description?: string
     camera_angle?: string
@@ -399,22 +401,13 @@ export function useVideoAgentAPI() {
   ): Promise<void> => {
     const url = `/api/video-agent/projects/${projectId}/storyboards/${params.shotNumber}/regenerate`
 
-    console.log('[useVideoAgentAPI] regenerateStoryboard called', {
-      projectId,
-      shotNumber: params.shotNumber,
-      url,
-      hasCustomPrompt: !!params.customPrompt,
-      hasSelectedCharacters: !!params.selectedCharacterNames,
-      selectedCharactersCount: params.selectedCharacterNames?.length || 0,
-      hasFieldsUpdate: !!params.fieldsUpdate
-    })
-
     return callAPI(url, {
       method: 'POST',
       body: JSON.stringify({
         image_style: params.imageStyle,
         customPrompt: params.customPrompt,
         selectedCharacterNames: params.selectedCharacterNames,  // 🔥 传递选中的人物
+        selectedCharacterIds: params.selectedCharacterIds,
         fieldsUpdate: params.fieldsUpdate  // 🔥 传递字段更新
       }),
     })

@@ -102,18 +102,15 @@ function parseCharacters(characters: string[]): ParsedCharacter[] {
  * - "Ginger stands on its hind legs" → "the cat Ginger stands on its hind legs"
  * - "Store Employee smiles" → "the person Store Employee smiles"
  *
- * @param description 场景描述
- * @param characterAction 角色动作
+ * @param description 场景描述（现在已包含角色动作）
  * @param parsedCharacters 解析后的角色信息
- * @returns 处理后的描述和动作
+ * @returns 处理后的描述
  */
 function annotateCharacterTypes(
   description: string,
-  characterAction: string,
   parsedCharacters: ParsedCharacter[]
-): { description: string; characterAction: string } {
+): { description: string } {
   let newDescription = description
-  let newCharacterAction = characterAction
 
   // 为每个角色添加类型标识
   for (const char of parsedCharacters) {
@@ -126,19 +123,14 @@ function annotateCharacterTypes(
     const regex = new RegExp(`\\b${escapeRegex(char.shortName)}\\b`, 'i')
     const replacement = `the ${char.type} ${char.shortName}`
 
-    // 🔥 优先在 description 中查找并替换首次出现
+    // 在 description 中查找并替换首次出现
     if (regex.test(newDescription)) {
       newDescription = newDescription.replace(regex, replacement)
-    }
-    // 如果 description 中没有，才在 character_action 中替换
-    else if (regex.test(newCharacterAction)) {
-      newCharacterAction = newCharacterAction.replace(regex, replacement)
     }
   }
 
   return {
-    description: newDescription,
-    characterAction: newCharacterAction
+    description: newDescription
   }
 }
 
@@ -246,7 +238,7 @@ export function buildNegativePrompt(style: ImageStyle, hasReferenceImages: boole
  * 检测脚本是否涉及镜子、倒影等允许重复人物的特殊场景
  */
 function isMirrorOrReflectionScene(shot: Shot): boolean {
-  const combinedText = `${shot.description} ${shot.character_action}`.toLowerCase()
+  const combinedText = shot.description.toLowerCase()
   const mirrorKeywords = [
     'mirror', 'reflection', 'reflect', 'twin', 'clone', 'duplicate',
     '镜子', '倒影', '镜像', '双胞胎', '克隆', '复制',
@@ -271,9 +263,9 @@ export function buildStoryboardPrompt(
   const simplifiedCharacterList = buildSimplifiedCharacterList(parsedCharacters)
 
   // 🔥 在描述中添加角色类型标识（仅首次出现）
+  // ✅ description 现在已包含角色动作，无需单独处理 character_action
   const annotated = annotateCharacterTypes(
     shot.description,
-    shot.character_action,
     parsedCharacters
   )
 
@@ -291,14 +283,11 @@ export function buildStoryboardPrompt(
     prompt += `DO NOT change or modify the character's appearance in ANY way. `
   }
 
-  // 🔥 场景描述（已标注角色类型）
+  // 🔥 场景描述（已标注角色类型，已包含角色动作）
   prompt += `Scene: ${annotated.description}. `
 
   // 镜头角度
   prompt += `Camera: ${shot.camera_angle}. `
-
-  // 🔥 角色动作（已标注角色类型）
-  prompt += `Action: ${annotated.characterAction}. `
 
   // 情绪氛围
   prompt += `Mood: ${shot.mood}. `

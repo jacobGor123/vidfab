@@ -24,7 +24,7 @@ export interface ProjectActions {
   loadProject: (id: string) => Promise<void>
   updateProject: (updates: Partial<VideoAgentProject>) => void
   deleteProject: (id: string) => Promise<void>
-  resumeProject: (project: VideoAgentProject) => void
+  resumeProject: (project: VideoAgentProject) => Promise<void>
   setError: (error: string | null) => void
   setLoading: (loading: boolean) => void
   reset: () => void
@@ -143,10 +143,32 @@ export const createProjectSlice: StateCreator<
   },
 
   // 恢复项目
-  resumeProject: (project) => {
-    set({
-      currentProject: project
-    })
+  resumeProject: async (project) => {
+    set({ isLoading: true, error: null })
+
+    try {
+      // 🔥 重新加载完整的项目数据（包含 storyboards, characters, video_clips）
+      const response = await fetch(`/api/video-agent/projects/${project.id}`)
+
+      if (!response.ok) {
+        throw new Error('Failed to load project details')
+      }
+
+      const { data: fullProject } = await response.json()
+
+      set({
+        currentProject: fullProject,
+        isLoading: false
+      })
+    } catch (error: any) {
+      console.error('[Store] Failed to load project details:', error)
+      // 🔥 降级：使用传入的不完整数据，避免完全失败
+      set({
+        currentProject: project,
+        isLoading: false,
+        error: error.message
+      })
+    }
   },
 
   // 设置错误

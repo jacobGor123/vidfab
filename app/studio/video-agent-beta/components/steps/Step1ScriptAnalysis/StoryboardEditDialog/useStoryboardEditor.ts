@@ -15,12 +15,14 @@ import type { VideoAgentProject } from '@/lib/stores/video-agent'
 
 interface UseStoryboardEditorReturn {
   selectedCharacterNames: string[]
+  selectedCharacterIds: string[]
   editedPrompt: string
   isRegenerating: boolean
   handleToggleCharacter: (characterName: string) => void
+  handleToggleCharacterId: (characterId: string) => void
   handlePromptChange: (prompt: string) => void
   handleRegenerate: (
-    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[]) => Promise<void>,
+    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>,
     onClose: () => void
   ) => Promise<void>
 }
@@ -30,18 +32,21 @@ export function useStoryboardEditor(
   shotNumber: number | null
 ): UseStoryboardEditorReturn {
   const [selectedCharacterNames, setSelectedCharacterNames] = useState<string[]>([])
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([])
   const [editedPrompt, setEditedPrompt] = useState('')
   const [isRegenerating, setIsRegenerating] = useState(false)
 
   // 🔥 追踪上次初始化的 shotNumber，避免重复初始化
   const lastInitializedShotRef = useRef<number | null>(null)
 
-  // 🔥 关键修复：只在 shotNumber 变化时初始化，不依赖 project 对象
+  // 🔥 初始化策略：shotNumber 变化时初始化；同时当 project.characters 更新时
+  // 纠正 selectedCharacterIds（避免 Step2 变更后引用图仍是旧的）。
   useEffect(() => {
     // 对话框关闭时重置
     if (!shotNumber) {
       lastInitializedShotRef.current = null
       setSelectedCharacterNames([])
+      setSelectedCharacterIds([])
       setEditedPrompt('')
       return
     }
@@ -61,13 +66,36 @@ export function useStoryboardEditor(
       return
     }
 
-    console.log('[StoryboardEditor] Initializing for shot', shotNumber, {
-      characters: shot.characters,
-      description: shot.description
+    const normalize = (name: string) => name.split('(')[0].trim().toLowerCase()
+    const projectChars = Array.isArray(project.characters) ? project.characters : []
+
+    // 1) Name selection is used only for UI labels / legacy fallback.
+    setSelectedCharacterNames((shot.characters || []).map((n: string) => normalize(String(n))).filter(Boolean))
+
+    // 2) Id selection is the source of truth for reference images.
+    const nameToId = new Map<string, string>()
+    const idToName = new Map<string, string>()
+    projectChars.forEach((c: any) => {
+      if (!c?.id) return
+      const name = String(c.character_name || c.name || '').trim()
+      if (!name) return
+      nameToId.set(normalize(name), String(c.id))
+      idToName.set(String(c.id), name)
     })
 
-    // 自动选中该分镜涉及的人物
-    setSelectedCharacterNames(shot.characters || [])
+    const mappedIds = (shot.characters || [])
+      .map((n: string) => nameToId.get(normalize(String(n))))
+      .filter(Boolean) as string[]
+
+    const fallbackAllIds = projectChars.map((c: any) => String(c.id)).filter(Boolean)
+    const nextIds = mappedIds.length > 0 ? mappedIds : fallbackAllIds
+    setSelectedCharacterIds(nextIds)
+
+    // Keep the display names in sync with ids so the panel doesn't show stale labels.
+    const nextNames = nextIds
+      .map((id) => idToName.get(id))
+      .filter(Boolean) as string[]
+    if (nextNames.length > 0) setSelectedCharacterNames(nextNames)
 
     // 预填充 prompt
     const storyboard = project.storyboards?.find(s => s.shot_number === shotNumber)
@@ -80,7 +108,7 @@ export function useStoryboardEditor(
     // 标记已初始化
     lastInitializedShotRef.current = shotNumber
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shotNumber]) // 🔥 只依赖 shotNumber
+  }, [shotNumber, project.characters])
 
   // 切换人物选择
   const handleToggleCharacter = useCallback((characterName: string) => {
@@ -93,6 +121,30 @@ export function useStoryboardEditor(
     })
   }, [])
 
+  const handleToggleCharacterId = useCallback((characterId: string) => {
+    setSelectedCharacterIds(prev => {
+      if (prev.includes(characterId)) {
+        return prev.filter(id => id !== characterId)
+      }
+      return [...prev, characterId]
+    })
+
+    // Keep name-selection roughly in sync so any legacy name-based fallback remains sane.
+    const idToName = new Map<string, string>()
+    ;(project.characters || []).forEach((c: any) => {
+      if (!c?.id) return
+      const name = c.character_name || c.name
+      if (name) idToName.set(String(c.id), String(name))
+    })
+
+    setSelectedCharacterNames(prev => {
+      const mappedName = idToName.get(characterId)
+      if (!mappedName) return prev
+      if (prev.includes(mappedName)) return prev.filter(n => n !== mappedName)
+      return [...prev, mappedName]
+    })
+  }, [project.characters])
+
   // 修改 prompt
   const handlePromptChange = useCallback((prompt: string) => {
     setEditedPrompt(prompt)
@@ -100,7 +152,7 @@ export function useStoryboardEditor(
 
   // 重新生成
   const handleRegenerate = useCallback(async (
-    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[]) => Promise<void>,
+    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>,
     onClose: () => void
   ) => {
     if (!shotNumber) {
@@ -110,12 +162,7 @@ export function useStoryboardEditor(
 
     setIsRegenerating(true)
     try {
-      console.log('[StoryboardEditor] Regenerating shot', shotNumber, {
-        prompt: editedPrompt,
-        characters: selectedCharacterNames
-      })
-
-      await onRegenerate(shotNumber, editedPrompt, selectedCharacterNames)
+      await onRegenerate(shotNumber, editedPrompt, selectedCharacterNames, selectedCharacterIds)
 
       // 成功后关闭弹框
       onClose()
@@ -125,13 +172,15 @@ export function useStoryboardEditor(
     } finally {
       setIsRegenerating(false)
     }
-  }, [shotNumber, editedPrompt, selectedCharacterNames])
+  }, [shotNumber, editedPrompt, selectedCharacterNames, selectedCharacterIds])
 
   return {
     selectedCharacterNames,
+    selectedCharacterIds,
     editedPrompt,
     isRegenerating,
     handleToggleCharacter,
+    handleToggleCharacterId,
     handlePromptChange,
     handleRegenerate
   }

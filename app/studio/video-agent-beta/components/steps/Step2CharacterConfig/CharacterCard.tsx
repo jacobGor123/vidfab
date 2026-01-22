@@ -5,9 +5,11 @@
 
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { CharacterState } from './hooks/useCharacterState'
@@ -23,6 +25,7 @@ import {
 interface CharacterCardProps {
   state: CharacterState
   onPromptChange: (prompt: string) => void
+  onNameChange: (name: string) => void
   onGenerate: () => void
   onUpload: (file: File) => void
   onOpenPreset: () => void
@@ -31,47 +34,89 @@ interface CharacterCardProps {
 export function CharacterCard({
   state,
   onPromptChange,
+  onNameChange,
   onGenerate,
   onUpload,
   onOpenPreset
 }: CharacterCardProps) {
+  // 🎨 图片加载状态，用于过渡动画
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | undefined>(state.imageUrl)
+
+  // 监听 imageUrl 变化，触发淡入动画
+  useEffect(() => {
+    if (state.imageUrl !== currentImageUrl) {
+      // 🔥 立即更新 URL，不延迟（让用户立即看到响应）
+      setCurrentImageUrl(state.imageUrl)
+      // 重置加载状态，触发淡入动画
+      setImageLoaded(false)
+    }
+  }, [state.imageUrl, currentImageUrl])
+
   return (
     <Card className="relative">
       <CardContent className="pt-6 space-y-3">
         {/* 人物名称 */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{state.name}</h3>
-          {state.imageUrl && (
-            <Badge variant="outline" className="text-green-600 border-green-600">
-              <Check className="w-3 h-3 mr-1" />
-              Generated
-            </Badge>
-          )}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Character Name</Label>
+            {state.imageUrl && (
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                <Check className="w-3 h-3 mr-1" />
+                Generated
+              </Badge>
+            )}
+          </div>
+          <Input
+            value={state.name}
+            onChange={(e) => onNameChange(e.target.value)}
+            className="text-sm"
+            placeholder="Enter character name..."
+          />
         </div>
 
         {/* 图片预览 - 自适应尺寸，不裁切 */}
         <div className="min-h-[300px] max-h-[600px] border-2 border-dashed rounded-lg overflow-hidden bg-muted/30 relative group flex items-center justify-center">
-          {state.isGenerating ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : state.imageUrl ? (
+          {currentImageUrl ? (
             <>
               <img
-                src={state.imageUrl}
+                src={currentImageUrl}
                 alt={state.name}
-                className="w-full h-auto max-h-[600px] object-contain"
+                className={`w-full h-auto max-h-[600px] object-contain transition-opacity duration-300 ${
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                }`}
+                onLoad={() => setImageLoaded(true)}
               />
-              {/* 重新生成按钮 - 悬停时显示 */}
-              <button
-                onClick={onGenerate}
-                disabled={!(state.prompt || '').trim()}
-                className="absolute top-2 right-2 p-2 bg-background/90 hover:bg-background border border-border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Regenerate image"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
+              {/* 🔥 UX优化：图片加载中或操作进行中显示半透明遮罩 */}
+              {(!imageLoaded || state.isGenerating) && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/60 backdrop-blur-sm">
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <span className="text-xs text-muted-foreground">
+                      {state.isGenerating ? 'Processing...' : 'Loading...'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {/* 重新生成按钮 - 悬停时显示（不在加载时显示） */}
+              {!state.isGenerating && (
+                <button
+                  onClick={onGenerate}
+                  disabled={!(state.prompt || '').trim()}
+                  className="absolute top-2 right-2 p-2 bg-background/90 hover:bg-background border border-border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Regenerate image"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              )}
             </>
+          ) : state.isGenerating ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <span className="text-xs text-muted-foreground">Generating...</span>
+              </div>
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
               No image yet

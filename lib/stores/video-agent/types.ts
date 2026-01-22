@@ -20,7 +20,7 @@ export interface Shot {
   time_range: string
   description: string
   camera_angle: string
-  character_action: string
+  character_action?: string  // ✅ 改为可选，向后兼容老数据。新数据由 AI 直接融入 description
   mood: string
   duration_seconds: number
   characters: string[]
@@ -40,16 +40,20 @@ export interface Storyboard {
   id: string
   shot_number: number
   image_url?: string
-  status: 'generating' | 'success' | 'failed'
+  image_url_external?: string | null
+  cdn_url?: string | null
+  storage_status?: 'pending' | 'completed' | 'failed' | null
+  status: 'generating' | 'success' | 'failed' | 'outdated'
   error_message?: string
   generation_attempts: number
+  updated_at?: string  // 🔥 用于缓存清除
 }
 
 export interface VideoClip {
   id: string
   shot_number: number
   video_url?: string
-  status: 'generating' | 'success' | 'failed'
+  status: 'generating' | 'success' | 'failed' | 'outdated'
   error_message?: string
   retry_count: number
   duration?: number

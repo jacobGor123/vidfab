@@ -47,11 +47,18 @@ export const GET = withAuth(async (request, { params, userId }) => {
       console.error('[Video Agent] Failed to fetch storyboards:', storyboardsError)
     }
 
-    // 🔥 查询 characters
+    // 🔥 查询 characters（关联查询 character_reference_images）
     const { data: characters, error: charactersError } = await supabaseAdmin
       .from('project_characters')
-      .select('*')
+      .select(`
+        *,
+        character_reference_images (
+          image_url,
+          image_order
+        )
+      `)
       .eq('project_id', projectId)
+      .order('created_at', { ascending: true })
 
     if (charactersError) {
       console.error('[Video Agent] Failed to fetch characters:', charactersError)
@@ -68,10 +75,17 @@ export const GET = withAuth(async (request, { params, userId }) => {
       console.error('[Video Agent] Failed to fetch video clips:', videoClipsError)
     }
 
+    // Normalize storyboard image URL for frontend rendering:
+    // prefer CDN/public URL (cdn_url -> image_url_external -> image_url).
+    const normalizedStoryboards = (storyboards || []).map((sb: any) => ({
+      ...sb,
+      image_url: sb.cdn_url || sb.image_url_external || sb.image_url
+    }))
+
     // 🔥 组合返回数据
     const projectWithRelations = {
       ...project,
-      storyboards: storyboards || [],
+      storyboards: normalizedStoryboards,
       characters: characters || [],
       video_clips: videoClips || []
     }

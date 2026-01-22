@@ -17,8 +17,12 @@ interface Storyboard {
   id: string
   shot_number: number
   image_url?: string
+  image_url_external?: string | null
+  cdn_url?: string | null
+  storage_status?: 'pending' | 'completed' | 'failed' | null
   status?: 'generating' | 'completed' | 'failed'
   error_message?: string | null
+  updated_at?: string | null
 }
 
 interface StoryboardEditPanelProps {
@@ -38,8 +42,16 @@ export function StoryboardEditPanel({
   onPromptChange,
   onRegenerate
 }: StoryboardEditPanelProps) {
-  const hasImage = storyboard?.image_url
+  const hasImage = !!(storyboard?.image_url || storyboard?.image_url_external || storyboard?.cdn_url)
   const isGenerating = storyboard?.status === 'generating' || isRegenerating
+
+  // "Fast then stable": while storage is pending, show external URL; once completed, show CDN/stable.
+  const preferredSrc = storyboard?.storage_status === 'pending'
+    ? (storyboard.image_url_external || storyboard.cdn_url || storyboard.image_url)
+    : (storyboard.cdn_url || storyboard.image_url || storyboard.image_url_external)
+  const resolvedSrc = storyboard?.updated_at
+    ? `${preferredSrc}?t=${encodeURIComponent(storyboard.updated_at)}`
+    : preferredSrc
 
   return (
     <div className="flex gap-6">
@@ -51,12 +63,15 @@ export function StoryboardEditPanel({
               {hasImage ? (
                 <>
                   <img
-                    src={storyboard.image_url}
+                    key={`storyboard-${storyboard.id}-${storyboard.updated_at || 'initial'}`}
+                    src={resolvedSrc}
                     alt={`Shot ${shotNumber}`}
                     className={cn(
                       "max-w-full max-h-full object-contain",
                       isGenerating && "opacity-50"
                     )}
+                    loading="lazy"
+                    decoding="async"
                   />
                   {isGenerating && (
                     <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50">

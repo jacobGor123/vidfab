@@ -11,6 +11,80 @@ import type { Database } from '@/lib/database.types'
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectCharacter = Database['public']['Tables']['project_characters']['Row']
 
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function normalizeName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ')
+}
+
+async function syncCharacterNameChange(params: {
+  projectId: string
+  oldName: string
+  newName: string
+}): Promise<{ affectedShotNumbers: number[] }> {
+  const { projectId, oldName, newName } = params
+
+  const { data: project } = await supabaseAdmin
+    .from('video_agent_projects')
+    .select('script_analysis')
+    .eq('id', projectId)
+    .single()
+
+  if (!project?.script_analysis) return { affectedShotNumbers: [] }
+
+  const scriptAnalysis = project.script_analysis as any
+  const oldNamePattern = new RegExp(`\\b${escapeRegExp(oldName)}\\b`, 'gi')
+
+  const updatedCharacters = Array.from(
+    new Set(
+      (scriptAnalysis.characters || []).map((name: string) =>
+        name === oldName ? newName : name
+      )
+    )
+  )
+
+  const updatedShots = (scriptAnalysis.shots || []).map((shot: any) => {
+    const next = { ...shot }
+
+    if (Array.isArray(next.characters)) {
+      next.characters = Array.from(
+        new Set(
+          next.characters.map((name: string) => (name === oldName ? newName : name))
+        )
+      )
+    }
+
+    for (const key of ['description', 'camera_angle', 'character_action', 'mood', 'video_prompt']) {
+      if (typeof next[key] === 'string' && next[key]) {
+        next[key] = next[key].replace(oldNamePattern, newName)
+      }
+    }
+
+    return next
+  })
+
+  await supabaseAdmin
+    .from('video_agent_projects')
+    .update({
+      script_analysis: {
+        ...scriptAnalysis,
+        characters: updatedCharacters,
+        shots: updatedShots
+      },
+      updated_at: new Date().toISOString()
+    } as any)
+    .eq('id', projectId)
+
+  const affectedShotNumbers = updatedShots
+    .filter((shot: any) => Array.isArray(shot.characters) && shot.characters.includes(newName))
+    .map((shot: any) => shot.shot_number)
+    .filter((n: any) => typeof n === 'number')
+
+  return { affectedShotNumbers }
+}
+
 /**
  * 配置人物角色
  * POST /api/video-agent/projects/[id]/characters
@@ -37,12 +111,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
     // 解析请求体
     let body: {
       characters: Array<{
+        id?: string
         name: string
         source: 'template' | 'upload' | 'ai_generate'
         templateId?: string
         referenceImages?: string[]
         generationPrompt?: string
-        negativePrompt?: string  // 🔥 添加类型定义
+        negativePrompt?: string
       }>
     }
 
@@ -62,50 +137,84 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // A: 不允许重名（case-insensitive）
+    const normalizedNames = body.characters.map(c => normalizeName(c.name))
+    const lowerNames = normalizedNames.map(n => n.toLowerCase())
+    const hasDup = lowerNames.some((n, idx) => lowerNames.indexOf(n) !== idx)
+    if (hasDup) {
+      return NextResponse.json(
+        { error: 'Duplicate character names are not allowed' },
+        { status: 400 }
+      )
+    }
+
     console.log('[Video Agent] Configuring characters for project', {
       projectId,
       characterCount: body.characters.length
     })
 
-    // 🔥 修复：去重人物名称（防止前端传递重复数据）
-    const uniqueCharacters = body.characters.filter((char, index, self) =>
-      index === self.findIndex(c => c.name === char.name)
-    )
+    // 规范化 name（trim + collapse spaces）
+    const uniqueCharacters = body.characters.map(c => ({
+      ...c,
+      name: normalizeName(c.name)
+    }))
 
-    if (uniqueCharacters.length < body.characters.length) {
-      console.warn('[Video Agent] Removed duplicate characters:', {
-        original: body.characters.length,
-        unique: uniqueCharacters.length,
-        duplicates: body.characters.map(c => c.name).filter((name, index, arr) => arr.indexOf(name) !== index)
-      })
-    }
-
-    // 🔥 改进：使用增量更新逻辑，而不是先删除再插入
-    // 对于每个人物，检查是否已存在，如果存在则更新，否则插入
+    // 🔥 改进：以 id 为唯一标识更新；仅在缺少 id 时才按名称匹配（兼容旧客户端）
     const insertedChars: any[] = []
 
+    // 预加载当前 DB 角色，用于兼容旧客户端按 name 匹配
+    const { data: existingAllChars } = await supabaseAdmin
+      .from('project_characters')
+      .select('id, character_name')
+      .eq('project_id', projectId)
+
+    const existingByLowerName = new Map<string, { id: string; character_name: string }>()
+    ;(existingAllChars || []).forEach((c: any) => {
+      existingByLowerName.set(String(c.character_name || '').toLowerCase(), {
+        id: c.id,
+        character_name: c.character_name
+      })
+    })
+
+    const nameChanges: Array<{ oldName: string; newName: string }> = []
+
     for (const char of uniqueCharacters) {
-      // 检查人物是否已存在
-      const { data: existingChar } = await supabaseAdmin
-        .from('project_characters')
-        .select('*')
-        .eq('project_id', projectId)
-        .eq('character_name', char.name)
-        .single()
+      let characterId = char.id
+      if (!characterId) {
+        const existing = existingByLowerName.get(char.name.toLowerCase())
+        characterId = existing?.id
+      }
 
       let characterRecord: any
 
-      if (existingChar) {
-        // 🔥 已存在，更新记录
+      if (characterId) {
+        const { data: existingChar, error: existingError } = await supabaseAdmin
+          .from('project_characters')
+          .select('*')
+          .eq('id', characterId)
+          .eq('project_id', projectId)
+          .single()
+
+        if (existingError || !existingChar) {
+          console.error('[Video Agent] Character id not found in project:', { projectId, characterId, error: existingError })
+          continue
+        }
+
+        // 记录改名（用于后续 script_analysis 同步 + outdated）
+        if (existingChar.character_name !== char.name) {
+          nameChanges.push({ oldName: existingChar.character_name, newName: char.name })
+        }
+
         const { data: updatedChar, error: updateError } = await supabaseAdmin
           .from('project_characters')
           .update({
+            character_name: char.name,
             source: char.source,
             template_id: char.templateId,
             generation_prompt: char.generationPrompt,
             negative_prompt: char.negativePrompt
           } as any)
-          .eq('id', existingChar.id)
+          .eq('id', characterId)
           .select()
           .single()
 
@@ -115,21 +224,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         }
 
         characterRecord = updatedChar
-
-        // 🔥 删除旧的参考图（检查删除结果）
-        const { error: deleteError } = await supabaseAdmin
-          .from('character_reference_images')
-          .delete()
-          .eq('character_id', existingChar.id)
-
-        if (deleteError) {
-          console.warn(`[Video Agent] Failed to delete old reference images for ${char.name}:`, deleteError)
-          // 继续执行，因为可能已经没有旧图片了
-        }
-
-        console.log(`[Video Agent] Updated existing character: ${char.name}`)
       } else {
-        // 🔥 不存在，插入新记录
         const { data: newChar, error: insertError } = await supabaseAdmin
           .from('project_characters')
           .insert({
@@ -149,7 +244,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
         }
 
         characterRecord = newChar
-        console.log(`[Video Agent] Inserted new character: ${char.name}`)
       }
 
       insertedChars.push(characterRecord)
@@ -169,10 +263,62 @@ export const POST = withAuth(async (request, { params, userId }) => {
           image_order: index + 1
         }))
 
-        await supabaseAdmin
+        const { error: insertImgError } = await supabaseAdmin
           .from('character_reference_images')
           .insert(refImagesToInsert)
+
+        if (insertImgError) {
+          console.error(`[Video Agent] ❌ Failed to insert reference images for ${char.name}:`, insertImgError)
+        } else {
+          console.log(`[Video Agent] ✅ Inserted ${refImagesToInsert.length} reference image(s) for ${char.name}`)
+        }
       }
+    }
+
+    // 🔥 清理孤儿记录：按 id 清理（避免改名导致误删/重建）
+    const currentCharacterIds = insertedChars.map(c => c.id).filter(Boolean)
+    if (currentCharacterIds.length > 0) {
+      const { data: allChars } = await supabaseAdmin
+        .from('project_characters')
+        .select('id, character_name')
+        .eq('project_id', projectId)
+
+      const orphanChars = (allChars || []).filter((c: any) => !currentCharacterIds.includes(c.id))
+      if (orphanChars.length > 0) {
+        console.log('[Video Agent] 🧹 Cleaning up orphan characters:', orphanChars.map((c: any) => c.character_name))
+        await supabaseAdmin
+          .from('project_characters')
+          .delete()
+          .in('id', orphanChars.map((c: any) => c.id))
+      }
+    }
+
+    // 🔥 如果发生改名，同步到 script_analysis，并标记下游资源为 outdated
+    const affectedShotNumbersSet = new Set<number>()
+    for (const change of nameChanges) {
+      const { affectedShotNumbers } = await syncCharacterNameChange({
+        projectId,
+        oldName: change.oldName,
+        newName: change.newName
+      })
+      affectedShotNumbers.forEach(n => affectedShotNumbersSet.add(n))
+    }
+
+    const affectedShotNumbers = Array.from(affectedShotNumbersSet)
+    if (affectedShotNumbers.length > 0) {
+      await supabaseAdmin
+        .from('project_storyboards')
+        .update({ status: 'outdated' } as any)
+        .eq('project_id', projectId)
+        .in('shot_number', affectedShotNumbers)
+        .eq('status', 'success')
+
+      await supabaseAdmin
+        .from('project_video_clips')
+        .update({ status: 'outdated' } as any)
+        .eq('project_id', projectId)
+        .in('shot_number', affectedShotNumbers)
+        .eq('status', 'success')
     }
 
     // 更新项目状态
@@ -185,7 +331,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .eq('id', projectId)
       .returns<any>()
 
-    console.log('[Video Agent] Characters configured successfully', {
+    console.log('[Video Agent] ✅ Characters configured successfully', {
       projectId,
       characterCount: insertedChars.length
     })

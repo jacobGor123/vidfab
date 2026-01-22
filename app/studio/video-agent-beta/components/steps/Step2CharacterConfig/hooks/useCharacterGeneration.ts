@@ -25,7 +25,23 @@ export function useCharacterGeneration({
   characterStates,
   setCharacterStates
 }: UseCharacterGenerationProps) {
-  const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters } = useVideoAgentAPI()
+  const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters } = useVideoAgentAPI()
+
+  // IMPORTANT: Always send all characters (even without images) to avoid backend orphan cleanup.
+  // Backend enforces unique names (case-insensitive).
+  const buildCharactersPayload = useCallback((states: Record<string, CharacterState>) => {
+    return Object.values(states).map(state => {
+      const referenceImages = state.imageUrl ? [state.imageUrl] : []
+      return {
+        id: state.id,
+        name: state.name,
+        source: state.mode === 'upload' ? 'upload' : 'ai_generate',
+        referenceImages,
+        generationPrompt: state.prompt,
+        negativePrompt: state.negativePrompt
+      }
+    })
+  }, [])
   const [selectedStyle] = useState('realistic')
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false)
   const [isBatchGenerating, setIsBatchGenerating] = useState(false)
@@ -69,6 +85,7 @@ export function useCharacterGeneration({
       data.forEach((char: any) => {
         const characterName = char.character_name
         if (newStates[characterName]) {
+          newStates[characterName].id = char.id
           const dbImageUrl = char.character_reference_images?.[0]?.image_url
           const localImageUrl = newStates[characterName].imageUrl
 
@@ -309,35 +326,32 @@ export function useCharacterGeneration({
       }
 
       // 立即更新本地状态
-      setCharacterStates(prev => ({
-        ...prev,
-        [characterName]: {
-          ...prev[characterName],
-          imageUrl: result.imageUrl,
-          isGenerating: false
+      setCharacterStates(prev => {
+        const nextStates = {
+          ...prev,
+          [characterName]: {
+            ...prev[characterName],
+            imageUrl: result.imageUrl,
+            isGenerating: false
+          }
         }
-      }))
 
-      // 🔥 保存到数据库（确保刷新页面后仍然存在）
-      try {
-        const response = await fetch(`/api/video-agent/projects/${project.id}/characters`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            characters: [{
-              name: characterName,
-              source: 'ai_generate',
-              referenceImages: [result.imageUrl]
-            }]
+        // Persist in background: send full payload to avoid backend orphan cleanup.
+        // (Non-blocking; errors are logged but don't break the UX.)
+        const charactersData = buildCharactersPayload(nextStates)
+        updateCharacters(project.id, { characters: charactersData })
+          .then(() => {
+            console.log('[Character Generation] ✅ Persisted generated character image to DB:', {
+              characterName,
+              imageUrl: result.imageUrl
+            })
           })
-        })
+          .catch((e: any) => {
+            console.error('[Character Generation] ❌ Failed to persist generated image to DB:', e)
+          })
 
-        if (!response.ok) {
-          // Silent fail - save error doesn't affect user experience
-        }
-      } catch (saveError) {
-        // Silent fail - save error doesn't affect user experience
-      }
+        return nextStates
+      })
     } catch (err: any) {
       console.error(`[Character Generation] Failed to generate ${characterName}:`, err)
       setCharacterStates(prev => ({

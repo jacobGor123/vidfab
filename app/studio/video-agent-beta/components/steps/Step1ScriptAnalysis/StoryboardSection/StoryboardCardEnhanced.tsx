@@ -1,43 +1,127 @@
 /**
  * StoryboardCardEnhanced Component
  *
- * 增强版分镜卡片 - 在原有基础上添加分镜图显示和 Edit 按钮
+ * 增强版分镜卡片 - 包含分镜图和视频卡片
+ * 布局: Shot Number (48px) | Description (flex-1) | Storyboard (220px) | Video (220px)
  */
 
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Clock, Video, Smile, Users, Edit3, Loader2, AlertCircle, Film, Trash2, ImagePlus } from 'lucide-react'
-import type { Shot, Storyboard } from '@/lib/stores/video-agent'
+import type { Shot, Storyboard, VideoClip, Character } from '@/lib/stores/video-agent'
+import { VideoCardCompact } from './VideoCardCompact'
+
+function isValidImageSrc(src: string): boolean {
+  if (!src) return false
+  // Avoid rendering a broken/blank <img> when the URL is briefly invalid.
+  // This can happen during rapid regenerate -> store -> revalidate transitions.
+  return src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')
+}
+
+function resolveStoryboardSrc(storyboard?: Storyboard): string | undefined {
+  if (!storyboard) return undefined
+
+  const stableUrl = storyboard.cdn_url || storyboard.image_url
+  const externalUrl = storyboard.image_url_external || undefined
+
+  // "Fast then stable": if storage is pending, prefer the external URL for immediate preview.
+  // Once storage completes, prefer CDN/stable.
+  const preferred = storyboard.storage_status === 'pending'
+    ? (externalUrl || stableUrl)
+    : (stableUrl || externalUrl)
+
+  if (!preferred) return undefined
+  if (storyboard.updated_at) {
+    return `${preferred}?t=${encodeURIComponent(storyboard.updated_at)}`
+  }
+  return preferred
+}
+
+function normalizeCharacterName(name: string): { baseName: string; legacyDetail?: string } {
+  const raw = String(name || '').trim()
+  const leftParen = raw.indexOf('(')
+  if (leftParen === -1) return { baseName: raw }
+  const baseName = raw.slice(0, leftParen).trim()
+  const legacyDetail = raw.slice(leftParen).trim()
+  return { baseName, legacyDetail }
+}
+
+function getLatestCharacterPrompt(
+  projectCharacters: Character[] | undefined,
+  baseName: string
+): string | undefined {
+  if (!Array.isArray(projectCharacters)) return undefined
+  const key = baseName.trim().toLowerCase()
+
+  // Match both store-format and DB-format fields.
+  const match = projectCharacters.find((c: any) => {
+    const n = String((c as any)?.character_name || (c as any)?.name || '').trim().toLowerCase()
+    return n === key
+  }) as any
+
+  const prompt = match?.generation_prompt || match?.generationPrompt || match?.generation_prompt || null
+  return typeof prompt === 'string' && prompt.trim() ? prompt.trim() : undefined
+}
+
+function getLatestCharacterDisplayName(
+  projectCharacters: Character[] | undefined,
+  baseName: string
+): string {
+  if (!Array.isArray(projectCharacters)) return baseName
+  const key = baseName.trim().toLowerCase()
+  const match = projectCharacters.find((c: any) => {
+    const n = String((c as any)?.character_name || (c as any)?.name || '').trim().toLowerCase()
+    return n === key
+  }) as any
+  return String(match?.character_name || match?.name || baseName)
+}
 
 interface StoryboardCardEnhancedProps {
   shot: Shot
   storyboard?: Storyboard
-  isGenerating: boolean
+  projectCharacters?: Character[]
+  videoClip?: VideoClip
+  isStoryboardGenerating: boolean
+  isVideoGenerating: boolean
+  aspectRatio: '16:9' | '9:16'
+  customVideoPrompt?: string
   onEdit: () => void
   onDelete?: () => void
   onFieldChange: (field: 'description' | 'camera_angle' | 'mood', value: string) => void
   getFieldValue: (field: 'description' | 'camera_angle' | 'mood', originalValue: string) => string
+  onGenerateVideo: (prompt: string) => void
+  onUpdateVideoPrompt: (prompt: string) => void
 }
 
 export function StoryboardCardEnhanced({
   shot,
   storyboard,
-  isGenerating,
+  projectCharacters,
+  videoClip,
+  isStoryboardGenerating,
+  isVideoGenerating,
+  aspectRatio,
+  customVideoPrompt,
   onEdit,
   onDelete,
   onFieldChange,
-  getFieldValue
+  getFieldValue,
+  onGenerateVideo,
+  onUpdateVideoPrompt
 }: StoryboardCardEnhancedProps) {
+  // 检查分镜图是否已生成（用于禁用视频生成）
+  const hasStoryboard = storyboard?.status === 'success' && storyboard?.image_url
+  const isStoryboardOutdated = storyboard?.status === 'outdated'
+  const resolvedStoryboardSrc = resolveStoryboardSrc(storyboard)
+
   return (
     <Card className="group relative bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-xl overflow-hidden transition-all duration-300">
-      <CardContent className="p-8" style={{ padding: '32px' }}>
-        <div className="flex flex-row gap-5 relative isolate" style={{ display: 'flex', flexDirection: 'row', gap: '20px' }}>
+      <CardContent className="p-6">
+        <div className="flex flex-row gap-4">
           {/* Shot Number Column - Fixed Width */}
-          <div className="w-12 flex-none flex flex-col items-center gap-2 pt-1 relative z-10" style={{ width: '48px', flex: 'none' }}>
+          <div className="w-12 flex-none flex flex-col items-center gap-2 pt-1">
             <div className="text-2xl font-bold text-slate-600 group-hover:text-blue-500 transition-colors font-mono">
               {shot.shot_number.toString().padStart(2, '0')}
             </div>
@@ -48,7 +132,7 @@ export function StoryboardCardEnhanced({
                   e.stopPropagation()
                   onDelete()
                 }}
-                className="mt-2 p-2 text-red-400/80 hover:text-red-300 bg-red-950/30 hover:bg-red-900/50 border border-red-900/50 rounded-lg transition-all duration-200 group/delete"
+                className="mt-2 p-2 text-red-400/80 hover:text-red-300 bg-red-950/30 hover:bg-red-900/50 border border-red-900/50 rounded-lg transition-all duration-200"
                 title="Delete shot"
               >
                 <Trash2 className="w-4 h-4" />
@@ -56,8 +140,8 @@ export function StoryboardCardEnhanced({
             )}
           </div>
 
-          {/* 🔥 中间：分镜描述 (Flex-1 自适应) */}
-          <div className="flex-1 min-w-0 space-y-3 relative z-10" style={{ flex: '1', minWidth: '0' }}>
+          {/* 分镜描述 (Flex-1) */}
+          <div className="flex-1 min-w-0 space-y-3">
             {/* Time Range */}
             <div className="flex items-center gap-3 flex-wrap">
               <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-950/50 border border-slate-800 text-xs font-mono text-slate-400">
@@ -66,13 +150,10 @@ export function StoryboardCardEnhanced({
               </span>
             </div>
 
-            {/* 可编辑的分镜描述 */}
-            <Textarea
-              value={getFieldValue('description', shot.description)}
-              onChange={(e) => onFieldChange('description', e.target.value)}
-              className="text-sm text-slate-200 leading-relaxed bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[100px]"
-              placeholder="Describe this shot..."
-            />
+            {/* 分镜描述（按规划改为只读；编辑走 Edit Dialog） */}
+            <div className="text-sm text-slate-200 leading-relaxed bg-slate-900/50 border border-slate-700/50 rounded-md p-3 min-h-[80px]">
+              {getFieldValue('description', shot.description)}
+            </div>
 
             {/* Fields: Camera Angle & Mood */}
             <div className="grid grid-cols-2 gap-3">
@@ -105,32 +186,82 @@ export function StoryboardCardEnhanced({
             {/* Characters */}
             {shot.characters && shot.characters.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800/50 border border-slate-700/50 text-xs text-slate-400">
-                  <Users className="w-3 h-3" />
-                  {shot.characters.join(', ')}
-                </span>
+                {shot.characters.map((rawName) => {
+                  const { baseName, legacyDetail } = normalizeCharacterName(rawName)
+                  const latestName = getLatestCharacterDisplayName(projectCharacters, baseName)
+                  const latestPrompt = getLatestCharacterPrompt(projectCharacters, baseName)
+
+                  return (
+                    <span
+                      key={rawName}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800/50 border border-slate-700/50 text-xs text-slate-300"
+                      title={[
+                        legacyDetail ? `Legacy: ${legacyDetail}` : '',
+                        latestPrompt ? `Latest: ${latestPrompt}` : ''
+                      ].filter(Boolean).join('\n')}
+                    >
+                      <Users className="w-3 h-3 text-slate-400" />
+                      <span className="text-slate-200">{latestName}</span>
+                      {latestPrompt && (
+                        <span className="text-slate-400 truncate max-w-[120px]">— {latestPrompt}</span>
+                      )}
+                      {legacyDetail && (
+                        <span className="text-slate-500 truncate max-w-[120px]">{legacyDetail}</span>
+                      )}
+                    </span>
+                  )
+                })}
               </div>
             )}
           </div>
 
-          {/* 🔥 右侧：分镜图（固定 280px） */}
-          <div className="w-[280px] flex-none relative z-10" style={{ width: '280px', flex: 'none' }}>
+          {/* 分镜图（220px） */}
+          <div className="w-[220px] flex-none">
             <div className="space-y-2">
               <label className="flex items-center gap-1.5 text-xs text-slate-500">
                 <Film className="w-3 h-3" />
                 Storyboard
               </label>
 
-              <div className="relative group/image overflow-hidden rounded-lg bg-slate-950 isolate" style={{ overflow: 'hidden' }}>
-                {storyboard?.image_url ? (
+              <div className="relative group/image overflow-hidden rounded-lg bg-slate-950 h-[200px]">
+                {/* 状态徽章 */}
+                {storyboard?.status === 'outdated' && (
+                  <div className="absolute top-2 right-2 z-30 px-2 py-1 rounded-md bg-yellow-950/90 text-yellow-400 border border-yellow-800 text-[10px] font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Outdated
+                  </div>
+                )}
+                {/* 🔥 优先检查生成状态 - 即使有旧图片，生成时也显示 loading */}
+                {(storyboard?.status === 'generating' || isStoryboardGenerating) ? (
+                  <div className="h-[200px] bg-slate-950/50 rounded-lg border border-slate-800 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span className="text-xs">Generating...</span>
+                    </div>
+                  </div>
+                ) : resolvedStoryboardSrc && isValidImageSrc(resolvedStoryboardSrc) ? (
                   <>
                     <img
-                      src={storyboard.image_url}
+                      key={`storyboard-${storyboard.id}-${storyboard.updated_at || 'initial'}`}
+                      src={resolvedStoryboardSrc}
                       alt={`Storyboard ${shot.shot_number}`}
-                      className="w-full h-auto object-contain rounded-lg border border-slate-700"
-                      style={{ width: '100%', height: 'auto', display: 'block' }}
+                      className="w-full h-full object-cover rounded-lg border border-slate-700"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        // If the browser fails to decode the image (rare, but can happen with partial
+                        // downloads or stale in-memory caches), retry once with a fresh cache-buster.
+                        const img = e.currentTarget
+                        const base = resolveStoryboardSrc(storyboard)?.split('?t=')[0] || storyboard?.image_url
+                        if (!base) return
+
+                        // Prevent infinite loops.
+                        if (img.dataset.retry === '1') return
+                        img.dataset.retry = '1'
+                        img.src = `${base}?t=${encodeURIComponent(new Date().toISOString())}`
+                      }}
                     />
-                    {/* Edit 按钮 - 悬浮显示 */}
+                    {/* Edit 按钮 - 生成中禁用 */}
                     <button
                       onClick={onEdit}
                       className="absolute top-2 right-2 px-2 py-1 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-md shadow-lg opacity-0 group-hover/image:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs font-medium text-slate-200 z-20"
@@ -140,9 +271,9 @@ export function StoryboardCardEnhanced({
                     </button>
                   </>
                 ) : storyboard?.status === 'failed' ? (
-                  <div className="aspect-[4/3] bg-red-950/20 rounded-lg border border-red-800/50 flex items-center justify-center">
+                  <div className="h-[200px] bg-red-950/20 rounded-lg border border-red-800/50 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-2 text-red-400">
-                      <AlertCircle className="w-6 h-6" />
+                      <AlertCircle className="w-5 h-5" />
                       <span className="text-xs">Failed</span>
                       <button
                         onClick={onEdit}
@@ -152,28 +283,34 @@ export function StoryboardCardEnhanced({
                       </button>
                     </div>
                   </div>
-                ) : storyboard?.status === 'generating' ? (
-                  // 正在生成中 - 显示加载动画
-                  <div className="aspect-[4/3] bg-slate-950/50 rounded-lg border border-slate-800 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                      <span className="text-xs">Generating...</span>
-                    </div>
-                  </div>
                 ) : (
-                  // 🔥 新增：占位状态 - 没有图片且不在生成中，显示可点击的占位图
                   <button
                     onClick={onEdit}
-                    className="w-full aspect-[4/3] bg-slate-900/50 hover:bg-slate-800/50 rounded-lg border-2 border-dashed border-slate-700 hover:border-blue-500 flex items-center justify-center transition-all duration-200 cursor-pointer group/placeholder"
+                    className="w-full h-[200px] bg-slate-900/50 hover:bg-slate-800/50 rounded-lg border-2 border-dashed border-slate-700 hover:border-blue-500 flex items-center justify-center transition-all duration-200 cursor-pointer group/placeholder"
                   >
                     <div className="flex flex-col items-center gap-2 text-slate-500 group-hover/placeholder:text-blue-400 transition-colors">
-                      <ImagePlus className="w-8 h-8" />
-                      <span className="text-xs font-medium">Click to Generate</span>
+                      <ImagePlus className="w-6 h-6" />
+                      <span className="text-xs font-medium">Generate</span>
                     </div>
                   </button>
                 )}
               </div>
             </div>
+          </div>
+
+          {/* 🆕 视频卡片（220px） */}
+          <div className="w-[220px] flex-none">
+            <VideoCardCompact
+              shotNumber={shot.shot_number}
+              videoClip={videoClip}
+              defaultPrompt={shot.video_prompt || shot.description}
+              customPrompt={customVideoPrompt}
+              aspectRatio={aspectRatio}
+              isGenerating={isVideoGenerating}
+              disabled={!hasStoryboard}
+              onGenerate={onGenerateVideo}
+              onUpdatePrompt={onUpdateVideoPrompt}
+            />
           </div>
         </div>
       </CardContent>

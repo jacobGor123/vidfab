@@ -37,6 +37,7 @@ interface Storyboard {
   image_url?: string
   status?: 'generating' | 'completed' | 'failed'
   error_message?: string | null
+  updated_at?: string | null
 }
 
 interface StoryboardEditDialogProps {
@@ -44,7 +45,7 @@ interface StoryboardEditDialogProps {
   onOpenChange: (open: boolean) => void
   project: VideoAgentProject
   shotNumber: number | null
-  onRegenerate: (shotNumber: number, prompt: string, characterNames: string[]) => Promise<void>
+  onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>
 }
 
 export function StoryboardEditDialog({
@@ -56,9 +57,11 @@ export function StoryboardEditDialog({
 }: StoryboardEditDialogProps) {
   const {
     selectedCharacterNames,
+    selectedCharacterIds,
     editedPrompt,
     isRegenerating,
     handleToggleCharacter,
+    handleToggleCharacterId,
     handlePromptChange,
     handleRegenerate
   } = useStoryboardEditor(project, shotNumber)
@@ -107,7 +110,9 @@ export function StoryboardEditDialog({
               <CharacterReferencePanel
                 characters={characters}
                 selectedCharacterNames={selectedCharacterNames}
+                selectedCharacterIds={selectedCharacterIds}
                 onToggle={handleToggleCharacter}
+                onToggleById={handleToggleCharacterId}
               />
             </ScrollArea>
           </div>

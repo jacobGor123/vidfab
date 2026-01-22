@@ -50,6 +50,7 @@ export default function Step2CharacterConfig({ project, onNext, onUpdate }: Step
     handleImageUpload,
     handleSelectPreset,
     handleConfirm,
+    handleNameChange,
     isSaving
   } = useCharacterManagement({
     project,
@@ -144,6 +145,7 @@ export default function Step2CharacterConfig({ project, onNext, onUpdate }: Step
                   [state.name]: { ...prev[state.name], prompt }
                 }))
               }
+              onNameChange={(newName) => handleNameChange(state.name, newName)}
               onGenerate={() => handleSingleGenerate(state.name)}
               onUpload={(file) => handleImageUpload(state.name, file)}
               onOpenPreset={() => handleOpenPresetDialog(state.name)}

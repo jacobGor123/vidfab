@@ -112,11 +112,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
     }
 
     // 🔥 为每个 shot 生成 video_prompt（基于其他字段合成）
+    // ✅ description 现在已包含角色动作，无需单独拼接 character_action
     const generateVideoPrompt = (shot: any): string => {
       let prompt = shot.description || ''
-      if (shot.character_action) {
-        prompt += `. ${shot.character_action}`
-      }
       if (shot.camera_angle) {
         prompt += `. ${shot.camera_angle}`
       }
@@ -133,7 +131,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       time_range: shot.time_range,
       description: shot.description,
       camera_angle: shot.camera_angle,
-      character_action: shot.character_action,
       mood: shot.mood,
       duration_seconds: shot.duration_seconds,
       video_prompt: generateVideoPrompt(shot)  // 🔥 自动生成 video_prompt
