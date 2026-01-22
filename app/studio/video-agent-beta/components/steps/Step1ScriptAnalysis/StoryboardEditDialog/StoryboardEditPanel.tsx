@@ -47,10 +47,10 @@ export function StoryboardEditPanel({
 
   // "Fast then stable": while storage is pending, show external URL; once completed, show CDN/stable.
   const preferredSrc = storyboard?.storage_status === 'pending'
-    ? (storyboard.image_url_external || storyboard.cdn_url || storyboard.image_url)
+    ? (storyboard?.image_url_external || storyboard?.cdn_url || storyboard?.image_url)
     : (storyboard?.cdn_url || storyboard?.image_url || storyboard?.image_url_external)
   const resolvedSrc = storyboard?.updated_at
-    ? `${preferredSrc}?t=${encodeURIComponent(storyboard.updated_at)}`
+    ? `${preferredSrc}?t=${encodeURIComponent(storyboard?.updated_at)}`
     : preferredSrc
 
   return (

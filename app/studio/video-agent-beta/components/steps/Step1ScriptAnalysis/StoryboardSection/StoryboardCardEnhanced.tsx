@@ -23,17 +23,17 @@ function isValidImageSrc(src: string): boolean {
 function resolveStoryboardSrc(storyboard?: Storyboard): string | undefined {
   if (!storyboard) return undefined
 
-  const stableUrl = storyboard.cdn_url || storyboard.image_url
-  const externalUrl = storyboard.image_url_external || undefined
+  const stableUrl = storyboard?.cdn_url || storyboard?.image_url
+  const externalUrl = storyboard?.image_url_external || undefined
 
   // "Fast then stable": if storage is pending, prefer the external URL for immediate preview.
   // Once storage completes, prefer CDN/stable.
-  const preferred = storyboard.storage_status === 'pending'
+  const preferred = storyboard?.storage_status === 'pending'
     ? (externalUrl || stableUrl)
     : (stableUrl || externalUrl)
 
   if (!preferred) return undefined
-  if (storyboard.updated_at) {
+  if (storyboard?.updated_at) {
     return `${preferred}?t=${encodeURIComponent(storyboard.updated_at)}`
   }
   return preferred
