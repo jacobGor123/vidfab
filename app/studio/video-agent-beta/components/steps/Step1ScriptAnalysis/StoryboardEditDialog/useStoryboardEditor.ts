@@ -57,7 +57,7 @@ export function useStoryboardEditor(
     }
 
     // 直接使用传入的 project，不放入依赖数组
-    if (!project.script_analysis) {
+    if (!project.script_analysis || !Array.isArray(project.script_analysis.shots)) {
       return
     }
 

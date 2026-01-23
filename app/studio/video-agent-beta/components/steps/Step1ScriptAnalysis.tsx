@@ -55,14 +55,14 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   const RENDER_BATCH = 12
   const [visibleShotCount, setVisibleShotCount] = useState(INITIAL_RENDER_SHOTS)
 
-  // 当拿到新的 analysis 时重置可见数量（也能覆盖“恢复草稿”场景）
+  // 当拿到新的 analysis 时重置可见数量（也能覆盖"恢复草稿"场景）
   useEffect(() => {
-    if (!analysis) return
+    if (!analysis || !Array.isArray(analysis.shots)) return
     setVisibleShotCount(Math.min(INITIAL_RENDER_SHOTS, analysis.shots.length))
   }, [analysis])
 
   const visibleShots = useMemo(() => {
-    if (!analysis) return []
+    if (!analysis || !Array.isArray(analysis.shots)) return []
     return analysis.shots.slice(0, visibleShotCount)
   }, [analysis, visibleShotCount])
 
@@ -74,7 +74,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     if (!analysis) return
 
     const onScroll = () => {
-      if (!analysis) return
+      if (!analysis || !Array.isArray(analysis.shots)) return
       if (visibleShotCount >= analysis.shots.length) return
 
       const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight
@@ -154,7 +154,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
 
   // 🔥 保存修改后的分镜
   const handleSaveChanges = async () => {
-    if (!analysis || Object.keys(editedShots).length === 0) {
+    if (!analysis || !Array.isArray(analysis.shots) || Object.keys(editedShots).length === 0) {
       return
     }
 
@@ -221,7 +221,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   const [isAddingShot, setIsAddingShot] = useState(false)
 
   const handleAddShot = async () => {
-    if (!analysis || isAddingShot) return
+    if (!analysis || !Array.isArray(analysis.shots) || isAddingShot) return
 
     // 检查是否已达到分镜数量上限
     if (analysis.shots.length >= MAX_SHOTS) {
@@ -276,11 +276,11 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   }
 
   // 检查是否可以添加分镜
-  const canAddShot = analysis ? analysis.shots.length < MAX_SHOTS : false
+  const canAddShot = analysis && Array.isArray(analysis.shots) ? analysis.shots.length < MAX_SHOTS : false
 
   // 🔥 请求删除分镜（显示确认弹框）
   const requestDeleteShot = (shotNumber: number) => {
-    if (!analysis || deletingShot !== null) {
+    if (!analysis || !Array.isArray(analysis.shots) || deletingShot !== null) {
       return
     }
 
@@ -380,7 +380,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       // 🔥 Immediate UI sync: update the local analysis (and store) right away so the left description
       // and the right default video prompt reflect the newly used regenerate prompt without waiting
       // for any async field-extraction/network calls.
-      if (analysis) {
+      if (analysis && Array.isArray(analysis.shots)) {
         const oldShot = analysis.shots.find(s => s.shot_number === shotNumber)
         const nextAnalysis: ScriptAnalysis = {
           ...analysis,
@@ -718,7 +718,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
             </div>
 
             {/* 分批渲染：先让首屏可交互，再逐步加载更多分镜 */}
-            {analysis && visibleShotCount < analysis.shots.length && (
+            {analysis && Array.isArray(analysis.shots) && visibleShotCount < analysis.shots.length && (
               <div className="pt-4 flex justify-center">
                 <Button
                   onClick={() =>
