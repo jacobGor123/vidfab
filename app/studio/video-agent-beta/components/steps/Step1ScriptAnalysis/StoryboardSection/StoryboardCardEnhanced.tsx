@@ -184,7 +184,7 @@ export function StoryboardCardEnhanced({
             </div>
 
             {/* Characters */}
-            {shot.characters && shot.characters.length > 0 && (
+            {Array.isArray(shot.characters) && shot.characters.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {shot.characters.map((rawName) => {
                   const { baseName, legacyDetail } = normalizeCharacterName(rawName)

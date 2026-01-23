@@ -69,15 +69,24 @@ export function StoryboardEditDialog({
   // 🔥 修复：映射人物数据，兼容两种格式
   // 数据库格式: character_name, character_reference_images[{image_url}]
   // Store 格式: name, reference_images[{url}]
-  const characters: Character[] = (project.characters || []).map((char: any) => ({
-    id: char.id,
-    character_name: char.character_name || char.name || '',
-    generation_prompt: char.generation_prompt || null,
-    character_reference_images: (char.character_reference_images || char.reference_images || []).map((img: any) => ({
-      image_url: img.image_url || img.url || '',
-      image_order: img.image_order ?? img.order ?? 0
-    }))
-  }))
+  const characters: Character[] = Array.isArray(project.characters)
+    ? project.characters.map((char: any) => ({
+        id: char.id,
+        character_name: char.character_name || char.name || '',
+        generation_prompt: char.generation_prompt || null,
+        character_reference_images: Array.isArray(char.character_reference_images)
+          ? char.character_reference_images.map((img: any) => ({
+              image_url: img.image_url || img.url || '',
+              image_order: img.image_order ?? img.order ?? 0
+            }))
+          : Array.isArray(char.reference_images)
+            ? char.reference_images.map((img: any) => ({
+                image_url: img.image_url || img.url || '',
+                image_order: img.image_order ?? img.order ?? 0
+              }))
+            : []
+      }))
+    : []
 
   const storyboard = shotNumber
     ? (project.storyboards?.find(s => s.shot_number === shotNumber) as unknown as Storyboard)
