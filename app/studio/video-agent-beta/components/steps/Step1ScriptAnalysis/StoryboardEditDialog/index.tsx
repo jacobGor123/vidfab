@@ -84,8 +84,8 @@ export function StoryboardEditDialog({
     : undefined
 
   // 获取当前 shot 信息
-  const shot = shotNumber
-    ? project.script_analysis?.shots.find(s => s.shot_number === shotNumber)
+  const shot = shotNumber && Array.isArray(project.script_analysis?.shots)
+    ? project.script_analysis.shots.find(s => s.shot_number === shotNumber)
     : undefined
 
   const handleRegenerateClick = async () => {
