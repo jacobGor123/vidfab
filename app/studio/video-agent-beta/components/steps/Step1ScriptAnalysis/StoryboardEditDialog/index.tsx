@@ -66,13 +66,6 @@ export function StoryboardEditDialog({
     handleRegenerate
   } = useStoryboardEditor(project, shotNumber)
 
-  // 🔥 DEBUG: 检查 project.characters
-  console.log('[StoryboardEditDialog] Rendering, project.characters:', {
-    type: typeof project.characters,
-    isArray: Array.isArray(project.characters),
-    value: project.characters
-  })
-
   // 🔥 修复：映射人物数据，兼容两种格式
   // 数据库格式: character_name, character_reference_images[{image_url}]
   // Store 格式: name, reference_images[{url}]

@@ -92,14 +92,7 @@ export function StoryboardSection({
     }
   }, [videoCanProceed, onVideoStatusChange])
 
-  // 🔥 DEBUG: 检查分镜图状态
-  console.log('[StoryboardSection] Rendering, analysis.shots:', {
-    isArray: Array.isArray(analysis?.shots),
-    type: typeof analysis?.shots,
-    value: analysis?.shots,
-    length: analysis?.shots?.length
-  })
-
+  // 检查分镜图状态
   const hasUngeneratedStoryboards = Array.isArray(analysis?.shots) && analysis.shots.some(
     shot => !storyboards[shot.shot_number]?.image_url
   )
@@ -219,13 +212,7 @@ export function StoryboardSection({
 
       {/* 分镜卡片列表 */}
       <div className="space-y-4">
-        {(() => {
-          console.log('[StoryboardSection] About to render shots:', {
-            isArray: Array.isArray(analysis?.shots),
-            shotsLength: analysis?.shots?.length,
-            shots: analysis?.shots
-          })
-          return Array.isArray(analysis?.shots) && analysis.shots.map((shot) => (
+        {Array.isArray(analysis?.shots) && analysis.shots.map((shot) => (
           <StoryboardCardEnhanced
             key={shot.shot_number}
             shot={shot}
@@ -247,8 +234,7 @@ export function StoryboardSection({
             onGenerateVideo={(prompt) => generateSingleVideo(shot.shot_number, prompt)}
             onUpdateVideoPrompt={(prompt) => updateCustomPrompt(shot.shot_number, prompt)}
           />
-        ))
-        })()}
+        ))}
 
         {/* 添加新分镜按钮 */}
         {onAddShot && (

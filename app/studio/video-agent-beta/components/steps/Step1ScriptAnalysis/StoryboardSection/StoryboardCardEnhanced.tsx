@@ -111,14 +111,6 @@ export function StoryboardCardEnhanced({
   onGenerateVideo,
   onUpdateVideoPrompt
 }: StoryboardCardEnhancedProps) {
-  // 🔥 DEBUG: 检查 shot.characters
-  console.log('[StoryboardCardEnhanced] Rendering shot:', {
-    shotNumber: shot.shot_number,
-    charactersType: typeof shot.characters,
-    isCharactersArray: Array.isArray(shot.characters),
-    characters: shot.characters
-  })
-
   // 检查分镜图是否已生成（用于禁用视频生成）
   const hasStoryboard = storyboard?.status === 'success' && storyboard?.image_url
   const isStoryboardOutdated = storyboard?.status === 'outdated'
