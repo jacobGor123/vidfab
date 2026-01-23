@@ -93,15 +93,15 @@ export function StoryboardSection({
   }, [videoCanProceed, onVideoStatusChange])
 
   // 检查分镜图状态
-  const hasUngeneratedStoryboards = analysis.shots.some(
+  const hasUngeneratedStoryboards = Array.isArray(analysis?.shots) && analysis.shots.some(
     shot => !storyboards[shot.shot_number]?.image_url
   )
-  const allStoryboardsGenerated = analysis.shots.every(
+  const allStoryboardsGenerated = Array.isArray(analysis?.shots) && analysis.shots.every(
     shot => storyboards[shot.shot_number]?.image_url
   )
 
   // 检查视频状态
-  const hasUngeneratedVideos = analysis.shots.some(
+  const hasUngeneratedVideos = Array.isArray(analysis?.shots) && analysis.shots.some(
     shot => {
       const clip = videoClips[shot.shot_number]
       return !clip || clip.status !== 'success'
@@ -212,7 +212,7 @@ export function StoryboardSection({
 
       {/* 分镜卡片列表 */}
       <div className="space-y-4">
-        {analysis.shots.map((shot) => (
+        {Array.isArray(analysis?.shots) && analysis.shots.map((shot) => (
           <StoryboardCardEnhanced
             key={shot.shot_number}
             shot={shot}

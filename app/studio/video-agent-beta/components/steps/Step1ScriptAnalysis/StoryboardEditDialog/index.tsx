@@ -100,6 +100,9 @@ export function StoryboardEditDialog({
           <DialogTitle className="text-2xl text-slate-100 font-bold">
             Edit Storyboard - Shot {shotNumber}
           </DialogTitle>
+          <DialogDescription className="text-slate-400">
+            Select characters and edit the prompt to regenerate this storyboard
+          </DialogDescription>
         </DialogHeader>
 
         {/* Main Content */}
