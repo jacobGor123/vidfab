@@ -5,6 +5,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase'
 import { STORAGE_CONFIG } from '@/lib/storage'
+import { assertSafeExternalUrl } from '@/lib/services/video-agent/security/url-guard'
 // Use the global fetch provided by Node/Next runtime to avoid undici/node-fetch mismatch issues
 // that can surface as "fetch failed" in certain environments.
 
@@ -37,11 +38,13 @@ export class VideoAgentStorageManager {
     try {
       console.log(`[Storage Manager] 📥 Downloading storyboard shot ${shotNumber}...`)
 
+      // SSRF guard: external URLs are not trusted.
+      assertSafeExternalUrl(externalUrl, { purpose: 'storyboard_download' })
+
       // 1. 下载图片
-      const response = await fetch(externalUrl, {
-        // Some signed/CDN endpoints can behave differently based on agent; set an explicit UA.
-        headers: { 'user-agent': 'vidfab-video-agent/1.0' },
-      })
+      // 🔥 关键修复：BytePlus签名URL只包含host header（X-Tos-SignedHeaders=host）
+      // 添加额外headers会导致签名验证失败（403 Forbidden）
+      const response = await fetch(externalUrl)
       if (!response.ok) {
         throw new Error(`Failed to download: ${response.statusText}`)
       }
@@ -141,6 +144,8 @@ export class VideoAgentStorageManager {
       await supabaseAdmin
         .from('project_storyboards')
         .update({
+          status: 'failed',
+          error_message: toErrorMessage(error),
           storage_status: 'failed',
           updated_at: new Date().toISOString(),
         } as any)
@@ -162,6 +167,9 @@ export class VideoAgentStorageManager {
   ) {
     try {
       console.log(`[Storage Manager] 📥 Downloading video clip shot ${shotNumber}...`)
+
+      // SSRF guard: external URLs are not trusted.
+      assertSafeExternalUrl(externalUrl, { purpose: 'video_clip_download' })
 
       // 1. 下载视频
       const response = await fetch(externalUrl)

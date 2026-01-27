@@ -63,6 +63,12 @@ export function useStoryboardGeneration({
   // 用于延迟停止轮询（确保最后一次状态更新已渲染）
   const stopPollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Keep a stable onUpdate ref; parent often passes inline closures.
+  const onUpdateRef = useRef(onUpdate)
+  useEffect(() => {
+    onUpdateRef.current = onUpdate
+  }, [onUpdate])
+
   // 轮询状态
   const pollStatus = useCallback(async () => {
     if (!project.id) return
@@ -82,6 +88,7 @@ export function useStoryboardGeneration({
       if (signature && signature === lastPollSignatureRef.current) {
         return
       }
+      // Update the signature before state updates so downstream guards can reuse it.
       lastPollSignatureRef.current = signature
 
       if (debugEnabled) {
@@ -93,10 +100,11 @@ export function useStoryboardGeneration({
         })
       }
 
-      // ✅ 总是更新状态（包括空数组）
+      // ✅ 总是更新状态（包括空数组），但要避免无变化的重复更新
       if (data) {
+        // signature already includes updated_at; if identical, keep previous reference.
         setStoryboards(data)
-        onUpdate({ storyboards: data })
+        onUpdateRef.current({ storyboards: data })
       }
 
       // 检查是否有正在生成的分镜图
@@ -126,7 +134,7 @@ export function useStoryboardGeneration({
     } catch (err) {
       console.error('Failed to poll storyboard status:', err)
     }
-  }, [project.id, onUpdate, debugEnabled, getStoryboardsStatus])
+  }, [project.id, debugEnabled, getStoryboardsStatus])
 
   // 页面加载时，如果有正在生成的分镜，自动开始轮询（恢复未完成的任务）
   // 🔥 如果从未开始过生成，也自动开始（移除二次确认界面）

@@ -29,6 +29,12 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
   const [characterStates, setCharacterStates] = useState<Record<string, CharacterState>>({})
   const [isInitialLoading, setIsInitialLoading] = useState(true)
 
+  // Parent often passes inline closures; keep a stable reference to avoid churn.
+  const onUpdateRef = useRef(onUpdate)
+  useEffect(() => {
+    onUpdateRef.current = onUpdate
+  }, [onUpdate])
+
   // 🔥 使用 ref 追踪是否已初始化，避免不必要的重新加载
   const hasInitializedRef = useRef(false)
   const lastCharactersKeyRef = useRef<string>('')
@@ -466,7 +472,7 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
           console.log(`[useCharacterState] [${syncId}] ✅ updateProject API completed`)
 
           console.log(`[useCharacterState] [${syncId}] 🔄 Calling onUpdate from syncCharacterNames...`)
-          onUpdate({ script_analysis: updatedAnalysis })
+          onUpdateRef.current({ script_analysis: updatedAnalysis })
           console.log(`[useCharacterState] [${syncId}] ✅ syncCharacterNames completed`)
         } catch (error) {
           console.error(`[useCharacterState] [${syncId}] ❌ syncCharacterNames failed:`, error)

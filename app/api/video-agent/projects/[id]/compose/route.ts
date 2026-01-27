@@ -6,11 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
-import { downloadAllClips, estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
-import { concatenateVideosWithShotstack } from '@/lib/services/video-agent/processors/shotstack-composer'
-import type { VideoClip, TransitionConfig, MusicConfig } from '@/lib/types/video-agent'
-import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
-import { generateNarrationBatch } from '@/lib/services/kie-ai/elevenlabs-tts'
+import { videoQueueManager } from '@/lib/queue/queue-manager'
 import type { Database } from '@/lib/database.types'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
@@ -91,14 +87,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
     })
 
-    // 🔥 使用 Shotstack 云端 API 进行视频合成（无需 FFmpeg）
-
-    // 更新项目状态为 processing
+    // 更新项目状态为 queued (compose job will move it to processing)
     const { error: updateError } = await supabaseAdmin
       .from('video_agent_projects')
       .update({
         status: 'processing',
-        step_6_status: 'processing'  // Step 6（最终合成）
+        step_6_status: 'queued'  // Step 6（最终合成）排队中
         // 不更新 current_step，由前端在用户点击"继续"时更新
       } as any)
       .eq('id', projectId)
@@ -116,31 +110,33 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 异步执行合成任务
-    composeVideoAsync(projectId, clips, project).catch(error => {
-      console.error('[Video Agent] ❌ Video composition failed:', error)
-
-      // 更新项目状态为失败
-      supabaseAdmin
-        .from('video_agent_projects')
-        .update({
-          status: 'failed',
-          step_6_status: 'failed'  // 修复：Step 6
-        } as any)
-        .eq('id', projectId)
-        .returns<any>()
-    })
-
-    // 估算合成时长
-    const estimatedDuration = estimateTotalDuration(clips)
+    // Enqueue compose job (reliable in worker)
+    const now = new Date().toISOString()
+    const composeJobId = `va:compose:${projectId}`
+    const queuedId = await videoQueueManager.addJob(
+      'va_compose_video',
+      {
+        type: 'va_compose_video',
+        jobId: composeJobId,
+        userId,
+        videoId: projectId,
+        projectId,
+        createdAt: now,
+      } as any,
+      {
+        priority: 'normal',
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 10000 },
+      }
+    )
 
     return NextResponse.json({
       success: true,
       data: {
-        message: 'Video composition started',
+        message: 'Video composition queued',
         totalClips: clips.length,
-        estimatedDuration,
-        status: 'processing'
+        jobId: queuedId || composeJobId,
+        status: 'queued'
       }
     })
 
@@ -163,138 +159,3 @@ export const POST = withAuth(async (request, { params, userId }) => {
     )
   }
 })
-
-/**
- * 异步执行视频合成
- * @param projectId 项目 ID
- * @param clips 视频片段列表
- * @param project 项目数据
- */
-async function composeVideoAsync(
-  projectId: string,
-  clips: VideoClip[],
-  project: any
-) {
-  try {
-    // 🔥 使用 Shotstack 云端拼接，无需下载视频到本地
-    const videoUrls = clips.map(clip => clip.video_url)
-    const clipDurations = clips.map(clip => clip.duration)
-
-    // 🔥 步骤 1: 准备旁白音频和字幕（旁白模式）
-    let subtitleUrl: string | undefined
-    let narrationAudioClips: Array<{ url: string; start: number; length: number }> = []
-
-    if (project.enable_narration) {
-      try {
-        // 获取分镜数据
-        const { data: shots } = await supabaseAdmin
-          .from('project_shots')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('shot_number', { ascending: true })
-          .returns<ProjectShot[]>()
-
-        if (shots && shots.length > 0) {
-          // 1. 生成旁白音频
-          const narrationTexts = shots.map(shot => shot.character_action)
-          const narrationResults = await generateNarrationBatch(narrationTexts, {
-            voice: 'Rachel',  // 默认音色，后续可配置
-            speed: 1.0
-          })
-
-          // 构建音频 clips 数组
-          let currentTime = 0
-          for (let i = 0; i < shots.length; i++) {
-            const result = narrationResults[i]
-            if (result.success && result.audio_url) {
-              narrationAudioClips.push({
-                url: result.audio_url,
-                start: currentTime,
-                length: shots[i].duration_seconds
-              })
-            } else {
-              console.error(`[Video Agent] ❌ Narration ${i + 1} failed:`, result.error)
-            }
-            currentTime += shots[i].duration_seconds
-          }
-
-          // 2. 生成 SRT 字幕文件
-          const srtContent = generateSRTFromShots(shots)
-
-          // 上传 SRT 到 Supabase Storage
-          const bucketName = 'video-agent-files'
-          const srtPath = `${projectId}/subtitles.srt`
-
-          const { error: uploadError } = await supabaseAdmin
-            .storage
-            .from(bucketName)
-            .upload(srtPath, srtContent, {
-              contentType: 'text/plain',
-              upsert: true
-            })
-
-          if (uploadError) {
-            console.error('[Video Agent] ⚠️ Failed to upload SRT:', uploadError)
-          } else {
-            // 获取公开 URL
-            const { data: urlData } = supabaseAdmin
-              .storage
-              .from(bucketName)
-              .getPublicUrl(srtPath)
-
-            subtitleUrl = urlData.publicUrl
-          }
-        }
-      } catch (error) {
-        console.error('[Video Agent] ⚠️ Failed to generate narration:', error)
-        // 旁白失败不影响主流程
-      }
-    }
-
-    // 🔥 步骤 2: 确定背景音乐 URL（非旁白模式 + 未静音）
-    let backgroundMusicUrl: string | undefined
-
-    if (!project.enable_narration && !project.mute_bgm) {
-      // 🔥 统一使用预设背景音乐（不再使用 Suno）
-      backgroundMusicUrl = 'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/video-agent-files/preset-music/funny-comedy-cartoon.mp3'
-    }
-
-    // 🔥 步骤 3: 使用 Shotstack 拼接视频（一次性完成：视频拼接 + 旁白/音乐 + 字幕）
-    const videoMetadata = await concatenateVideosWithShotstack(videoUrls, {
-      aspectRatio: project.aspect_ratio || '16:9',
-      clipDurations,
-      backgroundMusicUrl,
-      subtitleUrl,
-      narrationAudioClips: narrationAudioClips.length > 0 ? narrationAudioClips : undefined
-    })
-
-    // 🔥 步骤 4: 更新项目状态为完成（Shotstack URL 直接可用）
-    await supabaseAdmin
-      .from('video_agent_projects')
-      .update({
-        status: 'completed',
-        step_6_status: 'completed',
-        final_video_url: videoMetadata.url,
-        final_video_file_size: videoMetadata.fileSize,
-        final_video_resolution: videoMetadata.resolution,
-        final_video_storage_path: `shotstack:${projectId}`,
-        completed_at: new Date().toISOString()
-      } as any)
-      .eq('id', projectId)
-      .returns<any>()
-  } catch (error) {
-    console.error('[Video Agent] ❌ Composition async error:', error)
-
-    // 更新为失败状态
-    await supabaseAdmin
-      .from('video_agent_projects')
-      .update({
-        status: 'failed',
-        step_6_status: 'failed'
-      } as any)
-      .eq('id', projectId)
-      .returns<any>()
-
-    throw error
-  }
-}

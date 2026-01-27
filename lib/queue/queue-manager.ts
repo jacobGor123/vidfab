@@ -15,6 +15,13 @@ import {
   QueueStats,
   WorkerStatus
 } from './types'
+import { supabaseAdmin } from '@/lib/supabase'
+import { handleVideoAgentCompose } from '@/lib/queue/handlers/video-agent/compose-video'
+import { handleVideoAgentSyncVideoStatus } from '@/lib/queue/handlers/video-agent/sync-video-status'
+import { handleStoryboardGeneration } from '@/lib/queue/handlers/video-agent/storyboard-generation'
+import { handleStoryboardDownload } from '@/lib/queue/handlers/video-agent/storyboard-download'
+import { handleVideoClipDownload } from '@/lib/queue/handlers/video-agent/video-clip-download'
+
 
 // Queue configuration
 const QUEUE_CONFIG = {
@@ -57,6 +64,7 @@ export class VideoQueueManager {
   ): Promise<string> {
     try {
       const job = await this.queue.add(type, data, {
+        jobId: data.jobId,
         priority: options?.priority === 'critical' ? 1 :
                  options?.priority === 'high' ? 2 :
                  options?.priority === 'normal' ? 3 : 4,
@@ -257,15 +265,23 @@ export class VideoQueueManager {
           break
 
         case 'storyboard_generation':
-          result = await this.processStoryboardGeneration(job)
+          result = await handleStoryboardGeneration(job)
           break
 
         case 'storyboard_download':
-          result = await this.processStoryboardDownload(job)
+          result = await handleStoryboardDownload(job)
           break
 
         case 'video_clip_download':
-          result = await this.processVideoClipDownload(job)
+          result = await handleVideoClipDownload(job)
+          break
+
+        case 'va_compose_video':
+          result = await handleVideoAgentCompose(job)
+          break
+
+        case 'va_sync_video_status':
+          result = await handleVideoAgentSyncVideoStatus(job)
           break
 
         default:
@@ -671,165 +687,6 @@ export class VideoQueueManager {
   /**
    * Process storyboard generation job
    */
-  private async processStoryboardGeneration(job: Job): Promise<any> {
-    const { batchGenerateStoryboardsWithProgress, IMAGE_STYLES } = await import('../services/video-agent/storyboard-generator')
-    const jobData = job.data as import('./types').StoryboardGenerationJobData
-
-    try {
-      console.log('[Queue] Starting storyboard generation', {
-        projectId: jobData.projectId,
-        shotCount: jobData.shots.length
-      })
-
-      // 获取风格配置
-      const style = IMAGE_STYLES[jobData.style] || IMAGE_STYLES['realistic']
-
-      // 调用批量生成逻辑（带进度回调）
-      const result = await batchGenerateStoryboardsWithProgress(
-        jobData.projectId,
-        jobData.shots,
-        jobData.characters,
-        style,
-        jobData.aspectRatio,
-        // 进度回调
-        (progress) => {
-          job.updateProgress({
-            percent: progress.percent,
-            message: progress.message,
-            processed: progress.completed,
-            total: progress.total
-          }).catch(console.error)
-        }
-      )
-
-      console.log('[Queue] Storyboard generation completed', {
-        projectId: jobData.projectId,
-        result
-      })
-
-      return {
-        generated: true,
-        projectId: jobData.projectId,
-        total: result.total,
-        completed: result.completed,
-        failed: result.failed,
-        finalStatus: result.finalStatus
-      }
-
-    } catch (error) {
-      console.error(`❌ Storyboard generation failed for project ${jobData.projectId}:`, error)
-      throw error
-    }
-  }
-
-  /**
-   * Process storyboard download job
-   * 下载分镜图到 Supabase Storage
-   */
-  private async processStoryboardDownload(job: Job): Promise<any> {
-    const { VideoAgentStorageManager } = await import('../services/video-agent/storage-manager')
-    const jobData = job.data as import('./types').StoryboardDownloadJobData
-
-    try {
-      console.log('[Queue] Starting storyboard download', {
-        projectId: jobData.projectId,
-        shotNumber: jobData.shotNumber,
-        externalUrl: jobData.externalUrl
-      })
-
-      await job.updateProgress({
-        percent: 10,
-        message: `Downloading storyboard shot ${jobData.shotNumber}...`
-      })
-
-      // 下载并存储分镜图
-      const result = await VideoAgentStorageManager.downloadAndStoreStoryboard(
-        jobData.userId,
-        jobData.projectId,
-        jobData.shotNumber,
-        jobData.externalUrl
-      )
-
-      await job.updateProgress({
-        percent: 100,
-        message: 'Download completed'
-      })
-
-      console.log('[Queue] Storyboard download completed', {
-        projectId: jobData.projectId,
-        shotNumber: jobData.shotNumber,
-        cdnUrl: result.cdnUrl
-      })
-
-      return {
-        downloaded: true,
-        projectId: jobData.projectId,
-        shotNumber: jobData.shotNumber,
-        storagePath: result.storagePath,
-        cdnUrl: result.cdnUrl,
-        fileSize: result.fileSize
-      }
-
-    } catch (error) {
-      console.error(`❌ Storyboard download failed for project ${jobData.projectId}, shot ${jobData.shotNumber}:`, error)
-      throw error
-    }
-  }
-
-  /**
-   * Process video clip download job
-   * 下载视频片段到 Supabase Storage
-   */
-  private async processVideoClipDownload(job: Job): Promise<any> {
-    const { VideoAgentStorageManager } = await import('../services/video-agent/storage-manager')
-    const jobData = job.data as import('./types').VideoClipDownloadJobData
-
-    try {
-      console.log('[Queue] Starting video clip download', {
-        projectId: jobData.projectId,
-        shotNumber: jobData.shotNumber,
-        externalUrl: jobData.externalUrl
-      })
-
-      await job.updateProgress({
-        percent: 10,
-        message: `Downloading video clip shot ${jobData.shotNumber}...`
-      })
-
-      // 下载并存储视频片段
-      const result = await VideoAgentStorageManager.downloadAndStoreVideoClip(
-        jobData.userId,
-        jobData.projectId,
-        jobData.shotNumber,
-        jobData.externalUrl
-      )
-
-      await job.updateProgress({
-        percent: 100,
-        message: 'Download completed'
-      })
-
-      console.log('[Queue] Video clip download completed', {
-        projectId: jobData.projectId,
-        shotNumber: jobData.shotNumber,
-        cdnUrl: result.cdnUrl
-      })
-
-      return {
-        downloaded: true,
-        projectId: jobData.projectId,
-        shotNumber: jobData.shotNumber,
-        storagePath: result.storagePath,
-        cdnUrl: result.cdnUrl,
-        fileSize: result.fileSize
-      }
-
-    } catch (error) {
-      console.error(`❌ Video clip download failed for project ${jobData.projectId}, shot ${jobData.shotNumber}:`, error)
-      throw error
-    }
-  }
-
   /**
    * Set up queue event listeners
    */

@@ -111,8 +111,18 @@ export function StoryboardSection({
 
   // 同步 storyboards 数据到 project
   const lastSyncedStoryboardsRef = useRef<string | null>(null)
+
+  // 🔥 关键修复：使用 ref 存储 onUpdate，避免无限循环
+  const onUpdateRef = useRef(onUpdate)
+  useEffect(() => {
+    onUpdateRef.current = onUpdate
+  }, [onUpdate])
+
   useEffect(() => {
     if (!storyboards || Object.keys(storyboards).length === 0) return
+
+    // 🔥 关键修复：只在非生成状态时同步，避免生成过程中频繁触发
+    if (storyboardStatus === 'generating') return
 
     const projectStoryboards = Object.values(storyboards).filter(Boolean).map(sb => ({
       id: sb.id || `storyboard-${sb.shot_number}`,
@@ -130,9 +140,9 @@ export function StoryboardSection({
     const syncKey = JSON.stringify(projectStoryboards.map(s => `${s.shot_number}-${s.image_url || 'none'}`).sort())
     if (lastSyncedStoryboardsRef.current !== syncKey && projectStoryboards.length > 0) {
       lastSyncedStoryboardsRef.current = syncKey
-      onUpdate({ storyboards: projectStoryboards as any })
+      onUpdateRef.current({ storyboards: projectStoryboards as any })
     }
-  }, [storyboards, onUpdate])
+  }, [storyboards, storyboardStatus])
 
   return (
     <div className="space-y-6">

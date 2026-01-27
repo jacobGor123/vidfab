@@ -28,6 +28,7 @@ export default function VideoAgentBetaPage() {
     resumeProject,
     updateProject,
     reset,
+    clearAllIntervals,
     error,
     setError
   } = useVideoAgentStore()
@@ -42,12 +43,11 @@ export default function VideoAgentBetaPage() {
   // 清理轮询定时器
   useEffect(() => {
     return () => {
-      const store = useVideoAgentStore.getState()
-      if (store.pollingInterval) {
-        clearInterval(store.pollingInterval)
-      }
+      // Beta flow should not leak any polling intervals between navigations/unmounts.
+      // The store has multiple polling interval slots across slices.
+      clearAllIntervals()
     }
-  }, [])
+  }, [clearAllIntervals])
 
   // 🔥 监听 YouTube 视频分析完成事件
   useEffect(() => {

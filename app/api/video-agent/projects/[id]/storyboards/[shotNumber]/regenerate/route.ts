@@ -318,16 +318,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       } catch (queueErr) {
         console.error('[Video Agent] Failed to enqueue storyboard download:', queueErr)
 
-        // Queue can be unavailable in local dev (no Redis). Fallback to a detached direct download.
-        // We DO NOT await this to avoid blocking the request.
-        VideoAgentStorageManager.downloadAndStoreStoryboard(
-          userId,
-          projectId,
-          shotNumber,
-          result.image_url
-        ).catch((downloadErr) => {
-          console.error('[Video Agent] Fallback direct download failed:', downloadErr)
-        })
+        // No direct-download fallback: server-side fetch must go through the worker for reliability and SSRF controls.
       }
     }
 

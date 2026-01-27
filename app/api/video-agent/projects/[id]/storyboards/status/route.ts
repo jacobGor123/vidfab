@@ -53,7 +53,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
     }
 
     // 获取所有分镜图
-    const { data: storyboards, error: storyboardsError } = await supabaseAdmin
+    let { data: storyboards, error: storyboardsError } = await supabaseAdmin
       .from('project_storyboards')
       .select('*')
       .eq('project_id', projectId)
@@ -75,10 +75,15 @@ export const GET = withAuth(async (request, { params, userId }) => {
       })
     }
 
-    // 统计状态
-    const successCount = storyboards.filter(sb => sb.status === 'success').length
-    const generatingCount = storyboards.filter(sb => sb.status === 'generating').length
-    const failedCount = storyboards.filter(sb => sb.status === 'failed').length
+    // 统计状态（注意：后面可能会在 dev 模式下更新 stuck 分镜图并重拉数据）
+    let successCount = storyboards.filter(sb => sb.status === 'success').length
+    let generatingCount = storyboards.filter(sb => sb.status === 'generating').length
+    let failedCount = storyboards.filter(sb => sb.status === 'failed').length
+
+    // NOTE: Previously we had a dev-only "auto-fail stuck generating" soft-finalizer.
+    // It proved too aggressive and could incorrectly mark legitimate in-flight tasks as failed.
+    // For now we disable any server-side auto-fail here; failures should be driven by the worker
+    // (or explicit user retry actions), not by a polling endpoint.
 
     // 检查是否全部完成
     if (successCount + failedCount === storyboards.length && generatingCount === 0) {
@@ -94,20 +99,20 @@ export const GET = withAuth(async (request, { params, userId }) => {
     }
 
     // 直接返回数组，字段名使用下划线（匹配数据库和前端）
-    // 🔥 优先使用 CDN URL (cdn_url → image_url_external → image_url)
+    // 🔥 返回所有URL字段，让前端根据 storage_status 智能选择（混合方案）
     return NextResponse.json({
       success: true,
       data: storyboards.map(sb => ({
         id: sb.id,
         shot_number: sb.shot_number,
-        image_url: sb.cdn_url || sb.image_url_external || sb.image_url,  // 优先使用 CDN URL
-        image_url_external: sb.image_url_external,
-        cdn_url: sb.cdn_url,
+        image_url: sb.image_url,  // 原始URL（通常是CDN）
+        image_url_external: sb.image_url_external,  // 外部URL（BytePlus返回）
+        cdn_url: sb.cdn_url,  // 稳定的CDN URL
         storage_path: sb.storage_path,
-        storage_status: sb.storage_status,
+        storage_status: sb.storage_status,  // 前端据此判断用哪个URL
         file_size: sb.file_size,
         status: sb.status,
-        seedream_task_id: sb.seedream_task_id,  // 修复：使用正确的字段名
+        seedream_task_id: sb.seedream_task_id,
         error_message: sb.error_message,
         created_at: sb.created_at,
         updated_at: sb.updated_at

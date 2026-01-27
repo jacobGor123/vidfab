@@ -12,6 +12,8 @@ export type JobType =
   | 'storyboard_generation'  // Generate storyboards for video-agent projects
   | 'storyboard_download'    // Download storyboard image to Supabase Storage
   | 'video_clip_download'    // Download video clip to Supabase Storage
+  | 'va_compose_video'        // Compose final video for video-agent projects (Shotstack)
+  | 'va_sync_video_status'    // Sync provider status for video clips (Veo/BytePlus)
 
 // Job status values
 export type JobStatus =
@@ -117,7 +119,16 @@ export interface VideoClipDownloadJobData extends BaseJobData {
   externalUrl: string
 }
 
-// Union type for all job data
+export interface VideoAgentComposeJobData extends BaseJobData {
+  type: 'va_compose_video'
+  projectId: string
+}
+
+export interface VideoAgentSyncVideoStatusJobData extends BaseJobData {
+  type: 'va_sync_video_status'
+  projectId: string
+}
+
 export type VideoJobData =
   | DownloadVideoJobData
   | GenerateThumbnailJobData
@@ -126,6 +137,8 @@ export type VideoJobData =
   | StoryboardGenerationJobData
   | StoryboardDownloadJobData
   | VideoClipDownloadJobData
+  | VideoAgentComposeJobData
+  | VideoAgentSyncVideoStatusJobData
 
 // Job configuration
 export interface JobConfig {

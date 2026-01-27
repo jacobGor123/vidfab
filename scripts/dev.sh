@@ -11,6 +11,20 @@
 
 set -e
 
+# Ensure local env vars are available to both Next.js and the worker.
+# Some child processes (e.g. tsx watch) won't automatically load .env.local.
+if [ -f ".env.local" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source ".env.local"
+    set +a
+elif [ -f ".env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source ".env"
+    set +a
+fi
+
 # 颜色输出
 RED='\033[0;31m'
 GREEN='\033[0;32m'

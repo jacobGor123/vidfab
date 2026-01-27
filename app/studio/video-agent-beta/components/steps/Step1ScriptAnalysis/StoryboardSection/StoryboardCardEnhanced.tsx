@@ -17,24 +17,37 @@ function isValidImageSrc(src: string): boolean {
   if (!src) return false
   // Avoid rendering a broken/blank <img> when the URL is briefly invalid.
   // This can happen during rapid regenerate -> store -> revalidate transitions.
-  return src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')
+  return src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:') || src.startsWith('/')
 }
 
 function resolveStoryboardSrc(storyboard?: Storyboard): string | undefined {
   if (!storyboard) return undefined
 
-  const stableUrl = storyboard?.cdn_url || storyboard?.image_url
-  const externalUrl = storyboard?.image_url_external || undefined
+  // 🔥 混合方案："Fast then Stable"
+  // 1. 优先使用稳定的 CDN URL（cdn_url 或 image_url）
+  // 2. 如果 storage 还在 pending，使用代理的 external URL 作为快速预览
+  // 3. 一旦 storage 完成，自动切换到稳定 CDN
 
-  // "Fast then stable": if storage is pending, prefer the external URL for immediate preview.
-  // Once storage completes, prefer CDN/stable.
-  const preferred = storyboard?.storage_status === 'pending'
-    ? (externalUrl || stableUrl)
-    : (stableUrl || externalUrl)
+  const stableUrl = storyboard.cdn_url || storyboard.image_url
+  const externalUrl = storyboard.image_url_external
+
+  // 代理外部URL（防止签名过期导致浏览器直接访问失败）
+  const proxiedExternalUrl = externalUrl
+    ? `/api/video-agent/proxy-image?u=${encodeURIComponent(externalUrl)}`
+    : undefined
+
+  // 策略：storage pending时优先用external（快），完成后优先用stable（可靠）
+  const preferred = storyboard.storage_status === 'pending'
+    ? (proxiedExternalUrl || stableUrl)
+    : (stableUrl || proxiedExternalUrl)
 
   if (!preferred) return undefined
-  if (storyboard?.updated_at) {
-    return `${preferred}?t=${encodeURIComponent(storyboard.updated_at)}`
+
+  // 添加时间戳防止缓存
+  // 🔥 关键修复：BytePlus的签名URL已经有查询参数，使用&而不是?
+  if (storyboard.updated_at) {
+    const separator = preferred.includes('?') ? '&' : '?'
+    return `${preferred}${separator}t=${encodeURIComponent(storyboard.updated_at)}`
   }
   return preferred
 }
@@ -231,15 +244,8 @@ export function StoryboardCardEnhanced({
                     Outdated
                   </div>
                 )}
-                {/* 🔥 优先检查生成状态 - 即使有旧图片，生成时也显示 loading */}
-                {(storyboard?.status === 'generating' || isStoryboardGenerating) ? (
-                  <div className="h-[200px] bg-slate-950/50 rounded-lg border border-slate-800 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span className="text-xs">Generating...</span>
-                    </div>
-                  </div>
-                ) : storyboard && resolvedStoryboardSrc && isValidImageSrc(resolvedStoryboardSrc) ? (
+                {/* 🔥 修复：优先检查数据（有图片就显示），而不是全局状态 */}
+                {storyboard && resolvedStoryboardSrc && isValidImageSrc(resolvedStoryboardSrc) ? (
                   <>
                     <img
                       key={`storyboard-${storyboard.id}-${storyboard.updated_at || 'initial'}`}
@@ -281,6 +287,13 @@ export function StoryboardCardEnhanced({
                       >
                         Retry
                       </button>
+                    </div>
+                  </div>
+                ) : (storyboard?.status === 'generating' || isStoryboardGenerating) ? (
+                  <div className="h-[200px] bg-slate-950/50 rounded-lg border border-slate-800 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span className="text-xs">Generating...</span>
                     </div>
                   </div>
                 ) : (

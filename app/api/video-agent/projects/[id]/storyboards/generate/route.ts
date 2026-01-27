@@ -238,8 +238,33 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .select()
 
     if (insertError) {
-      console.error('[Video Agent] Failed to create storyboard records:', insertError)
+      console.error('[Video Agent] ❌ Failed to create storyboard records:', insertError)
+      // 🔥 修复：插入失败应该立即返回错误，不能继续生成
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to initialize storyboard records',
+        details: insertError.message
+      }, { status: 500 })
     }
+
+    // 🔥 验证所有 shot 都成功插入
+    if (!insertedStoryboards || insertedStoryboards.length !== shots.length) {
+      console.error('[Video Agent] ❌ Incomplete storyboard records:', {
+        expected: shots.length,
+        inserted: insertedStoryboards?.length || 0
+      })
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to create all storyboard records',
+        expected: shots.length,
+        inserted: insertedStoryboards?.length || 0
+      }, { status: 500 })
+    }
+
+    console.log('[Video Agent] ✅ All storyboard records initialized:', {
+      count: insertedStoryboards.length,
+      shotNumbers: insertedStoryboards.map((s: any) => s.shot_number).sort()
+    })
 
     // 更新项目状态
     await supabaseAdmin
@@ -264,10 +289,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
       const { videoQueueManager } = await import('@/lib/queue/queue-manager')
 
       try {
+        // 🔥 修复：为重新生成添加时间戳，确保 jobId 唯一（避免 BullMQ 拒绝重复任务）
+        const timestamp = Date.now()
         const jobId = await videoQueueManager.addJob(
           'storyboard_generation',
           {
-            jobId: `storyboard_${projectId}`,
+            jobId: `storyboard_${projectId}_${timestamp}`,
             userId: userId,
             videoId: projectId,
             projectId,
@@ -286,6 +313,29 @@ export const POST = withAuth(async (request, { params, userId }) => {
             },
             removeOnComplete: 10,
             removeOnFail: 20
+          }
+        )
+
+        // Also enqueue a follow-up job that will download/store the generated images.
+        // This prevents the UI from being stuck with external signed URLs.
+        await videoQueueManager.addJob(
+          'storyboard_download',
+          {
+            jobId: `storyboard_download_batch_${projectId}`,
+            userId,
+            videoId: projectId,
+            projectId,
+            shotNumber: 0,
+            externalUrl: '__BATCH__',
+            createdAt: new Date().toISOString(),
+          } as any,
+          {
+            priority: 'high',
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 5000 },
+            delay: 2000,
+            removeOnComplete: 10,
+            removeOnFail: 20,
           }
         )
 
@@ -326,6 +376,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       const generateInBackground = async () => {
         try {
           const { batchGenerateStoryboardsWithProgress } = await import('@/lib/services/video-agent/processors/storyboard/storyboard-batch-generator')
+          const { videoQueueManager } = await import('@/lib/queue/queue-manager')
 
           const result = await batchGenerateStoryboardsWithProgress(
             projectId,
@@ -334,6 +385,39 @@ export const POST = withAuth(async (request, { params, userId }) => {
             style,
             project.aspect_ratio || '16:9'
           )
+
+          // After generation, enqueue storage downloads for all successful shots.
+          // We do this from the route layer (not the generator layer) to keep SSRF controls centralized.
+          const { data: sbs } = await supabaseAdmin
+            .from('project_storyboards')
+            .select('shot_number, image_url_external, status, storage_status')
+            .eq('project_id', projectId)
+            .returns<any[]>()
+
+          const toDownload = (sbs || [])
+            .filter((sb) => sb?.status === 'success')
+            .filter((sb) => sb?.storage_status === 'pending' || !sb?.storage_status)
+            .filter((sb) => typeof sb?.image_url_external === 'string' && sb.image_url_external.length > 0)
+
+          if (toDownload.length > 0) {
+            await Promise.allSettled(
+              toDownload.map((sb) =>
+                videoQueueManager.addJob(
+                  'storyboard_download',
+                  {
+                    jobId: `storyboard_download_${projectId}_${sb.shot_number}`,
+                    userId,
+                    videoId: projectId,
+                    projectId,
+                    shotNumber: sb.shot_number,
+                    externalUrl: sb.image_url_external,
+                    createdAt: new Date().toISOString(),
+                  } as any,
+                  { priority: 'high', attempts: 3 }
+                )
+              )
+            )
+          }
 
           console.log('[Video Agent] Background generation completed:', {
             total: result.total,

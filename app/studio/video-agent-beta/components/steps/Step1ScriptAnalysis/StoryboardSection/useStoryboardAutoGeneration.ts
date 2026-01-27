@@ -41,56 +41,8 @@ export function useStoryboardAutoGeneration(
   const errorCountRef = useRef(0) // 🔥 追踪连续错误次数
   const MAX_ERRORS = 3 // 🔥 最大允许连续错误次数
 
-  // 🔥 同步 project.storyboards 到内部状态（处理 Edit Dialog 重新生成后的更新）
-  useEffect(() => {
-    // 🔥 修复：只处理有数据的情况，避免清空已加载的数据
-    if (!project.storyboards || project.storyboards.length === 0) {
-      // 不做任何操作，保持当前状态
-      // 这样可以避免在数据加载时误清空
-      return
-    }
-
-    // 🔥 如果正在生成中，仍然允许更新已完成的分镜图
-    if (hasStartedRef.current || status === 'generating') {
-      // 继续执行同步逻辑
-    }
-
-    // 将 project.storyboards 转换为 Record 格式
-    const projectStoryboardMap: Record<number, Storyboard> = {}
-    project.storyboards.forEach(sb => {
-      projectStoryboardMap[sb.shot_number] = {
-        id: sb.id,
-        shot_number: sb.shot_number,
-        image_url: sb.image_url,
-        status: sb.status,
-        error_message: sb.error_message,
-        generation_attempts: sb.generation_attempts || 0,
-        updated_at: sb.updated_at  // 🔥 关键修复：包含 updated_at 字段以支持缓存清除
-      }
-    })
-
-    // 合并更新，保留最新的图片
-    setStoryboards(prev => {
-      const merged = { ...prev }
-      let hasChanges = false
-
-      Object.entries(projectStoryboardMap).forEach(([key, value]) => {
-        const shotNum = parseInt(key)
-        const oldValue = prev[shotNum]
-
-        // 🔥 如果 project 中有图片，或者 updated_at 发生变化，则更新
-        // 这确保了重新生成的分镜图（即使 URL 相同）也会触发更新
-        const shouldUpdate = value.image_url || (value as any).updated_at !== (oldValue as any)?.updated_at
-        if (shouldUpdate) {
-          merged[shotNum] = value
-          hasChanges = true
-        }
-      })
-
-      // 只有在有变化时才返回新对象，避免无限循环
-      return hasChanges ? merged : prev
-    })
-  }, [project.storyboards, status])
+  // 🔥 移除双向同步，避免死循环
+  // 轮询数据是唯一的数据源，index.tsx 负责单向同步到 project
 
   // 追踪轮询开始时间，用于超时保护
   const pollStartTimeRef = useRef<number | null>(null)
@@ -262,6 +214,66 @@ export function useStoryboardAutoGeneration(
   const refresh = useCallback(async () => {
     await pollStoryboards()
   }, [pollStoryboards])
+
+  // 🔥 页面加载时初始化：加载已存在的分镜图数据
+  const hasInitializedRef = useRef(false)
+
+  useEffect(() => {
+    // 防止重复初始化
+    if (hasInitializedRef.current) return
+    hasInitializedRef.current = true
+
+    const initLoad = async () => {
+      try {
+        const statusData = await getStoryboardsStatus(project.id)
+
+        if (!statusData || !Array.isArray(statusData) || statusData.length === 0) {
+          return
+        }
+
+        // 构建分镜图数据
+        const storyboardMap: Record<number, Storyboard> = {}
+        statusData.forEach((item: any) => {
+          if (item.shot_number) {
+            storyboardMap[item.shot_number] = {
+              id: item.id,
+              shot_number: item.shot_number,
+              image_url: item.image_url,
+              image_url_external: item.image_url_external,
+              cdn_url: item.cdn_url,
+              storage_status: item.storage_status,
+              status: item.status,
+              error_message: item.error_message,
+              generation_attempts: item.generation_attempts || 0,
+              updated_at: item.updated_at
+            }
+          }
+        })
+
+        setStoryboards(storyboardMap)
+
+        // 检查是否有正在生成的分镜图
+        const generatingCount = statusData.filter((s: any) => s.status === 'generating').length
+        if (generatingCount > 0) {
+          setStatus('generating')
+          pollStartTimeRef.current = Date.now()
+          pollIntervalRef.current = setInterval(pollStoryboards, 2000)
+          await pollStoryboards()
+        } else {
+          // 全部完成
+          const completedCount = statusData.filter((s: any) => s.status === 'success').length
+          setProgress({ current: completedCount, total: analysis.shot_count })
+          setStatus('completed')
+        }
+      } catch (error) {
+        console.error('[StoryboardAutoGen] Failed to load existing storyboards:', error)
+      }
+    }
+
+    initLoad()
+    // 🔥 只在 mount 时执行一次，不依赖其他变量
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 组件卸载时清理轮询
   useEffect(() => {

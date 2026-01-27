@@ -7,86 +7,10 @@ import type { CharacterConfig, Shot, ImageStyle, StoryboardResult } from '@/lib/
 import { generateSingleStoryboard } from './storyboard-core'
 import { supabaseAdmin } from '@/lib/supabase'
 
-/**
- * 触发分镜图下载到 Supabase Storage
- * 策略：优先使用队列系统（可靠），降级为直接下载（快速）
- */
-async function triggerStoryboardDownload(
-  projectId: string,
-  shotNumber: number,
-  externalUrl: string
-): Promise<void> {
-  try {
-    // 🔥 策略 1：尝试使用队列系统（推荐，但需要 Redis 可用）
-    try {
-      const { videoQueueManager } = await import('@/lib/queue/queue-manager')
-
-      // 获取项目信息以获取 userId
-      const { data: project } = await supabaseAdmin
-        .from('video_agent_projects')
-        .select('user_id')
-        .eq('id', projectId)
-        .single()
-
-      if (!project) {
-        throw new Error('Project not found')
-      }
-
-      await videoQueueManager.addJob(
-        'storyboard_download',
-        {
-          jobId: `storyboard_download_${projectId}_${shotNumber}`,
-          userId: project.user_id,
-          videoId: projectId,
-          projectId,
-          shotNumber,
-          externalUrl,
-          createdAt: new Date().toISOString()
-        },
-        {
-          priority: 'normal',
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 5000 }
-        }
-      )
-
-      console.log(`[Download Trigger] Queued storyboard download for shot ${shotNumber}`)
-      return
-    } catch (queueError) {
-      console.warn(`[Download Trigger] Queue unavailable, falling back to direct download:`, queueError)
-    }
-
-    // 🔥 策略 2：降级为直接下载（不依赖 Redis）
-    const { VideoAgentStorageManager } = await import('../../storage-manager')
-
-    // 获取项目信息
-    const { data: project } = await supabaseAdmin
-      .from('video_agent_projects')
-      .select('user_id')
-      .eq('id', projectId)
-      .single()
-
-    if (!project) {
-      throw new Error('Project not found')
-    }
-
-    // 后台异步下载（不阻塞）
-    VideoAgentStorageManager.downloadAndStoreStoryboard(
-      project.user_id,
-      projectId,
-      shotNumber,
-      externalUrl
-    ).then(() => {
-      console.log(`[Download Trigger] Direct download completed for shot ${shotNumber}`)
-    }).catch(err => {
-      console.error(`[Download Trigger] Direct download failed for shot ${shotNumber}:`, err)
-    })
-
-  } catch (error) {
-    console.error(`[Download Trigger] Failed to trigger download for shot ${shotNumber}:`, error)
-    throw error
-  }
-}
+// IMPORTANT:
+// Do not enqueue downloads from the generator layer.
+// All downloads must be triggered by explicit routes or worker jobs to avoid
+// "queue unavailable -> direct download" fallbacks and keep SSRF controls centralized.
 
 /**
  * 进度回调函数类型
@@ -283,13 +207,8 @@ export async function batchGenerateStoryboardsWithProgress(
         if (result.status === 'success') {
           successCount++
 
-          // 🔥 触发下载到 Supabase Storage（后台异步，不阻塞生成流程）
-          if (result.image_url) {
-            triggerStoryboardDownload(projectId, shot.shot_number, result.image_url)
-              .catch(err => {
-                console.error(`[Storyboard Batch Generator] Failed to trigger download for shot ${shot.shot_number}:`, err)
-              })
-          }
+          // NOTE: do not enqueue downloads from here.
+          // Download is handled by dedicated routes/worker jobs to avoid fallback direct-download.
         } else {
           failedCount++
         }

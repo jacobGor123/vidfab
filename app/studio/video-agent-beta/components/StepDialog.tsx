@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,13 @@ export default function StepDialog({
   project,
   onProjectUpdate
 }: StepDialogProps) {
+  // Keep a stable callback identity so Radix Dialog/Presence isn't forced into a ref churn loop
+  // when the parent recreates inline handlers each render.
+  const onProjectUpdateRef = useRef(onProjectUpdate)
+  useEffect(() => {
+    onProjectUpdateRef.current = onProjectUpdate
+  }, [onProjectUpdate])
+
   // 判断是否使用新流程（2 步）
   const isNewProject = useMemo(() => {
     const cutoffDate = new Date('2026-01-10T00:00:00Z')
@@ -98,7 +105,7 @@ export default function StepDialog({
   }
 
   const handleUpdateProject = (updates: Partial<VideoAgentProject>) => {
-    onProjectUpdate(updates)
+    onProjectUpdateRef.current(updates)
   }
 
   const handleComplete = () => {

@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -140,9 +140,34 @@ export function CharacterGenerationSection({
 
   // 🔥 同步人物数据到 project.characters，供 StoryboardEditDialog 使用
   const lastSyncedRef = useRef<string | null>(null)
+
+  // Keep a stable `onUpdate` reference so this effect doesn't re-run on every render.
+  // `onUpdate` is typically passed as an inline closure from the parent.
+  const onUpdateRef = useRef(onUpdate)
   useEffect(() => {
-    if (isInitialLoading) return
-    if (Object.keys(characterStates).length === 0) return
+    onUpdateRef.current = onUpdate
+  }, [onUpdate])
+
+  const charactersSyncKey = useMemo(() => {
+    if (isInitialLoading) return null
+    if (Object.keys(characterStates).length === 0) return null
+
+    const parts = Object.values(characterStates).map((state: any) => {
+      const name = String(state?.name || '')
+      const img = String(state?.imageUrl || 'none')
+      const prompt = String(state?.prompt || '')
+      // id may be absent in Step1 auto-gen; include it when present to avoid stale mapping.
+      const id = String(state?.id || '')
+      return `${id}|${name}|${img}|${prompt}`
+    })
+
+    // Sort for stability.
+    parts.sort()
+    return JSON.stringify(parts)
+  }, [characterStates, isInitialLoading])
+
+  useEffect(() => {
+    if (!charactersSyncKey) return
 
     // Convert characterStates to project.characters format for StoryboardEditDialog.
     // IMPORTANT: preserve the real DB id from Step2 if present; do NOT synthesize `char-...` ids.
@@ -163,15 +188,12 @@ export function CharacterGenerationSection({
 
     // 检查是否有变化（避免无限循环）
     // 🔥 修复：syncKey 包含 image_url，确保图片更新时会触发同步
-    const syncKey = JSON.stringify(projectCharacters.map(c =>
-      c.character_name + (c.character_reference_images[0]?.image_url || 'none')
-    ))
-    if (lastSyncedRef.current !== syncKey) {
-      lastSyncedRef.current = syncKey
-      onUpdate({ characters: projectCharacters as any })
+    if (lastSyncedRef.current !== charactersSyncKey) {
+      lastSyncedRef.current = charactersSyncKey
+      onUpdateRef.current({ characters: projectCharacters as any })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [characterStates, isInitialLoading])
+  }, [characterStates, charactersSyncKey])
 
   // 打开预设对话框
   const handleOpenPresetDialog = (characterName: string) => {
