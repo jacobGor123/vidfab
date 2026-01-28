@@ -5,11 +5,12 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
+import { MODEL_NAME } from './processors/script/constants'
 
 // 初始化 Gemini AI client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
-const GEMINI_MODEL = 'gemini-2.0-flash-exp'
+const GEMINI_MODEL = MODEL_NAME
 
 /**
  * 图片风格配置

@@ -4,11 +4,12 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { MODEL_NAME } from './processors/script/constants'
 
 // 初始化 Gemini AI client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
-const GEMINI_MODEL = 'gemini-2.0-flash-exp'
+const GEMINI_MODEL = MODEL_NAME
 
 /**
  * 脚本创意类型

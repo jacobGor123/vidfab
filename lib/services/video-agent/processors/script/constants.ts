@@ -2,8 +2,8 @@
  * Script Analyzer - 常量定义
  */
 
-// 使用 Gemini 2.0 Flash Experimental
-export const MODEL_NAME = 'gemini-2.0-flash-exp'
+// Gemini model name (keep centralized to avoid drifting across call sites)
+export const MODEL_NAME = 'gemini-3-flash-preview'
 
 // 🔥 统一分镜时长（秒）
 export const UNIFIED_SEGMENT_DURATION = 5
