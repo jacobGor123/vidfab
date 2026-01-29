@@ -370,8 +370,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
     const shouldLoad =
       (!hasInitializedRef.current && characters.length > 0 && project.id) ||
       (hasInitializedRef.current &&
-       charactersKey !== lastCharactersKeyRef.current &&
-       characters.length !== lastCharactersCount)
+        charactersKey !== lastCharactersKeyRef.current &&
+        characters.length !== lastCharactersCount)
 
     if (shouldLoad) {
       console.log('[useCharacterState] Loading character data:', {
@@ -383,12 +383,54 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
       lastCharactersKeyRef.current = charactersKey
       loadCharacterData()
     } else if (hasInitializedRef.current && charactersKey !== lastCharactersKeyRef.current) {
-      // Names changed but count is unchanged.
-      // IMPORTANT: do NOT run any auto-sync-to-script_analysis here; Step2 handles name changes explicitly.
-      console.log('[useCharacterState] Characters renamed but count unchanged, skipping reload:', {
-        old: lastCharactersKeyRef.current,
-        new: charactersKey
+      // Names changed (e.g. from "Angel" to "Cyber Girl").
+      // We must migrate local state keys to match new names, otherwise ghost cards appear.
+      console.log('[useCharacterState] 🔄 Characters renamed, migrating state keys:', {
+        oldKeys: lastCharactersKeyRef.current,
+        newKeys: charactersKey
       })
+
+      setCharacterStates(prev => {
+        const nextStates: Record<string, CharacterState> = {}
+        const oldNames = lastCharactersKeyRef.current.split(',').filter(Boolean)
+        const newNames = characters
+
+        // Migrate state from old name to new name by index
+        newNames.forEach((newName, index) => {
+          const oldName = oldNames[index]
+          // If we have state for the old name, move it to the new name key
+          // ONLY if the new name doesn't already have its own state.
+          if (oldName && prev[oldName] && oldName !== newName) {
+            nextStates[newName] = {
+              ...prev[oldName],
+              name: newName // Ensure internal name matches key
+            }
+            // Preserve image if one existed
+            console.log(`[useCharacterState] ➡ Migrated state: ${oldName} -> ${newName}`)
+          } else if (prev[newName]) {
+            // Already has state for this name
+            nextStates[newName] = prev[newName]
+          } else {
+            // New character added or found without state, initialize default
+            // Try to rescue from prev by index if possible (fallback)
+            const fallbackOld = oldNames[index]
+            if (fallbackOld && prev[fallbackOld]) {
+              nextStates[newName] = { ...prev[fallbackOld], name: newName }
+            } else {
+              nextStates[newName] = {
+                name: newName,
+                prompt: newName,
+                negativePrompt: '',
+                isGenerating: false,
+                mode: 'ai'
+              }
+            }
+          }
+        })
+
+        return nextStates
+      })
+
       lastCharactersKeyRef.current = charactersKey
     } else if (characters.length === 0 && !hasInitializedRef.current) {
       setIsInitialLoading(false)

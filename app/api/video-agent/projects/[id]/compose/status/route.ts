@@ -261,7 +261,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
 
       // If processing makes no observable progress for too long, fail fast with a retryable error.
       // This commonly indicates a stuck worker/job or a lost callback from the render provider.
-      const timeoutMs = 10 * 60 * 1000
+      const timeoutMs = 3 * 60 * 1000
       if (ageMs > timeoutMs) {
         return NextResponse.json({
           success: true,

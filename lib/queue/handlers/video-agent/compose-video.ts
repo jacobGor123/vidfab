@@ -131,18 +131,63 @@ export async function handleVideoAgentCompose(job: Job): Promise<any> {
 
   await job.updateProgress({ percent: 95, message: 'Saving final video metadata...' })
 
-  await supabaseAdmin
-    .from('video_agent_projects')
-    .update({
-      status: 'completed',
-      step_6_status: 'completed',
-      final_video_url: videoMetadata.url,
-      final_video_file_size: videoMetadata.fileSize,
-      final_video_resolution: videoMetadata.resolution,
-      final_video_storage_path: `shotstack:${projectId}`,
-      completed_at: new Date().toISOString(),
-    } as any)
-    .eq('id', projectId)
+  // 🔥 重要：确保数据库更新成功，否则会导致"Job finished but status not updated"错误
+  const maxRetries = 3
+  let updateSuccess = false
+  let lastError: Error | null = null
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { error: updateError } = await supabaseAdmin
+        .from('video_agent_projects')
+        .update({
+          status: 'completed',
+          step_6_status: 'completed',
+          final_video_url: videoMetadata.url,
+          final_video_file_size: videoMetadata.fileSize,
+          final_video_resolution: videoMetadata.resolution,
+          final_video_storage_path: `shotstack:${projectId}`,
+          completed_at: new Date().toISOString(),
+        } as any)
+        .eq('id', projectId)
+
+      if (updateError) {
+        throw new Error(`Database update failed: ${updateError.message}`)
+      }
+
+      // 验证更新是否真的生效
+      const { data: verifyProject } = await supabaseAdmin
+        .from('video_agent_projects')
+        .select('step_6_status, final_video_url')
+        .eq('id', projectId)
+        .single()
+
+      if (!verifyProject || verifyProject.step_6_status !== 'completed') {
+        throw new Error('Database update verification failed')
+      }
+
+      updateSuccess = true
+      console.log(`✅ [Compose] Database updated successfully for project ${projectId}`)
+      break
+
+    } catch (err) {
+      lastError = err as Error
+      console.error(`❌ [Compose] Database update attempt ${attempt}/${maxRetries} failed:`, err)
+
+      if (attempt < maxRetries) {
+        // 指数退避：1s, 2s, 4s
+        const delayMs = 1000 * Math.pow(2, attempt - 1)
+        await new Promise(resolve => setTimeout(resolve, delayMs))
+      }
+    }
+  }
+
+  if (!updateSuccess) {
+    throw new Error(
+      `Failed to update database after ${maxRetries} attempts: ${lastError?.message}. ` +
+      `Video rendered successfully (${videoMetadata.url}) but status not saved.`
+    )
+  }
 
   await job.updateProgress({ percent: 100, message: 'Compose completed' })
 
