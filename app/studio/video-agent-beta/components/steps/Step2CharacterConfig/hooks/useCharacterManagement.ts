@@ -41,7 +41,7 @@ export function useCharacterManagement({
       return {
         id: state.id,
         name: state.name,
-        source: state.mode === 'upload' ? 'upload' : 'ai_generate',
+        source: (state.mode === 'upload' ? 'upload' : 'ai_generate') as 'upload' | 'ai_generate',
         referenceImages,
         generationPrompt: state.prompt,
         negativePrompt: state.negativePrompt
@@ -235,68 +235,66 @@ export function useCharacterManagement({
     // 将整个更新操作包装为 Promise 并保存到 ref
     const updatePromise = (async () => {
       try {
-      // 🔥 关键修复：必须传递所有角色，而不是只传递当前选择的角色
-      // 否则 API 的孤儿清理逻辑会删除其他角色
-      const allCharactersData = buildCharactersPayload(newStates)
+        // 🔥 关键修复：必须传递所有角色，而不是只传递当前选择的角色
+        // 否则 API 的孤儿清理逻辑会删除其他角色
+        const allCharactersData = buildCharactersPayload(newStates)
 
-      // 🔥 额外保护：去重（按 name 字段），避免数据重复导致数据库错误
-      const uniqueCharactersMap = new Map<string, typeof allCharactersData[0]>()
-      allCharactersData.forEach(char => {
-        uniqueCharactersMap.set(char.name, char)
-      })
-      const uniqueCharactersData = Array.from(uniqueCharactersMap.values())
-
-      console.log(`[Character Management] [${callId}] 📝 Updating all characters:`, {
-        totalCharactersBeforeDedup: allCharactersData.length,
-        totalCharactersAfterDedup: uniqueCharactersData.length,
-        updatedCharacter: newName,
-        allNames: uniqueCharactersData.map(c => c.name)
-      })
-
-      await updateCharacters(project.id, { characters: uniqueCharactersData })
-      console.log(`[Character Management] [${callId}] ✅ Updated character in database:`, { oldName, newName, imageUrl: preset.imageUrl })
-
-      // 🔥 Sync shot input fields (description/character_action/video_prompt) so users don't have
-      // to manually edit prompts/actions after character replacement.
-      // This does NOT regenerate any existing storyboard/video assets; it only updates inputs.
-      try {
-        // A) Safe deterministic replacement: immediately removes old names from inputs.
-        const replaceRes = await replaceCharacterInShots(project.id, {
-          fromName: oldName,
-          toName: newName,
-          // In strict mode we still want the shots/characters list to stay consistent,
-          // even if the old name doesn't appear in text yet.
-          // Use mentioned to reduce accidental replacements; backend matches common aliases.
-          scope: 'mentioned'
+        // 🔥 额外保护：去重（按 name 字段），避免数据重复导致数据库错误
+        const uniqueCharactersMap = new Map<string, typeof allCharactersData[0]>()
+        allCharactersData.forEach(char => {
+          uniqueCharactersMap.set(char.name, char)
         })
-        console.log(`[Character Management] [${callId}] replaceCharacterInShots response:`, {
-          // callAPI unwraps { success, data } and returns only `data`
-          updatedShots: replaceRes?.updatedShots,
-          analysisShotCount: replaceRes?.script_analysis?.shots?.length,
-          analysisCharacters: replaceRes?.script_analysis?.characters
+        const uniqueCharactersData = Array.from(uniqueCharactersMap.values())
+
+        console.log(`[Character Management] [${callId}] 📝 Updating all characters:`, {
+          totalCharactersBeforeDedup: allCharactersData.length,
+          totalCharactersAfterDedup: uniqueCharactersData.length,
+          updatedCharacter: newName,
+          allNames: uniqueCharactersData.map(c => c.name)
         })
 
-        if (replaceRes?.script_analysis) {
-          onUpdate({ script_analysis: replaceRes.script_analysis })
+        await updateCharacters(project.id, { characters: uniqueCharactersData })
+        console.log(`[Character Management] [${callId}] ✅ Updated character in database:`, { oldName, newName, imageUrl: preset.imageUrl })
+
+        // 🔥 Sync shot input fields (description/character_action/video_prompt) so users don't have
+        // to manually edit prompts/actions after character replacement.
+        // This does NOT regenerate any existing storyboard/video assets; it only updates inputs.
+        try {
+          // A) Safe deterministic replacement: immediately removes old names from inputs.
+          const replaceRes = await replaceCharacterInShots(project.id, {
+            fromName: oldName,
+            toName: newName,
+            // In strict mode we still want the shots/characters list to stay consistent,
+            // even if the old name doesn't appear in text yet.
+            // Use mentioned to reduce accidental replacements; backend matches common aliases.
+            scope: 'mentioned'
+          })
+          console.log(`[Character Management] [${callId}] replaceCharacterInShots response:`, {
+            // callAPI unwraps { success, data } and returns only `data`
+            updatedShots: replaceRes?.updatedShots,
+            analysisShotCount: replaceRes?.script_analysis?.shots?.length,
+            analysisCharacters: replaceRes?.script_analysis?.characters
+          })
+
+          if (replaceRes?.script_analysis) {
+            onUpdate({ script_analysis: replaceRes.script_analysis })
+          }
+          console.log(`[Character Management] [${callId}] ✅ Synced shots after character replacement:`, {
+            updatedShots: replaceRes?.updatedShots
+          })
+        } catch (syncErr: any) {
+          console.warn(`[Character Management] [${callId}] ⚠️ Failed to sync shots after character replacement:`, syncErr)
         }
-        console.log(`[Character Management] [${callId}] ✅ Synced shots after character replacement:`, {
-          updatedShots: replaceRes?.updatedShots
-        })
-      } catch (syncErr: any) {
-        console.warn(`[Character Management] [${callId}] ⚠️ Failed to sync shots after character replacement:`, syncErr)
-      }
 
-      // 🎨 自动分析预设图片，生成描述
-      console.log(`[Character Management] [${callId}] 🔍 Analyzing preset image...`)
-      const generatedPrompt = await analyzeCharacterImage(newName, preset.imageUrl)
+        // 🎨 移除自动分析预设图片的逻辑
+        // 这里的逻辑保持：将 Prompt 更新为人物名称
+        console.log(`[Character Management] [${callId}] ✅ Updating prompt to character name...`)
 
-      if (generatedPrompt) {
-        console.log(`[Character Management] [${callId}] ✅ Image analysis completed, updating prompt...`)
         // 更新数据库中的角色描述
         await updateCharacters(project.id, {
           characters: uniqueCharactersData.map(char =>
             char.name === newName
-              ? { ...char, generationPrompt: generatedPrompt }
+              ? { ...char, generationPrompt: newName }
               : char
           )
         })
@@ -306,15 +304,14 @@ export function useCharacterManagement({
           ...prev,
           [newName]: {
             ...prev[newName],
-            prompt: generatedPrompt
+            prompt: newName
           }
         }))
-      }
 
-      // NOTE: Strict mode (your requirement): do NOT rewrite story/plot text.
-      // Only replace names via replaceCharacterInShots.
+        // NOTE: Strict mode (your requirement): do NOT rewrite story/plot text.
+        // Only replace names via replaceCharacterInShots.
 
-      // 改名的权威同步应由后端处理（避免多端/并发覆盖）。
+        // 改名的权威同步应由后端处理（避免多端/并发覆盖）。
       } catch (err: any) {
         console.error(`[Character Management] [${callId}] ❌ Failed to update character in database:`, err)
         setError(err.message)
