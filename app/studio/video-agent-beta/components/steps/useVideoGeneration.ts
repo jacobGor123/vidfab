@@ -49,7 +49,8 @@ export function useVideoGeneration({
     isGeneratingRef.current = isGenerating
   }, [isGenerating])
 
-  const totalShots = project.script_analysis?.shot_count || 0
+  // Use the actual shots array length if available, as shot_count metadata might be stale
+  const totalShots = project.script_analysis?.shots?.length || project.script_analysis?.shot_count || 0
   const completedShots = Array.isArray(videoClips)
     ? videoClips.filter((vc) => vc.status === 'success').length
     : 0
@@ -102,10 +103,10 @@ export function useVideoGeneration({
       // ✅ 优化：使用 updated_at 时间戳检测变化（更可靠）
       const signature = Array.isArray(data)
         ? data
-            .map((clip: any) => {
-              return `${clip?.shot_number}:${clip?.updated_at || ''}`
-            })
-            .join('|')
+          .map((clip: any) => {
+            return `${clip?.shot_number}:${clip?.updated_at || ''}`
+          })
+          .join('|')
         : ''
 
       if (signature && signature === lastPollSignatureRef.current) {
