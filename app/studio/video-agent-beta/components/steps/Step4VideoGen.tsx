@@ -110,8 +110,8 @@ export default function Step4VideoGen({ project, onNext, onUpdate }: Step4Props)
         </div>
       )}
 
-      {/* 确认按钮 - 只有在所有视频都完成（成功或失败）且不在生成中时才显示 */}
-      {!isGenerating && generatingShots === 0 && (completedShots + failedShots === totalShots) && totalShots > 0 && (
+      {/* 确认按钮 - 只要没有正在生成的任务，且至少有一个任务已处理，就显示按钮（防止因计数不一致卡死） */}
+      {!isGenerating && generatingShots === 0 && (completedShots + failedShots > 0) && (
         <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent flex justify-center pt-8 pb-8 z-10">
           <Button
             onClick={handleConfirm}
