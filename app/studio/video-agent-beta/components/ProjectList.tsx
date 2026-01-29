@@ -123,9 +123,7 @@ export default function ProjectList({ onResume }: ProjectListProps) {
                 {project.status === 'processing' && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />}
                 {project.status === 'completed' ? 'Ready' : project.status === 'processing' ? 'Processing' : 'Draft'}
               </span>
-              <span className="text-xs text-slate-500 font-mono">
-                {Math.min(project.current_step, 6)}/6
-              </span>
+
             </div>
 
             <button
@@ -159,7 +157,8 @@ export default function ProjectList({ onResume }: ProjectListProps) {
             </div>
           </div>
         </div>
-      ))}
-    </div>
+      ))
+      }
+    </div >
   )
 }

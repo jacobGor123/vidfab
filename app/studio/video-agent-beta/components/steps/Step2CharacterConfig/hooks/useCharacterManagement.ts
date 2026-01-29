@@ -27,7 +27,7 @@ export function useCharacterManagement({
   onNext,
   setError
 }: UseCharacterManagementProps) {
-  const { updateCharacters, updateProject } = useVideoAgentAPI()
+  const { updateCharacters, updateProject, replaceCharacterInShots } = useVideoAgentAPI()
   const [isSaving, setIsSaving] = useState(false)
 
   // 🔥 关键修复：使用 ref 追踪正在进行的请求，防止并发导致数据竞争
@@ -156,8 +156,11 @@ export function useCharacterManagement({
     const callId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     console.log(`[Character Management] [${callId}] 🎯 handleSelectPreset called:`, { characterName, presetName: preset.name })
 
-    // 🔥 UX优化：立即设置加载状态和预设图片，给用户即时反馈
-    const oldName = characterName
+    // IMPORTANT:
+    // - `characterName` here is the card key from state/DB and is what the backend expects.
+    // - The script text may use a different alias (e.g. "the orange cat"), but that should
+    //   be handled server-side (character-replace) rather than changing the identity key.
+    const oldName = String(characterName || '').trim()
     const newName = preset.name
 
     const currentState = characterStates[oldName] || {
@@ -182,6 +185,25 @@ export function useCharacterManagement({
       }
       return newStates
     })
+
+    // Defensive: if the old card wasn't present in state (e.g. mismatch between display label
+    // and stored key), don't proceed with DB write / shot sync, otherwise we risk creating a
+    // second card and leaving the old one polling.
+    if (!characterStates[oldName]) {
+      console.warn(`[Character Management] [${callId}] ⚠️ Character key not found in state; aborting replacement to avoid duplicates:`, {
+        oldName,
+        availableKeys: Object.keys(characterStates)
+      })
+      setCharacterStates(prev => ({
+        ...prev,
+        [newName]: {
+          ...prev[newName],
+          isGenerating: false,
+          error: 'Character not found in current state'
+        }
+      }))
+      return
+    }
 
     // 🔥 关键修复：如果有正在进行的请求，等待它完成
     if (updateRequestRef.current) {
@@ -234,6 +256,36 @@ export function useCharacterManagement({
       await updateCharacters(project.id, { characters: uniqueCharactersData })
       console.log(`[Character Management] [${callId}] ✅ Updated character in database:`, { oldName, newName, imageUrl: preset.imageUrl })
 
+      // 🔥 Sync shot input fields (description/character_action/video_prompt) so users don't have
+      // to manually edit prompts/actions after character replacement.
+      // This does NOT regenerate any existing storyboard/video assets; it only updates inputs.
+      try {
+        // A) Safe deterministic replacement: immediately removes old names from inputs.
+        const replaceRes = await replaceCharacterInShots(project.id, {
+          fromName: oldName,
+          toName: newName,
+          // In strict mode we still want the shots/characters list to stay consistent,
+          // even if the old name doesn't appear in text yet.
+          // Use mentioned to reduce accidental replacements; backend matches common aliases.
+          scope: 'mentioned'
+        })
+        console.log(`[Character Management] [${callId}] replaceCharacterInShots response:`, {
+          // callAPI unwraps { success, data } and returns only `data`
+          updatedShots: replaceRes?.updatedShots,
+          analysisShotCount: replaceRes?.script_analysis?.shots?.length,
+          analysisCharacters: replaceRes?.script_analysis?.characters
+        })
+
+        if (replaceRes?.script_analysis) {
+          onUpdate({ script_analysis: replaceRes.script_analysis })
+        }
+        console.log(`[Character Management] [${callId}] ✅ Synced shots after character replacement:`, {
+          updatedShots: replaceRes?.updatedShots
+        })
+      } catch (syncErr: any) {
+        console.warn(`[Character Management] [${callId}] ⚠️ Failed to sync shots after character replacement:`, syncErr)
+      }
+
       // 🎨 自动分析预设图片，生成描述
       console.log(`[Character Management] [${callId}] 🔍 Analyzing preset image...`)
       const generatedPrompt = await analyzeCharacterImage(newName, preset.imageUrl)
@@ -258,6 +310,9 @@ export function useCharacterManagement({
           }
         }))
       }
+
+      // NOTE: Strict mode (your requirement): do NOT rewrite story/plot text.
+      // Only replace names via replaceCharacterInShots.
 
       // 改名的权威同步应由后端处理（避免多端/并发覆盖）。
       } catch (err: any) {
@@ -290,10 +345,7 @@ export function useCharacterManagement({
         }
       }))
 
-      // 🔥 方案 1：立即同步角色名称到 script_analysis
-      console.log(`[Character Management] [${callId}] 🔄 Syncing character name to script_analysis...`)
-      await syncCharacterNameToAnalysis(oldName, newName)
-      console.log(`[Character Management] [${callId}] ✅ Character name synced to script_analysis`)
+      // script_analysis / project_shots 输入同步已在 replaceCharacterInShots 中完成。
     } catch (error) {
       // 错误已在内部 catch 块中处理
       console.error(`[Character Management] [${callId}] ❌ handleSelectPreset failed:`, error)
@@ -313,6 +365,9 @@ export function useCharacterManagement({
       const charactersData = buildCharactersPayload(characterStates)
       await updateCharacters(project.id, { characters: charactersData })
 
+      // NOTE: script_analysis / project_shots 的同步由后端负责（/characters + /shots/character-replace）。
+      // 这里不再写 script_analysis，避免与后端替换逻辑产生竞态。
+      /*
       // 如果有角色名称变更，更新 script_analysis
       const nameMapping: Record<string, string> = {}
       Object.keys(characterStates).forEach(key => {
@@ -345,9 +400,7 @@ export function useCharacterManagement({
             const oldNamePattern = new RegExp(`\\b${oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
             updatedShot = {
               ...updatedShot,
-              description: updatedShot.description.replace(oldNamePattern, newName),
-              camera_angle: updatedShot.camera_angle.replace(oldNamePattern, newName),
-              mood: updatedShot.mood.replace(oldNamePattern, newName)
+              description: updatedShot.description.replace(oldNamePattern, newName)
             }
           })
 
@@ -359,6 +412,7 @@ export function useCharacterManagement({
         await updateProject(project.id, { script_analysis: updatedAnalysis })
         onUpdate({ script_analysis: updatedAnalysis })
       }
+      */
 
       onNext()
     } catch (err: any) {
@@ -368,41 +422,8 @@ export function useCharacterManagement({
     }
   }
 
-  // 🔥 辅助函数：同步角色名称变更到 script_analysis
-  const syncCharacterNameToAnalysis = useCallback(async (
-    oldName: string,
-    newName: string
-  ) => {
-    if (!project.script_analysis) return
-
-    const updatedAnalysis = { ...project.script_analysis }
-
-    // 更新全局角色列表，并去重
-    updatedAnalysis.characters = Array.from(new Set(
-      updatedAnalysis.characters.map(name => name === oldName ? newName : name)
-    ))
-
-    // 创建正则表达式，匹配旧名称（单词边界，避免部分匹配）
-    const oldNamePattern = new RegExp(`\\b${oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
-
-    // 更新所有 shots 中的引用
-    updatedAnalysis.shots = updatedAnalysis.shots.map(shot => ({
-      ...shot,
-      characters: Array.from(new Set(
-        shot.characters.map(name => name === oldName ? newName : name)
-      )),
-      description: shot.description.replace(oldNamePattern, newName),
-      camera_angle: shot.camera_angle.replace(oldNamePattern, newName),
-      mood: shot.mood.replace(oldNamePattern, newName),
-      video_prompt: shot.video_prompt?.replace(oldNamePattern, newName)  // 🔥 关键修复：同时更新 video_prompt
-    }))
-
-    // 保存到数据库
-    await updateProject(project.id, { script_analysis: updatedAnalysis })
-
-    // 同时更新本地 store
-    onUpdate({ script_analysis: updatedAnalysis })
-  }, [project, updateProject, onUpdate])
+  // NOTE: script_analysis / project_shots 的输入同步由后端批处理接口
+  // /shots/character-replace 负责，避免这里和后端产生竞态/覆盖。
 
   // 处理名称变更 (带防抖)
   const handleNameChangeInternal = useCallback(async (oldName: string, newName: string) => {
@@ -460,7 +481,7 @@ export function useCharacterManagement({
         return newStates
       })
     }
-  }, [characterStates, updateCharacters, project.id, syncCharacterNameToAnalysis, setCharacterStates, setError])
+  }, [characterStates, updateCharacters, project.id, setCharacterStates, setError])
 
   // 防抖处理
   const handleNameChange = useDebounce(handleNameChangeInternal, 500)

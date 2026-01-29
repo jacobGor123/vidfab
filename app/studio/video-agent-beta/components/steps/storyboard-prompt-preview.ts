@@ -6,9 +6,7 @@
 
 interface StoryboardFields {
   description: string
-  camera_angle: string
   character_action: string
-  mood: string
 }
 
 interface CharacterInfo {
@@ -152,19 +150,9 @@ export function buildStoryboardPromptPreview(
     prompt += `Scene: ${annotated.description}. `
   }
 
-  // 镜头角度
-  if (fields.camera_angle) {
-    prompt += `Camera: ${fields.camera_angle}. `
-  }
-
   // 🔥 角色动作（已标注角色类型）
   if (annotated.characterAction) {
     prompt += `Action: ${annotated.characterAction}. `
-  }
-
-  // 情绪氛围
-  if (fields.mood) {
-    prompt += `Mood: ${fields.mood}. `
   }
 
   // 禁止人物重复

@@ -14,13 +14,16 @@ export interface Shot {
   shot_number: number
   time_range: string           // 时间范围，如 "00:00-00:05"
   description: string           // 场景描述
-  camera_angle: string          // 镜头角度
   character_action: string      // 角色动作描述
   characters: string[]          // 出现的角色列表
-  mood: string                  // 情绪氛围
   duration_seconds: number      // 时长（秒）
   seed?: number                 // 可选：生成视频时的随机种子
   video_prompt?: string         // 可选：视频生成提示词
+
+  // Deprecated: no longer used for storyboard image prompts in the unified flow.
+  // Keep optional for backward compatibility with existing DB records.
+  camera_angle?: string
+  mood?: string
 }
 
 /**

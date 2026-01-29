@@ -13,6 +13,30 @@ import { Textarea } from '@/components/ui/textarea'
 import { RefreshCw, Image as ImageIcon, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+function resolveStoryboardSrc(storyboard?: Storyboard): string | undefined {
+  if (!storyboard) return undefined
+
+  // Match the preview card behavior: prefer stable URLs, and proxy external signed URLs.
+  const stableUrl = storyboard.cdn_url || storyboard.image_url
+  const externalUrl = storyboard.image_url_external || undefined
+  const proxiedExternalUrl = externalUrl
+    ? `/api/video-agent/proxy-image?u=${encodeURIComponent(externalUrl)}`
+    : undefined
+
+  const preferred = storyboard.storage_status === 'pending'
+    ? (proxiedExternalUrl || stableUrl)
+    : (stableUrl || proxiedExternalUrl)
+
+  if (!preferred) return undefined
+
+  if (storyboard.updated_at) {
+    const separator = preferred.includes('?') ? '&' : '?' // signed URLs already have query params
+    return `${preferred}${separator}t=${encodeURIComponent(storyboard.updated_at)}`
+  }
+
+  return preferred
+}
+
 interface Storyboard {
   id: string
   shot_number: number
@@ -45,13 +69,8 @@ export function StoryboardEditPanel({
   const hasImage = !!(storyboard?.image_url || storyboard?.image_url_external || storyboard?.cdn_url)
   const isGenerating = storyboard?.status === 'generating' || isRegenerating
 
-  // "Fast then stable": while storage is pending, show external URL; once completed, show CDN/stable.
-  const preferredSrc = storyboard?.storage_status === 'pending'
-    ? (storyboard?.image_url_external || storyboard?.cdn_url || storyboard?.image_url)
-    : (storyboard?.cdn_url || storyboard?.image_url || storyboard?.image_url_external)
-  const resolvedSrc = storyboard?.updated_at
-    ? `${preferredSrc}?t=${encodeURIComponent(storyboard?.updated_at)}`
-    : preferredSrc
+  // Reuse the same resolution strategy as the Step1 preview card.
+  const resolvedSrc = resolveStoryboardSrc(storyboard)
 
   return (
     <div className="flex gap-6">
@@ -123,7 +142,7 @@ export function StoryboardEditPanel({
           <Textarea
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
-            placeholder="Describe the scene, camera angle, mood, and any specific details..."
+            placeholder="Describe the scene and any specific details..."
             className="h-[200px] bg-slate-900/50 border-slate-700 focus:border-blue-500 text-slate-200 placeholder:text-slate-500 resize-none"
             disabled={isRegenerating}
           />

@@ -58,13 +58,10 @@ export async function generateSingleStoryboard(
         const parsedFields = JSON.parse(customPrompt)
 
         if (parsedFields && typeof parsedFields === 'object') {
-          // 🔥 JSON 字段模式：提取各个字段并构建完整的 Shot 对象
-          // ✅ description 现在已包含角色动作，无需单独处理 character_action
+          // 🔥 JSON 字段模式：只允许修改 description（其它字段不再参与分镜图生成）
           const modifiedShot = {
             ...shot,
             description: parsedFields.description || shot.description,
-            camera_angle: parsedFields.camera_angle || shot.camera_angle,
-            mood: parsedFields.mood || shot.mood
           }
           prompt = buildStoryboardPrompt(modifiedShot, style, characters, hasReferenceImages)
         } else {

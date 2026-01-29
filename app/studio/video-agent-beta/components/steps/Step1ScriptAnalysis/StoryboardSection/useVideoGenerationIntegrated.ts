@@ -31,7 +31,7 @@ interface UseVideoGenerationIntegratedReturn {
     // 动作
     generateSingleVideo: (shotNumber: number, prompt: string) => Promise<void>
     generateAllVideos: () => Promise<void>
-    updateCustomPrompt: (shotNumber: number, prompt: string) => void
+    updateCustomPrompt: (shotNumber: number, characterAction: string) => void
     stopGeneration: () => void  // 🔥 新增：手动停止轮询
 
     // 统计
@@ -55,7 +55,7 @@ export function useVideoGenerationIntegrated({
     analysis,
     onUpdate
 }: UseVideoGenerationIntegratedProps): UseVideoGenerationIntegratedReturn {
-    const { generateVideos, retryVideo, getVideosStatus } = useVideoAgentAPI()
+    const { generateVideos, retryVideo, getVideosStatus, patchShot } = useVideoAgentAPI()
 
     // 从 project 初始化视频状态
     const initialClips: Record<number, VideoClip> = {}
@@ -276,11 +276,26 @@ export function useVideoGenerationIntegrated({
     }, [project.id, isGenerating, generateVideos, startPolling])
 
     // 单个生成视频
+    // Unified flow: the editable field is character_action (prompt arg), and we build the final prompt
+    // by combining shot.description + character_action so the backend gets consistent inputs.
     const generateSingleVideo = useCallback(async (shotNumber: number, prompt: string) => {
         if (generatingShots.has(shotNumber)) {
             showError('This video is already generating')
             return
         }
+
+        const shot = Array.isArray(analysis?.shots)
+            ? analysis.shots.find(s => s.shot_number === shotNumber)
+            : undefined
+        const description = String(shot?.description || '').trim()
+        const action = String(prompt || '').trim()
+
+        // Build the JSON-mode payload expected by the retry endpoint.
+        // This keeps backward-compat while ensuring character_action is integrated.
+        const customPrompt = JSON.stringify({
+            description,
+            character_action: action
+        })
 
         // 更新本地状态为 generating
         setVideoClips(prev => ({
@@ -300,7 +315,7 @@ export function useVideoGenerationIntegrated({
             // 调用重试/生成 API
             await retryVideo(project.id, {
                 shotNumber,
-                customPrompt: prompt
+                customPrompt
             })
 
             dismissLoading()
@@ -330,15 +345,30 @@ export function useVideoGenerationIntegrated({
                 return next
             })
         }
-    }, [project.id, generatingShots, retryVideo, startPolling])
+    }, [project.id, generatingShots, retryVideo, startPolling, analysis])
 
-    // 更新自定义 Prompt
-    const updateCustomPrompt = useCallback((shotNumber: number, prompt: string) => {
+    // 更新自定义 Prompt（并防抖持久化到 project_shots.character_action）
+    const saveTimersRef = useRef<Record<number, any>>({})
+    const updateCustomPrompt = useCallback((shotNumber: number, characterAction: string) => {
         setCustomPrompts(prev => ({
             ...prev,
-            [shotNumber]: prompt
+            [shotNumber]: characterAction
         }))
-    }, [])
+
+        // Debounce persistence: keep DB shot inputs aligned with what the user typed.
+        // This ensures refreshes and later character replacements operate on the latest action.
+        const prevTimer = saveTimersRef.current[shotNumber]
+        if (prevTimer) clearTimeout(prevTimer)
+        saveTimersRef.current[shotNumber] = setTimeout(() => {
+            void patchShot(project.id, shotNumber, { character_action: characterAction })
+                .catch((err: any) => {
+                    console.warn('[VideoGenIntegrated] Failed to persist character_action:', {
+                        shotNumber,
+                        err: err?.message || err
+                    })
+                })
+        }, 500)
+    }, [patchShot, project.id])
 
     // 🔥 手动停止生成
     const stopGeneration = useCallback(() => {

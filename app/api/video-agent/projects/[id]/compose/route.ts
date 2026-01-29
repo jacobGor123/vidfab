@@ -113,6 +113,10 @@ export const POST = withAuth(async (request, { params, userId }) => {
     // Enqueue compose job (reliable in worker)
     const now = new Date().toISOString()
     const composeJobId = `va:compose:${projectId}`
+
+    // Cleanup any existing job for this project before adding new one
+    await videoQueueManager.cancelJob(composeJobId)
+
     const queuedId = await videoQueueManager.addJob(
       'va_compose_video',
       {

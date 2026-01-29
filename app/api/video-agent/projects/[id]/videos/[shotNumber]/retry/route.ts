@@ -139,7 +139,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
 
       // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
-      // ✅ description 现在已包含角色动作，无需单独拼接 character_action
+      // ✅ Unified prompt model: description (shot framing) + character_action (what happens).
+      // The UI now edits character_action separately and sends both fields in JSON mode.
       let finalPrompt: string
       if (customPrompt && customPrompt.trim()) {
         try {
@@ -147,11 +148,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
           const parsedFields = JSON.parse(customPrompt)
 
           if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description（已包含动作）
+            // 🔥 JSON 字段模式：提取 description + character_action
             const description = parsedFields.description || shot.description
-            finalPrompt = description
+            const characterAction = parsedFields.character_action || shot.character_action
+            finalPrompt = `${description}. ${characterAction}`.trim()
             console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
-              description: description.substring(0, 50) + '...'
+              description: description.substring(0, 50) + '...',
+              characterAction: String(characterAction || '').substring(0, 50) + '...'
             })
           } else {
             // JSON 解析成功但不是对象，作为纯文本处理
@@ -164,8 +167,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
           console.log(`[Video Agent] 🔄 Using custom description (text mode) for shot ${shotNumber}`)
         }
       } else {
-        // 使用默认 prompt（description 已包含动作）
-        finalPrompt = shot.description
+        // 默认：description + character_action
+        finalPrompt = `${shot.description}. ${shot.character_action}`.trim()
       }
 
       // 🔥 强制添加禁止字幕指令

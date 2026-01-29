@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import ViewportMount from './ViewportMount'
 import { showConfirm } from '@/lib/utils/toast'
 import { FieldsEditor, type Field } from '../common/FieldsEditor'
-import { FileText, Camera, Clapperboard, Drama, Trash2 } from 'lucide-react'  // 🔥 添加 Trash2 图标
+import { FileText, Clapperboard, Trash2 } from 'lucide-react'  // 🔥 添加 Trash2 图标
 import type { DisplayItem } from './Step3StoryboardGen.types'
 import type { Shot } from '@/lib/types/video-agent'
 
@@ -50,9 +50,7 @@ export function Step3StoryboardCard({
   // 🔥 字段编辑状态
   const [editFields, setEditFields] = useState<{
     description: string
-    camera_angle: string
     character_action: string
-    mood: string
   } | null>(null)
 
   // 🔥 从 customPrompts 解析字段（如果是 JSON 格式）
@@ -74,9 +72,7 @@ export function Step3StoryboardCard({
   // 🔥 获取当前编辑字段（优先使用本地状态，其次使用 parsedFields，最后使用 shot 原始值）
   const currentFields = editFields || parsedFields || {
     description: shot?.description || getDefaultPrompt(item.shot_number),
-    camera_angle: shot?.camera_angle || '',
     character_action: shot?.character_action || '',
-    mood: shot?.mood || ''
   }
 
   const handleRegenerateClick = async (e: React.MouseEvent) => {
@@ -137,16 +133,6 @@ export function Step3StoryboardCard({
       icon: FileText
     },
     {
-      name: 'camera_angle',
-      label: 'Camera Angle',
-      value: currentFields.camera_angle,
-      placeholder: 'e.g., Wide shot, Close-up, Over-the-shoulder...',
-      rows: 2,
-      maxLength: 200,
-      helpText: 'Shot composition and framing',
-      icon: Camera
-    },
-    {
       name: 'character_action',
       label: 'Character Action',
       value: currentFields.character_action,
@@ -157,16 +143,7 @@ export function Step3StoryboardCard({
       helpText: 'Describe character movements and interactions',
       icon: Clapperboard
     },
-    {
-      name: 'mood',
-      label: 'Mood/Atmosphere',
-      value: currentFields.mood,
-      placeholder: 'e.g., Warm and welcoming, Tense, Mysterious...',
-      rows: 2,
-      maxLength: 200,
-      helpText: 'Emotional tone and ambiance',
-      icon: Drama
-    }
+    
   ]
 
   return (

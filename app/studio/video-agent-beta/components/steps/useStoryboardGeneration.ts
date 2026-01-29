@@ -233,9 +233,7 @@ export function useStoryboardGeneration({
             // 🔥 只包含有值的字段，过滤掉 undefined
             fieldsUpdate = {}
             if (parsed.description) fieldsUpdate.description = parsed.description
-            if (parsed.camera_angle) fieldsUpdate.camera_angle = parsed.camera_angle
             if (parsed.character_action) fieldsUpdate.character_action = parsed.character_action
-            if (parsed.mood) fieldsUpdate.mood = parsed.mood
 
             // 如果没有任何字段，设置为 undefined
             if (Object.keys(fieldsUpdate).length === 0) {

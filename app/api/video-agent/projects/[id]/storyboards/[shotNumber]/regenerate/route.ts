@@ -54,9 +54,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
     const selectedCharacterIdsValid = selectedCharacterIds?.filter(id => uuidRe.test(id))
     const fieldsUpdate = body.fieldsUpdate as {
       description?: string
-      camera_angle?: string
       character_action?: string
-      mood?: string
     } | undefined
 
     if (isNaN(shotNumber)) {
@@ -343,15 +341,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
         } else if (currentProject?.script_analysis) {
           const scriptAnalysis = currentProject.script_analysis as unknown as ScriptAnalysisResult
 
-          // 更新对应 shot 的字段
+        // 更新对应 shot 的字段
           const updatedShots = scriptAnalysis.shots.map((s: Shot) => {
             if (s.shot_number === shotNumber) {
               return {
                 ...s,
                 description: extractedFields.description,
-                camera_angle: extractedFields.camera_angle,
                 character_action: extractedFields.character_action,
-                mood: extractedFields.mood,
                 video_prompt: extractedFields.video_prompt  // 🔥 同时更新 video_prompt
               }
             }

@@ -23,6 +23,8 @@ interface ComposeStatus {
   status: 'pending' | 'processing' | 'completed' | 'failed'
   progress?: number
   message?: string
+  code?: string
+  retryable?: boolean
   finalVideo?: {
     url: string
     file_size: number
@@ -37,20 +39,11 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('va_debug')
 
-  // 🔥 判断是否是新项目（3 步流程）
-  const isNewProject = (() => {
-    const cutoffDate = new Date('2026-01-10T00:00:00Z')
-    const createdAt = new Date(project.created_at)
-    return createdAt >= cutoffDate
-  })()
-
-  // 🔥 新流程最后一步是 3，旧流程是 5
-  const finalStepNumber = isNewProject ? 3 : 5
-
   const [isComposing, setIsComposing] = useState(false)
   const [composeStatus, setComposeStatus] = useState<ComposeStatus>({ status: 'pending' })
   const [error, setError] = useState<string | null>(null)
   const [simulatedProgress, setSimulatedProgress] = useState(0)
+  const autoStartAttemptedRef = useRef(false)
 
   // 页面不可见时暂停定时器，避免后台占用主线程导致交互卡顿
   const [isPageVisible, setIsPageVisible] = useState(true)
@@ -103,8 +96,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
         setSimulatedProgress(100)
         onUpdate({
           final_video: data.finalVideo,
-          status: 'completed',
-          current_step: finalStepNumber  // 新流程是 3，旧流程是 5
+          status: 'completed'
         })
       } else if (data.status === 'failed') {
         setIsComposing(false)
@@ -144,6 +136,40 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
       setSimulatedProgress(50)
     }
   }, [project.step_6_status, composeStatus.status, isComposing, pollStatus])
+
+  // Auto-start compose when entering this view to avoid the extra "Preparing" step.
+  // If Step1 already started compose, the backend will be idempotent / return a useful error.
+  useEffect(() => {
+    if (!isPageVisible) return
+    if (!project.id) return
+    if (autoStartAttemptedRef.current) return
+    if (composeStatus.status === 'completed' || composeStatus.status === 'failed') return
+
+    autoStartAttemptedRef.current = true
+
+      ; (async () => {
+        // Always poll once first to pick up a queued/processing state set by Step1.
+        await pollStatus()
+
+        // If still not processing/completed, try to start compose.
+        if (lastPollSignatureRef.current.startsWith('processing:') || lastPollSignatureRef.current.startsWith('completed:')) {
+          return
+        }
+
+        setIsComposing(true)
+        setComposeStatus({ status: 'processing', progress: 0 })
+        lastSimulatedProgressRef.current = 0
+        setSimulatedProgress(0)
+
+        try {
+          await composeVideo(project.id)
+        } catch (err: any) {
+          setIsComposing(false)
+          setComposeStatus({ status: 'failed' })
+          setError(err?.message || 'Failed to start composition')
+        }
+      })()
+  }, [isPageVisible, project.id, composeStatus.status, pollStatus, composeVideo])
 
   // 模拟进度增长 - 🔥 优化：继续增长到 98%，减少卡顿感
   useEffect(() => {
@@ -189,7 +215,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
       setSimulatedProgress(0)
       pollStatus()
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.message || 'Failed to start composition')
       setIsComposing(false)
     }
   }
@@ -267,17 +293,25 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
 
   // 🔥 优先级1：合成失败（明确的 failed 状态）
   if (composeStatus.status === 'failed') {
+    const isStuckQueued = composeStatus.code === 'COMPOSE_STUCK_QUEUED'
+    const displayMessage = isStuckQueued
+      ? 'Worker offline / 队列未消费'
+      : (error || composeStatus.message || 'An unexpected error occurred during video composition')
+
     return (
       <div className="space-y-6">
         <div className="text-center py-12">
           <div className="text-6xl mb-4">❌</div>
           <h3 className="text-xl font-bold mb-2">Composition Failed</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            {error || composeStatus.message || 'An unexpected error occurred during video composition'}
+            {displayMessage}
           </p>
         </div>
 
         <div className="flex justify-center gap-4">
+          <Button onClick={() => pollStatus()} variant="secondary" size="lg">
+            Refresh
+          </Button>
           <Button onClick={handleStartCompose} variant="outline" size="lg">
             Try Again
           </Button>
@@ -289,72 +323,11 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     )
   }
 
-  // 🔥 优先级2：初始状态/未开始合成（pending 或其他未知状态）
-  if (composeStatus.status === 'pending' ||
-    (composeStatus.status !== 'processing' && composeStatus.status !== 'completed')) {
-    return (
-      <div className="space-y-8">
-        {/* Composition Summary */}
-        <Card className="bg-slate-900/40 border-slate-800">
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-              <div className="w-1 h-6 rounded-full bg-indigo-500" />
-              Composition Summary
-            </h3>
+  // 🔥 优先级2：进入该页后应自动开始合成；pending 状态直接复用 processing UI
+  // to avoid an extra "Preparing" step and a second manual click.
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/50 border border-slate-800/50">
-                <span className="text-slate-400 text-sm">Total Clips</span>
-                <span className="text-white font-mono font-bold">
-                  {project.video_clips?.filter((v) => v.status === 'success').length || 0}
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/50 border border-slate-800/50">
-                <span className="text-slate-400 text-sm">Total Duration</span>
-                <span className="text-white font-mono font-bold">{project.duration}s</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/50 border border-slate-800/50">
-                <span className="text-slate-400 text-sm">Background Music</span>
-                <div className="flex items-center gap-2">
-                  <span className={cn("w-1.5 h-1.5 rounded-full", project.music_source === 'none' ? "bg-slate-500" : "bg-indigo-500")} />
-                  <span className="text-white font-semibold">
-                    {project.music_source === 'none' ? 'None' : 'Included'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Info Card */}
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex gap-3">
-          <div className="text-xl">ℹ️</div>
-          <div className="flex-1 text-sm">
-            <p className="font-semibold text-blue-200 mb-1">Estimated Time</p>
-            <p className="text-blue-300/80 leading-relaxed">
-              Video composition typically takes 30-90 seconds depending on complexity.
-              Please do not close the window once started.
-            </p>
-          </div>
-        </div>
-
-        {/* Sticky Footer for Start Button */}
-        <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent flex justify-center pt-8 pb-8 z-10">
-          <Button
-            onClick={handleStartCompose}
-            disabled={isComposing}
-            size="lg"
-            className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105"
-          >
-            Start Composition
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // 🔥 优先级3：合成中
-  if (composeStatus.status === 'processing') {
+  // 🔥 优先级3：合成中（pending 也走这段，避免出现无意义的中间页）
+  if (composeStatus.status === 'processing' || composeStatus.status === 'pending') {
     // 🔥 根据进度显示不同的阶段提示
     const getProgressMessage = (progress: number) => {
       if (progress < 30) return 'Preparing video clips...'

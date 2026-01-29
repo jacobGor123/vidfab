@@ -102,8 +102,8 @@ interface StoryboardCardEnhancedProps {
   customVideoPrompt?: string
   onEdit: () => void
   onDelete?: () => void
-  onFieldChange: (field: 'description' | 'camera_angle' | 'mood', value: string) => void
-  getFieldValue: (field: 'description' | 'camera_angle' | 'mood', originalValue: string) => string
+  onFieldChange: (field: 'description', value: string) => void
+  getFieldValue: (field: 'description', originalValue: string) => string
   onGenerateVideo: (prompt: string) => void
   onUpdateVideoPrompt: (prompt: string) => void
 }
@@ -128,6 +128,7 @@ export function StoryboardCardEnhanced({
   const hasStoryboard = storyboard?.status === 'success' && storyboard?.image_url
   const isStoryboardOutdated = storyboard?.status === 'outdated'
   const resolvedStoryboardSrc = resolveStoryboardSrc(storyboard)
+  const isGenerating = storyboard?.status === 'generating' || isStoryboardGenerating
 
   return (
     <Card className="group relative bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-xl overflow-hidden transition-all duration-300">
@@ -168,33 +169,7 @@ export function StoryboardCardEnhanced({
               {getFieldValue('description', shot.description)}
             </div>
 
-            {/* Fields: Camera Angle & Mood */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <Video className="w-3 h-3" />
-                  Camera Angle
-                </label>
-                <Input
-                  value={getFieldValue('camera_angle', shot.camera_angle)}
-                  onChange={(e) => onFieldChange('camera_angle', e.target.value)}
-                  className="h-8 text-sm bg-slate-900/50 border-slate-700/50 text-indigo-300"
-                  placeholder="e.g. Close-up"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <Smile className="w-3 h-3" />
-                  Mood
-                </label>
-                <Input
-                  value={getFieldValue('mood', shot.mood)}
-                  onChange={(e) => onFieldChange('mood', e.target.value)}
-                  className="h-8 text-sm bg-slate-900/50 border-slate-700/50 text-rose-300"
-                  placeholder="e.g. Tense"
-                />
-              </div>
-            </div>
+            {/* camera_angle / mood removed from the unified storyboard flow */}
 
             {/* Characters */}
             {Array.isArray(shot.characters) && shot.characters.length > 0 && (
@@ -238,12 +213,13 @@ export function StoryboardCardEnhanced({
 
               <div className="relative group/image overflow-hidden rounded-lg bg-slate-950 h-[200px]">
                 {/* 状态徽章 */}
-                {storyboard?.status === 'outdated' && (
+                {storyboard?.status === 'outdated' && !isGenerating && (
                   <div className="absolute top-2 right-2 z-30 px-2 py-1 rounded-md bg-yellow-950/90 text-yellow-400 border border-yellow-800 text-[10px] font-medium flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
                     Outdated
                   </div>
                 )}
+
                 {/* 🔥 修复：优先检查数据（有图片就显示），而不是全局状态 */}
                 {storyboard && resolvedStoryboardSrc && isValidImageSrc(resolvedStoryboardSrc) ? (
                   <>
@@ -251,7 +227,7 @@ export function StoryboardCardEnhanced({
                       key={`storyboard-${storyboard.id}-${storyboard.updated_at || 'initial'}`}
                       src={resolvedStoryboardSrc}
                       alt={`Storyboard ${shot.shot_number}`}
-                      className="w-full h-full object-cover rounded-lg border border-slate-700"
+                      className={`w-full h-full object-cover rounded-lg border border-slate-700 transition-all duration-300 ${isGenerating ? 'opacity-50 grayscale pointer-events-none' : ''}`}
                       loading="lazy"
                       decoding="async"
                       onError={(e) => {
@@ -267,14 +243,25 @@ export function StoryboardCardEnhanced({
                         img.src = `${base}?t=${encodeURIComponent(new Date().toISOString())}`
                       }}
                     />
-                    {/* Edit 按钮 - 生成中禁用 */}
-                    <button
-                      onClick={onEdit}
-                      className="absolute top-2 right-2 px-2 py-1 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-md shadow-lg opacity-0 group-hover/image:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs font-medium text-slate-200 z-20"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      Edit
-                    </button>
+
+                    {/* 🔥 Loading Overlay (when updating existing image) */}
+                    {isGenerating && (
+                      <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[1px]">
+                        <Loader2 className="w-8 h-8 text-blue-400 animate-spin shadow-lg" />
+                        <span className="text-xs font-medium text-blue-200 mt-2 drop-shadow-md cursor-default">Updating...</span>
+                      </div>
+                    )}
+
+                    {/* Edit 按钮 - 生成中隐藏 */}
+                    {!isGenerating && (
+                      <button
+                        onClick={onEdit}
+                        className="absolute top-2 right-2 px-2 py-1 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-md shadow-lg opacity-0 group-hover/image:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs font-medium text-slate-200 z-20"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        Edit
+                      </button>
+                    )}
                   </>
                 ) : storyboard?.status === 'failed' ? (
                   <div className="h-[200px] bg-red-950/20 rounded-lg border border-red-800/50 flex items-center justify-center">
@@ -289,7 +276,7 @@ export function StoryboardCardEnhanced({
                       </button>
                     </div>
                   </div>
-                ) : (storyboard?.status === 'generating' || isStoryboardGenerating) ? (
+                ) : isGenerating ? (
                   <div className="h-[200px] bg-slate-950/50 rounded-lg border border-slate-800 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-2 text-slate-400">
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -316,7 +303,8 @@ export function StoryboardCardEnhanced({
             <VideoCardCompact
               shotNumber={shot.shot_number}
               videoClip={videoClip}
-              defaultPrompt={shot.video_prompt || shot.description}
+              // Unified flow: the editable field is character_action; final prompt is composed.
+              defaultPrompt={shot.character_action || ''}
               customPrompt={customVideoPrompt}
               aspectRatio={aspectRatio}
               isGenerating={isVideoGenerating}
@@ -324,6 +312,8 @@ export function StoryboardCardEnhanced({
               onGenerate={onGenerateVideo}
               onUpdatePrompt={onUpdateVideoPrompt}
             />
+
+            {/* Final prompt preview removed: user only edits character_action and doesn't need prompt text duplication */}
           </div>
         </div>
       </CardContent>

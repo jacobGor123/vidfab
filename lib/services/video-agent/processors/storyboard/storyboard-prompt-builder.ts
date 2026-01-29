@@ -286,11 +286,7 @@ export function buildStoryboardPrompt(
   // 🔥 场景描述（已标注角色类型，已包含角色动作）
   prompt += `Scene: ${annotated.description}. `
 
-  // 镜头角度
-  prompt += `Camera: ${shot.camera_angle}. `
-
-  // 情绪氛围
-  prompt += `Mood: ${shot.mood}. `
+  // camera_angle / mood removed: no longer used to build storyboard image prompts
 
   // 🔥 内容强化：禁止人物重复（除非是镜子场景）
   if (!isMirrorScene && parsedCharacters.length > 0) {

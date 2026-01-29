@@ -49,11 +49,11 @@ export const createImageStyleSlice: StateCreator<
 
       get().updateProject({
         image_style_id: styleId,
-        current_step: 4,
+        // Step-based navigation is deprecated in video-agent-beta UI.
+        // Keep the data update, but don't force a legacy step jump.
         step_3_status: 'completed'
       })
 
-      get().goToStep(4)
       set({ isLoading: false })
     } catch (error: any) {
       set({

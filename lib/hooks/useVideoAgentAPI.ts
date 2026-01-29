@@ -114,6 +114,19 @@ interface RetryVideoParams {
   customPrompt?: string
 }
 
+interface BatchCharacterReplaceParams {
+  fromName: string
+  toName: string
+  scope?: 'all' | 'mentioned'
+}
+
+interface PatchShotParams {
+  description?: string
+  character_action?: string
+  video_prompt?: string
+}
+
+
 interface ComposeVideoParams {
   enableMusic?: boolean
   musicUrl?: string
@@ -309,6 +322,35 @@ export function useVideoAgentAPI() {
       method: 'DELETE',
     })
   }, [callAPI])
+
+  /**
+   * 批量替换人物名称：同步更新 project_shots + script_analysis 的输入字段
+   * 不会触发任何图片/视频重新生成
+   */
+  const replaceCharacterInShots = useCallback(async (
+    projectId: string,
+    params: BatchCharacterReplaceParams
+  ): Promise<any> => {
+    return callAPI(`/api/video-agent/projects/${projectId}/shots/character-replace`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  }, [callAPI])
+
+  /**
+   * 更新单个 shot 的输入字段（目前用于持久化右侧 Character Action 编辑）
+   */
+  const patchShot = useCallback(async (
+    projectId: string,
+    shotNumber: number,
+    params: PatchShotParams
+  ): Promise<any> => {
+    return callAPI(`/api/video-agent/projects/${projectId}/shots/${shotNumber}`, {
+      method: 'PATCH',
+      body: JSON.stringify(params),
+    })
+  }, [callAPI])
+
 
   // ==================== Character APIs ====================
 
@@ -506,6 +548,10 @@ export function useVideoAgentAPI() {
     analyzeVideo,
     getInspirations,
     deleteShot,
+
+    // Shots APIs
+    replaceCharacterInShots,
+    patchShot,
 
     // Character APIs
     getCharacters,

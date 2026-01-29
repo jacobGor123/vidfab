@@ -122,7 +122,7 @@ export function VideoCardCompact({
                 onClick={() => setIsPromptExpanded(!isPromptExpanded)}
                 className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-800/50 rounded transition-colors"
             >
-                <span>Video Prompt</span>
+                <span>Character Action</span>
                 {isPromptExpanded ? (
                     <ChevronUp className="w-3 h-3" />
                 ) : (
@@ -134,7 +134,7 @@ export function VideoCardCompact({
                 <Textarea
                     value={currentPrompt}
                     onChange={(e) => onUpdatePrompt(e.target.value)}
-                    placeholder="Describe the video content..."
+                    placeholder="What is the character doing in this shot?"
                     className="text-xs bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[80px]"
                     disabled={isCurrentlyGenerating}
                 />

@@ -34,7 +34,7 @@ interface Step1Props {
 }
 
 export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1Props) {
-  const { analyzeScript, updateProject, deleteShot, regenerateStoryboard } = useVideoAgentAPI()
+  const { analyzeScript, updateProject, deleteShot, regenerateStoryboard, composeVideo } = useVideoAgentAPI()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<ScriptAnalysis | null>(
     project.script_analysis || null
@@ -90,10 +90,8 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   // 🔥 编辑状态管理
   const [editedShots, setEditedShots] = useState<Record<number, {
     description?: string
-    camera_angle?: string
-    mood?: string
     video_prompt?: string
-  }>>({}) // 记录修改的分镜字段
+  }>>({}) // 记录修改的分镜字段（camera_angle/mood 已移除）
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false) // 是否有未保存的修改
   const [isSaving, setIsSaving] = useState(false) // 是否正在保存
 
@@ -141,7 +139,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   }, [project.script_analysis, project.id])
 
   // 🔥 处理字段修改（通用函数）
-  const handleFieldChange = (shotNumber: number, field: 'description' | 'camera_angle' | 'mood', value: string) => {
+  const handleFieldChange = (shotNumber: number, field: 'description', value: string) => {
     setEditedShots(prev => ({
       ...prev,
       [shotNumber]: {
@@ -170,8 +168,6 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
             ...shot,
             // 🔥 使用 !== undefined 而不是 && 来允许保存空字符串
             ...(edits.description !== undefined && { description: edits.description }),
-            ...(edits.camera_angle !== undefined && { camera_angle: edits.camera_angle }),
-            ...(edits.mood !== undefined && { mood: edits.mood }),
             ...(edits.video_prompt !== undefined && { video_prompt: edits.video_prompt })
           }
         }
@@ -211,7 +207,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   }
 
   // 🔥 获取字段值（优先使用编辑后的）
-  const getFieldValue = (shotNumber: number, field: 'description' | 'camera_angle' | 'mood', originalValue: string) => {
+  const getFieldValue = (shotNumber: number, field: 'description', originalValue: string) => {
     const edits = editedShots[shotNumber]
     return edits?.[field] ?? originalValue
   }
@@ -242,9 +238,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
         shot_number: newShotNumber,
         time_range: '',
         description: 'New shot - describe the scene here',
-        camera_angle: 'Medium shot',
         character_action: '',
-        mood: 'Neutral',
         duration_seconds: 5,
         characters: [],
         video_prompt: ''
@@ -353,6 +347,17 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     if (hasUnsavedChanges) {
       await handleSaveChanges()
     }
+
+    // New flow: once storyboards + videos are ready, immediately start composition.
+    // We rely on Step6 polling UI for progress/result.
+    try {
+      await composeVideo(project.id)
+    } catch (err: any) {
+      // If compose cannot start (e.g. videos not ready), surface the error and stay on this screen.
+      setError(err?.message || 'Failed to start composition')
+      return
+    }
+
     onNext()
   }
 
@@ -390,7 +395,8 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
                 ...s,
                 characters: characterNames,
                 description: prompt,
-                video_prompt: prompt,
+                // We no longer treat video_prompt as an editable/source-of-truth field in the unified flow.
+                // Keep description as the source of truth; prompt composition will stitch in character_action.
                 // Preserve other fields unless the user explicitly edits them elsewhere.
                 camera_angle: s.camera_angle,
                 character_action: s.character_action,
@@ -398,8 +404,8 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
                 // Keep any legacy text replacements for character name swaps (if present).
                 ...(oldShot
                   ? (() => {
-                    const fields: Array<keyof Pick<Shot, 'camera_angle' | 'mood'>> =
-                      ['camera_angle', 'mood']
+                    // camera_angle/mood are no longer user-editable; keep no-op list for legacy name-swap compat.
+                    const fields: Array<keyof Pick<Shot, 'camera_angle' | 'mood'>> = []
 
                     const escapeRe = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                     const replacements: Array<[RegExp, string]> = []
@@ -441,7 +447,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
         // 🔥 同步 prompt 相关字段：后端会提取字段并写回 script_analysis；这里先保证 UI 立刻跟随。
         fieldsUpdate: {
           description: prompt,
-          video_prompt: prompt as any
+          // Do not overwrite video_prompt; avoid drifting copies of the same text.
         } as any
       })
 
@@ -672,35 +678,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
                         placeholder="Describe this shot..."
                       />
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                        {/* 🔥 可编辑的 Camera Angle */}
-                        <div className="space-y-1.5">
-                          <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                            <Video className="w-3.5 h-3.5" />
-                            Camera Angle
-                          </label>
-                          <Input
-                            value={getFieldValue(shot.shot_number, 'camera_angle', shot.camera_angle)}
-                            onChange={(e) => handleFieldChange(shot.shot_number, 'camera_angle', e.target.value)}
-                            className="bg-slate-900/50 border-slate-700/50 focus:border-indigo-500/50 text-indigo-300 font-medium"
-                            placeholder="e.g. Close-up, Wide shot"
-                          />
-                        </div>
-
-                        {/* 🔥 可编辑的 Mood */}
-                        <div className="space-y-1.5">
-                          <label className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                            <Smile className="w-3.5 h-3.5" />
-                            Mood
-                          </label>
-                          <Input
-                            value={getFieldValue(shot.shot_number, 'mood', shot.mood)}
-                            onChange={(e) => handleFieldChange(shot.shot_number, 'mood', e.target.value)}
-                            className="bg-slate-900/50 border-slate-700/50 focus:border-rose-500/50 text-rose-300 font-medium"
-                            placeholder="e.g. Tense, Joyful"
-                          />
-                        </div>
-                      </div>
+                      {/* camera_angle / mood removed */}
 
                       {/* 角色信息（只读） */}
                       {shot.characters && shot.characters.length > 0 && (
@@ -759,7 +737,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
           >
             {!videoCanProceed && shouldShowIntegratedFeatures
               ? 'Generate All Videos to Continue'
-              : hasUnsavedChanges ? 'Save & Continue' : 'Confirm & Continue'
+              : 'Compose Video'
             }
           </Button>
         </div>

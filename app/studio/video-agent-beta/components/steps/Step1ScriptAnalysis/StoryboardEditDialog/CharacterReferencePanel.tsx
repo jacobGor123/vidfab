@@ -47,7 +47,11 @@ export function CharacterReferencePanel({
       </div>
 
       {/* Character List */}
-      <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+      {/*
+        Avoid nested scrollbars: the parent Dialog already wraps this panel in a ScrollArea.
+        Also, prevent flex children from overflowing by allowing the text column to shrink.
+      */}
+      <div className="space-y-3 pr-2">
         {characters.length === 0 ? (
           <div className="text-center py-8 text-slate-400">
             <User className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -78,7 +82,7 @@ export function CharacterReferencePanel({
                 }}
               >
                 <CardContent className="p-3">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     {/* Character Image */}
                     <div className="relative flex-shrink-0">
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-800">
@@ -104,19 +108,22 @@ export function CharacterReferencePanel({
                     </div>
 
                     {/* Character Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-sm font-semibold text-slate-200 truncate">
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <div className="flex items-start gap-2 mb-1">
+                        <h4 className="text-sm font-semibold text-slate-200 whitespace-normal break-words line-clamp-2">
                           {character.character_name}
                         </h4>
                         {isSelected && (
-                          <Badge variant="outline" className="text-xs text-blue-400 border-blue-400">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] leading-none text-blue-400 border-blue-400 flex-shrink-0 self-start mt-0.5"
+                          >
                             Selected
                           </Badge>
                         )}
                       </div>
                       {character.generation_prompt && (
-                        <p className="text-xs text-slate-400 line-clamp-2">
+                        <p className="text-xs text-slate-400 whitespace-normal break-words line-clamp-3">
                           {character.generation_prompt}
                         </p>
                       )}

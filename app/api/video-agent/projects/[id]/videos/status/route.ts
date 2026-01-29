@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { checkVideoStatus as getBytePlusVideoStatus } from '@/lib/services/byteplus/video/seedance-api'
-import { getVideoStatus as getVeo3VideoStatus } from '@/lib/services/video-agent/veo3-video-generator'
+import { getVeo3VideoStatus } from '@/lib/services/video-agent/veo3-video-generator'
 import type { Database } from '@/lib/database.types'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']

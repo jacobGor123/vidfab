@@ -307,3 +307,124 @@ export const DELETE = withAuth(async (request, { params, userId }) => {
     )
   }
 })
+
+/**
+ * 更新单个 Shot 的输入字段
+ * PATCH /api/video-agent/projects/[id]/shots/[shotNumber]
+ *
+ * Used for persisting edits made in Step1 (e.g. right-side Character Action textarea)
+ * so refreshes / character replacements can reuse the latest user inputs.
+ */
+export const PATCH = withAuth(async (request, { params, userId }) => {
+  try {
+    const projectId = params.id
+    const shotNumber = parseInt(params.shotNumber, 10)
+
+    if (isNaN(shotNumber) || shotNumber < 1) {
+      return NextResponse.json(
+        { error: 'Invalid shot number', code: 'INVALID_SHOT_NUMBER' },
+        { status: 400 }
+      )
+    }
+
+    const body = await request.json().catch(() => ({}))
+    const nextDescription = typeof body.description === 'string' ? body.description : undefined
+    const nextAction = typeof body.character_action === 'string' ? body.character_action : undefined
+    const nextVideoPrompt = typeof body.video_prompt === 'string' ? body.video_prompt : undefined
+
+    if (nextDescription === undefined && nextAction === undefined && nextVideoPrompt === undefined) {
+      return NextResponse.json(
+        { error: 'No valid fields to update', code: 'NO_FIELDS' },
+        { status: 400 }
+      )
+    }
+
+    // Verify ownership.
+    const { data: project, error: projectError } = await supabaseAdmin
+      .from('video_agent_projects')
+      .select('id, user_id, script_analysis')
+      .eq('id', projectId)
+      .single<VideoAgentProject>()
+
+    if (projectError || !project) {
+      return NextResponse.json(
+        { error: 'Project not found or access denied', code: 'PROJECT_NOT_FOUND' },
+        { status: 404 }
+      )
+    }
+
+    if (project.user_id !== userId) {
+      return NextResponse.json(
+        { error: 'Access denied', code: 'ACCESS_DENIED' },
+        { status: 403 }
+      )
+    }
+
+    const patch: any = {}
+    if (nextDescription !== undefined) patch.description = nextDescription
+    if (nextAction !== undefined) patch.character_action = nextAction
+    if (nextVideoPrompt !== undefined) patch.video_prompt = nextVideoPrompt
+
+    const { error: shotUpdateError } = await supabaseAdmin
+      .from('project_shots')
+      .update(patch)
+      .eq('project_id', projectId)
+      .eq('shot_number', shotNumber)
+      .returns<any>()
+
+    if (shotUpdateError) {
+      console.error('[Video Agent] Failed to update project_shots:', shotUpdateError)
+      return NextResponse.json(
+        { error: 'Failed to update shot', code: 'SHOT_UPDATE_FAILED' },
+        { status: 500 }
+      )
+    }
+
+    // Best-effort: keep script_analysis in sync so the UI stays consistent.
+    try {
+      const analysis = project.script_analysis as unknown as ScriptAnalysisResult
+      if (analysis && Array.isArray(analysis.shots)) {
+        const nextShots = (analysis.shots as Shot[]).map((s) => {
+          if (s.shot_number !== shotNumber) return s
+          return {
+            ...s,
+            ...(nextDescription !== undefined ? { description: nextDescription } : null),
+            ...(nextAction !== undefined ? { character_action: nextAction } : null),
+            ...(nextVideoPrompt !== undefined ? { video_prompt: nextVideoPrompt } : null)
+          } as any
+        })
+
+        const nextAnalysis: ScriptAnalysisResult = {
+          ...(analysis as any),
+          shots: nextShots as any
+        }
+
+        await supabaseAdmin
+          .from('video_agent_projects')
+          .update({ script_analysis: nextAnalysis as any, updated_at: new Date().toISOString() } as any)
+          .eq('id', projectId)
+      }
+    } catch (syncErr) {
+      console.warn('[Video Agent] PATCH shot: failed to sync script_analysis (non-fatal):', syncErr)
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        projectId,
+        shotNumber,
+        updated: {
+          ...(nextDescription !== undefined ? { description: true } : null),
+          ...(nextAction !== undefined ? { character_action: true } : null),
+          ...(nextVideoPrompt !== undefined ? { video_prompt: true } : null)
+        }
+      }
+    })
+  } catch (error) {
+    console.error('[Video Agent] PATCH /shots/[shotNumber] error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+})

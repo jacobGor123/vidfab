@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,8 +27,8 @@ interface StoryboardSectionProps {
   onStatusChange: (status: 'idle' | 'generating' | 'completed' | 'failed') => void
   onUpdate: (updates: Partial<VideoAgentProject>) => void
   onEditClick: (shotNumber: number) => void
-  onFieldChange: (shotNumber: number, field: 'description' | 'camera_angle' | 'mood', value: string) => void
-  getFieldValue: (shotNumber: number, field: 'description' | 'camera_angle' | 'mood', originalValue: string) => string
+  onFieldChange: (shotNumber: number, field: 'description', value: string) => void
+  getFieldValue: (shotNumber: number, field: 'description', originalValue: string) => string
   onDeleteShot?: (shotNumber: number) => void
   onAddShot?: () => void
   onVideoStatusChange?: (canProceed: boolean) => void
@@ -52,7 +52,8 @@ export function StoryboardSection({
     progress: storyboardProgress,
     storyboards,
     startGeneration: startStoryboardGeneration,
-    retryGeneration: retryStoryboardGeneration
+    retryGeneration: retryStoryboardGeneration,
+    refresh: refreshStoryboards
   } = useStoryboardAutoGeneration(project, analysis)
 
   // 视频生成 Hook
@@ -71,6 +72,21 @@ export function StoryboardSection({
     analysis,
     onUpdate
   })
+
+  const storyboardsSyncKey = useMemo(() => {
+    if (!Array.isArray(project.storyboards)) return ''
+    return project.storyboards
+      .map((s: any) => `${s.shot_number}-${s.updated_at || ''}-${s.image_url || ''}`)
+      .join('|')
+  }, [project.storyboards])
+
+  // Ensure storyboard previews are refreshed after a single-shot regenerate.
+  // Regenerate runs through a different API than the batch poll loop, so without this
+  // the preview can stay stale until a full reload.
+  useEffect(() => {
+    if (!project.storyboards || project.storyboards.length === 0) return
+    void refreshStoryboards()
+  }, [storyboardsSyncKey, refreshStoryboards, project.storyboards])
 
   // 追踪状态变化
   const lastNotifiedStatusRef = useRef<string | null>(null)
@@ -242,12 +258,12 @@ export function StoryboardSection({
               getFieldValue(shot.shot_number, field, originalValue)
             }
             onGenerateVideo={(prompt) => generateSingleVideo(shot.shot_number, prompt)}
-            onUpdateVideoPrompt={(prompt) => updateCustomPrompt(shot.shot_number, prompt)}
+            onUpdateVideoPrompt={(characterAction) => updateCustomPrompt(shot.shot_number, characterAction)}
           />
         ))}
 
-        {/* 添加新分镜按钮 */}
-        {onAddShot && (
+        {/* 添加新分镜按钮 - 暂时隐藏 */}
+        {false && onAddShot && (
           <button
             onClick={onAddShot}
             className="w-full py-6 border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-2xl flex items-center justify-center gap-3 text-slate-500 hover:text-blue-400 transition-all duration-300 group"
@@ -271,7 +287,7 @@ export function StoryboardSection({
                 <div className="text-xs text-slate-400">
                   {storyboardStatus === 'generating'
                     ? `${storyboardProgress.current} / ${storyboardProgress.total} completed`
-                    : `${videoStats.completed} / ${videoStats.total} completed`
+                    : `${videoStats.completed} completed / ${videoStats.total - videoStats.completed} pending`
                   }
                 </div>
               </div>
@@ -312,7 +328,7 @@ export function StoryboardSection({
       {/* 视频生成统计 */}
       {videoStats.total > 0 && (
         <div className="flex items-center gap-4 text-sm text-slate-400 px-2">
-          <span>Videos: {videoStats.completed}/{videoStats.total} completed</span>
+          <span>Videos: {videoStats.completed} completed / {videoStats.total - videoStats.completed} pending</span>
           {videoStats.failed > 0 && (
             <span className="text-red-400">{videoStats.failed} failed</span>
           )}

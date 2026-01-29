@@ -244,9 +244,10 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             const newState = merged[key]
             const oldStateByKey = prev[key]
 
-            // 🔥 关键修复：始终保留 prev 中的 isGenerating 和 error 状态
-            // 避免与其他操作（如 handleSelectPreset）产生竞态条件
-            if (oldStateByKey) {
+            // Preserve loading/error state only when it refers to the same logical character.
+            // After renames/replacements, keeping isGenerating=true can create "ghost" cards
+            // that appear to poll forever.
+            if (oldStateByKey && oldStateByKey.name === newState.name) {
               const preservedIsGenerating = oldStateByKey.isGenerating ?? newState.isGenerating
               merged[key] = {
                 ...newState,
@@ -382,7 +383,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
       lastCharactersKeyRef.current = charactersKey
       loadCharacterData()
     } else if (hasInitializedRef.current && charactersKey !== lastCharactersKeyRef.current) {
-      // 🔥 只是名称变化，数量不变，不重新加载，只更新 ref（避免无限循环）
+      // Names changed but count is unchanged.
+      // IMPORTANT: do NOT run any auto-sync-to-script_analysis here; Step2 handles name changes explicitly.
       console.log('[useCharacterState] Characters renamed but count unchanged, skipping reload:', {
         old: lastCharactersKeyRef.current,
         new: charactersKey
@@ -456,9 +458,7 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             const oldNamePattern = new RegExp(`\\b${oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
             updatedShot = {
               ...updatedShot,
-              description: updatedShot.description.replace(oldNamePattern, newName),
-              camera_angle: updatedShot.camera_angle.replace(oldNamePattern, newName),
-              mood: updatedShot.mood.replace(oldNamePattern, newName)
+              description: updatedShot.description.replace(oldNamePattern, newName)
             }
           })
 
