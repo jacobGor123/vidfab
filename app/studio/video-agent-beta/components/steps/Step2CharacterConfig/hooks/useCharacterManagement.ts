@@ -259,6 +259,39 @@ export function useCharacterManagement({
         // 🔥 Sync shot input fields (description/character_action/video_prompt) so users don't have
         // to manually edit prompts/actions after character replacement.
         // This does NOT regenerate any existing storyboard/video assets; it only updates inputs.
+
+        // 🔥 Optimistic UI Update: Update script_analysis immediately to prevent "Ghost Cards".
+        // This ensures the parent component and useCharacterState hook see the new name immediately.
+        if (project.script_analysis) {
+          const optimisticAnalysis = { ...project.script_analysis }
+
+          // 1. Update global character list
+          optimisticAnalysis.characters = Array.from(new Set(
+            optimisticAnalysis.characters.map(n => n === oldName ? newName : n)
+          ))
+
+          // 2. Update shots
+          optimisticAnalysis.shots = optimisticAnalysis.shots.map(shot => {
+            // Replace in characters array
+            const updatedChars = Array.from(new Set(
+              shot.characters.map(n => n === oldName ? newName : n)
+            ))
+
+            // Replace in text description
+            const oldNamePattern = new RegExp(`\\b${oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
+            const updatedDesc = shot.description.replace(oldNamePattern, newName)
+
+            return {
+              ...shot,
+              characters: updatedChars,
+              description: updatedDesc
+            }
+          })
+
+          console.log(`[Character Management] [${callId}] ⚡️ Optimistic script_analysis update applied`)
+          onUpdate({ script_analysis: optimisticAnalysis })
+        }
+
         try {
           // A) Safe deterministic replacement: immediately removes old names from inputs.
           const replaceRes = await replaceCharacterInShots(project.id, {
