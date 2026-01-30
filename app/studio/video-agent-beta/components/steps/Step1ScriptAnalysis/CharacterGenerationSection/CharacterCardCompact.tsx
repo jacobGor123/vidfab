@@ -89,7 +89,9 @@ export function CharacterCardCompact({
                         ) : (
                             // 初始状态：等待生成
                             <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted/50 to-muted/30">
-                                <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                                <div className="p-3 bg-primary/10 rounded-full">
+                                    <Sparkles className="w-6 h-6 text-primary/40" />
+                                </div>
                                 <span className="text-xs text-muted-foreground/60">Ready to generate</span>
                             </div>
                         )}

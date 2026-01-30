@@ -327,13 +327,24 @@ export function StoryboardSection({
 
       {/* 视频生成统计 */}
       {videoStats.total > 0 && (
-        <div className="flex items-center gap-4 text-sm text-slate-400 px-2">
-          <span>Videos: {videoStats.completed} completed / {videoStats.total - videoStats.completed} pending</span>
+        <div className="flex items-center gap-4 text-sm px-2">
+          <span className="text-slate-400">Videos: {videoStats.completed}/{videoStats.total} completed</span>
+
+          {videoStats.generating > 0 && (
+            <span className="text-blue-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              {videoStats.generating} generating
+            </span>
+          )}
+
+          {(videoStats.total - videoStats.completed - videoStats.failed - videoStats.generating) > 0 && (
+            <span className="text-slate-500">
+              {videoStats.total - videoStats.completed - videoStats.failed - videoStats.generating} waiting
+            </span>
+          )}
+
           {videoStats.failed > 0 && (
             <span className="text-red-400">{videoStats.failed} failed</span>
-          )}
-          {videoStats.generating > 0 && (
-            <span className="text-blue-400">{videoStats.generating} generating</span>
           )}
         </div>
       )}
