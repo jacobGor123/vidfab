@@ -81,6 +81,17 @@ export const GET = withAuth(async (request, { params, userId }) => {
     const generatingClips = videoClips.filter(clip => clip.status === 'generating')
 
     if (generatingClips.length > 0) {
+      // 🔥 添加超时保护：每个外部API调用最多30秒
+      const EXTERNAL_API_TIMEOUT_MS = 30000
+
+      const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+        return Promise.race([
+          promise,
+          new Promise<T>((_, reject) =>
+            setTimeout(() => reject(new Error('External API timeout')), timeoutMs)
+          )
+        ])
+      }
 
       await Promise.allSettled(
         generatingClips.map(async (clip) => {
@@ -89,8 +100,11 @@ export const GET = withAuth(async (request, { params, userId }) => {
 
             // 根据task_id类型判断使用哪个API
             if (clip.seedance_task_id) {
-              // BytePlus Seedance
-              const byteplusResponse = await getBytePlusVideoStatus(clip.seedance_task_id)
+              // BytePlus Seedance（带超时）
+              const byteplusResponse = await withTimeout(
+                getBytePlusVideoStatus(clip.seedance_task_id),
+                EXTERNAL_API_TIMEOUT_MS
+              )
 
               // 映射 BytePlus 响应格式到统一格式
               result = {
@@ -100,8 +114,11 @@ export const GET = withAuth(async (request, { params, userId }) => {
                 error: byteplusResponse.data.error
               }
             } else if (clip.video_request_id) {
-              // Google Veo3
-              result = await getVeo3VideoStatus(clip.video_request_id)
+              // Google Veo3（带超时）
+              result = await withTimeout(
+                getVeo3VideoStatus(clip.video_request_id),
+                EXTERNAL_API_TIMEOUT_MS
+              )
             } else {
               return
             }
