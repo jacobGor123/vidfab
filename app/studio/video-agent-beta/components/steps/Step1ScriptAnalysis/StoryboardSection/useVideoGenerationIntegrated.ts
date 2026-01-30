@@ -108,7 +108,8 @@ export function useVideoGenerationIntegrated({
     }, [project.video_clips])
 
     // 计算统计数据
-    const totalShots = analysis?.shot_count || 0
+    // Use the actual shots array length if available, as shot_count metadata might be stale
+    const totalShots = analysis?.shots?.length || analysis?.shot_count || 0
     const clipsArray = Object.values(videoClips)
     const completed = clipsArray.filter(c => c.status === 'success').length
     const generating = clipsArray.filter(c => c.status === 'generating').length
@@ -116,7 +117,8 @@ export function useVideoGenerationIntegrated({
     const pending = totalShots - completed - generating - failed
 
     // 是否可以继续：所有视频都完成（成功或失败后重新成功）
-    const canProceed = totalShots > 0 && completed === totalShots
+    // Allow proceed if all shots are processed (success OR failed), or if we have at least one success and nothing is currently generating
+    const canProceed = totalShots > 0 && (completed + failed === totalShots || (completed > 0 && generating === 0 && pending === 0))
 
     // 清理轮询
     const clearPoll = useCallback(() => {
