@@ -165,92 +165,131 @@ export class VideoAgentStorageManager {
     shotNumber: number,
     externalUrl: string
   ) {
-    try {
-      console.log(`[Storage Manager] 📥 Downloading video clip shot ${shotNumber}...`)
+    const MAX_RETRIES = 3
+    const TIMEOUT_MS = 120000 // 2 分钟超时
 
-      // SSRF guard: external URLs are not trusted.
-      assertSafeExternalUrl(externalUrl, { purpose: 'video_clip_download' })
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`[Storage Manager] 📥 Downloading video clip shot ${shotNumber} (attempt ${attempt}/${MAX_RETRIES})...`)
 
-      // 1. 下载视频
-      const response = await fetch(externalUrl)
-      if (!response.ok) {
-        throw new Error(`Failed to download: ${response.statusText}`)
+        // SSRF guard: external URLs are not trusted.
+        assertSafeExternalUrl(externalUrl, { purpose: 'video_clip_download' })
+
+        // 1. 下载视频（带超时控制）
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
+
+        try {
+          const response = await fetch(externalUrl, {
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (!response.ok) {
+            throw new Error(`Failed to download: ${response.status} ${response.statusText}`)
+          }
+
+          const buffer = await response.buffer()
+          const fileSize = buffer.length
+
+          console.log(`[Storage Manager] Downloaded ${(fileSize / 1024 / 1024).toFixed(2)} MB`)
+
+          // 2. 生成存储路径
+          const storagePath = STORAGE_CONFIG.paths.getVideoAgentClipPath(
+            userId,
+            projectId,
+            shotNumber
+          )
+
+          // 3. 上传到 Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+            .from(STORAGE_CONFIG.buckets.videos)
+            .upload(storagePath, buffer, {
+              contentType: 'video/mp4',
+              upsert: true,
+            })
+
+          if (uploadError) {
+            throw new Error(`Upload failed: ${uploadError.message}`)
+          }
+
+          console.log(`[Storage Manager] ✅ Uploaded to: ${storagePath}`)
+
+          // 4. 获取公开 URL（CDN）
+          const { data: urlData } = supabaseAdmin.storage
+            .from(STORAGE_CONFIG.buckets.videos)
+            .getPublicUrl(storagePath)
+
+          const cdnUrl = urlData.publicUrl
+
+          // 5. 更新数据库记录
+          const { error: updateError } = await supabaseAdmin
+            .from('project_video_clips')
+            .update({
+              video_url_external: externalUrl, // 保存原始外部 URL
+              storage_path: storagePath,
+              cdn_url: cdnUrl,
+              storage_status: 'completed',
+              updated_at: new Date().toISOString(),
+            } as any)
+            .eq('project_id', projectId)
+            .eq('shot_number', shotNumber)
+
+          if (updateError) {
+            console.error(`[Storage Manager] Failed to update database:`, updateError)
+            throw updateError
+          }
+
+          console.log(`[Storage Manager] ✅ Video clip shot ${shotNumber} stored successfully`)
+
+          // 成功！返回结果
+          return {
+            success: true,
+            storagePath,
+            cdnUrl,
+            fileSize,
+          }
+
+        } catch (fetchError) {
+          clearTimeout(timeoutId)
+          throw fetchError
+        }
+
+      } catch (error) {
+        const isTimeout = (error as Error).name === 'AbortError'
+        const errorMessage = isTimeout
+          ? 'Download timeout (2 minutes)'
+          : (error as Error).message
+
+        console.error(`[Storage Manager] ❌ Attempt ${attempt}/${MAX_RETRIES} failed for shot ${shotNumber}:`, errorMessage)
+
+        // 如果不是最后一次尝试，等待后重试
+        if (attempt < MAX_RETRIES) {
+          const delayMs = attempt * 2000 // 递增延迟：2s, 4s
+          console.log(`[Storage Manager] ⏳ Retrying in ${delayMs}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delayMs))
+          continue
+        }
+
+        // 最后一次尝试也失败了，更新数据库状态
+        console.error(`[Storage Manager] ❌ All retries exhausted for shot ${shotNumber}`)
+
+        await supabaseAdmin
+          .from('project_video_clips')
+          .update({
+            storage_status: 'failed',
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq('project_id', projectId)
+          .eq('shot_number', shotNumber)
+
+        throw new Error(`Failed to download video clip after ${MAX_RETRIES} attempts: ${errorMessage}`)
       }
-
-      const buffer = await response.buffer()
-      const fileSize = buffer.length
-
-      console.log(`[Storage Manager] Downloaded ${(fileSize / 1024 / 1024).toFixed(2)} MB`)
-
-      // 2. 生成存储路径
-      const storagePath = STORAGE_CONFIG.paths.getVideoAgentClipPath(
-        userId,
-        projectId,
-        shotNumber
-      )
-
-      // 3. 上传到 Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-        .from(STORAGE_CONFIG.buckets.videos)
-        .upload(storagePath, buffer, {
-          contentType: 'video/mp4',
-          upsert: true,
-        })
-
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`)
-      }
-
-      console.log(`[Storage Manager] ✅ Uploaded to: ${storagePath}`)
-
-      // 4. 获取公开 URL（CDN）
-      const { data: urlData } = supabaseAdmin.storage
-        .from(STORAGE_CONFIG.buckets.videos)
-        .getPublicUrl(storagePath)
-
-      const cdnUrl = urlData.publicUrl
-
-      // 5. 更新数据库记录
-      const { error: updateError } = await supabaseAdmin
-        .from('project_video_clips')
-        .update({
-          video_url_external: externalUrl, // 保存原始外部 URL
-          storage_path: storagePath,
-          cdn_url: cdnUrl,
-          storage_status: 'completed',
-          updated_at: new Date().toISOString(),
-        } as any)
-        .eq('project_id', projectId)
-        .eq('shot_number', shotNumber)
-
-      if (updateError) {
-        console.error(`[Storage Manager] Failed to update database:`, updateError)
-        throw updateError
-      }
-
-      console.log(`[Storage Manager] ✅ Video clip shot ${shotNumber} stored successfully`)
-
-      return {
-        success: true,
-        storagePath,
-        cdnUrl,
-        fileSize,
-      }
-    } catch (error) {
-      console.error(`[Storage Manager] ❌ Failed to store video clip shot ${shotNumber}:`, error)
-
-      // 更新失败状态
-      await supabaseAdmin
-        .from('project_video_clips')
-        .update({
-          storage_status: 'failed',
-          updated_at: new Date().toISOString(),
-        } as any)
-        .eq('project_id', projectId)
-        .eq('shot_number', shotNumber)
-
-      throw error
     }
+
+    // 不应该到达这里
+    throw new Error('Unexpected: retry loop completed without return or throw')
   }
 
   /**
