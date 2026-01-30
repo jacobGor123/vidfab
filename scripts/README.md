@@ -14,6 +14,36 @@
 - `./scripts/redis-start.sh` - 单独启动 Redis
 - `./scripts/redis-stop.sh` - 停止 Redis
 
+### 🏥 Worker 管理（PM2，推荐） ⭐
+- `./scripts/pm2-worker.sh start` - 启动 Worker（自动重启、崩溃恢复）
+- `./scripts/pm2-worker.sh status` - 查看 Worker 状态
+- `./scripts/pm2-worker.sh logs` - 查看 Worker 日志
+- `./scripts/pm2-worker.sh restart` - 重启 Worker
+- `./scripts/pm2-worker.sh stop` - 停止 Worker
+- `./scripts/verify-worker-health.sh` - 一键验证 Worker 健康状态
+
+**优势**：
+- ✅ 自动重启（崩溃后 1 秒恢复）
+- ✅ 内存监控（超过 512MB 自动重启）
+- ✅ 健康检查守护进程（每 5 分钟检测僵尸任务）
+- ✅ 日志自动管理
+
+**快速启动**：
+```bash
+# 安装 PM2（仅第一次）
+npm install -g pm2
+
+# 启动 Worker
+./scripts/pm2-worker.sh start
+
+# 验证健康状态
+./scripts/verify-worker-health.sh
+```
+
+**相关文档**：
+- [治根方案完整文档](../docs/video-agent-reliability-solution.md)
+- [PM2 快速启动指南](../docs/quick-start-pm2-worker.md)
+
 ### 🏗️ 构建和部署
 - `./scripts/build.sh` - 构建生产版本
 - `./scripts/start.sh` - 启动生产服务器

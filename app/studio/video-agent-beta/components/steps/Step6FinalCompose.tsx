@@ -45,6 +45,10 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   const [simulatedProgress, setSimulatedProgress] = useState(0)
   const autoStartAttemptedRef = useRef(false)
 
+  // 🔥 超时检测：记录开始合成的时间
+  const composeStartTimeRef = useRef<number | null>(null)
+  const [isStuckWarning, setIsStuckWarning] = useState(false)
+
   // 页面不可见时暂停定时器，避免后台占用主线程导致交互卡顿
   const [isPageVisible, setIsPageVisible] = useState(true)
 
@@ -94,23 +98,32 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
       if (data.status === 'completed') {
         setIsComposing(false)
         setSimulatedProgress(100)
+        composeStartTimeRef.current = null // 清除计时
+        setIsStuckWarning(false)
         onUpdate({
           final_video: data.finalVideo,
           status: 'completed'
         })
       } else if (data.status === 'failed') {
         setIsComposing(false)
+        composeStartTimeRef.current = null // 清除计时
+        setIsStuckWarning(false)
         setError(data.message || 'Video composition failed')
       }
     } catch (err) {
       console.error('Failed to poll compose status:', err)
     }
-  }, [project.id, onUpdate, getComposeStatus])
+  }, [project.id, onUpdate, getComposeStatus, debugEnabled])
 
   // 启动轮询 - 🔥 优化：缩短轮询间隔到 2 秒，减少卡顿感
   useEffect(() => {
     if (!isPageVisible) return
     if (isComposing || composeStatus.status === 'processing') {
+      // 记录开始合成的时间（只记录一次）
+      if (!composeStartTimeRef.current) {
+        composeStartTimeRef.current = Date.now()
+      }
+
       // 立即轮询一次
       pollStatus()
       // 然后每 2 秒轮询一次（原来是 5 秒）
@@ -118,6 +131,29 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
       return () => clearInterval(interval)
     }
   }, [isPageVisible, isComposing, composeStatus.status, pollStatus])
+
+  // 🔥 超时检测：如果超过 20 分钟仍在 processing，显示警告
+  useEffect(() => {
+    if (!isPageVisible) return
+    if (!composeStartTimeRef.current) return
+    if (composeStatus.status !== 'processing') return
+
+    const checkTimeout = () => {
+      const elapsed = Date.now() - composeStartTimeRef.current!
+      const TIMEOUT_MS = 20 * 60 * 1000 // 20 分钟
+
+      if (elapsed > TIMEOUT_MS && !isStuckWarning) {
+        console.warn('[Step6] ⚠️ Composition timeout detected (20+ minutes)')
+        setIsStuckWarning(true)
+      }
+    }
+
+    // 每 30 秒检查一次
+    const interval = setInterval(checkTimeout, 30000)
+    checkTimeout() // 立即检查一次
+
+    return () => clearInterval(interval)
+  }, [isPageVisible, composeStatus.status, isStuckWarning])
 
   // 组件初始化时检查项目状态
   useEffect(() => {
@@ -367,6 +403,47 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
             <Progress value={simulatedProgress} className="h-2" />
           </CardContent>
         </Card>
+
+        {/* 🔥 超时警告 */}
+        {isStuckWarning && (
+          <Card className="border-yellow-500/50 bg-yellow-500/5">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="text-2xl">⚠️</div>
+                <div className="flex-1 space-y-2">
+                  <h4 className="font-semibold text-yellow-500">
+                    Composition Taking Longer Than Expected
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    The video composition has been processing for over 20 minutes. This may indicate a stuck task.
+                  </p>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      onClick={() => pollStatus()}
+                      variant="outline"
+                      size="sm"
+                      className="border-yellow-500/50 hover:bg-yellow-500/10"
+                    >
+                      Refresh Status
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setIsStuckWarning(false)
+                        composeStartTimeRef.current = null
+                        handleStartCompose()
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="border-yellow-500/50 hover:bg-yellow-500/10"
+                    >
+                      Retry Composition
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     )
   }

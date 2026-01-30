@@ -15,12 +15,16 @@ dotenv.config({ path: resolve(process.cwd(), '.env.local') })
 dotenv.config()
 
 import { videoQueueManager } from '../lib/queue/queue-manager'
+import { startHealthCheckDaemon } from '../lib/services/video-agent/job-health-checker'
 
 async function main() {
   console.log('🚀 Starting VidFab BullMQ Worker...')
   console.log('Environment:', process.env.NODE_ENV || 'development')
 
   try {
+    // 启动健康检查守护进程（每5分钟扫描一次僵尸任务）
+    startHealthCheckDaemon()
+
     // 启动 Worker
     await videoQueueManager.startWorker({
       onActive: (job) => {
