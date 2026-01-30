@@ -19,6 +19,14 @@ import Redis from 'ioredis'
  * - REDIS_URL: 本地或其他 Redis URL (redis://...)
  */
 const getBullMQRedisConfig = () => {
+  // 🔥 调试：打印所有 Redis 相关环境变量
+  console.log('🔍 [BullMQ Redis] Checking environment variables:')
+  console.log(`  - BULLMQ_REDIS_URL: ${process.env.BULLMQ_REDIS_URL ? `"${process.env.BULLMQ_REDIS_URL}"` : 'NOT SET'}`)
+  console.log(`  - UPSTASH_REDIS_URL: ${process.env.UPSTASH_REDIS_URL ? `"${process.env.UPSTASH_REDIS_URL}"` : 'NOT SET'}`)
+  console.log(`  - REDIS_URL: ${process.env.REDIS_URL ? `"${process.env.REDIS_URL}"` : 'NOT SET'}`)
+  console.log(`  - REDIS_HOST: ${process.env.REDIS_HOST ? `"${process.env.REDIS_HOST}"` : 'NOT SET'}`)
+  console.log(`  - NODE_ENV: ${process.env.NODE_ENV || 'NOT SET'}`)
+
   // 🔥 BullMQ 推荐配置：防止无限重试导致请求爆炸
   const commonConfig = {
     maxRetriesPerRequest: 10, // 🔥 增加重试次数，应对 Upstash 远程连接不稳定
@@ -42,6 +50,7 @@ const getBullMQRedisConfig = () => {
 
   // 优先级 1: 专门为 BullMQ 配置的 Redis
   if (process.env.BULLMQ_REDIS_URL) {
+    console.log('✅ [BullMQ Redis] Using BULLMQ_REDIS_URL')
     return {
       url: process.env.BULLMQ_REDIS_URL,
       ...commonConfig,
@@ -51,6 +60,7 @@ const getBullMQRedisConfig = () => {
   // 优先级 2: Upstash Redis Protocol (生产环境推荐)
   // 格式: rediss://default:password@hostname:6380
   if (process.env.UPSTASH_REDIS_URL) {
+    console.log('✅ [BullMQ Redis] Using UPSTASH_REDIS_URL')
     return {
       url: process.env.UPSTASH_REDIS_URL,
       ...commonConfig,
@@ -62,6 +72,7 @@ const getBullMQRedisConfig = () => {
 
   // 优先级 3: 本地或其他 Redis (开发环境)
   if (process.env.REDIS_URL) {
+    console.log('✅ [BullMQ Redis] Using REDIS_URL')
     return {
       url: process.env.REDIS_URL,
       ...commonConfig,
@@ -69,6 +80,7 @@ const getBullMQRedisConfig = () => {
   }
 
   // 默认：本地 Redis
+  console.log('⚠️ [BullMQ Redis] No Redis URL found, falling back to localhost:6379')
   return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
