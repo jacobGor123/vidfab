@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
-import { Film, Users, Clock, Video, Smile, User, Edit3, Save, X, Trash2 } from 'lucide-react'
+import { Film, Users, Clock, Video, Smile, User, Edit3, Save, X, Trash2, RefreshCw } from 'lucide-react'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { CharacterGenerationSection } from './Step1ScriptAnalysis/CharacterGenerationSection'
 import { StoryboardSection } from './Step1ScriptAnalysis/StoryboardSection'
@@ -98,8 +98,8 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   // 🔥 使用 useRef 防止竞态条件
   const isAnalyzingRef = useRef(false)
 
-  const handleAnalyze = async () => {
-    if (isAnalyzingRef.current || hasStarted) {
+  const handleAnalyze = async (force = false) => {
+    if (isAnalyzingRef.current || (hasStarted && !force)) {
       return
     }
 
@@ -120,6 +120,18 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     } finally {
       setIsAnalyzing(false)
     }
+  }
+
+  // 🔥 重新分析脚本（处理错误数据或不满意结果）
+  const handleReanalyze = async () => {
+    if (isAnalyzingRef.current) return
+    if (!confirm('This will re-analyze the script and overwrite all current shots. Are you sure you want to restart?')) return
+
+    setAnalysis(null)
+    setError(null)
+    setHasStarted(false)
+    // 强制重新分析
+    await handleAnalyze(true)
   }
 
   useEffect(() => {
@@ -410,11 +422,11 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
                     const escapeRe = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                     const replacements: Array<[RegExp, string]> = []
 
-                    ;(oldShot.characters || []).forEach((oldName, idx) => {
-                      const newName = characterNames[idx]
-                      if (!oldName || !newName || oldName === newName) return
-                      replacements.push([new RegExp(`\\b${escapeRe(String(oldName))}\\b`, 'gi'), String(newName)])
-                    })
+                      ; (oldShot.characters || []).forEach((oldName, idx) => {
+                        const newName = characterNames[idx]
+                        if (!oldName || !newName || oldName === newName) return
+                        replacements.push([new RegExp(`\\b${escapeRe(String(oldName))}\\b`, 'gi'), String(newName)])
+                      })
 
                     const apply = (text: any) => {
                       if (typeof text !== 'string') return text
@@ -531,6 +543,24 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       ref={scrollContainerRef}
       className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
+      {/* 1. Header & Actions */}
+      <div className="flex items-end justify-between px-1">
+        <div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Script Analysis</h2>
+          <p className="text-slate-400 text-sm mt-1">Review the AI-generated breakdown of your script.</p>
+        </div>
+        <Button
+          onClick={handleReanalyze}
+          variant="outline"
+          size="sm"
+          disabled={isAnalyzing}
+          className="border-slate-700 hover:bg-slate-800 text-slate-300 gap-2 mb-1"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-spin' : ''}`} />
+          Re-analyze Script
+        </Button>
+      </div>
+
       {/* 1. Analysis Overview Card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="px-6 py-6 bg-blue-500/10 border border-blue-500/20 rounded-xl relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
