@@ -186,7 +186,9 @@ export const GET = withAuth(async (request, { params, userId }) => {
 
       if (jobStatus.finishedOn) {
         // Attempt to recover the result from Redis return value
-        const result = jobStatus.returnvalue
+        // 🔥 Fix: jobStatus.returnvalue is wrapped in { success: true, data: ... } by VideoQueueManager
+        const fullResult = jobStatus.returnvalue
+        const result = fullResult?.data || fullResult
 
         if (result && result.composed && result.video && result.video.url) {
           console.log('[Video Agent] 🛠️ Auto-recovering completed job from Redis:', { projectId })

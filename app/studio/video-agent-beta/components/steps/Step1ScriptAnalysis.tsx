@@ -821,8 +821,6 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
             <AlertDialogTitle className="text-white">Re-analyze Script?</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
               This will discard all current shots and generate a fresh analysis from your script.
-              <br /><br />
-              <span className="text-amber-400 font-medium">Warning:</span> Any custom edits or generated videos will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
