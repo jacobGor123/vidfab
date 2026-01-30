@@ -9,20 +9,14 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { Queue } from 'bullmq';
-import Redis from 'ioredis';
+import { redisBullMQ } from '@/lib/redis-bullmq';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Redis 连接
-const connection = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379', 10),
-  maxRetriesPerRequest: null,
-});
-
-const queue = new Queue('video-agent', { connection });
+// 使用统一的 Redis 连接配置（支持 Upstash）
+const queue = new Queue('video-agent', { connection: redisBullMQ });
 
 interface ZombieJob {
   projectId: string;
