@@ -13,8 +13,8 @@ export function validateAnalysisResult(analysis: ScriptAnalysisResult): {
 } {
   const errors: string[] = []
 
-  // 🔥 YouTube 视频复刻模式：允许 1-60 秒的任意整数
-  if (!analysis.duration || typeof analysis.duration !== 'number' || analysis.duration < 1 || analysis.duration > 60) {
+  // Relaxed validation: allow up to 10 minutes (600s)
+  if (!analysis.duration || typeof analysis.duration !== 'number' || analysis.duration < 1 || analysis.duration > 600) {
     errors.push('Invalid duration')
   }
 
@@ -41,13 +41,13 @@ export function validateAnalysisResult(analysis: ScriptAnalysisResult): {
         errors.push(`Shot ${index + 1}: Description is required`)
       }
 
-       // 检测完全重复的 description（常见 LLM 退化表现）
-       const normalized = (shot.description || '').trim().toLowerCase().replace(/\s+/g, ' ')
-       if (normalized) {
-         const existing = normalizedDescriptions.get(normalized) || []
-         existing.push(shot.shot_number)
-         normalizedDescriptions.set(normalized, existing)
-       }
+      // 检测完全重复的 description（常见 LLM 退化表现）
+      const normalized = (shot.description || '').trim().toLowerCase().replace(/\s+/g, ' ')
+      if (normalized) {
+        const existing = normalizedDescriptions.get(normalized) || []
+        existing.push(shot.shot_number)
+        normalizedDescriptions.set(normalized, existing)
+      }
 
       if (!shot.duration_seconds || shot.duration_seconds <= 0) {
         errors.push(`Shot ${index + 1}: Invalid duration`)
