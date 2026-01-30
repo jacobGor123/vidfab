@@ -137,6 +137,19 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     }
   }, [project.step_6_status, composeStatus.status, isComposing, pollStatus])
 
+  // 🔥 Sync with REAL backend progress
+  useEffect(() => {
+    if (composeStatus.progress && composeStatus.progress > 0) {
+      const realProgress = composeStatus.progress
+
+      // Update if backend is ahead
+      if (realProgress > lastSimulatedProgressRef.current) {
+        setSimulatedProgress(realProgress)
+        lastSimulatedProgressRef.current = realProgress
+      }
+    }
+  }, [composeStatus.progress])
+
   // Auto-start compose when entering this view to avoid the extra "Preparing" step.
   // If Step1 already started compose, the backend will be idempotent / return a useful error.
   useEffect(() => {
@@ -179,25 +192,23 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
         const prev = lastSimulatedProgressRef.current
         let next = prev
 
-        // 🔥 优化：慢慢增长到 99%（原来是 95%），最后 1% 等待实际完成
-        // 95-99% 区间增长更慢，给用户更好的反馈
+        // 🔥 优化：更慢的增长速度，适应长视频合成（90s+ 需要 3-5 分钟）
         if (prev < 90) {
-          // 0-90%：正常增长速度
-          next = Math.min(prev + Math.random() * 4, 90)
+          // 0-90%：慢速增长 (平均 0.5% / 0.8s => ~0.6%/s => 150s to 90%)
+          next = Math.min(prev + Math.random() * 1, 90)
         } else if (prev < 99) {
-          // 90-99%：放慢增长速度（模拟字幕渲染阶段）
-          next = Math.min(prev + Math.random() * 1.5, 99)
+          // 90-99%：极慢速度
+          next = Math.min(prev + Math.random() * 0.2, 99)
         }
-        // 98-100%：等待实际完成
 
-        // 只在整数百分比发生变化时触发一次 setState（大幅降低重渲染频率）
+        // 只在整数百分比发生变化时触发一次 setState
         const prevInt = Math.round(prev)
         const nextInt = Math.round(next)
         lastSimulatedProgressRef.current = next
         if (nextInt !== prevInt) {
           setSimulatedProgress(next)
         }
-      }, 400)
+      }, 800)
 
       return () => clearInterval(progressInterval)
     }

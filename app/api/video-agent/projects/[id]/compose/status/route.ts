@@ -133,7 +133,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
       // If job exists but is stuck in queue too long
       const updatedAtMs = project.updated_at ? new Date(project.updated_at).getTime() : NaN
       const ageMs = Number.isFinite(updatedAtMs) ? Math.max(0, nowMs - updatedAtMs) : 0
-      const timeoutMs = 3 * 60 * 1000
+      const timeoutMs = 15 * 60 * 1000 // 15 minutes for long videos
 
       if (ageMs > timeoutMs) {
         return NextResponse.json({
@@ -263,7 +263,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
 
       // If processing makes no observable progress for too long, fail fast with a retryable error.
       // This commonly indicates a stuck worker/job or a lost callback from the render provider.
-      const timeoutMs = 3 * 60 * 1000
+      const timeoutMs = 15 * 60 * 1000 // 15 minutes for long videos
       if (ageMs > timeoutMs) {
         return NextResponse.json({
           success: true,
@@ -283,12 +283,24 @@ export const GET = withAuth(async (request, { params, userId }) => {
       // 合成中 - 返回预估进度
       // 注意: 实际实现中可以通过 FFmpeg 进度回调获取精确进度
       // 这里简单返回一个固定进度值
+      // Extract progress and message from jobStatus
+      let progress = 0
+      let message = 'Video composition in progress...'
+
+      if (typeof jobStatus.progress === 'number') {
+        progress = jobStatus.progress
+      } else if (typeof jobStatus.progress === 'object' && jobStatus.progress !== null) {
+        // Handle { percent, message } object from queue-manager
+        progress = (jobStatus.progress as any).percent || 0
+        message = (jobStatus.progress as any).message || message
+      }
+
       return NextResponse.json({
         success: true,
         data: {
-          status: 'processing',  // 修复：统一使用 'processing'，与前端期望一致
-          progress: 50,  // 可以根据实际情况动态计算
-          message: 'Video composition in progress...',
+          status: 'processing',
+          progress: progress || 50,
+          message: message, // Real message from worker!
           updated_at: project.updated_at,
           step_6_status: step6Status
         }
