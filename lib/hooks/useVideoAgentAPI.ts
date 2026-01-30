@@ -288,9 +288,10 @@ export function useVideoAgentAPI() {
   /**
    * 分析脚本
    */
-  const analyzeScript = useCallback(async (projectId: string): Promise<ScriptAnalysisResult> => {
+  const analyzeScript = useCallback(async (projectId: string, force = false): Promise<ScriptAnalysisResult> => {
     return callAPI(`/api/video-agent/projects/${projectId}/analyze-script`, {
       method: 'POST',
+      body: JSON.stringify({ force }),
     })
   }, [callAPI])
 

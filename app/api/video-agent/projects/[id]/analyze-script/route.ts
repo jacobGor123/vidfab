@@ -20,6 +20,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
   try {
     const projectId = params.id
 
+    // 🔥 解析请求体获取 force 标志
+    let force = false
+    try {
+      const body = await request.json()
+      force = !!body?.force
+    } catch (e) {
+      // Body empty or invalid JSON
+    }
+
     // 验证项目所有权
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
@@ -36,8 +45,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 幂等性检查：如果已经有分析结果，直接返回
-    if (project.script_analysis && typeof project.script_analysis === 'object') {
+    // 幂等性检查：如果已经有分析结果且非强制更新，直接返回
+    if (!force && project.script_analysis && typeof project.script_analysis === 'object') {
       return NextResponse.json({
         success: true,
         data: project.script_analysis,

@@ -48,6 +48,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   const [storyboardStatus, setStoryboardStatus] = useState<'idle' | 'generating' | 'completed' | 'failed'>('idle') // 分镜生成状态
   const [videoCanProceed, setVideoCanProceed] = useState(false) // 🆕 视频是否全部生成完成
   const [editDialogOpen, setEditDialogOpen] = useState(false) // 编辑弹框开关
+  const [reanalyzeConfirmOpen, setReanalyzeConfirmOpen] = useState(false) // 🔥 重新分析确认弹框
   const [editingShotNumber, setEditingShotNumber] = useState<number | null>(null) // 当前编辑的分镜编号
 
   // 首次渲染分镜卡片数量限制：避免 analysis 返回后一次性渲染过多 DOM 导致卡顿
@@ -109,7 +110,8 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     setError(null)
 
     try {
-      const data = await analyzeScript(project.id)
+      // 🔥 Pass 'force' flag to backend to bypass cache
+      const data = await analyzeScript(project.id, force)
       setAnalysis(data)
       onUpdate({ script_analysis: data })
     } catch (err: any) {
@@ -122,11 +124,15 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     }
   }
 
-  // 🔥 重新分析脚本（处理错误数据或不满意结果）
-  const handleReanalyze = async () => {
+  // 🔥 重新分析脚本（处理错误数据或不满意结果） - 触发弹框
+  const handleReanalyze = () => {
     if (isAnalyzingRef.current) return
-    if (!confirm('This will re-analyze the script and overwrite all current shots. Are you sure you want to restart?')) return
+    setReanalyzeConfirmOpen(true)
+  }
 
+  // 🔥 确认重新分析
+  const confirmReanalyze = async () => {
+    setReanalyzeConfirmOpen(false)
     setAnalysis(null)
     setError(null)
     setHasStarted(false)
@@ -807,6 +813,33 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+
+      {/* 🔥 重新分析确认对话框 */}
+      <AlertDialog open={reanalyzeConfirmOpen} onOpenChange={setReanalyzeConfirmOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Re-analyze Script?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              This will discard all current shots and generate a fresh analysis from your script.
+              <br /><br />
+              <span className="text-amber-400 font-medium">Warning:</span> Any custom edits or generated videos will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmReanalyze}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Confirm Re-analyze
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div >
   )
 }
