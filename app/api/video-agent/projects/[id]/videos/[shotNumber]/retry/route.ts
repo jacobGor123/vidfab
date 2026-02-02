@@ -289,6 +289,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
         console.log(`[Video Agent] 🔄 BytePlus task ${result.data.id} submitted for shot ${shotNumber}`)
       } catch (submitError: any) {
+        // 🔥 详细记录错误信息用于调试
+        console.error(`[Video Agent] ❌ Video generation failed for shot ${shotNumber}:`, {
+          errorCode: submitError?.code,
+          errorStatus: submitError?.status,
+          errorMessage: submitError?.message,
+          errorName: submitError?.name,
+          fullError: submitError
+        })
+
         // 🔥 检查是否为敏感内容错误
         if (submitError?.code === 'InputTextSensitiveContentDetected') {
           const errorMsg = `Sensitive content detected in prompt. Please modify the description or character action to avoid words like "screaming", "violence", "angry", etc. Current prompt: "${finalPrompt.substring(0, 200)}..."`
@@ -296,7 +305,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
           console.error(`[Video Agent] ❌ Sensitive content detected for shot ${shotNumber}`)
 
           // 标记为失败，让用户修改 prompt
-          await supabaseAdmin
+          const { error: updateError } = await supabaseAdmin
             .from('project_video_clips')
             .update({
               status: 'failed',
@@ -305,6 +314,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
             } as any)
             .eq('project_id', projectId)
             .eq('shot_number', shotNumber)
+
+          if (updateError) {
+            console.error(`[Video Agent] ❌ Failed to update status to failed:`, updateError)
+          } else {
+            console.log(`[Video Agent] ✓ Shot ${shotNumber} marked as failed due to sensitive content`)
+          }
 
           return NextResponse.json(
             {
