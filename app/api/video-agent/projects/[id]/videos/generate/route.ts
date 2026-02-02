@@ -223,19 +223,14 @@ async function generateBytePlusVideosSequentially(
         .eq('shot_number', shot.shot_number)
         .returns<any>()
     } catch (error: any) {
-      console.error(`[Video Agent] ❌ Failed to submit BytePlus task for shot ${shot.shot_number}:`, {
-        errorCode: error?.code,
-        errorStatus: error?.status,
-        errorMessage: error?.message,
-        errorName: error?.name
-      })
+      console.error(`[Video Agent] Failed to submit BytePlus task for shot ${shot.shot_number}:`, error?.code || error?.message)
 
       // 🔥 检查是否为敏感内容错误
       let errorMessage = error instanceof Error ? error.message : 'Failed to submit video generation task'
 
       if (error?.code === 'InputTextSensitiveContentDetected') {
         errorMessage = `Sensitive content detected in prompt for shot ${shot.shot_number}. Please modify the description or character action. Prompt: "${enhancedPrompt.substring(0, 150)}..."`
-        console.error(`[Video Agent] ❌ Sensitive content detected for shot ${shot.shot_number}`)
+        console.error(`[Video Agent] Sensitive content detected for shot ${shot.shot_number}`)
       }
 
       const { error: updateError } = await supabaseAdmin
@@ -249,7 +244,7 @@ async function generateBytePlusVideosSequentially(
         .eq('shot_number', shot.shot_number)
 
       if (updateError) {
-        console.error(`[Video Agent] ❌ Failed to update shot ${shot.shot_number} status:`, updateError)
+        console.error(`[Video Agent] Failed to update shot ${shot.shot_number} status:`, updateError)
       }
 
       // 非旁白模式：一个失败后，后续都标记为失败
