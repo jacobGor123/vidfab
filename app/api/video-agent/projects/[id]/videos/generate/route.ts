@@ -13,7 +13,6 @@ import {
   generateVeo3Video,
   getVideoGenerationImages
 } from '@/lib/services/video-agent/veo3-video-generator'
-import { generateVideoWithFallback } from '@/lib/services/video-agent/video-fallback-generator'
 import type { Database } from '@/lib/database.types'
 import pLimit from 'p-limit'
 
@@ -207,33 +206,37 @@ async function generateBytePlusVideosSequentially(
         seed: shot.seed
       }
 
-      // 提交任务（带自动降级）
-      const result = await generateVideoWithFallback(
-        videoRequest,
-        'byteplus',  // 优先使用 BytePlus
-        { returnLastFrame: true }
-      )
+      // 提交任务
+      const result = await submitVideoGeneration(videoRequest, {
+        returnLastFrame: true
+      })
 
-      // ✅ 保存 task_id/request_id（根据实际使用的提供商）
+      // ✅ 保存 task_id
       await supabaseAdmin
         .from('project_video_clips')
         .update({
-          seedance_task_id: result.provider === 'byteplus' ? result.taskId : null,
-          video_request_id: result.provider === 'veo3' ? result.requestId : null,
+          seedance_task_id: result.data.id,
           status: 'generating',
           updated_at: new Date().toISOString()
         } as any)
         .eq('project_id', projectId)
         .eq('shot_number', shot.shot_number)
         .returns<any>()
-    } catch (error) {
+    } catch (error: any) {
       console.error(`[Video Agent] ❌ Failed to submit BytePlus task for shot ${shot.shot_number}:`, error)
+
+      // 🔥 检查是否为敏感内容错误
+      let errorMessage = error instanceof Error ? error.message : 'Failed to submit video generation task'
+
+      if (error?.code === 'InputTextSensitiveContentDetected') {
+        errorMessage = `Sensitive content detected in prompt for shot ${shot.shot_number}. Please modify the description or character action. Prompt: "${enhancedPrompt.substring(0, 150)}..."`
+      }
 
       await supabaseAdmin
         .from('project_video_clips')
         .update({
           status: 'failed',
-          error_message: error instanceof Error ? error.message : 'Failed to submit video generation task',
+          error_message: errorMessage,
           updated_at: new Date().toISOString()
         } as any)
         .eq('project_id', projectId)

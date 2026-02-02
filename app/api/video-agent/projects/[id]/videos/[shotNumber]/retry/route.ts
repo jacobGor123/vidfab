@@ -265,28 +265,60 @@ export const POST = withAuth(async (request, { params, userId }) => {
       console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced (with character consistency)'} prompt for shot ${shotNumber}:`, finalPrompt.substring(0, 150) + '...')
       console.log(`[Video Agent] 🔄 Using new random seed: ${newSeed} (old: ${shot.seed})`)
 
-      const result = await submitVideoGeneration(videoRequest, {
-        returnLastFrame: true
-      })
+      try {
+        const result = await submitVideoGeneration(videoRequest, {
+          returnLastFrame: true
+        })
 
-      const { error: byteplusUpdateError } = await supabaseAdmin
-        .from('project_video_clips')
-        .update({
-          seedance_task_id: result.data.id,
-          status: 'generating',
-          error_message: null,
-          updated_at: new Date().toISOString()
-        } as any)
-        .eq('project_id', projectId)
-        .eq('shot_number', shotNumber)
-        .returns<any>()
+        const { error: byteplusUpdateError } = await supabaseAdmin
+          .from('project_video_clips')
+          .update({
+            seedance_task_id: result.data.id,
+            status: 'generating',
+            error_message: null,
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('project_id', projectId)
+          .eq('shot_number', shotNumber)
+          .returns<any>()
 
-      if (byteplusUpdateError) {
-        console.error(`[Video Agent] ❌ Failed to update BytePlus task ID for shot ${shotNumber}:`, byteplusUpdateError)
-        throw new Error(`Failed to save BytePlus task ID: ${byteplusUpdateError.message}`)
+        if (byteplusUpdateError) {
+          console.error(`[Video Agent] ❌ Failed to update BytePlus task ID for shot ${shotNumber}:`, byteplusUpdateError)
+          throw new Error(`Failed to save BytePlus task ID: ${byteplusUpdateError.message}`)
+        }
+
+        console.log(`[Video Agent] 🔄 BytePlus task ${result.data.id} submitted for shot ${shotNumber}`)
+      } catch (submitError: any) {
+        // 🔥 检查是否为敏感内容错误
+        if (submitError?.code === 'InputTextSensitiveContentDetected') {
+          const errorMsg = `Sensitive content detected in prompt. Please modify the description or character action to avoid words like "screaming", "violence", "angry", etc. Current prompt: "${finalPrompt.substring(0, 200)}..."`
+
+          console.error(`[Video Agent] ❌ Sensitive content detected for shot ${shotNumber}`)
+
+          // 标记为失败，让用户修改 prompt
+          await supabaseAdmin
+            .from('project_video_clips')
+            .update({
+              status: 'failed',
+              error_message: errorMsg,
+              updated_at: new Date().toISOString()
+            } as any)
+            .eq('project_id', projectId)
+            .eq('shot_number', shotNumber)
+
+          return NextResponse.json(
+            {
+              error: 'Sensitive content detected',
+              message: errorMsg,
+              code: 'SENSITIVE_CONTENT'
+            },
+            { status: 400 }
+          )
+        }
+
+        // 其他错误直接抛出
+        throw submitError
       }
-
-      console.log(`[Video Agent] 🔄 BytePlus task ${result.data.id} submitted for shot ${shotNumber}`)
     }
 
     return NextResponse.json({
