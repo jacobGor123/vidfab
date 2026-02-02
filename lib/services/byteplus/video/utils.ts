@@ -77,12 +77,19 @@ export function mapBytePlusStatus(status: BytePlusVideoTaskStatus): VideoStatusR
 }
 
 export function mapBytePlusResponseToStatus(response: BytePlusVideoResponse): VideoStatusResponse {
+  // Provide fallback error message if status is failed/cancelled but no error details
+  const mappedStatus = mapBytePlusStatus(response.status)
+  const shouldHaveError = mappedStatus === 'failed'
+  const errorMessage = response.error?.message || (shouldHaveError
+    ? 'Video generation failed. Please try again or contact support if the issue persists.'
+    : undefined)
+
   return {
     data: {
       id: response.id,
-      status: mapBytePlusStatus(response.status),
+      status: mappedStatus,
       outputs: response.content?.video_url ? [response.content.video_url] : undefined,
-      error: response.error?.message,
+      error: errorMessage,
       progress: response.status === 'running' ? 50 : response.status === 'succeeded' ? 100 : 0,
       created_at: new Date(response.created_at * 1000).toISOString(),
       updated_at: new Date(response.updated_at * 1000).toISOString(),

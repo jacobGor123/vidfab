@@ -82,8 +82,14 @@ export async function GET(
     }
 
     // 如果任务完成，添加结果URL
-    if (statusResult.data.status === "completed" && statusResult.data.outputs?.length) {
-      responseData.resultUrl = statusResult.data.outputs[0]
+    if (statusResult.data.status === "completed") {
+      if (statusResult.data.outputs?.length) {
+        responseData.resultUrl = statusResult.data.outputs[0]
+      } else {
+        // Task completed but no output - mark as failed
+        responseData.status = 'failed'
+        responseData.error = statusResult.data.error || 'Video generation completed but no output was produced. Please retry.'
+      }
     }
 
     return NextResponse.json({

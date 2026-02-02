@@ -13,6 +13,7 @@ import {
   generateVeo3Video,
   getVideoGenerationImages
 } from '@/lib/services/video-agent/veo3-video-generator'
+import { generateVideoWithFallback } from '@/lib/services/video-agent/video-fallback-generator'
 import type { Database } from '@/lib/database.types'
 import pLimit from 'p-limit'
 
@@ -206,16 +207,19 @@ async function generateBytePlusVideosSequentially(
         seed: shot.seed
       }
 
-      // 提交任务
-      const result = await submitVideoGeneration(videoRequest, {
-        returnLastFrame: true
-      })
+      // 提交任务（带自动降级）
+      const result = await generateVideoWithFallback(
+        videoRequest,
+        'byteplus',  // 优先使用 BytePlus
+        { returnLastFrame: true }
+      )
 
-      // ✅ 只保存 task_id，不等待完成
+      // ✅ 保存 task_id/request_id（根据实际使用的提供商）
       await supabaseAdmin
         .from('project_video_clips')
         .update({
-          seedance_task_id: result.data.id,
+          seedance_task_id: result.provider === 'byteplus' ? result.taskId : null,
+          video_request_id: result.provider === 'veo3' ? result.requestId : null,
           status: 'generating',
           updated_at: new Date().toISOString()
         } as any)
