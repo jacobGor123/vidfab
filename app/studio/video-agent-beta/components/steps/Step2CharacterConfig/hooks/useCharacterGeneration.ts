@@ -320,7 +320,8 @@ export function useCharacterGeneration({
       const result = await generateCharacterImage({
         prompt: state.prompt,
         negativePrompt: state.negativePrompt,
-        aspectRatio: '1:1'
+        aspectRatio: '1:1',
+        imageStyle: selectedStyle  // 🔥 传递 imageStyle 以启用后处理
       })
 
       // 安全检查：确保有 imageUrl 才更新

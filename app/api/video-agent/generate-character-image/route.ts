@@ -8,6 +8,49 @@ import { withAuth } from '@/lib/middleware/auth'
 import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-api'
 
 /**
+ * 🔥 强制后处理：确保 realistic 风格的规则被严格执行
+ */
+function enforceRealisticStyle(prompt: string, negativePrompt: string): {
+  prompt: string
+  negativePrompt: string
+} {
+  const isSmall = /\b(small|tiny|little|baby|cub|juvenile|toddler)\b/i.test(prompt)
+  const isAnimal = /\b(cat|dog|lamb|sheep|rabbit|bunny|bird|fox|tiger|lion|bear|wolf|deer|mouse|hamster|squirrel|raccoon|hedgehog|otter|seal|penguin|owl|eagle|hawk|parrot|duck|chicken|pig|cow|horse|goat|donkey|zebra|giraffe|elephant|rhino|hippo|monkey|ape|gorilla|panda|koala|kangaroo|dolphin|whale|shark|fish|turtle|frog|lizard|snake|crocodile|alligator|dragon)\b/i.test(prompt)
+  const isAnthropomorphic = isAnimal && /\b(wearing|dressed|clothes|shirt|sweater|jacket|coat|hat|scarf|pants|shoes|boots|glasses|necklace|bracelet|ring)\b/i.test(prompt)
+
+  let processedPrompt = prompt
+  let processedNegativePrompt = negativePrompt
+
+  // 🔥 规则: 小型动物 或 拟人化动物 → 强制写实
+  if (isAnimal && (isSmall || isAnthropomorphic)) {
+    if (!/^realistic photograph of/i.test(processedPrompt)) {
+      processedPrompt = 'realistic photograph of ' + processedPrompt
+    }
+
+    const requiredSuffixes = ['real photo', 'not illustration', 'not cartoon', 'not 3d render', 'not animated', 'not drawn', 'photorealistic']
+    const missingSuffixes = requiredSuffixes.filter(suffix => !processedPrompt.toLowerCase().includes(suffix.toLowerCase()))
+
+    if (missingSuffixes.length > 0) {
+      const additionalSuffixes = missingSuffixes.join(', ')
+      if (isSmall) {
+        processedPrompt += `, ${additionalSuffixes}, wildlife photography style, national geographic style`
+      } else {
+        processedPrompt += `, ${additionalSuffixes}, documentary photography style`
+      }
+    }
+
+    const additionalNegatives = ['cute style', 'adorable', 'kawaii', 'chibi', 'cartoon', 'illustrated', 'animated', 'stylized', 'unrealistic proportions', 'big eyes', 'simplified features', 'cel shaded', 'disney', 'pixar', 'dreamworks', '3d render', 'cgi']
+    const missingNegatives = additionalNegatives.filter(neg => !processedNegativePrompt.toLowerCase().includes(neg.toLowerCase()))
+
+    if (missingNegatives.length > 0) {
+      processedNegativePrompt += ', ' + missingNegatives.join(', ')
+    }
+  }
+
+  return { prompt: processedPrompt, negativePrompt: processedNegativePrompt }
+}
+
+/**
  * 生成人物参考图
  * POST /api/video-agent/generate-character-image
  */
@@ -20,6 +63,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       negativePrompt?: string
       aspectRatio?: string
       images?: string[]
+      imageStyle?: string  // 🔥 新增：支持传递 imageStyle
     }
 
     try {
@@ -31,7 +75,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    const { prompt, negativePrompt, aspectRatio = '16:9', images } = body
+    const { prompt, negativePrompt, aspectRatio = '16:9', images, imageStyle = 'realistic' } = body
 
     // 验证 prompt
     if (!prompt || prompt.trim() === '') {
@@ -41,12 +85,23 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // 🔥 强制后处理：确保 realistic 风格规则被执行
+    let finalPrompt = prompt
+    let finalNegativePrompt = negativePrompt || ''
+
+    if (imageStyle === 'realistic') {
+      const processed = enforceRealisticStyle(finalPrompt, finalNegativePrompt)
+      finalPrompt = processed.prompt
+      finalNegativePrompt = processed.negativePrompt
+      console.log('[Video Agent] ✅ Enforced realistic style')
+    }
+
     console.log('[Video Agent] Generating character image', {
-      prompt: prompt.substring(0, 500) + (prompt.length > 500 ? '...' : ''),  // 前500字符
-      promptLength: prompt.length,
-      negativePrompt: negativePrompt?.substring(0, 300) + (negativePrompt && negativePrompt.length > 300 ? '...' : ''),  // 前300字符
-      hasNegativePrompt: !!negativePrompt,
-      negativePromptLength: negativePrompt?.length || 0,
+      prompt: finalPrompt.substring(0, 500) + (finalPrompt.length > 500 ? '...' : ''),  // 前500字符
+      promptLength: finalPrompt.length,
+      negativePrompt: finalNegativePrompt?.substring(0, 300) + (finalNegativePrompt && finalNegativePrompt.length > 300 ? '...' : ''),  // 前300字符
+      hasNegativePrompt: !!finalNegativePrompt,
+      negativePromptLength: finalNegativePrompt?.length || 0,
       aspectRatio,
       hasSourceImages: !!images && images.length > 0,
       sourceImageCount: images?.length || 0
@@ -55,8 +110,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
     // 调用 SeedreamImage API
     try {
       const result = await submitImageGeneration({
-        prompt,
-        negativePrompt,
+        prompt: finalPrompt,
+        negativePrompt: finalNegativePrompt,
         model: 'seedream-v4',
         aspectRatio,
         images: images && images.length > 0 ? images : undefined,

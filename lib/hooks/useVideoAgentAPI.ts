@@ -71,6 +71,7 @@ interface GenerateCharacterImageParams {
   prompt: string
   negativePrompt?: string
   aspectRatio?: string
+  imageStyle?: string  // 🔥 新增：传递 imageStyle 以启用后处理
 }
 
 interface UpdateCharactersParams {

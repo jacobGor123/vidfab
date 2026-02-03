@@ -14,6 +14,100 @@ import type { Database } from '@/lib/database.types'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
+/**
+ * 🔥 强制后处理：确保 realistic 风格的规则被严格执行
+ */
+function enforceRealisticStyle(prompt: string, negativePrompt: string, characterName: string): {
+  prompt: string
+  negativePrompt: string
+} {
+  const isSmall = /\b(small|tiny|little|baby|cub|juvenile|toddler)\b/i.test(prompt)
+  const isAnimal = /\b(cat|dog|lamb|sheep|rabbit|bunny|bird|fox|tiger|lion|bear|wolf|deer|mouse|hamster|squirrel|raccoon|hedgehog|otter|seal|penguin|owl|eagle|hawk|parrot|duck|chicken|pig|cow|horse|goat|donkey|zebra|giraffe|elephant|rhino|hippo|monkey|ape|gorilla|panda|koala|kangaroo|dolphin|whale|shark|fish|turtle|frog|lizard|snake|crocodile|alligator|dragon)\b/i.test(prompt)
+  const isAnthropomorphic = isAnimal && /\b(wearing|dressed|clothes|shirt|sweater|jacket|coat|hat|scarf|pants|shoes|boots|glasses|necklace|bracelet|ring)\b/i.test(prompt)
+
+  let processedPrompt = prompt
+  let processedNegativePrompt = negativePrompt
+
+  console.log('[Enforce Realistic] Character:', {
+    characterName,
+    isSmall,
+    isAnimal,
+    isAnthropomorphic
+  })
+
+  // 🔥 规则: 小型动物 或 拟人化动物 → 强制写实
+  if (isAnimal && (isSmall || isAnthropomorphic)) {
+    // 强制添加前缀
+    if (!/^realistic photograph of/i.test(processedPrompt)) {
+      processedPrompt = 'realistic photograph of ' + processedPrompt
+    }
+
+    // 强制添加后缀
+    const requiredSuffixes = [
+      'real photo',
+      'not illustration',
+      'not cartoon',
+      'not 3d render',
+      'not animated',
+      'not drawn',
+      'photorealistic'
+    ]
+
+    const missingSuffixes = requiredSuffixes.filter(suffix =>
+      !processedPrompt.toLowerCase().includes(suffix.toLowerCase())
+    )
+
+    if (missingSuffixes.length > 0) {
+      const additionalSuffixes = missingSuffixes.join(', ')
+      if (isSmall) {
+        processedPrompt += `, ${additionalSuffixes}, wildlife photography style, national geographic style`
+      } else {
+        processedPrompt += `, ${additionalSuffixes}, documentary photography style`
+      }
+    }
+
+    // 强制增强 negative prompt
+    const additionalNegatives = [
+      'cute style',
+      'adorable',
+      'kawaii',
+      'chibi',
+      'cartoon',
+      'illustrated',
+      'animated',
+      'stylized',
+      'unrealistic proportions',
+      'big eyes',
+      'simplified features',
+      'cel shaded',
+      'disney',
+      'pixar',
+      'dreamworks',
+      '3d render',
+      'cgi'
+    ]
+
+    const missingNegatives = additionalNegatives.filter(neg =>
+      !processedNegativePrompt.toLowerCase().includes(neg.toLowerCase())
+    )
+
+    if (missingNegatives.length > 0) {
+      processedNegativePrompt += ', ' + missingNegatives.join(', ')
+    }
+
+    console.log('[Enforce Realistic] ✅ Applied:', {
+      characterName,
+      promptPrefix: processedPrompt.substring(0, 100) + '...',
+      addedNegatives: missingNegatives.length
+    })
+  }
+
+  return {
+    prompt: processedPrompt,
+    negativePrompt: processedNegativePrompt
+  }
+}
+
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5分钟超时（批量生成可能需要较长时间）
 
@@ -75,10 +169,21 @@ export const POST = withAuth(async (request, { params, userId }) => {
       try {
         console.log(`[API] Generating image for ${charPrompt.characterName}...`)
 
+        // 🔥 强制后处理：确保 realistic 风格规则被执行（针对项目的 image_style_id）
+        const imageStyle = project.image_style_id || 'realistic'
+        let finalPrompt = charPrompt.prompt
+        let finalNegativePrompt = charPrompt.negativePrompt || ''
+
+        if (imageStyle === 'realistic') {
+          const processed = enforceRealisticStyle(finalPrompt, finalNegativePrompt, charPrompt.characterName)
+          finalPrompt = processed.prompt
+          finalNegativePrompt = processed.negativePrompt
+        }
+
         const request: ImageGenerationRequest = {
-          prompt: charPrompt.prompt,
+          prompt: finalPrompt,
           model: 'seedream-v4',
-          negativePrompt: charPrompt.negativePrompt,
+          negativePrompt: finalNegativePrompt,
           aspectRatio: project.aspect_ratio || '16:9', // 使用项目设置的宽高比
           watermark: false
         }
