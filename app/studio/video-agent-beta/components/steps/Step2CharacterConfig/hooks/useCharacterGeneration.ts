@@ -42,7 +42,10 @@ export function useCharacterGeneration({
       }
     })
   }, [])
-  const [selectedStyle] = useState('realistic')
+
+  // 🔥 修复：使用项目中保存的图片风格，而不是硬编码
+  const selectedStyle = project.image_style_id || 'realistic'
+
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false)
   const [isBatchGenerating, setIsBatchGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
