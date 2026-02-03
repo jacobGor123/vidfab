@@ -330,7 +330,21 @@ export function useVideoPollingV2(
     }
 
     if (!job.requestId) {
-      console.warn(`⚠️ [V2] Job ${job.id} missing requestId, skipping polling (this is expected if job is still being created)`)
+      console.error(`❌ [V2] Critical: Job ${job.id} missing requestId!`)
+      console.error(`Job details:`, JSON.stringify(job, null, 2))
+
+      // 🔥 不要直接返回，尝试延迟重试（给React状态更新一些时间）
+      console.log(`⏳ [V2] Scheduling retry in 500ms...`)
+      setTimeout(() => {
+        const updatedJob = videoContext.activeJobs.find(j => j.id === job.id)
+        if (updatedJob && updatedJob.requestId) {
+          console.log(`✅ [V2] Retry successful: Job ${job.id} now has requestId ${updatedJob.requestId}`)
+          startPolling(updatedJob)
+        } else {
+          console.error(`❌ [V2] Retry failed: Job ${job.id} still missing requestId after 500ms`)
+          console.error(`Updated job from context:`, updatedJob)
+        }
+      }, 500)
       return
     }
 
@@ -346,11 +360,12 @@ export function useVideoPollingV2(
       settings: job.settings
     }
 
+    console.log(`🚀 [V2] Starting polling for job ${job.id} with requestId ${job.requestId}`)
     unifiedPolling.startPolling(job.requestId, job.id, jobData)
 
     // 🔥 生成开始时立即刷新积分 (因为API在开始时就扣除了积分)
     emitCreditsUpdated('video-started')
-  }, [unifiedPolling])
+  }, [unifiedPolling, videoContext.activeJobs])
 
   /**
    * 停止轮询

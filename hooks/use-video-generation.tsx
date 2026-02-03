@@ -265,7 +265,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
       const data = await response.json()
 
+      console.log(`📦 [ImageToVideo API Response]:`, data)
+
       if (!response.ok) {
+        console.error(`❌ [ImageToVideo] API failed:`, data)
         // 🔥 API失败时，移除已创建的本地job
         videoContext.removeJob(job.id)
         throw new Error(data.error || `HTTP ${response.status}`)
@@ -273,9 +276,12 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
       // 🔥 第1层防护：验证 requestId 是否存在
       if (!data.data?.requestId) {
+        console.error(`❌ [ImageToVideo] API response missing requestId:`, data)
         videoContext.removeJob(job.id)
         throw new Error('API response is missing requestId')
       }
+
+      console.log(`✅ [ImageToVideo] Received requestId: ${data.data.requestId}`)
 
       // 🔥 更新job的requestId和reservationId
       videoContext.updateJob(job.id, {
@@ -292,11 +298,22 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         status: 'processing' as const
       }
 
+      console.log(`📋 [ImageToVideo] Updated job:`, {
+        id: updatedJob.id,
+        requestId: updatedJob.requestId,
+        hasRequestId: !!updatedJob.requestId,
+        status: updatedJob.status
+      })
+
       // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
       // 🔥 修复：直接传递完整的 job 对象，避免从 context 查找导致的竞态条件
+      console.log(`🎯 [ImageToVideo] Calling onSuccess callback...`)
+      console.log(`hookOptionsRef.current:`, !!hookOptionsRef.current)
+      console.log(`hookOptionsRef.current.onSuccess:`, !!hookOptionsRef.current?.onSuccess)
       hookOptionsRef.current?.onSuccess?.(updatedJob, data.data.requestId)
+      console.log(`✅ [ImageToVideo] onSuccess callback executed`)
 
       return job.id
 

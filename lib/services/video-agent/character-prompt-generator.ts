@@ -221,30 +221,25 @@ ${ctx.appearances.map(app => `
 - 例如：如果场景是 "playful scene"，可以添加 "in a playful pose" 或 "with a playful gesture"
 - ⚠️ 注意：只能调整姿态，不能改变外观
 
+${imageStyle === 'realistic' ? `
 **f) 🔥 拟人化角色的特殊处理（针对 Realistic 风格）**
-如果同时满足以下条件：
-- 图片风格是 "${styleConfig.name}"（Realistic）
-- 角色是动物 + 穿衣服/拟人化特征
-则**必须**在 prompt 中添加超强写实约束：
+如果角色是动物 + 穿衣服/拟人化特征，则**必须**在 prompt 中添加超强写实约束：
 - 在开头添加："realistic photograph of"
 - 在结尾添加："real photo, not illustration, not cartoon, not 3d render, not animated, not drawn, documentary photography style"
 - 例如："realistic photograph of a cat wearing orange sweater, real photo, not illustration, not cartoon, photorealistic"
 
-**g) 🔥 小型动物的特殊处理（针对 Realistic 风格）**
-如果同时满足以下条件：
-- 图片风格是 "${styleConfig.name}"（Realistic）
-- 核心特征包含 "small" 或 "tiny" 或 "little" 或 "baby"
-- 是动物角色（cat, dog, lamb, rabbit, bird 等）
-则**必须**在 prompt 和 negative prompt 中添加超强写实约束：
+**g) 🔥 所有动物的特殊处理（针对 Realistic 风格）**
+对于所有动物角色（cat, dog, puppy, lamb, chihuahua 等），**必须**在 prompt 和 negative prompt 中添加超强写实约束：
 - Prompt 开头添加："realistic photograph of"
 - Prompt 结尾添加："real photo, not illustration, not cartoon, not animated, not drawn, wildlife photography style, national geographic style"
 - 例如："realistic photograph of a small white lamb, real photo, not illustration, not cartoon, wildlife photography style"
+` : ''}
 
-**h) 风格关键词**
+**${imageStyle === 'realistic' ? 'h' : 'f'}) 风格关键词**
 - 必须添加: "${styleConfig.promptSuffix}"
 - 这些关键词确保风格一致性
 
-**i) 一致性强化**
+**${imageStyle === 'realistic' ? 'i' : 'g'}) 一致性强化**
 - 添加: "consistent character design, character reference sheet, turnaround"
 - 确保 AI 生成一致的外观
 
@@ -280,48 +275,51 @@ ${ctx.appearances.map(app => `
 如果核心特征包含 "cute" 或 "adorable"，必须排除:
 - "fierce, scary, intimidating, aggressive, menacing"
 
-**🔥 如果核心特征包含 "small" 或 "tiny" 或 "little" 或 "baby"（针对 Realistic 风格的动物）**，必须额外排除:
+${imageStyle === 'realistic' ? `
+**🔥 针对 Realistic 风格的动物特殊排除项**:
+对于所有动物角色，必须额外排除:
 - "cute style, adorable, kawaii, chibi, cartoon, illustrated, animated, stylized, unrealistic proportions, big eyes, simplified features, cel shaded"
-- 这确保小型动物也生成写实照片，而不是卡通/插画风格
+- 这确保动物也生成写实照片，而不是卡通/插画风格
+` : ''}
 
 **示例**:
 - 核心特征: "tall, majestic, adult tiger, fierce expression"
-- Negative Prompt 应包含: "..., baby, cub, young, small, tiny, cute, adorable, gentle, ..."
+- Negative Prompt 应包含: "..., baby, cub, young, small, tiny, cute, adorable, gentle, ..."${imageStyle === 'realistic' ? `
 - 核心特征: "small white lamb"（Realistic 风格）
-- Negative Prompt 应包含: "..., cute style, adorable, kawaii, chibi, cartoon, illustrated, animated, stylized, unrealistic proportions, big eyes, ..."
+- Negative Prompt 应包含: "..., cute style, adorable, kawaii, chibi, cartoon, illustrated, animated, stylized, unrealistic proportions, big eyes, ..."` : ''}
 
 ### 4. 完整示例
 
+${imageStyle === 'realistic' ? `
 **示例 1: 成年老虎（场景：playful, 风格：Realistic）**
 - 核心特征: "tall, majestic, adult tiger, fierce expression, muscular build"
 - 场景参考: "playful scene in the forest", 情绪: "Happy"
 - **Prompt**: "A tall, majestic adult tiger with fierce expression and muscular build, standing in a playful pose in the forest, detailed fur texture, photorealistic, ultra realistic, high detail, natural lighting, real life, realistic textures, consistent character design, character reference sheet"
 - **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, stylized, unrealistic proportions, big eyes, cute style, baby, cub, young tiger, small, tiny, cute, adorable, gentle, watermark"
 
-**示例 4: 拟人化橙猫（场景：sitting on chair, 风格：Realistic）**
+**示例 2: 拟人化橙猫（场景：sitting on chair, 风格：Realistic）**
 - 核心特征: "large, fluffy orange tabby cat, wearing orange sweater"
 - 场景参考: "sitting on a wooden chair", 情绪: "Calm"
 - **Prompt**: "realistic photograph of a large, fluffy orange tabby cat wearing an orange knit sweater, sitting on a wooden chair, natural lighting, real photo, not illustration, not cartoon, not 3d render, not animated, not drawn, documentary photography style, photorealistic, ultra realistic, high detail, real life, realistic textures"
 - **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, dreamworks, cel shaded, illustrated, drawing, painting, digital art, stylized, unrealistic proportions, big eyes, cute style, chibi, anime style, anthropomorphic art, furry art, watermark"
 
-**示例 5: 小白羊（场景：grass field, 风格：Realistic）**
+**示例 3: 小白羊（场景：grass field, 风格：Realistic）**
 - 核心特征: "small white lamb"
 - 场景参考: "standing in a grass field with flowers", 情绪: "Peaceful"
 - **Prompt**: "realistic photograph of a small white lamb with fluffy wool, standing in a grass field with flowers, natural lighting, real photo, not illustration, not cartoon, not animated, not drawn, wildlife photography style, national geographic style, photorealistic, ultra realistic, high detail, real life, realistic textures"
 - **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, dreamworks, cel shaded, illustrated, drawing, painting, digital art, stylized, unrealistic proportions, big eyes, cute style, adorable, kawaii, chibi, anime style, simplified features, watermark"
-- **🔥 关键**: 即使是"小"动物，也必须生成写实照片，通过 "realistic photograph", "wildlife photography", "national geographic style" 等关键词强制写实风格，并在 negative prompt 中排除 "cute style, adorable, kawaii, chibi" 等卡通元素
-
-**示例 2: 年轻巫师（场景：battle）**
+` : imageStyle === 'anime' ? `
+**示例 1: 年轻巫师（场景：battle, 风格：Anime）**
 - 核心特征: "young male wizard in his 20s, short messy brown hair, bright blue eyes"
 - 场景参考: "intense battle scene", 情绪: "Determined"
-- **Prompt**: "A young male wizard in his 20s with short messy brown hair and bright blue eyes, wearing a dark blue robe with silver star patterns, holding a wooden staff with a crystal top, determined expression in battle stance, photorealistic, high detail, natural lighting, consistent character design, character reference sheet"
-- **Negative Prompt**: "low quality, blurry, old person, elderly, aged, child, baby, female, inconsistent, multiple characters, cartoon, watermark"
-
-**示例 3: 强壮战士（场景：peaceful garden）**
-- 核心特征: "muscular, battle-hardened warrior, scars on face, intimidating presence"
-- 场景参考: "peaceful garden with flowers", 情绪: "Calm"
-- **Prompt**: "A muscular, battle-hardened warrior with scars on face and intimidating presence, standing calmly in a peaceful garden with flowers, wearing worn armor, photorealistic, high detail, natural lighting, consistent character design, character reference sheet"
-- **Negative Prompt**: "low quality, blurry, skinny, thin, weak, gentle, cute, young, child, baby, friendly, smiling, cartoon, watermark"
+- **Prompt**: "A young male wizard in his 20s with short messy brown hair and bright blue eyes, wearing a dark blue robe with silver star patterns, holding a wooden staff with a crystal top, determined expression in battle stance, anime style, manga, japanese animation, vibrant colors, cel shaded, highly detailed, consistent character design, character reference sheet"
+- **Negative Prompt**: "low quality, blurry, photorealistic, realistic, 3d render, cgi, live action, photograph, old person, elderly, aged, child, baby, female, inconsistent, multiple characters, watermark"
+` : `
+**示例: 通用角色（风格：${styleConfig.name}）**
+- 根据角色的核心特征和场景参考生成 prompt
+- 确保添加风格关键词: "${styleConfig.promptSuffix}"
+- 确保排除不符合风格的元素: "${styleConfig.negativePromptExtra}"
+`}
 
 ## 输出格式
 

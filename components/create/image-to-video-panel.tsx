@@ -122,6 +122,20 @@ export function ImageToVideoPanelEnhanced() {
   // Video generation
   const videoGeneration = useVideoGeneration({
     onSuccess: (job, requestId) => {
+      console.log(`🎉 [ImageToVideo Panel] onSuccess triggered:`, {
+        jobId: job.id,
+        requestId,
+        jobRequestId: job.requestId,
+        hasRequestId: !!job.requestId
+      })
+
+      // 🔥 验证 job 对象
+      if (!job.requestId) {
+        console.error(`❌ [ImageToVideo Panel] Job missing requestId in onSuccess callback!`)
+        console.error(`Job details:`, JSON.stringify(job, null, 2))
+        return
+      }
+
       // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
 
       // 🔥 Analytics: 追踪后端开始生成
@@ -137,10 +151,12 @@ export function ImageToVideoPanelEnhanced() {
       })
 
       // ✅ 直接使用传入的 job 对象，不再从 videoContext 查找
+      console.log(`🚀 [ImageToVideo Panel] Calling startPolling...`)
       startPolling(job)
+      console.log(`✅ [ImageToVideo Panel] startPolling called successfully`)
     },
     onError: (error) => {
-      console.error('Image-to-video generation failed:', error)
+      console.error('❌ [ImageToVideo Panel] Generation failed:', error)
     },
     onAuthRequired: () => {
       authModal.showAuthModal()

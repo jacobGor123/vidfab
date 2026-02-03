@@ -798,23 +798,40 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     if (!session?.user?.uuid) return
 
     try {
+      console.log(`💾 [VideoContext] handleVideoStorageCompleted called with videoId: ${videoId}`)
 
       // 🔥 改进：检查是否是各种临时ID格式
       if (videoId.startsWith('00000000-0000-4000-8000-') ||
           videoId.startsWith('job_') ||
           videoId.startsWith('temp-') ||
           videoId.startsWith('pred_')) {
+        console.log(`⏭️ [VideoContext] Skipping temporary ID: ${videoId}`)
+        return
+      }
+
+      // 🔥 验证 videoId 格式（应该是 UUID）
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      if (!uuidPattern.test(videoId)) {
+        console.error(`❌ [VideoContext] Invalid videoId format: ${videoId}`)
         return
       }
 
       // 🔥 首先尝试从数据库获取完整的视频信息
+      console.log(`🔍 [VideoContext] Fetching video from database...`)
       const permanentVideo = await UserVideosDB.getVideoById(videoId, session.user.uuid)
 
       if (!permanentVideo) {
+        console.warn(`⚠️ [VideoContext] Video not found in database: ${videoId}`)
         return
       }
 
+      console.log(`✅ [VideoContext] Video found:`, {
+        id: permanentVideo.id,
+        status: permanentVideo.status
+      })
+
       if (permanentVideo.status !== 'completed') {
+        console.log(`⏳ [VideoContext] Video not completed yet, status: ${permanentVideo.status}`)
         return
       }
 
