@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Youtube, Upload, Loader2, AlertCircle, CheckCircle2, Palette } from 'lucide-react'
+import { Youtube, Upload, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { showError, showSuccess } from '@/lib/utils/toast'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
@@ -296,10 +296,7 @@ export default function VideoUploadDialog({
 
               {/* 🔥 图片风格选择器 */}
               <div className="space-y-3">
-                <Label className="text-white/70 text-sm flex items-center gap-2">
-                  <Palette className="w-4 h-4" />
-                  <span>Image Style</span>
-                </Label>
+                <Label className="text-white/70 text-sm">Image Style</Label>
                 <Select value={imageStyle} onValueChange={(value) => setImageStyle(value as ImageStyle)} disabled={isAnalyzing}>
                   <SelectTrigger className="bg-white/5 border-white/10 text-white hover:bg-white/10 focus:ring-purple-500/50">
                     <SelectValue placeholder="Select an image style" />
@@ -309,12 +306,9 @@ export default function VideoUploadDialog({
                       <SelectItem
                         key={key}
                         value={key}
-                        className="text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer"
+                        className="text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer text-left"
                       >
-                        <div className="flex flex-col py-1">
-                          <span className="font-medium">{style.name}</span>
-                          <span className="text-xs text-white/50">{style.description}</span>
-                        </div>
+                        {style.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
