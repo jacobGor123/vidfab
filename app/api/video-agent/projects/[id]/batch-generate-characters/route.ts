@@ -35,8 +35,9 @@ function enforceRealisticStyle(prompt: string, negativePrompt: string, character
     isAnthropomorphic
   })
 
-  // 🔥 规则: 小型动物 或 拟人化动物 → 强制写实
-  if (isAnimal && (isSmall || isAnthropomorphic)) {
+  // 🔥 规则: 所有动物（realistic 风格下） → 强制写实
+  // 不管是大是小、是否拟人化，所有动物都应该是真实照片
+  if (isAnimal) {
     // 强制添加前缀
     if (!/^realistic photograph of/i.test(processedPrompt)) {
       processedPrompt = 'realistic photograph of ' + processedPrompt
