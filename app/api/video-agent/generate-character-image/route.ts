@@ -17,6 +17,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         // 解析请求体
     let body: {
       prompt: string
+      negativePrompt?: string
       aspectRatio?: string
       images?: string[]
     }
@@ -30,7 +31,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    const { prompt, aspectRatio = '16:9', images } = body
+    const { prompt, negativePrompt, aspectRatio = '16:9', images } = body
 
     // 验证 prompt
     if (!prompt || prompt.trim() === '') {
@@ -42,6 +43,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     console.log('[Video Agent] Generating character image', {
       promptLength: prompt.length,
+      hasNegativePrompt: !!negativePrompt,
+      negativePromptLength: negativePrompt?.length || 0,
       aspectRatio,
       hasSourceImages: !!images && images.length > 0,
       sourceImageCount: images?.length || 0
@@ -51,6 +54,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
     try {
       const result = await submitImageGeneration({
         prompt,
+        negativePrompt,
         model: 'seedream-v4',
         aspectRatio,
         images: images && images.length > 0 ? images : undefined,
