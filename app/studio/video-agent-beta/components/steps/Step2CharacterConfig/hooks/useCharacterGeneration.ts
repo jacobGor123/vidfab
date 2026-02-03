@@ -25,7 +25,7 @@ export function useCharacterGeneration({
   characterStates,
   setCharacterStates
 }: UseCharacterGenerationProps) {
-  const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters } = useVideoAgentAPI()
+  const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters, replaceCharacterInShots } = useVideoAgentAPI()
 
   // IMPORTANT: Always send all characters (even without images) to avoid backend orphan cleanup.
   // Backend enforces unique names (case-insensitive).
@@ -275,6 +275,29 @@ export function useCharacterGeneration({
 
     setCharacterStates(tempStates)
 
+    // 🔥 新增：批量生成后，同步所有成功生成的角色的分镜描述
+    const successfulCharacters = results.filter((r: any) => r.status === 'success').map((r: any) => r.characterName)
+    if (successfulCharacters.length > 0) {
+      try {
+        // 对每个成功生成的角色触发同步
+        for (const charName of successfulCharacters) {
+          try {
+            await replaceCharacterInShots(project.id, {
+              fromName: charName,
+              toName: charName,  // 名称不变，但触发同步
+              scope: 'mentioned'
+            })
+            console.log('[Character Generation] ✅ Synced shots for:', charName)
+          } catch (syncErr: any) {
+            console.warn(`[Character Generation] ⚠️ Failed to sync shots for ${charName}:`, syncErr)
+          }
+        }
+        console.log('[Character Generation] ✅ Batch sync completed for', successfulCharacters.length, 'character(s)')
+      } catch (err: any) {
+        console.warn('[Character Generation] ⚠️ Batch sync error:', err)
+      }
+    }
+
     // 只有在需要同步数据库状态时才启动轮询（例如需要刷新持久化的图片 URL）
     // 如果所有结果都成功返回了，不需要轮询
     if (allSuccess && results.length === promptsToGenerate.length) {
@@ -356,6 +379,21 @@ export function useCharacterGeneration({
 
         return nextStates
       })
+
+      // 🔥 新增：重新生成人物后，同步分镜描述
+      // 无法判断用户是换了同一个人物的外形，还是完全换了人物
+      // 所以统一触发一次同步，确保数据一致性
+      try {
+        await replaceCharacterInShots(project.id, {
+          fromName: characterName,
+          toName: characterName,  // 名称不变，但触发同步
+          scope: 'mentioned'
+        })
+        console.log('[Character Generation] ✅ Synced shots after regenerating character:', characterName)
+      } catch (syncErr: any) {
+        console.warn('[Character Generation] ⚠️ Failed to sync shots after regeneration:', syncErr)
+        // 不阻塞主流程，继续
+      }
     } catch (err: any) {
       console.error(`[Character Generation] Failed to generate ${characterName}:`, err)
       setCharacterStates(prev => ({
