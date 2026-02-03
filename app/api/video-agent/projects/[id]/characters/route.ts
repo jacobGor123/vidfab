@@ -275,8 +275,11 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
     }
 
-    // 🔥 清理孤儿记录：按 id 清理（避免改名导致误删/重建）
+    // 🔥 增强的孤儿清理逻辑：确保万无一失
     const currentCharacterIds = insertedChars.map(c => c.id).filter(Boolean)
+    const currentCharacterNames = insertedChars.map(c => c.character_name.toLowerCase())
+
+    // Step 1: 按 ID 清理孤儿记录
     if (currentCharacterIds.length > 0) {
       const { data: allChars } = await supabaseAdmin
         .from('project_characters')
@@ -284,12 +287,76 @@ export const POST = withAuth(async (request, { params, userId }) => {
         .eq('project_id', projectId)
 
       const orphanChars = (allChars || []).filter((c: any) => !currentCharacterIds.includes(c.id))
+
       if (orphanChars.length > 0) {
-        console.log('[Video Agent] 🧹 Cleaning up orphan characters:', orphanChars.map((c: any) => c.character_name))
-        await supabaseAdmin
+        console.log('[Video Agent] 🧹 Step 1: Cleaning up orphan characters by ID:', {
+          orphans: orphanChars.map((c: any) => ({ id: c.id, name: c.character_name })),
+          currentIds: currentCharacterIds,
+          currentNames: insertedChars.map(c => c.character_name)
+        })
+
+        const { error: deleteError } = await supabaseAdmin
           .from('project_characters')
           .delete()
           .in('id', orphanChars.map((c: any) => c.id))
+
+        if (deleteError) {
+          console.error('[Video Agent] ❌ Failed to delete orphan characters:', deleteError)
+        } else {
+          console.log('[Video Agent] ✅ Successfully deleted', orphanChars.length, 'orphan character(s)')
+        }
+      }
+    }
+
+    // Step 2: 🔥 新增：检查并清理重名角色（防止并发导致的重复记录）
+    const { data: afterCleanupChars } = await supabaseAdmin
+      .from('project_characters')
+      .select('id, character_name, created_at')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })  // 最新的记录在前
+
+    if (afterCleanupChars && afterCleanupChars.length > 0) {
+      // 按名称分组（不区分大小写）
+      const charsByLowerName = new Map<string, any[]>()
+      afterCleanupChars.forEach((c: any) => {
+        const lowerName = String(c.character_name || '').toLowerCase()
+        if (!charsByLowerName.has(lowerName)) {
+          charsByLowerName.set(lowerName, [])
+        }
+        charsByLowerName.get(lowerName)!.push(c)
+      })
+
+      // 找出重复的角色
+      const duplicatesToDelete: string[] = []
+      charsByLowerName.forEach((chars, lowerName) => {
+        if (chars.length > 1) {
+          // 保留最新的记录（第一个），删除其余的
+          const [keep, ...toDelete] = chars
+          duplicatesToDelete.push(...toDelete.map(c => c.id))
+
+          console.warn('[Video Agent] 🔍 Step 2: Found duplicate characters:', {
+            name: lowerName,
+            count: chars.length,
+            keep: { id: keep.id, name: keep.character_name, created_at: keep.created_at },
+            delete: toDelete.map(c => ({ id: c.id, name: c.character_name, created_at: c.created_at }))
+          })
+        }
+      })
+
+      // 删除重复的角色
+      if (duplicatesToDelete.length > 0) {
+        console.log('[Video Agent] 🧹 Step 2: Cleaning up', duplicatesToDelete.length, 'duplicate character(s)')
+
+        const { error: deleteDupError } = await supabaseAdmin
+          .from('project_characters')
+          .delete()
+          .in('id', duplicatesToDelete)
+
+        if (deleteDupError) {
+          console.error('[Video Agent] ❌ Failed to delete duplicate characters:', deleteDupError)
+        } else {
+          console.log('[Video Agent] ✅ Successfully deleted', duplicatesToDelete.length, 'duplicate character(s)')
+        }
       }
     }
 

@@ -182,6 +182,17 @@ export const POST = withAuth(async (request, { params, userId }) => {
         .map((img: any) => img.image_url)
     }))
 
+    // 🔥 增强日志：记录加载的角色数据
+    console.log('[Video Agent] 📊 Loaded characters for storyboard generation:', {
+      projectId,
+      characterCount: characters.length,
+      characters: characters.map(c => ({
+        name: c.name,
+        imageCount: c.reference_images.length,
+        firstImage: c.reference_images[0]?.slice(0, 50)
+      }))
+    })
+
     // 获取分镜数据
     const shots: Shot[] = (project.script_analysis as unknown as ScriptAnalysisResult).shots || []
 
@@ -191,6 +202,17 @@ export const POST = withAuth(async (request, { params, userId }) => {
         { status: 400 }
       )
     }
+
+    // 🔥 增强日志：记录加载的 shots 数据（特别是 shot.characters 字段）
+    console.log('[Video Agent] 📊 Loaded shots for storyboard generation:', {
+      projectId,
+      shotCount: shots.length,
+      sampleShots: shots.slice(0, 3).map(s => ({
+        shot_number: s.shot_number,
+        characters: s.characters,
+        description: s.description.slice(0, 80)
+      }))
+    })
 
     // 🔥 幂等性检查：先查询是否已有记录
     const { data: existingStoryboards } = await supabaseAdmin

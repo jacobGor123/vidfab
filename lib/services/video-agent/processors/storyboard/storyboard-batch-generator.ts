@@ -143,15 +143,17 @@ export async function batchGenerateStoryboardsWithProgress(
           currentShot: shot.shot_number
         })
 
-        // 🔥 增强的角色匹配逻辑
-        // 优先使用 shot.characters，如果为空则从 description/character_action 中提取
-        let shotCharacters = shot.characters || []
+        // 🔥 增强的角色匹配逻辑（多层防护）
+        // 策略1: 优先从文本中提取（更准确，因为 character-replace API 已更新文本）
+        // 策略2: 如果文本提取为空，再使用 shot.characters（可能包含别名）
+        // 策略3: 增强别名匹配能力
+        // 策略4: 只在确实找不到时才使用"所有角色"，并记录警告
 
-        // 🔥 备用方案：如果 shot.characters 为空，从描述文本中提取角色
-        if (shotCharacters.length === 0 && characters.length > 0) {
-          const sceneText = `${shot.description} ${shot.character_action}`.toLowerCase()
+        const sceneText = `${shot.description} ${shot.character_action}`.toLowerCase()
+        let shotCharacters: string[] = []
 
-          // 检查每个已配置角色是否在场景描述中被提及
+        // 🔥 策略1: 优先从文本中提取角色（最准确）
+        if (characters.length > 0) {
           const mentionedCharacters = characters
             .filter(char => {
               const shortName = char.name.split('(')[0].trim().toLowerCase()
@@ -161,30 +163,93 @@ export async function batchGenerateStoryboardsWithProgress(
 
           if (mentionedCharacters.length > 0) {
             shotCharacters = mentionedCharacters
-            console.log('[Storyboard Batch Generator] 🔍 Extracted characters from description for shot', shot.shot_number, mentionedCharacters)
+            console.log('[Storyboard Batch Generator] ✅ Strategy 1: Extracted characters from text for shot', shot.shot_number, ':', mentionedCharacters)
           }
         }
 
+        // 🔥 策略2: 如果文本提取为空，使用 shot.characters 作为备用
+        if (shotCharacters.length === 0 && shot.characters && shot.characters.length > 0) {
+          shotCharacters = shot.characters
+          console.log('[Storyboard Batch Generator] 📋 Strategy 2: Using shot.characters for shot', shot.shot_number, ':', shotCharacters)
+        }
+
+        // 🔥 策略3: 使用增强的别名匹配（支持 "the dog", "the orange cat" 等别名）
         let relevantCharacters = characters.filter(char => {
-          // 使用模糊匹配（不区分大小写，只匹配简短名称）
           const shortCharName = char.name.split('(')[0].trim().toLowerCase()
+
           return shotCharacters.some(shotChar => {
             const shortShotChar = shotChar.split('(')[0].trim().toLowerCase()
-            return shortCharName === shortShotChar
+
+            // 精确匹配
+            if (shortCharName === shortShotChar) {
+              return true
+            }
+
+            // 🔥 增强：使用别名匹配
+            // 生成该角色的所有可能别名（例如 "dog" -> ["dog", "the dog"]）
+            const aliases = toGenericAliases(char.name)
+            if (aliases.includes(shortShotChar)) {
+              console.log('[Storyboard Batch Generator] 🔗 Alias matched:', {
+                shot: shot.shot_number,
+                character: char.name,
+                alias: shortShotChar
+              })
+              return true
+            }
+
+            return false
           })
         })
 
-        // 🔥 第三层备用：如果仍然没有匹配到任何角色，使用所有角色
-        // 这样可以保证生成的图像风格至少与参考图一致
+        // 🔥 策略4: 只在确实找不到时才使用"所有角色"（最后的备用方案）
         if (relevantCharacters.length === 0 && characters.length > 0) {
+          console.warn('[Storyboard Batch Generator] ⚠️ Strategy 4: No character match for shot', shot.shot_number, {
+            sceneText: sceneText.slice(0, 100),
+            shotCharacters,
+            availableCharacters: characters.map(c => c.name),
+            fallback: 'using all characters'
+          })
           relevantCharacters = characters
-          console.log('[Storyboard Batch Generator] ⚠️ No character match for shot', shot.shot_number, '- using all characters')
         }
 
-        console.log('[Storyboard Batch Generator] Characters for shot', shot.shot_number, {
+        // 🔥 辅助函数：生成角色的所有可能别名
+        function toGenericAliases(name: string): string[] {
+          const n = name.split('(')[0].trim().toLowerCase()
+          if (!n) return []
+          const aliases = new Set<string>()
+
+          const species = ['cat', 'dog', 'tiger', 'lion', 'bear', 'cow', 'horse', 'duck', 'chicken', 'sheep', 'pig']
+          for (const s of species) {
+            if (n.includes(s)) {
+              aliases.add(`the ${s}`)
+              aliases.add(s)
+            }
+          }
+
+          if (n === 'orange cat' || (n.includes('cat') && n.includes('orange'))) {
+            aliases.add('the orange cat')
+            aliases.add('orange cat')
+          }
+
+          const colors = ['orange', 'black', 'white', 'brown', 'gray', 'grey', 'red', 'blue', 'green', 'yellow', 'pink', 'purple', 'gold', 'silver']
+          for (const s of species) {
+            for (const c of colors) {
+              if (n.includes(s) && n.includes(c)) {
+                aliases.add(`${c} ${s}`)
+                aliases.add(`the ${c} ${s}`)
+              }
+            }
+          }
+
+          return Array.from(aliases)
+        }
+
+        console.log('[Storyboard Batch Generator] 📊 Character matching result for shot', shot.shot_number, {
           allCharacters: characters.map(c => c.name),
           shotCharacters,
-          relevantCharacters: relevantCharacters.map(c => c.name)
+          relevantCharacters: relevantCharacters.map(c => c.name),
+          matchRate: `${relevantCharacters.length}/${characters.length}`,
+          usingFallback: relevantCharacters.length === characters.length && shotCharacters.length > 0
         })
 
         // 生成分镜（只传递相关角色）

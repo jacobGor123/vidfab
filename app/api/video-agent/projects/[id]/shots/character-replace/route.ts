@@ -255,6 +255,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         let replacedDescriptionCount = 0
         let replacedActionCount = 0
         let replacedPromptCount = 0
+        let replacedCharactersCount = 0  // 🔥 新增：追踪 characters 数组的替换
 
         const nextShots = analysis.shots.map((s: any) => {
           const shot = s as Shot
@@ -280,11 +281,22 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
           // Keep shot.characters aligned if present.
           if (Array.isArray((shot as any).characters)) {
-            ;(updated as any).characters = replaceCharacterNameInListExact(
-              (shot as any).characters,
+            const oldCharacters = (shot as any).characters
+            const newCharacters = replaceCharacterNameInListExact(
+              oldCharacters,
               fromName,
               toName
             )
+            ;(updated as any).characters = newCharacters
+
+            // 🔥 新增：记录 characters 数组的变化
+            if (JSON.stringify(oldCharacters) !== JSON.stringify(newCharacters)) {
+              replacedCharactersCount++
+              console.log(`[Video Agent] Shot ${shot.shot_number} characters updated:`, {
+                before: oldCharacters,
+                after: newCharacters
+              })
+            }
           }
 
           // If analysis video_prompt is empty, derive it.
@@ -313,7 +325,10 @@ export const POST = withAuth(async (request, { params, userId }) => {
           replacedDescriptionCount,
           replacedActionCount,
           replacedPromptCount,
-          sampleCharacters: Array.isArray(nextAnalysis.characters) ? nextAnalysis.characters.slice(0, 6) : null
+          replacedCharactersCount,  // 🔥 新增：显示替换的 characters 数组数量
+          sampleCharacters: Array.isArray(nextAnalysis.characters) ? nextAnalysis.characters.slice(0, 6) : null,
+          fromName,  // 🔥 新增：记录替换的源和目标
+          toName
         })
 
         const { error: analysisUpdateError } = await supabaseAdmin
