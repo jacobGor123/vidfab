@@ -142,12 +142,19 @@ export function VideoEffectsPanel() {
   } = useSimpleSubscription()
 
   // Video generation
+  // 🔥 防止重复提交的标志
+  const isSubmittingRef = useRef(false)
+
   const videoGeneration = useVideoGeneration({
     onSuccess: (job, requestId) => {
+      // 🔥 重置提交标志
+      isSubmittingRef.current = false
       // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
       startPolling(job)
     },
     onError: (error) => {
+      // 🔥 重置提交标志
+      isSubmittingRef.current = false
       console.error("Video effects generation failed:", error)
     },
     onAuthRequired: () => {
@@ -476,6 +483,15 @@ export function VideoEffectsPanel() {
 
   // Generate video effects
   const handleGenerate = useCallback(async () => {
+    // 🔥 防止重复提交
+    if (isSubmittingRef.current) {
+      console.warn('⚠️ [VideoEffects] Request already in progress, skipping duplicate submission')
+      return
+    }
+
+    console.log(`🚀 [VideoEffects] handleGenerate called`)
+    isSubmittingRef.current = true
+
     // 🔥 事件1: 点击生成按钮
     GenerationAnalytics.trackClickGenerate({
       generationType: 'video-effects',
@@ -505,6 +521,7 @@ export function VideoEffectsPanel() {
         videoContext.removeCompletedVideo(oldestItem.id)
       } else {
         // 如果没有已完成的视频可清理，显示限制提示
+        isSubmittingRef.current = false
         setShowLimitDialog(true)
         return
       }
@@ -513,6 +530,7 @@ export function VideoEffectsPanel() {
     // Form validation
     const errors = validateForm()
     if (errors.length > 0) {
+      isSubmittingRef.current = false
       setValidationErrors(errors)
       return
     }
@@ -535,6 +553,7 @@ export function VideoEffectsPanel() {
 
       // 处理积分不足问题
       if (!budgetInfo.can_afford) {
+        isSubmittingRef.current = false
         setShowUpgradeDialog(true)
         return
       }
@@ -542,6 +561,7 @@ export function VideoEffectsPanel() {
     } catch (error) {
       console.error('积分检查失败:', error)
       // 🔥 积分检查失败时不显示技术性错误信息，直接引导用户升级
+      isSubmittingRef.current = false
       setShowUpgradeDialog(true)
       return
     }
@@ -587,6 +607,7 @@ export function VideoEffectsPanel() {
         })
       }
     } catch (error) {
+      isSubmittingRef.current = false
       console.error('视频特效生成失败:', error)
       // 🔥 视频生成失败时不显示技术性错误信息，直接引导用户升级或重试
       if (error instanceof Error && error.message.includes('insufficient') || error.message.includes('credits')) {

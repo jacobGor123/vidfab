@@ -570,6 +570,37 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
   // Context methods
   const addJob = useCallback((jobData: Omit<VideoJob, "id" | "createdAt" | "updatedAt">): VideoJob => {
+    // 🔥 去重检查：防止短时间内创建相同的任务
+    const isDuplicate = state.activeJobs.some(existingJob => {
+      // 只检查 generating 或 processing 状态的任务
+      if (existingJob.status !== 'generating' && existingJob.status !== 'processing' && existingJob.status !== 'queued') {
+        return false
+      }
+
+      // 比较关键字段
+      const sameUser = existingJob.userId === jobData.userId
+      const samePrompt = existingJob.prompt === jobData.prompt
+      const sameImage = existingJob.settings?.imageUrl === jobData.settings?.imageUrl ||
+                        existingJob.sourceImage === jobData.sourceImage
+      const sameGenerationType = existingJob.generationType === (jobData.generationType || (jobData.sourceImage ? "image-to-video" : "text-to-video"))
+
+      return sameUser && samePrompt && sameImage && sameGenerationType
+    })
+
+    if (isDuplicate) {
+      console.warn('⚠️ [VideoContext] Duplicate job detected, returning existing job')
+      // 返回已存在的 job
+      const existingJob = state.activeJobs.find(existingJob => {
+        const sameUser = existingJob.userId === jobData.userId
+        const samePrompt = existingJob.prompt === jobData.prompt
+        const sameImage = existingJob.settings?.imageUrl === jobData.settings?.imageUrl ||
+                          existingJob.sourceImage === jobData.sourceImage
+        const sameGenerationType = existingJob.generationType === (jobData.generationType || (jobData.sourceImage ? "image-to-video" : "text-to-video"))
+        return sameUser && samePrompt && sameImage && sameGenerationType
+      })
+      return existingJob!
+    }
+
     const job: VideoJob = {
       ...jobData,
       id: `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -579,9 +610,10 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
       generationType: jobData.generationType || (jobData.sourceImage ? "image-to-video" : "text-to-video")
     }
 
+    console.log(`✅ [VideoContext] Creating new job: ${job.id}`)
     dispatch({ type: "ADD_JOB", payload: job })
     return job
-  }, [])
+  }, [state.activeJobs])
 
   const updateJob = useCallback((id: string, updates: Partial<VideoJob>) => {
     dispatch({ type: "UPDATE_JOB", payload: { id, updates } })

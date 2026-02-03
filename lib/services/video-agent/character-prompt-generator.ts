@@ -443,11 +443,7 @@ function postProcessCharacterPrompts(
   prompts: CharacterPrompt[],
   imageStyle: ImageStyle
 ): CharacterPrompt[] {
-  if (imageStyle !== 'realistic') {
-    return prompts  // 只处理 realistic 风格
-  }
-
-  const styleConfig = IMAGE_STYLES['realistic']
+  const styleConfig = IMAGE_STYLES[imageStyle]
 
   return prompts.map(cp => {
     const characterName = cp.characterName.toLowerCase()
@@ -461,15 +457,43 @@ function postProcessCharacterPrompts(
 
     console.log('[Post-Process] Character:', {
       characterName,
+      imageStyle,
       isSmall,
       isAnimal,
       isAnthropomorphic,
       originalPromptPreview: prompt.substring(0, 100)
     })
 
-    // 🔥 规则 1: 所有动物（realistic 风格下） → 强制写实
-    // 不管是大是小、是否拟人化，所有动物都应该是真实照片
-    if (isAnimal) {
+    // 🔥 步骤 1: 清理与当前风格冲突的关键词
+    if (imageStyle === 'realistic') {
+      // Realistic 风格：移除卡通/动漫/3D 相关关键词
+      const conflictingKeywords = [
+        'anime', 'manga', 'cartoon', 'comic', 'cel shaded',
+        '3d render', 'octane render', 'unreal engine',
+        'oil painting', 'watercolor', 'painted'
+      ]
+      conflictingKeywords.forEach(keyword => {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
+        prompt = prompt.replace(regex, '').trim()
+      })
+    } else {
+      // 非 Realistic 风格：移除写实摄影相关关键词
+      const realisticKeywords = [
+        'photorealistic', 'realistic photograph', 'professional photography',
+        'natural lighting', 'dslr', 'film grain', 'Fujifilm',
+        'real photo', 'documentary photography', 'wildlife photography'
+      ]
+      realisticKeywords.forEach(keyword => {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
+        prompt = prompt.replace(regex, '').trim()
+      })
+
+      // 清理多余的逗号和空格
+      prompt = prompt.replace(/,\s*,/g, ',').replace(/\s+/g, ' ').trim()
+    }
+
+    // 🔥 步骤 2: Realistic 风格的动物特殊处理
+    if (imageStyle === 'realistic' && isAnimal) {
       // 强制添加前缀（如果没有）
       if (!/^realistic photograph of/i.test(prompt)) {
         prompt = 'realistic photograph of ' + prompt

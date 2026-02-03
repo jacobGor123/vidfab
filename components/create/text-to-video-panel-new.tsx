@@ -108,8 +108,14 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   const { startPolling } = videoPolling
 
+  // 🔥 防止重复提交的标志
+  const isSubmittingRef = useRef(false)
+
   const videoGeneration = useVideoGeneration({
     onSuccess: (job, requestId) => {
+      // 🔥 重置提交标志
+      isSubmittingRef.current = false
+
       // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
 
       // 🔥 Analytics: 追踪后端开始生成
@@ -128,6 +134,8 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
       startPolling(job) // 🔥 启动轮询
     },
     onError: (error) => {
+      // 🔥 重置提交标志
+      isSubmittingRef.current = false
       console.error('Video generation failed:', error)
     },
     onAuthRequired: () => {
@@ -221,6 +229,15 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Generate video
   const handleGenerate = useCallback(async () => {
+    // 🔥 防止重复提交
+    if (isSubmittingRef.current) {
+      console.warn('⚠️ [TextToVideo] Request already in progress, skipping duplicate submission')
+      return
+    }
+
+    console.log(`🚀 [TextToVideo] handleGenerate called`)
+    isSubmittingRef.current = true
+
     // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
       // 找到所有已完成的视频（不包括处理中、失败等状态）
@@ -241,6 +258,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         videoContext.removeCompletedVideo(oldestItem.id)
       } else {
         // 如果没有已完成的视频可清理，显示限制提示
+        isSubmittingRef.current = false
         setShowLimitDialog(true)
         return
       }
@@ -249,6 +267,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     // Form validation
     const errors = validateForm()
     if (errors.length > 0) {
+      isSubmittingRef.current = false
       setValidationErrors(errors)
       return
     }
@@ -276,18 +295,21 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         // 检查模型访问权限
         if (!modelAccess.can_access) {
           // 🔥 不显示技术性错误信息，直接引导用户升级
+          isSubmittingRef.current = false
           setShowUpgradeDialog(true)
           return
         }
 
         // 检查Credits是否足够
         if (!budgetInfo.can_afford) {
+          isSubmittingRef.current = false
           setShowUpgradeDialog(true)
           return
         }
       } catch (error) {
         console.error('权限检查失败:', error)
         // 🔥 权限检查失败时不显示错误信息，直接引导用户升级
+        isSubmittingRef.current = false
         setShowUpgradeDialog(true)
         return
       }
@@ -322,6 +344,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
     if (!isAuthenticated) {
       // 用户未登录，不执行任何操作
+      isSubmittingRef.current = false
       return
     }
   }, [params, validateForm, authModal, videoGeneration, userJobs.length, allUserItems, videoContext])
