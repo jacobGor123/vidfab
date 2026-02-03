@@ -41,7 +41,7 @@ import { VideoEffect, DEFAULT_EFFECT } from "@/lib/constants/video-effects"
 import { ImageProcessor } from "@/lib/image-processor"
 import { toast } from "sonner"
 
-// 🔥 Error message translation function - English version
+// 错误信息转换函数
 function getFriendlyErrorMessage(error: string): string {
   const errorMessages: Record<string, string> = {
     'ImageObjectsUndetected': 'No clear objects detected in image. Please try using images with visible people, objects, or buildings',
@@ -141,21 +141,16 @@ export function VideoEffectsPanel() {
     refreshCredits
   } = useSimpleSubscription()
 
-  // Video generation
-  // 🔥 防止重复提交的标志
+  // 防止重复提交的标志
   const isSubmittingRef = useRef(false)
 
   const videoGeneration = useVideoGeneration({
     onSuccess: (job, requestId) => {
-      // 🔥 重置提交标志
       isSubmittingRef.current = false
-      // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
       startPolling(job)
     },
     onError: (error) => {
-      // 🔥 重置提交标志
       isSubmittingRef.current = false
-      console.error("Video effects generation failed:", error)
     },
     onAuthRequired: () => {
       // Authentication will be handled by the useVideoGeneration hook internally
@@ -165,13 +160,9 @@ export function VideoEffectsPanel() {
   // Video polling V2
   const videoPolling = useVideoPollingV2({
     onCompleted: (job, resultUrl) => {
-      // 🔥 刷新积分显示，确保前端显示的积分数是最新的
       refreshCredits()
     },
     onFailed: (job, error) => {
-      console.error(`Video effects generation failed: ${job.id}`, error)
-
-      // 🔥 为用户提供友好的错误提示
       const friendlyError = getFriendlyErrorMessage(error)
       toast.error(`Video effects generation failed: ${friendlyError}`, {
         description: 'You can try using a different image or regenerate',
@@ -193,7 +184,7 @@ export function VideoEffectsPanel() {
   // 使用认证弹框hook
   const authModal = useVideoGenerationAuth()
 
-  // 🔥 修复：获取所有用户的任务和视频 - 包含进行中和已完成的
+  // 获取用户的任务和视频
   const allUserJobs = currentUserId
     ? videoContext.activeJobs.filter(job => job.userId === currentUserId)
     : []
@@ -202,7 +193,7 @@ export function VideoEffectsPanel() {
     ? videoContext.failedJobs.filter(job => job.userId === currentUserId)
     : []
 
-  // 🔥 为video-effects面板，只显示video-effects类型的任务
+  // 只显示video-effects类型的任务
   const userJobs = allUserJobs.filter(job =>
     job.generationType === 'video-effects' || !job.generationType
   )
@@ -213,15 +204,13 @@ export function VideoEffectsPanel() {
       )
     : []
 
-  // 🔥 新增：获取临时视频（刚完成的video-effects类型）
   const userTemporaryVideos = currentUserId
     ? videoContext.temporaryVideos.filter(video =>
         video.userId === currentUserId
-        // video-effects类型的临时视频通常包含effectName等特殊字段
       )
     : []
 
-  // 🔥 合并所有要显示的项目：进行中任务 + 临时完成视频（仅video-effects类型）
+  // 合并所有要显示的项目：进行中任务 + 临时完成视频
   const allUserItems = [
     ...userJobs,
     ...userTemporaryVideos.map(video => ({
@@ -278,7 +267,6 @@ export function VideoEffectsPanel() {
 
   // 实际的图片上传逻辑，分离出来以便于认证检查
   const uploadImageFile = async (file: File) => {
-
     // Enhanced validation
     if (!file.type.startsWith('image/')) {
       setValidationErrors(["Please upload an image file (JPG, PNG, WebP formats)"])
@@ -389,7 +377,6 @@ export function VideoEffectsPanel() {
         uploadMode: 'local'
       }))
 
-      // 🔥 事件: 上传图片成功
       GenerationAnalytics.trackUploadImage({
         generationType: 'video-effects',
         uploadMode: 'local',
@@ -413,7 +400,6 @@ export function VideoEffectsPanel() {
       }, 1500)
 
     } catch (error) {
-      console.error('❌ Image upload failed:', error)
       setValidationErrors([
         error instanceof Error ? error.message : "Image upload failed, please try again"
       ])
@@ -449,7 +435,6 @@ export function VideoEffectsPanel() {
     const files = Array.from(e.dataTransfer.files)
     if (files.length > 0 && files[0].type.startsWith('image/')) {
       handleImageUpload(files[0])
-    } else {
     }
   }
 
@@ -470,7 +455,7 @@ export function VideoEffectsPanel() {
           setUploadHistory(prev => prev.filter(item => item.id !== imageId))
         }
       } catch (error) {
-        // Don't throw error, just log warning
+        // Ignore error
       }
     }
 
@@ -483,16 +468,13 @@ export function VideoEffectsPanel() {
 
   // Generate video effects
   const handleGenerate = useCallback(async () => {
-    // 🔥 防止重复提交
+    // 防止重复提交
     if (isSubmittingRef.current) {
-      console.warn('⚠️ [VideoEffects] Request already in progress, skipping duplicate submission')
       return
     }
 
-    console.log(`🚀 [VideoEffects] handleGenerate called`)
     isSubmittingRef.current = true
 
-    // 🔥 事件1: 点击生成按钮
     GenerationAnalytics.trackClickGenerate({
       generationType: 'video-effects',
       effectId: params.selectedEffect?.id,
@@ -501,7 +483,7 @@ export function VideoEffectsPanel() {
       creditsRequired: CREDITS_CONSUMPTION['video-effects'],
     })
 
-    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
+    // 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
       // 找到所有已完成的视频（不包括处理中、失败等状态）
       const completedItems = allUserItems.filter(item =>
@@ -537,21 +519,18 @@ export function VideoEffectsPanel() {
 
     setValidationErrors([])
 
-    // 积分检查
     try {
       // 检查模型访问权限和积分可用性
       const [modelAccess, budgetInfo] = await Promise.all([
         canAccessModel('video-effects', 'standard'), // 视频特效没有分辨率概念
-        checkCreditsAvailability('video-effects', 'standard', '4') // (model, resolution, duration)
+        checkCreditsAvailability('video-effects', 'standard', '4')
       ])
 
-      // 处理模型访问权限问题
       if (!modelAccess.can_access) {
         setShowUpgradeDialog(true)
         return
       }
 
-      // 处理积分不足问题
       if (!budgetInfo.can_afford) {
         isSubmittingRef.current = false
         setShowUpgradeDialog(true)
@@ -595,7 +574,6 @@ export function VideoEffectsPanel() {
         effectName: params.selectedEffect?.name
       })
 
-      // 🔥 事件2: 后端开始生成 (仅在API成功返回时触发)
       if (result?.success && result.jobId && result.requestId) {
         GenerationAnalytics.trackGenerationStarted({
           generationType: 'video-effects',
@@ -608,8 +586,6 @@ export function VideoEffectsPanel() {
       }
     } catch (error) {
       isSubmittingRef.current = false
-      console.error('视频特效生成失败:', error)
-      // 🔥 视频生成失败时不显示技术性错误信息，直接引导用户升级或重试
       if (error instanceof Error && error.message.includes('insufficient') || error.message.includes('credits')) {
         setShowUpgradeDialog(true)
       } else {
@@ -633,7 +609,6 @@ export function VideoEffectsPanel() {
 
   // Handle effect selection
   const handleEffectSelect = (effect: VideoEffect) => {
-    // 🔥 GTM 使用AI特效事件跟踪
     trackApplyAiEffect(effect.id)
 
     setParams(prev => ({ ...prev, selectedEffect: effect }))

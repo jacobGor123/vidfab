@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
 
     // Check for internal call (contains userId parameter)
     if (body.userId) {
-      // 内部调用，直接使用传递的userId，跳过session验证
       const userId = body.userId
       const userEmail = body.userEmail || 'internal@vidfab.ai'
 
@@ -34,16 +33,9 @@ export async function POST(request: NextRequest) {
       return await processVideoStorage(userId, userEmail, { wavespeedRequestId, originalUrl, settings })
     }
 
-    // 外部调用，需要session验证 - NextAuth 4.x
     const session = await getServerSession(authConfig)
 
-
     if (!session?.user?.uuid) {
-      console.error('❌ Video store: Authentication failed', {
-        session: !!session,
-        user: !!session?.user,
-        uuid: session?.user?.uuid
-      })
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
         { status: 401 }
@@ -81,26 +73,12 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
 }) {
   const { wavespeedRequestId, originalUrl, settings } = data
 
-  console.log(`🎬 Processing video storage:`, {
-    userId,
-    wavespeedRequestId,
-    originalUrl: originalUrl.substring(0, 50) + '...',
-    model: settings.model,
-    generationType: settings.generationType
-  })
-
   try {
-    console.log(`🔍 [Store] Checking if video already exists: ${wavespeedRequestId}`)
-
     // 检查是否已存在
     let existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
 
     if (existingVideo) {
-      console.log(`✅ [Store] Video already exists: ${existingVideo.id}, status: ${existingVideo.status}`)
-
-      // 如果已完成且有永久存储，直接返回
       if (existingVideo.status === 'completed' && existingVideo.storage_path) {
-        console.log(`✅ [Store] Video already completed and stored, returning existing record`)
         return NextResponse.json({
           success: true,
           data: {
@@ -114,8 +92,6 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
         })
       }
 
-      // 否则更新状态为已完成（但仍然只有临时URL，历史遗留问题）
-      console.log(`🔄 [Store] Updating existing video to completed status`)
       await UserVideosDB.updateVideoStatus(existingVideo.id, {
         status: 'completed',
         downloadProgress: 100,
@@ -134,18 +110,11 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
       })
     }
 
-    console.log(`➕ [Store] Video does not exist, creating new record...`)
-
-    // 🔥 下载视频并上传到 Supabase Storage（永久存储）
-    console.log(`💾 Downloading and uploading video to Supabase Storage...`)
-
     let supabaseVideoUrl: string | null = null
     let storagePath: string | null = null
     let fileSize: number | null = null
 
     try {
-      // 下载视频
-      console.log(`📥 Downloading video from: ${originalUrl.substring(0, 80)}...`)
       const videoResponse = await fetch(originalUrl)
       if (!videoResponse.ok) {
         throw new Error(`Failed to fetch video: ${videoResponse.statusText}`)
@@ -153,16 +122,12 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
 
       const videoBuffer = Buffer.from(await videoResponse.arrayBuffer())
       fileSize = videoBuffer.length
-      console.log(`✅ Downloaded video: ${(fileSize / (1024 * 1024)).toFixed(2)} MB`)
 
       // 确定视频格式
       const contentType = videoResponse.headers.get('content-type') || 'video/mp4'
 
-      // 生成唯一的视频ID（使用 wavespeedRequestId）
       const videoId = wavespeedRequestId.replace(/[^a-zA-Z0-9]/g, '_')
 
-      // 上传到 Supabase Storage
-      console.log(`📤 Uploading to Supabase Storage...`)
       const uploadResult = await VideoStorageManager.uploadVideo(
         userId,
         videoId,
@@ -172,13 +137,9 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
 
       supabaseVideoUrl = uploadResult.url
       storagePath = uploadResult.path
-      console.log(`✅ Video uploaded to Supabase: ${storagePath}`)
     } catch (uploadError) {
-      console.error(`⚠️ Failed to upload to Supabase Storage:`, uploadError)
-      // 如果上传失败，回退到使用原始 URL
       supabaseVideoUrl = null
       storagePath = null
-      // 仍然尝试获取文件大小
       if (!fileSize) {
         try {
           const response = await fetch(originalUrl, { method: 'HEAD' })
@@ -187,7 +148,7 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
             fileSize = parseInt(contentLength, 10)
           }
         } catch (error) {
-          console.error(`❌ Failed to get file size:`, error)
+          // Ignore error
         }
       }
     }
@@ -207,18 +168,11 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
         generationType: settings.generationType || null
       },
       originalUrl,
-      storagePath  // 🔥 新增: 永久存储路径
+      storagePath
     }, userEmail)
 
-
-    // Only update real database records, skip temporary records
     if (!newVideo.id.startsWith('temp-') && !newVideo.id.startsWith('00000000-0000-4000-8000-')) {
-      // 🔄 缩略图策略: 使用永久视频 URL 或临时 URL 作为缩略图
-      // 前端会使用 <video> 标签自动显示第一帧作为封面
-      // TODO Phase 3: 集成 Supabase Edge Functions + ffmpeg 生成真实缩略图
       let thumbnailPath: string | null = supabaseVideoUrl || originalUrl
-
-      console.log('ℹ️  Using video URL as thumbnail (browser renders first frame)')
 
       // 更新视频状态
       try {
@@ -227,27 +181,21 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
           downloadProgress: 100,
           fileSize: fileSize,
           thumbnailPath: thumbnailPath,
-          storagePath: storagePath  // 🔥 新增: 保存永久存储路径
+          storagePath: storagePath
         })
       } catch (updateError) {
-        console.error('Failed to update video status:', updateError)
+        // Ignore error
       }
     }
 
     const isSupabaseStored = !!supabaseVideoUrl
-    console.log(`✅ Video stored successfully: ${newVideo.id}`)
-    console.log(`   - File size: ${fileSize ? (fileSize / (1024 * 1024)).toFixed(2) + ' MB' : 'unknown'}`)
-    console.log(`   - Supabase Storage: ${isSupabaseStored ? '✅ Yes' : '⚠️ No (using original URL)'}`)
-    if (storagePath) {
-      console.log(`   - Storage path: ${storagePath}`)
-    }
 
     return NextResponse.json({
       success: true,
       data: {
         videoId: newVideo.id,
         status: 'completed',
-        videoUrl: supabaseVideoUrl || originalUrl,  // 🔥 优先返回永久 URL
+        videoUrl: supabaseVideoUrl || originalUrl,
         storagePath: storagePath,
         fileSize: fileSize,
         uploadedToSupabase: isSupabaseStored,
@@ -259,15 +207,10 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
     })
 
   } catch (error) {
-    console.error('❌ [Store] Video storage failed:', error)
-
-    // 🔥 特殊处理：如果是重复键冲突，尝试返回已存在的记录
     if (error instanceof Error && (error.message.includes('23505') || error.message.includes('duplicate key'))) {
-      console.log(`⚠️ [Store] Duplicate key conflict detected, attempting to fetch existing video...`)
       try {
         const existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
         if (existingVideo) {
-          console.log(`✅ [Store] Successfully recovered from duplicate key conflict, returning existing video: ${existingVideo.id}`)
           return NextResponse.json({
             success: true,
             data: {
@@ -281,7 +224,7 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
           })
         }
       } catch (recoveryError) {
-        console.error(`❌ [Store] Failed to recover from duplicate key conflict:`, recoveryError)
+        // Ignore error
       }
     }
 
@@ -359,7 +302,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get download progress error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

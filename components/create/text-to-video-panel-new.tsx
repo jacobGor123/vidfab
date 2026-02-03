@@ -94,31 +94,23 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     refreshCredits
   } = useSimpleSubscription()
 
-  // 🔥 Debug subscription status
-
-  // Video generation
   // Video polling V2
   const videoPolling = useVideoPollingV2({
     onCompleted: (job, resultUrl) => {
     },
     onFailed: (job, error) => {
-      console.error(`Video generation failed: ${job.id}`, error)
     }
   })
 
   const { startPolling } = videoPolling
 
-  // 🔥 防止重复提交的标志
+  // 防止重复提交的标志
   const isSubmittingRef = useRef(false)
 
   const videoGeneration = useVideoGeneration({
     onSuccess: (job, requestId) => {
-      // 🔥 重置提交标志
       isSubmittingRef.current = false
 
-      // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
-
-      // 🔥 Analytics: 追踪后端开始生成
       GenerationAnalytics.trackGenerationStarted({
         generationType: 'text-to-video',
         jobId: job.id,
@@ -130,13 +122,10 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
         creditsRequired: getCreditsRequired(),
       })
 
-      // ✅ 直接使用传入的 job 对象，不再从 videoContext 查找
-      startPolling(job) // 🔥 启动轮询
+      startPolling(job)
     },
     onError: (error) => {
-      // 🔥 重置提交标志
       isSubmittingRef.current = false
-      console.error('Video generation failed:', error)
     },
     onAuthRequired: () => {
       authModal.showAuthModal()
@@ -148,7 +137,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
   const currentUserId = session?.user?.uuid
 
 
-  // 🔥 修复：获取所有用户的任务和视频 - 包含进行中和已完成的
+  // 获取用户的任务和视频
   const userJobs = currentUserId
     ? videoContext.activeJobs.filter(job => job.userId === currentUserId)
     : []
@@ -157,12 +146,11 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     ? videoContext.completedVideos.filter(video => video.userId === currentUserId)
     : []
 
-  // 🔥 新增：获取临时视频（刚完成的）
   const userTemporaryVideos = currentUserId
     ? videoContext.temporaryVideos.filter(video => video.userId === currentUserId)
     : []
 
-  // 🔥 合并所有要显示的项目：进行中任务 + 临时完成视频
+  // 合并所有要显示的项目：进行中任务 + 临时完成视频
   const allUserItems = [
     ...userJobs,
     ...userTemporaryVideos.map(video => ({
@@ -229,16 +217,14 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Generate video
   const handleGenerate = useCallback(async () => {
-    // 🔥 防止重复提交
+    // 防止重复提交
     if (isSubmittingRef.current) {
-      console.warn('⚠️ [TextToVideo] Request already in progress, skipping duplicate submission')
       return
     }
 
-    console.log(`🚀 [TextToVideo] handleGenerate called`)
     isSubmittingRef.current = true
 
-    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
+    // 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
       // 找到所有已完成的视频（不包括处理中、失败等状态）
       const completedItems = allUserItems.filter(item =>
@@ -272,7 +258,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
       return
     }
 
-    // 🔥 Analytics: 追踪点击生成按钮
     GenerationAnalytics.trackClickGenerate({
       generationType: 'text-to-video',
       modelType: params.model,
@@ -292,23 +277,18 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
           checkCreditsAvailability(params.model, params.resolution, params.duration)
         ])
 
-        // 检查模型访问权限
         if (!modelAccess.can_access) {
-          // 🔥 不显示技术性错误信息，直接引导用户升级
           isSubmittingRef.current = false
           setShowUpgradeDialog(true)
           return
         }
 
-        // 检查Credits是否足够
         if (!budgetInfo.can_afford) {
           isSubmittingRef.current = false
           setShowUpgradeDialog(true)
           return
         }
       } catch (error) {
-        console.error('权限检查失败:', error)
-        // 🔥 权限检查失败时不显示错误信息，直接引导用户升级
         isSubmittingRef.current = false
         setShowUpgradeDialog(true)
         return
@@ -343,7 +323,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     })
 
     if (!isAuthenticated) {
-      // 用户未登录，不执行任何操作
       isSubmittingRef.current = false
       return
     }
@@ -354,7 +333,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     setParams(prev => {
       const oldValue = prev[key]
 
-      // 🔥 Analytics: 追踪参数切换事件
       if (oldValue !== value) {
         if (key === 'model') {
           GenerationAnalytics.trackChangeModel({
@@ -614,10 +592,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                   ${allUserItems.length >= 3 ? 'grid-cols-2' : ''}
                 `}
               >
-                {/* 显示最多20个任务 */}
                 {allUserItems.slice(0, 20).map((job) => {
-
-                  // 如果任务已完成，查找对应的视频
                   const completedVideo = job.status === 'completed' && job.resultUrl
                     ? {
                         id: job.id,

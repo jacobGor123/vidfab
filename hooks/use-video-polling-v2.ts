@@ -149,9 +149,6 @@ export function useVideoPollingV2(
 
     const data = await response.json()
 
-    // 🔥 修复：API返回的是resultUrl，不是outputs数组
-    // 需要转换为统一轮询引擎期望的格式
-    // ⚠️ 重要：只有当 resultUrl 存在时才返回数组，否则返回 undefined
     const outputs = data.data.resultUrl ? [data.data.resultUrl] : undefined
 
     return {
@@ -210,14 +207,12 @@ export function useVideoPollingV2(
    * 完成回调处理
    */
   const handleCompleted = useCallback((requestId: string, output: string) => {
-    // 通过 requestId 找到对应的 VideoJob
     const job = videoContext.activeJobs.find(j => j.requestId === requestId)
 
     if (!job) {
       return
     }
 
-    // 🔥 事件: 生成成功 (只在任务还在处理状态时触发,避免重复)
     if (job.status === 'processing' || job.status === 'queued') {
       GenerationAnalytics.trackGenerationSuccess({
         generationType: (job.generationType || job.settings?.generationType || 'text-to-video') as GenerationType,
@@ -237,10 +232,8 @@ export function useVideoPollingV2(
       isStored: false // 初始为 false，存储完成后会更新
     }
 
-    // 更新 context
     videoContext.completeJob(job.id, videoResult)
 
-    // 🔥 触发积分更新事件
     emitCreditsUpdated('video-completed')
 
     // 触发用户回调
@@ -251,16 +244,12 @@ export function useVideoPollingV2(
    * 失败回调处理
    */
   const handleFailed = useCallback((requestId: string, error: PollingError) => {
-    // 通过 requestId 找到对应的 VideoJob
     const job = videoContext.activeJobs.find(j => j.requestId === requestId)
 
     if (!job) {
       return
     }
 
-    console.error(`❌ Video ${job.id} failed:`, error.getUserMessage())
-
-    // 🔥 事件: 生成失败
     GenerationAnalytics.trackGenerationFailed({
       generationType: (job.generationType || job.settings?.generationType || 'text-to-video') as GenerationType,
       jobId: job.id,
@@ -277,29 +266,20 @@ export function useVideoPollingV2(
     onFailed?.(job, error.getUserMessage())
   }, [videoContext, onFailed])
 
-  /**
-   * 存储完成回调
-   */
   const handleStored = useCallback(async (requestId: string, videoId: string) => {
-
-    // 调用 context 的存储完成处理
     try {
       await videoContext.handleVideoStorageCompleted?.(videoId)
     } catch (error) {
+      // Ignore error
     }
   }, [videoContext])
 
-  /**
-   * 进度回调处理
-   */
   const handleProgress = useCallback((requestId: string, progress: number) => {
-    // 通过 requestId 找到对应的 VideoJob
     const job = videoContext.activeJobs.find(j => j.requestId === requestId)
 
     if (!job) {
       return
     }
-
 
     // 触发用户回调
     onProgress?.(job, progress)
@@ -317,32 +297,16 @@ export function useVideoPollingV2(
     onProgress: handleProgress
   })
 
-  /**
-   * 开始轮询
-   *
-   * 🎯 直接接受 VideoJob 对象，避免 React 状态同步和查找失败问题
-   */
   const startPolling = useCallback((job: VideoJob) => {
-    // 🔥 增强验证：确保 job 对象完整有效
     if (!job || !job.id) {
-      console.error(`❌ [V2] Invalid job object:`, job)
       return
     }
 
     if (!job.requestId) {
-      console.error(`❌ [V2] Critical: Job ${job.id} missing requestId!`)
-      console.error(`Job details:`, JSON.stringify(job, null, 2))
-
-      // 🔥 不要直接返回，尝试延迟重试（给React状态更新一些时间）
-      console.log(`⏳ [V2] Scheduling retry in 500ms...`)
       setTimeout(() => {
         const updatedJob = videoContext.activeJobs.find(j => j.id === job.id)
         if (updatedJob && updatedJob.requestId) {
-          console.log(`✅ [V2] Retry successful: Job ${job.id} now has requestId ${updatedJob.requestId}`)
           startPolling(updatedJob)
-        } else {
-          console.error(`❌ [V2] Retry failed: Job ${job.id} still missing requestId after 500ms`)
-          console.error(`Updated job from context:`, updatedJob)
         }
       }, 500)
       return
@@ -360,16 +324,11 @@ export function useVideoPollingV2(
       settings: job.settings
     }
 
-    console.log(`🚀 [V2] Starting polling for job ${job.id} with requestId ${job.requestId}`)
     unifiedPolling.startPolling(job.requestId, job.id, jobData)
 
-    // 🔥 生成开始时立即刷新积分 (因为API在开始时就扣除了积分)
     emitCreditsUpdated('video-started')
   }, [unifiedPolling, videoContext.activeJobs])
 
-  /**
-   * 停止轮询
-   */
   const stopPolling = useCallback((jobId?: string) => {
     if (jobId) {
       const job = videoContext.activeJobs.find(j => j.id === jobId)
@@ -381,15 +340,10 @@ export function useVideoPollingV2(
     }
   }, [videoContext.activeJobs, unifiedPolling])
 
-  /**
-   * 重启轮询
-   */
   const restartPolling = useCallback(() => {
     unifiedPolling.stopAllPolling()
 
-    // 重新启动所有应该轮询的任务
     videoContext.activeJobs.forEach(job => {
-      // 🔥 增强验证：确保 job 对象完整有效
       if (
         job &&
         job.id &&
@@ -401,9 +355,6 @@ export function useVideoPollingV2(
     })
   }, [videoContext.activeJobs, unifiedPolling, startPolling])
 
-  /**
-   * 获取正在轮询的任务列表
-   */
   const pollingJobs = useMemo(() => {
     const activeRequestIds = new Set(
       unifiedPolling.activeJobs.map(j => j.requestId)

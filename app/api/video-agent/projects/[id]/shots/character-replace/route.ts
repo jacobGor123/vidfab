@@ -112,11 +112,16 @@ function replaceCharacterNameInListExact(list: unknown, from: string, to: string
   const toShort = shortName(to).trim()
   if (!fromShort || !toShort) return list
 
+  // 🔥 增强：获取所有可能的别名（例如 "the dog", "dog", "the orange cat"）
+  const fromAliases = [fromShort, ...toGenericAliases(from)]
+
   return (list as any[]).map((raw) => {
     const s = String(raw || '').trim()
     if (!s) return raw
     const base = s.split('(')[0].trim().toLowerCase()
-    if (base === fromShort) {
+
+    // 🔥 增强：匹配任何别名，不仅仅是精确名称
+    if (fromAliases.some(alias => alias === base)) {
       const leftParen = s.indexOf('(')
       if (leftParen === -1) return toShort
       // Preserve legacy detail suffix in UI tags.

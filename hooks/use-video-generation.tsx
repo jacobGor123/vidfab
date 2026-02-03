@@ -22,9 +22,8 @@ export interface GenerationOptions {
   onFailed?: (jobId: string, error: string) => void
 }
 
-// 🎯 Hook选项（兼容组件的期望）
 interface UseVideoGenerationOptions {
-  onSuccess?: (job: any, requestId: string) => void  // 🔥 修复：传递完整的 job 对象，避免竞态条件
+  onSuccess?: (job: any, requestId: string) => void
   onError?: (error: string) => void
   onAuthRequired?: () => void
 }
@@ -55,9 +54,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     hookOptionsRef.current = options
   }, [options])
 
-  // 🎯 监听活跃任务变化
   useEffect(() => {
-    // 只计算真正在进行中的任务，排除failed/completed任务
     const activeJobsInProgress = videoContext.activeJobs.filter(job =>
       job.status === 'processing' || job.status === 'queued' || job.status === 'generating'
     )
@@ -66,8 +63,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     setState(prev => ({
       ...prev,
       activeJobs
-      // 🔥 注意：不再根据activeJobs设置isGenerating
-      // isGenerating应该只在API调用过程中为true
     }))
 
     // 检测完成的任务
@@ -87,7 +82,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     })
   }, [videoContext.activeJobs])
 
-  // 🎯 文本转视频
   const generateTextToVideo = useCallback(async (
     prompt: string,
     settings: {
@@ -103,8 +97,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       throw new Error('Please sign in to access this feature')
     }
 
-
-    // 🔥 设置正在生成状态
     setState(prev => ({ ...prev, isGenerating: true }))
 
     try {
@@ -130,7 +122,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         optionsRef.current.set(job.id, options)
       }
 
-      // 🔥 调用API生成视频
       const response = await fetch('/api/video/generate', {
         method: 'POST',
         headers: {
@@ -150,25 +141,21 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const data = await response.json()
 
       if (!response.ok) {
-        // 🔥 API失败时，移除已创建的本地job
         videoContext.removeJob(job.id)
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
-      // 🔥 第1层防护：验证 requestId 是否存在
       if (!data.data?.requestId) {
         videoContext.removeJob(job.id)
         throw new Error('API response is missing requestId')
       }
 
-      // 🔥 更新job的requestId和reservationId
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
-        reservationId: data.data.reservationId, // 🔥 保存积分预扣ID
+        reservationId: data.data.reservationId,
         status: 'processing'
       })
 
-      // 🔥 创建更新后的完整 job 对象
       const updatedJob = {
         ...job,
         requestId: data.data.requestId,
@@ -186,9 +173,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      console.error('VideoGeneration: 文本转视频失败:', errorMessage)
 
-      // 🔥 事件: 生成失败 (API 调用阶段失败)
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'text-to-video',
         errorType: error instanceof Error ? error.name : 'UnknownError',
@@ -206,7 +191,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     }
   }, [session?.user?.uuid, videoContext])
 
-  // 🎯 图片转视频
   const generateImageToVideo = useCallback(async (
     imageUrl: string,
     prompt: string = '',
@@ -222,7 +206,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       throw new Error('Please sign in to access this feature')
     }
 
-    // 🔥 设置正在生成状态
     setState(prev => ({ ...prev, isGenerating: true }))
 
     try {
@@ -246,7 +229,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         optionsRef.current.set(job.id, options)
       }
 
-      // 🔥 调用API生成视频
       const response = await fetch('/api/video/generate-image-to-video', {
         method: 'POST',
         headers: {
@@ -265,32 +247,22 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
       const data = await response.json()
 
-      console.log(`📦 [ImageToVideo API Response]:`, data)
-
       if (!response.ok) {
-        console.error(`❌ [ImageToVideo] API failed:`, data)
-        // 🔥 API失败时，移除已创建的本地job
         videoContext.removeJob(job.id)
         throw new Error(data.error || `HTTP ${response.status}`)
       }
 
-      // 🔥 第1层防护：验证 requestId 是否存在
       if (!data.data?.requestId) {
-        console.error(`❌ [ImageToVideo] API response missing requestId:`, data)
         videoContext.removeJob(job.id)
         throw new Error('API response is missing requestId')
       }
 
-      console.log(`✅ [ImageToVideo] Received requestId: ${data.data.requestId}`)
-
-      // 🔥 更新job的requestId和reservationId
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
-        reservationId: data.data.reservationId, // 🔥 保存积分预扣ID
+        reservationId: data.data.reservationId,
         status: 'processing'
       })
 
-      // 🔥 创建更新后的完整 job 对象
       const updatedJob = {
         ...job,
         requestId: data.data.requestId,
@@ -298,29 +270,15 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         status: 'processing' as const
       }
 
-      console.log(`📋 [ImageToVideo] Updated job:`, {
-        id: updatedJob.id,
-        requestId: updatedJob.requestId,
-        hasRequestId: !!updatedJob.requestId,
-        status: updatedJob.status
-      })
-
-      // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 修复：直接传递完整的 job 对象，避免从 context 查找导致的竞态条件
-      console.log(`🎯 [ImageToVideo] Calling onSuccess callback...`)
-      console.log(`hookOptionsRef.current:`, !!hookOptionsRef.current)
-      console.log(`hookOptionsRef.current.onSuccess:`, !!hookOptionsRef.current?.onSuccess)
       hookOptionsRef.current?.onSuccess?.(updatedJob, data.data.requestId)
-      console.log(`✅ [ImageToVideo] onSuccess callback executed`)
 
       return job.id
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
-      // 🔥 事件: 生成失败 (API 调用阶段失败)
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'image-to-video',
         errorType: error instanceof Error ? error.name : 'UnknownError',
@@ -338,7 +296,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     }
   }, [session?.user?.uuid, videoContext])
 
-  // 🎯 视频特效 - 兼容旧API签名
   const generateVideoEffects = useCallback(async (
     requestOrVideoUrl: string | { image: string; effectId: string; effectName?: string },
     effectId?: string,
@@ -348,7 +305,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     if (!session?.user?.uuid) {
       const authError = 'Please sign in to access this feature'
 
-      // 🔥 Call onAuthRequired callback
       hookOptionsRef.current?.onAuthRequired?.()
 
       throw new Error(authError)
@@ -369,7 +325,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       effectNameFinal = requestOrVideoUrl.effectName
     }
 
-    // 🔥 设置正在生成状态
     setState(prev => ({ ...prev, isGenerating: true }))
 
     try {
@@ -384,7 +339,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
           effectId: effectIdFinal,
           effectName: effectNameFinal || 'Unknown Effect'
         },
-        generationType: 'video-effects', // 🔥 确保这个字段被正确设置
+        generationType: 'video-effects',
         status: 'pending',
         progress: 0
       })
@@ -393,7 +348,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         optionsRef.current.set(job.id, options)
       }
 
-      // 2. 🔥 调用真实API
       const apiRequest = {
         image: imageUrl,
         effectId: effectIdFinal,
@@ -406,7 +360,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include', // 🔥 确保包含认证cookie
+        credentials: 'include',
         body: JSON.stringify(apiRequest)
       })
 
@@ -417,25 +371,21 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         if (data.code === 'AUTH_REQUIRED') {
           throw new Error('Authentication required')
         }
-        // 🔥 API失败时，移除已创建的本地job
         videoContext.removeJob(job.id)
         throw new Error(data.error || `API error: ${response.status}`)
       }
 
-      // 🔥 第1层防护：验证 requestId 是否存在
       if (!data.success || !data.data?.requestId) {
         videoContext.removeJob(job.id)
         throw new Error('API response is missing requestId')
       }
 
-      // 3. 更新任务状态为processing，这会自动触发轮询
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
-        reservationId: data.data.reservationId, // 🔥 保存积分预扣ID
+        reservationId: data.data.reservationId,
         status: 'processing'
       })
 
-      // 🔥 创建更新后的完整 job 对象
       const updatedJob = {
         ...job,
         requestId: data.data.requestId,
@@ -443,19 +393,15 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         status: 'processing' as const
       }
 
-      // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false }))
 
-      // 🔥 修复：直接传递完整的 job 对象，避免从 context 查找导致的竞态条件
       hookOptionsRef.current?.onSuccess?.(updatedJob, data.data.requestId)
 
       return job.id
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      console.error('VideoGeneration: 视频特效失败:', errorMessage)
 
-      // 🔥 事件: 生成失败 (API 调用阶段失败)
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'video-effects',
         errorType: error instanceof Error ? error.name : 'UnknownError',
@@ -464,10 +410,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         effectName: effectNameFinal,
       })
 
-      // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
 
-      // 🔥 调用onError回调
       hookOptionsRef.current?.onError?.(errorMessage)
 
       throw error
@@ -482,9 +426,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     optionsRef.current.delete(jobId)
   }, [videoContext])
 
-  // 🎯 重试任务
   const retryGeneration = useCallback(async (jobId: string): Promise<string> => {
-
     const job = videoContext.getJobById(jobId)
     if (!job) {
       throw new Error('Task not found')
@@ -504,66 +446,50 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     return newJobId
   }, [videoContext, generateTextToVideo])
 
-  // 🎯 清除错误
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }))
   }, [])
 
-  // 🎯 获取任务状态
   const getTaskStatus = useCallback((jobId: string) => {
     return videoContext.getJobById(jobId)
   }, [videoContext])
 
-  // 🎯 获取所有活跃任务
   const getActiveTasks = useCallback(() => {
     return videoContext.activeJobs
   }, [videoContext])
 
   return {
-    // 状态
     ...state,
 
-    // 生成方法
     generateTextToVideo,
     generateImageToVideo,
     generateVideoEffects,
 
-    // 控制方法
     cancelGeneration,
     retryGeneration,
     clearError,
 
-    // 查询方法
     getTaskStatus,
     getActiveTasks,
 
-    // 兼容旧API的别名
-    generateVideo: generateTextToVideo, // 🔥 修复：generateVideo应该是text-to-video的别名
+    generateVideo: generateTextToVideo,
     startGeneration: generateTextToVideo,
-    startPolling: () => {
-      console.warn('startPolling is deprecated, use generateTextToVideo instead')
-    },
+    startPolling: () => {},
     stopPolling: cancelGeneration
   }
 }
 
-// 🎯 兼容性Hook（替代旧的use-video-polling）
 export function useVideoPolling() {
   const generation = useVideoGeneration()
 
-  // 返回兼容的API
   return {
     isPolling: generation.isGenerating,
     activeJobsCount: generation.activeJobs,
     error: generation.error,
 
-    // 兼容方法（已废弃，但保持向后兼容）
-    startPolling: () => {
-      console.warn('useVideoPolling.startPolling is deprecated')
-    },
+    startPolling: () => {},
     stopPolling: generation.cancelGeneration,
 
-    // 新推荐的方法
     ...generation
   }
 }

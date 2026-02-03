@@ -59,20 +59,17 @@ export function ImageToVideoPanelEnhanced() {
   const [showLimitDialog, setShowLimitDialog] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
-  // 🔥 追踪是否已经加载过 image-to-video 数据
   const imageToVideoLoadedRef = useRef(false)
-  // 🔥 追踪是否正在加载 sessionStorage 数据（防止并发加载）
   const isLoadingSessionDataRef = useRef(false)
 
   // Context and hooks
   const videoContext = useVideoContext()
   const authModal = useVideoGenerationAuth()
 
-  // 🔥 多图上传 Hook (image-to-video 只允许 1 张图片)
   const imageUpload = useImageUpload(
     {
       uploadMode: params.uploadMode,
-      maxFiles: 1,  // 🔥 限制为 1 张图片
+      maxFiles: 1,
       onAuthRequired: async () => {
         return await authModal.requireAuth(async () => {
           // 认证成功后继续上传
@@ -80,14 +77,12 @@ export function ImageToVideoPanelEnhanced() {
       }
     },
     (imageUrl: string) => {
-      // 当图片被选中时,更新 params
       setParams(prev => ({
         ...prev,
         imageFile: null,
         image: imageUrl
       }))
 
-      // 🔥 Analytics: 追踪图片上传成功
       GenerationAnalytics.trackUploadImage({
         generationType: 'image-to-video',
         uploadMode: params.uploadMode,
@@ -109,42 +104,25 @@ export function ImageToVideoPanelEnhanced() {
   // Video polling V2
   const videoPolling = useVideoPollingV2({
     onCompleted: (job, resultUrl) => {
-      // 🔥 刷新积分显示，确保前端显示的积分数是最新的
       refreshCredits()
     },
     onFailed: (job, error) => {
-      console.error(`Image-to-video generation failed: ${job.id}`, error)
+      // 生成失败的处理
     }
   })
 
   const { startPolling } = videoPolling
 
-  // 🔥 防止重复提交的标志
   const isSubmittingRef = useRef(false)
 
-  // Video generation
   const videoGeneration = useVideoGeneration({
     onSuccess: (job, requestId) => {
-      // 🔥 重置提交标志
       isSubmittingRef.current = false
 
-      console.log(`🎉 [ImageToVideo Panel] onSuccess triggered:`, {
-        jobId: job.id,
-        requestId,
-        jobRequestId: job.requestId,
-        hasRequestId: !!job.requestId
-      })
-
-      // 🔥 验证 job 对象
       if (!job.requestId) {
-        console.error(`❌ [ImageToVideo Panel] Job missing requestId in onSuccess callback!`)
-        console.error(`Job details:`, JSON.stringify(job, null, 2))
         return
       }
 
-      // 🔥 修复：直接使用传入的完整 job 对象，避免从 context 查找导致的竞态条件
-
-      // 🔥 Analytics: 追踪后端开始生成
       GenerationAnalytics.trackGenerationStarted({
         generationType: 'image-to-video',
         jobId: job.id,
@@ -156,15 +134,10 @@ export function ImageToVideoPanelEnhanced() {
         creditsRequired: getCreditsRequired(),
       })
 
-      // ✅ 直接使用传入的 job 对象，不再从 videoContext 查找
-      console.log(`🚀 [ImageToVideo Panel] Calling startPolling...`)
       startPolling(job)
-      console.log(`✅ [ImageToVideo Panel] startPolling called successfully`)
     },
     onError: (error) => {
-      // 🔥 重置提交标志
       isSubmittingRef.current = false
-      console.error('❌ [ImageToVideo Panel] Generation failed:', error)
     },
     onAuthRequired: () => {
       authModal.showAuthModal()
@@ -176,7 +149,6 @@ export function ImageToVideoPanelEnhanced() {
   const currentUserId = session?.user?.uuid
 
 
-  // 🔥 修复：获取所有用户的任务和视频 - 包含进行中和已完成的
   const userJobs = currentUserId
     ? videoContext.activeJobs.filter(job => job.userId === currentUserId)
     : []
@@ -185,12 +157,10 @@ export function ImageToVideoPanelEnhanced() {
     ? videoContext.completedVideos.filter(video => video.userId === currentUserId)
     : []
 
-  // 🔥 新增：获取临时视频（刚完成的）
   const userTemporaryVideos = currentUserId
     ? videoContext.temporaryVideos.filter(video => video.userId === currentUserId)
     : []
 
-  // 🔥 合并所有要显示的项目：进行中任务 + 临时完成视频
   const allUserItems = [
     ...userJobs,
     ...userTemporaryVideos.map(video => ({
@@ -215,10 +185,8 @@ export function ImageToVideoPanelEnhanced() {
   useEffect(() => {
     const remixData = getRemixData()
     if (remixData) {
-      // 🔥 Download image from URL, convert to File, and upload using Hook
       const loadAndUploadRemixImage = async () => {
         try {
-          // Fetch the image through proxy to avoid CORS issues
           const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(remixData.imageUrl)}`
           const response = await fetch(proxyUrl)
 
@@ -227,25 +195,17 @@ export function ImageToVideoPanelEnhanced() {
           }
 
           const blob = await response.blob()
-
-          // Create File object from blob
           const fileName = remixData.imageUrl.split('/').pop() || 'remixed-image.webp'
           const file = new File([blob], fileName, { type: blob.type })
 
-          // Set prompt
           setParams(prev => ({
             ...prev,
             prompt: remixData.prompt,
-            uploadMode: 'local' // 🔥 Use local mode for remix images
+            uploadMode: 'local'
           }))
 
-          // 🔥 使用 imageUpload Hook 上传图片
           await imageUpload.uploadImage(file)
-
         } catch (error) {
-          console.error('Failed to load remix image:', error)
-
-          // Fallback: just set the prompt
           setParams(prev => ({
             ...prev,
             prompt: remixData.prompt
@@ -254,22 +214,16 @@ export function ImageToVideoPanelEnhanced() {
       }
 
       loadAndUploadRemixImage()
-
-      // Clear remix data after loading to prevent re-triggering
       clearRemixData()
-
     }
   }, [getRemixData, clearRemixData, imageUpload])
 
-  // 🔥 Check for image-to-video data from other pages (image previews, my assets)
   useEffect(() => {
-    // 🔥 双重保护：防止并发加载
     if (imageToVideoLoadedRef.current || isLoadingSessionDataRef.current) {
       return
     }
 
     const checkImageToVideoData = async () => {
-      // 🔥 标记正在加载
       isLoadingSessionDataRef.current = true
 
       try {
@@ -280,86 +234,48 @@ export function ImageToVideoPanelEnhanced() {
 
         const data = JSON.parse(stored)
 
-        // Check if data is fresh (within 5 minutes)
         const now = Date.now()
         const age = now - (data.timestamp || 0)
-        if (age > 5 * 60 * 1000) { // 5 minutes
+        if (age > 5 * 60 * 1000) {
           sessionStorage.removeItem('vidfab-image-to-video')
           return
         }
 
-        console.log('📥 Loading image-to-video data from sessionStorage:', {
-          imageUrl: data.imageUrl,
-          promptLength: data.prompt?.length || 0,
-          age: `${Math.round(age / 1000)}s`
-        })
-
-        // 🔥 Download image from URL and upload
         const proxyUrl = `/api/images/proxy?url=${encodeURIComponent(data.imageUrl)}`
-        console.log('🔄 Proxying image:', proxyUrl)
-
         const response = await fetch(proxyUrl)
 
         if (!response.ok) {
-          const errorText = await response.text()
-          console.error('❌ Proxy failed:', response.status, errorText)
-          throw new Error(`Failed to fetch image: ${response.status} ${errorText}`)
+          throw new Error(`Failed to fetch image: ${response.status}`)
         }
 
         const blob = await response.blob()
-        console.log('✅ Image downloaded:', {
-          size: `${(blob.size / 1024).toFixed(2)}KB`,
-          type: blob.type
-        })
-
         const fileName = data.imageUrl.split('/').pop() || 'image-to-video.jpg'
-
-        // 🔥 根据文件扩展名推断正确的 MIME 类型
         const ext = fileName.toLowerCase().split('.').pop()
         const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
                          ext === 'png' ? 'image/png' :
                          ext === 'webp' ? 'image/webp' :
-                         blob.type || 'image/jpeg' // 默认使用 blob.type 或 image/jpeg
+                         blob.type || 'image/jpeg'
 
         const file = new File([blob], fileName, { type: mimeType })
-        console.log('📦 Created File object:', {
-          name: file.name,
-          type: file.type,
-          size: `${(file.size / 1024).toFixed(2)}KB`
-        })
 
-        // Set prompt
         setParams(prev => ({
           ...prev,
           prompt: data.prompt || '',
           uploadMode: 'local'
         }))
 
-        // Upload image
-        console.log('📤 Uploading image to Supabase...')
         await imageUpload.uploadImage(file)
-        console.log('✅ Image upload completed')
-
-        // 🔥 只有在所有操作成功后才标记为已加载
         imageToVideoLoadedRef.current = true
-
-        // Clear sessionStorage
         sessionStorage.removeItem('vidfab-image-to-video')
-        console.log('✅ Image-to-video data loaded and cleared from sessionStorage')
-
       } catch (error) {
-        console.error('❌ Failed to load image-to-video data:', error)
-        // 🔥 失败时不标记为已加载，允许重试
-        // imageToVideoLoadedRef.current 保持为 false
         sessionStorage.removeItem('vidfab-image-to-video')
       } finally {
-        // 🔥 重置加载状态
         isLoadingSessionDataRef.current = false
       }
     }
 
     checkImageToVideoData()
-  }, []) // 🔥 修复：只在组件 mount 时执行一次，避免重复加载导致的竞态条件
+  }, [])
 
   // Handle Vidfab Pro model selection - auto-configure settings
   useEffect(() => {
@@ -410,7 +326,6 @@ export function ImageToVideoPanelEnhanced() {
     return errors
   }, [params])
 
-  // 🔥 拖放处理器（支持多图）
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     imageUpload.setIsDragging(true)
@@ -433,44 +348,34 @@ export function ImageToVideoPanelEnhanced() {
     }
   }
 
-  // Generate video
   const handleGenerate = useCallback(async () => {
-    // 🔥 防止重复提交
     if (isSubmittingRef.current) {
-      console.warn('⚠️ [ImageToVideo Panel] Request already in progress, skipping duplicate submission')
       return
     }
 
-    console.log(`🚀 [ImageToVideo Panel] handleGenerate called`)
     isSubmittingRef.current = true
 
-    // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
-      // 找到所有已完成的视频（不包括处理中、失败等状态）
       const completedItems = allUserItems.filter(item =>
         item.status === 'completed' && item.resultUrl
       )
 
       if (completedItems.length > 0) {
-        // 按创建时间排序，找到最旧的
         const sortedCompleted = completedItems.sort((a, b) => {
           const timeA = new Date(a.createdAt || 0).getTime()
           const timeB = new Date(b.createdAt || 0).getTime()
-          return timeA - timeB // 升序，最旧的在前
+          return timeA - timeB
         })
 
         const oldestItem = sortedCompleted[0]
-        // 只从前端预览移除，不删除数据库记录
         videoContext.removeCompletedVideo(oldestItem.id)
       } else {
-        // 如果没有已完成的视频可清理，显示限制提示
         isSubmittingRef.current = false
         setShowLimitDialog(true)
         return
       }
     }
 
-    // Form validation
     const errors = validateForm()
     if (errors.length > 0) {
       isSubmittingRef.current = false
@@ -478,7 +383,6 @@ export function ImageToVideoPanelEnhanced() {
       return
     }
 
-    // 🔥 Analytics: 追踪点击生成按钮
     GenerationAnalytics.trackClickGenerate({
       generationType: 'image-to-video',
       modelType: params.model,
@@ -491,7 +395,6 @@ export function ImageToVideoPanelEnhanced() {
       creditsRequired: getCreditsRequired(),
     })
 
-    // 权限和Credits检查
     if (session?.user?.uuid) {
       try {
         const [modelAccess, budgetInfo] = await Promise.all([
@@ -499,21 +402,16 @@ export function ImageToVideoPanelEnhanced() {
           checkCreditsAvailability(params.model, params.resolution, params.duration)
         ])
 
-        // 检查模型访问权限
         if (!modelAccess.can_access) {
-          // 🔥 不显示技术性错误信息，直接引导用户升级
           setShowUpgradeDialog(true)
           return
         }
 
-        // 检查Credits是否足够
         if (!budgetInfo.can_afford) {
           setShowUpgradeDialog(true)
           return
         }
       } catch (error) {
-        console.error('权限检查失败:', error)
-        // 🔥 权限检查失败时不显示技术性错误信息，直接引导用户升级
         setShowUpgradeDialog(true)
         return
       }
@@ -570,12 +468,10 @@ export function ImageToVideoPanelEnhanced() {
     }
   }, [params, validateForm, authModal, videoGeneration, userJobs.length, allUserItems, videoContext])
 
-  // Update form parameters
   const updateParam = useCallback((key: keyof ImageToVideoParams, value: string) => {
     setParams(prev => {
       const oldValue = prev[key]
 
-      // 🔥 Analytics: 追踪参数切换事件
       if (oldValue !== value) {
         if (key === 'model') {
           GenerationAnalytics.trackChangeModel({
@@ -603,7 +499,6 @@ export function ImageToVideoPanelEnhanced() {
       return { ...prev, [key]: value }
     })
 
-    // Clear related validation errors
     if (validationErrors.length > 0) {
       setValidationErrors([])
     }
@@ -647,10 +542,8 @@ export function ImageToVideoPanelEnhanced() {
                 </Alert>
               )}
 
-              {/* 🆕 Image Upload Section */}
               <Card className="bg-gray-950 border-gray-800">
                 <CardContent className="space-y-4 pt-6">
-                  {/* Upload Mode Tabs */}
                   <div className="flex rounded-lg bg-gray-800 p-1 mb-4">
                     <button
                       onClick={() => updateParam("uploadMode", "local")}
@@ -677,13 +570,12 @@ export function ImageToVideoPanelEnhanced() {
                   </div>
 
                   {params.uploadMode === "local" ? (
-                    /* 🔥 多图上传模式 */
                     <div className="space-y-4">
                       <ImageUploadArea
                         disabled={videoGeneration.isGenerating}
                         onFilesSelected={imageUpload.uploadMultiple}
-                        multiple={false}  // 🔥 单图模式
-                        maxFiles={1}  // 🔥 限制为 1 张
+                        multiple={false}
+                        maxFiles={1}
                         currentCount={imageUpload.uploadTasks.size}
                         isDragging={imageUpload.isDragging}
                         onDragOver={handleDragOver}
