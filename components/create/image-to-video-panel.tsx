@@ -119,9 +119,15 @@ export function ImageToVideoPanelEnhanced() {
 
   const { startPolling } = videoPolling
 
+  // 🔥 防止重复提交的标志
+  const isSubmittingRef = useRef(false)
+
   // Video generation
   const videoGeneration = useVideoGeneration({
     onSuccess: (job, requestId) => {
+      // 🔥 重置提交标志
+      isSubmittingRef.current = false
+
       console.log(`🎉 [ImageToVideo Panel] onSuccess triggered:`, {
         jobId: job.id,
         requestId,
@@ -156,6 +162,8 @@ export function ImageToVideoPanelEnhanced() {
       console.log(`✅ [ImageToVideo Panel] startPolling called successfully`)
     },
     onError: (error) => {
+      // 🔥 重置提交标志
+      isSubmittingRef.current = false
       console.error('❌ [ImageToVideo Panel] Generation failed:', error)
     },
     onAuthRequired: () => {
@@ -427,6 +435,15 @@ export function ImageToVideoPanelEnhanced() {
 
   // Generate video
   const handleGenerate = useCallback(async () => {
+    // 🔥 防止重复提交
+    if (isSubmittingRef.current) {
+      console.warn('⚠️ [ImageToVideo Panel] Request already in progress, skipping duplicate submission')
+      return
+    }
+
+    console.log(`🚀 [ImageToVideo Panel] handleGenerate called`)
+    isSubmittingRef.current = true
+
     // 🔥 自动清理：如果达到20个上限，移除最旧的已完成视频
     if (userJobs.length >= 20) {
       // 找到所有已完成的视频（不包括处理中、失败等状态）
@@ -447,6 +464,7 @@ export function ImageToVideoPanelEnhanced() {
         videoContext.removeCompletedVideo(oldestItem.id)
       } else {
         // 如果没有已完成的视频可清理，显示限制提示
+        isSubmittingRef.current = false
         setShowLimitDialog(true)
         return
       }
@@ -455,6 +473,7 @@ export function ImageToVideoPanelEnhanced() {
     // Form validation
     const errors = validateForm()
     if (errors.length > 0) {
+      isSubmittingRef.current = false
       setValidationErrors(errors)
       return
     }
@@ -542,9 +561,11 @@ export function ImageToVideoPanelEnhanced() {
 
       if (!isAuthenticated) {
         // 用户未登录，不执行任何操作
+        isSubmittingRef.current = false
         return
       }
     } catch (error) {
+      isSubmittingRef.current = false
       setValidationErrors([error instanceof Error ? error.message : 'Generation failed'])
     }
   }, [params, validateForm, authModal, videoGeneration, userJobs.length, allUserItems, videoContext])

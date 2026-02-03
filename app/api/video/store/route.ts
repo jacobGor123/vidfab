@@ -90,14 +90,17 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
   })
 
   try {
+    console.log(`🔍 [Store] Checking if video already exists: ${wavespeedRequestId}`)
+
     // 检查是否已存在
     let existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
 
     if (existingVideo) {
-      console.log(`✅ Video already exists: ${existingVideo.id}`)
+      console.log(`✅ [Store] Video already exists: ${existingVideo.id}, status: ${existingVideo.status}`)
 
       // 如果已完成且有永久存储，直接返回
       if (existingVideo.status === 'completed' && existingVideo.storage_path) {
+        console.log(`✅ [Store] Video already completed and stored, returning existing record`)
         return NextResponse.json({
           success: true,
           data: {
@@ -112,6 +115,7 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
       }
 
       // 否则更新状态为已完成（但仍然只有临时URL，历史遗留问题）
+      console.log(`🔄 [Store] Updating existing video to completed status`)
       await UserVideosDB.updateVideoStatus(existingVideo.id, {
         status: 'completed',
         downloadProgress: 100,
@@ -129,6 +133,8 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
         }
       })
     }
+
+    console.log(`➕ [Store] Video does not exist, creating new record...`)
 
     // 🔥 下载视频并上传到 Supabase Storage（永久存储）
     console.log(`💾 Downloading and uploading video to Supabase Storage...`)
@@ -253,11 +259,36 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
     })
 
   } catch (error) {
-    console.error('Video storage failed:', error)
+    console.error('❌ [Store] Video storage failed:', error)
+
+    // 🔥 特殊处理：如果是重复键冲突，尝试返回已存在的记录
+    if (error instanceof Error && (error.message.includes('23505') || error.message.includes('duplicate key'))) {
+      console.log(`⚠️ [Store] Duplicate key conflict detected, attempting to fetch existing video...`)
+      try {
+        const existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
+        if (existingVideo) {
+          console.log(`✅ [Store] Successfully recovered from duplicate key conflict, returning existing video: ${existingVideo.id}`)
+          return NextResponse.json({
+            success: true,
+            data: {
+              videoId: existingVideo.id,
+              status: existingVideo.status,
+              videoUrl: existingVideo.original_url || originalUrl,
+              storagePath: existingVideo.storage_path,
+              message: 'Video already exists (recovered from duplicate)',
+              userEmail
+            }
+          })
+        }
+      } catch (recoveryError) {
+        console.error(`❌ [Store] Failed to recover from duplicate key conflict:`, recoveryError)
+      }
+    }
+
     return NextResponse.json({
       success: false,
       error: 'Failed to save video',
-      details: error.message
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
 }
