@@ -19,42 +19,50 @@ export const IMAGE_STYLES = {
   realistic: {
     name: 'Realistic',
     description: 'Photorealistic, natural lighting',
-    promptSuffix: 'photorealistic, high detail, natural lighting, professional photography, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3'
+    promptSuffix: 'photorealistic, ultra realistic, high detail, natural lighting, professional photography, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3, real life, realistic textures',
+    negativePromptExtra: '3d render, cgi, animated, cartoon style, disney, pixar, dreamworks, cel shaded, illustrated, drawing, painting, stylized, unrealistic proportions, big eyes, cute style, chibi, anime style'
   },
   anime: {
     name: 'Anime',
     description: 'Japanese animation style',
-    promptSuffix: 'anime style, manga, japanese animation, vibrant colors, cel shaded, by Makoto Shinkai, studio ghibli style, highly detailed'
+    promptSuffix: 'anime style, manga, japanese animation, vibrant colors, cel shaded, by Makoto Shinkai, studio ghibli style, highly detailed',
+    negativePromptExtra: 'photorealistic, realistic, 3d render, cgi, live action, photograph'
   },
   fantasy: {
     name: 'Fantasy',
     description: 'Epic fantasy art style',
-    promptSuffix: 'fantasy art, epic, magical, detailed, concept art, artstation, by greg rutkowski, dramatic lighting, vibrant colors'
+    promptSuffix: 'fantasy art, epic, magical, detailed, concept art, artstation, by greg rutkowski, dramatic lighting, vibrant colors',
+    negativePromptExtra: 'photorealistic, modern, contemporary, minimalist, plain'
   },
   cyberpunk: {
     name: 'Cyberpunk',
     description: 'Futuristic sci-fi aesthetic',
-    promptSuffix: 'cyberpunk, neon lights, futuristic, high tech, dystopian, sci-fi, blade runner style, synthwave, glowing elements'
+    promptSuffix: 'cyberpunk, neon lights, futuristic, high tech, dystopian, sci-fi, blade runner style, synthwave, glowing elements',
+    negativePromptExtra: 'natural, organic, traditional, historical, medieval'
   },
   'oil-painting': {
     name: 'Oil Painting',
     description: 'Classic oil painting style',
-    promptSuffix: 'oil painting, classical art, fine art, brush strokes, canvas texture, renaissance style, museum quality, detailed'
+    promptSuffix: 'oil painting, classical art, fine art, brush strokes, canvas texture, renaissance style, museum quality, detailed',
+    negativePromptExtra: 'photorealistic, digital art, 3d render, photograph, smooth, sharp'
   },
   '3d-render': {
     name: '3D Render',
     description: 'Modern 3D rendered',
-    promptSuffix: '3d render, octane render, unreal engine, highly detailed, smooth, sharp focus, trending on artstation, ray tracing'
+    promptSuffix: '3d render, octane render, unreal engine, highly detailed, smooth, sharp focus, trending on artstation, ray tracing',
+    negativePromptExtra: 'hand drawn, sketchy, rough, traditional art, painting'
   },
   watercolor: {
     name: 'Watercolor',
     description: 'Soft watercolor painting',
-    promptSuffix: 'watercolor painting, soft colors, artistic, flowing, delicate, pastel tones, hand painted, traditional art'
+    promptSuffix: 'watercolor painting, soft colors, artistic, flowing, delicate, pastel tones, hand painted, traditional art',
+    negativePromptExtra: 'photorealistic, sharp, digital, 3d render, bold, intense'
   },
   'comic-book': {
     name: 'Comic Book',
     description: 'Comic book illustration',
-    promptSuffix: 'comic book style, bold lines, vibrant colors, halftone dots, graphic novel, pop art, dynamic composition'
+    promptSuffix: 'comic book style, bold lines, vibrant colors, halftone dots, graphic novel, pop art, dynamic composition',
+    negativePromptExtra: 'photorealistic, soft, blurry, watercolor, smooth gradients'
   }
 }
 
@@ -228,8 +236,10 @@ ${ctx.appearances.map(app => `
 **基础排除项（所有人物必须包含）**:
 - 低质量: "low quality, blurry, distorted, deformed, ugly, bad anatomy"
 - 不一致: "inconsistent, multiple characters, different person, character variation"
-- 风格冲突: 列出与目标风格冲突的关键词
 - 其他: "watermark, text, signature, out of frame"
+
+**🔥 风格特定排除项（必须包含）**:
+对于 ${styleConfig.name} 风格，必须排除: "${styleConfig.negativePromptExtra || ''}"
 
 **🔥 智能排除项（根据核心特征动态生成）**:
 
@@ -257,11 +267,11 @@ ${ctx.appearances.map(app => `
 
 ### 4. 完整示例
 
-**示例 1: 成年老虎（场景：playful）**
+**示例 1: 成年老虎（场景：playful, 风格：Realistic）**
 - 核心特征: "tall, majestic, adult tiger, fierce expression, muscular build"
 - 场景参考: "playful scene in the forest", 情绪: "Happy"
-- **Prompt**: "A tall, majestic adult tiger with fierce expression and muscular build, standing in a playful pose in the forest, detailed fur texture, photorealistic, high detail, natural lighting, consistent character design, character reference sheet"
-- **Negative Prompt**: "low quality, blurry, baby, cub, young tiger, small, tiny, cute, adorable, gentle, cartoon, watermark"
+- **Prompt**: "A tall, majestic adult tiger with fierce expression and muscular build, standing in a playful pose in the forest, detailed fur texture, photorealistic, ultra realistic, high detail, natural lighting, real life, realistic textures, consistent character design, character reference sheet"
+- **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, stylized, unrealistic proportions, big eyes, cute style, baby, cub, young tiger, small, tiny, cute, adorable, gentle, watermark"
 
 **示例 2: 年轻巫师（场景：battle）**
 - 核心特征: "young male wizard in his 20s, short messy brown hair, bright blue eyes"
