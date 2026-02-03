@@ -8,9 +8,13 @@ import { withAuth } from '@/lib/middleware/auth'
 import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-api'
 
 /**
- * 🔥 强制后处理：确保 realistic 风格的规则被严格执行
+ * 🔥 强制后处理：清理冲突关键词并强制执行风格规则
  */
-function enforceRealisticStyle(prompt: string, negativePrompt: string): {
+function enforceStyleConsistency(
+  prompt: string,
+  negativePrompt: string,
+  imageStyle: string
+): {
   prompt: string
   negativePrompt: string
 } {
@@ -21,9 +25,37 @@ function enforceRealisticStyle(prompt: string, negativePrompt: string): {
   let processedPrompt = prompt
   let processedNegativePrompt = negativePrompt
 
-  // 🔥 规则: 所有动物（realistic 风格下） → 强制写实
-  // 不管是大是小、是否拟人化，所有动物都应该是真实照片
-  if (isAnimal) {
+  // 🔥 步骤 1: 清理与当前风格冲突的关键词
+  if (imageStyle === 'realistic') {
+    // Realistic 风格：移除卡通/动漫/3D 相关关键词
+    const conflictingKeywords = [
+      'anime', 'manga', 'cartoon', 'comic', 'cel shaded',
+      '3d render', 'octane render', 'unreal engine',
+      'oil painting', 'watercolor', 'painted'
+    ]
+    conflictingKeywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
+      processedPrompt = processedPrompt.replace(regex, '').trim()
+    })
+  } else {
+    // 非 Realistic 风格：移除写实摄影相关关键词
+    const realisticKeywords = [
+      'photorealistic', 'realistic photograph', 'professional photography',
+      'natural lighting', 'dslr', 'film grain', 'Fujifilm',
+      'real photo', 'documentary photography', 'wildlife photography',
+      'national geographic style'
+    ]
+    realisticKeywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
+      processedPrompt = processedPrompt.replace(regex, '').trim()
+    })
+
+    // 清理多余的逗号和空格
+    processedPrompt = processedPrompt.replace(/,\s*,/g, ',').replace(/\s+/g, ' ').trim()
+  }
+
+  // 🔥 步骤 2: Realistic 风格的动物特殊处理
+  if (imageStyle === 'realistic' && isAnimal) {
     if (!/^realistic photograph of/i.test(processedPrompt)) {
       processedPrompt = 'realistic photograph of ' + processedPrompt
     }
@@ -86,16 +118,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 🔥 强制后处理：确保 realistic 风格规则被执行
+    // 🔥 强制后处理：清理冲突关键词并强制执行风格规则（针对所有风格）
     let finalPrompt = prompt
     let finalNegativePrompt = negativePrompt || ''
 
-    if (imageStyle === 'realistic') {
-      const processed = enforceRealisticStyle(finalPrompt, finalNegativePrompt)
-      finalPrompt = processed.prompt
-      finalNegativePrompt = processed.negativePrompt
-      console.log('[Video Agent] ✅ Enforced realistic style')
-    }
+    // 对所有风格都执行后处理，清理冲突关键词
+    const processed = enforceStyleConsistency(finalPrompt, finalNegativePrompt, imageStyle)
+    finalPrompt = processed.prompt
+    finalNegativePrompt = processed.negativePrompt
+    console.log('[Video Agent] ✅ Enforced style consistency:', { imageStyle })
 
     console.log('[Video Agent] Generating character image', {
       prompt: finalPrompt.substring(0, 500) + (finalPrompt.length > 500 ? '...' : ''),  // 前500字符
