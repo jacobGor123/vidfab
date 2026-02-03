@@ -12,12 +12,21 @@ export interface Field {
   name: string
   label: string
   value: string
-  placeholder: string
+  placeholder?: string  // select 不需要 placeholder
   required?: boolean
+
+  // 字段类型
+  type?: 'textarea' | 'select'
+
+  // textarea 专用
   rows?: number
   maxLength?: number
+
+  // select 专用
+  options?: Array<{ value: string; label: string }>
+
   helpText?: string
-  icon?: LucideIcon  // 🔥 改为 Lucide 图标类型
+  icon?: LucideIcon
 }
 
 interface FieldsEditorProps {
@@ -47,6 +56,9 @@ export function FieldsEditor({
     <div className={`space-y-3 pt-2 border-t ${className}`}>
       {fields.map(field => {
         const hasError = field.required && touched[field.name] && !field.value.trim()
+        const fieldType = field.type || 'textarea'  // 默认为 textarea
+
+        // 只有 textarea 才需要字数统计
         const charCount = field.value.length
         const maxChars = field.maxLength || 500
 
@@ -59,20 +71,39 @@ export function FieldsEditor({
               {field.required && <span className="text-red-400">*</span>}
             </label>
 
-            {/* 输入框 */}
-            <textarea
-              value={field.value}
-              onChange={(e) => onChange(field.name, e.target.value)}
-              onBlur={() => handleBlur(field.name)}
-              placeholder={field.placeholder}
-              rows={field.rows || 2}
-              maxLength={maxChars}
-              className={`w-full text-xs p-2 bg-muted/50 border rounded resize-none focus:outline-none transition-colors ${
-                hasError
-                  ? 'border-red-400 focus:border-red-500'
-                  : 'border-muted focus:border-primary'
-              }`}
-            />
+            {/* 输入框 - 根据类型渲染 */}
+            {fieldType === 'select' ? (
+              <select
+                value={field.value}
+                onChange={(e) => onChange(field.name, e.target.value)}
+                onBlur={() => handleBlur(field.name)}
+                className={`w-full text-xs p-2 bg-muted/50 border rounded focus:outline-none transition-colors ${
+                  hasError
+                    ? 'border-red-400 focus:border-red-500'
+                    : 'border-muted focus:border-primary'
+                }`}
+              >
+                {field.options?.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <textarea
+                value={field.value}
+                onChange={(e) => onChange(field.name, e.target.value)}
+                onBlur={() => handleBlur(field.name)}
+                placeholder={field.placeholder}
+                rows={field.rows || 2}
+                maxLength={maxChars}
+                className={`w-full text-xs p-2 bg-muted/50 border rounded resize-none focus:outline-none transition-colors ${
+                  hasError
+                    ? 'border-red-400 focus:border-red-500'
+                    : 'border-muted focus:border-primary'
+                }`}
+              />
+            )}
 
             {/* 底部信息 */}
             <div className="flex items-center justify-between">
@@ -85,12 +116,14 @@ export function FieldsEditor({
                 ) : null}
               </div>
 
-              {/* 右侧：字数统计 */}
-              <div className={`text-xs tabular-nums ${
-                charCount > maxChars * 0.9 ? 'text-orange-400' : 'text-muted-foreground/50'
-              }`}>
-                {charCount}/{maxChars}
-              </div>
+              {/* 右侧：字数统计（仅 textarea）*/}
+              {fieldType === 'textarea' && (
+                <div className={`text-xs tabular-nums ${
+                  charCount > maxChars * 0.9 ? 'text-orange-400' : 'text-muted-foreground/50'
+                }`}>
+                  {charCount}/{maxChars}
+                </div>
+              )}
             </div>
           </div>
         )

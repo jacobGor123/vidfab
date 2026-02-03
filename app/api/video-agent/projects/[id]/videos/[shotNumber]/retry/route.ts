@@ -142,19 +142,24 @@ export const POST = withAuth(async (request, { params, userId }) => {
       // ✅ Unified prompt model: description (shot framing) + character_action (what happens).
       // The UI now edits character_action separately and sends both fields in JSON mode.
       let finalPrompt: string
+      let customDuration: number | undefined
+
       if (customPrompt && customPrompt.trim()) {
         try {
           // 尝试解析为 JSON 字段
           const parsedFields = JSON.parse(customPrompt)
 
           if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description + character_action
+            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds
             const description = parsedFields.description || shot.description
             const characterAction = parsedFields.character_action || shot.character_action
+            customDuration = parsedFields.duration_seconds ? parseInt(parsedFields.duration_seconds, 10) : undefined
+
             finalPrompt = `${description}. ${characterAction}`.trim()
             console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
               description: description.substring(0, 50) + '...',
-              characterAction: String(characterAction || '').substring(0, 50) + '...'
+              characterAction: String(characterAction || '').substring(0, 50) + '...',
+              customDuration: customDuration || shot.duration_seconds
             })
           } else {
             // JSON 解析成功但不是对象，作为纯文本处理
@@ -176,11 +181,14 @@ export const POST = withAuth(async (request, { params, userId }) => {
         finalPrompt += '. No text, no subtitles, no captions, no words on screen.'
       }
 
+      // 🔥 使用自定义时长（如果有），否则使用原始时长
+      const finalDuration = customDuration || shot.duration_seconds
+
       const { requestId } = await generateVeo3Video({
         prompt: finalPrompt,
         image: images.image,
         aspectRatio: project.aspect_ratio || '16:9',
-        duration: shot.duration_seconds,
+        duration: finalDuration,  // 🔥 使用自定义时长
         lastImage: images.lastImage
       })
 
@@ -215,6 +223,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       let finalPrompt: string
       let description: string
       let characterAction: string
+      let customDuration: number | undefined
 
       if (customPrompt && customPrompt.trim()) {
         try {
@@ -222,12 +231,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
           const parsedFields = JSON.parse(customPrompt)
 
           if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description 和 character_action
+            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds
             description = parsedFields.description || shot.description
             characterAction = parsedFields.character_action || shot.character_action
+            customDuration = parsedFields.duration_seconds ? parseInt(parsedFields.duration_seconds, 10) : undefined
+
             console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
               description: description.substring(0, 50) + '...',
-              characterAction: characterAction.substring(0, 50) + '...'
+              characterAction: characterAction.substring(0, 50) + '...',
+              customDuration: customDuration || shot.duration_seconds
             })
           } else {
             // JSON 解析成功但不是对象，作为纯文本处理
@@ -250,11 +262,14 @@ export const POST = withAuth(async (request, { params, userId }) => {
       // 构建完整 prompt（包含角色一致性约束和禁止字幕指令）
       finalPrompt = `Maintain exact character appearance and features from the reference image. ${description}. ${characterAction}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
+      // 🔥 使用自定义时长（如果有），否则使用原始时长
+      const finalDuration = customDuration || shot.duration_seconds
+
       const videoRequest: VideoGenerationRequest = {
         image: storyboard.image_url,
         prompt: finalPrompt,
         model: 'vidfab-q1',
-        duration: shot.duration_seconds,
+        duration: finalDuration,  // 🔥 使用自定义时长
         resolution: '720p',  // 🔥 修复：使用 720p（更快，缓存优化）
         aspectRatio: project.aspect_ratio || '16:9',
         cameraFixed: true,

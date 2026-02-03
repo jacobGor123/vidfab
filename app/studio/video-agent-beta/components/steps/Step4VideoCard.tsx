@@ -9,7 +9,7 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import ViewportMount from './ViewportMount'
 import { showConfirm } from '@/lib/utils/toast'
-import { RefreshCw, FileText, Clapperboard } from 'lucide-react'  // 🔥 添加图标
+import { RefreshCw, FileText, Clapperboard, Clock } from 'lucide-react'  // 🔥 添加 Clock 图标
 import { FieldsEditor, type Field } from '../common/FieldsEditor'
 import type { DisplayVideoItem } from './Step4VideoGen.types'
 import type { Shot } from '@/lib/types/video-agent'
@@ -47,6 +47,7 @@ export function Step4VideoCard({
   const [editFields, setEditFields] = useState<{
     description: string
     character_action: string
+    duration_seconds: number  // 🔥 新增：时长字段
   } | null>(null)
 
   // 🔥 从 customPrompts 解析字段（如果是 JSON 格式）
@@ -57,7 +58,11 @@ export function Step4VideoCard({
     try {
       const parsed = JSON.parse(customPrompt)
       if (parsed && typeof parsed === 'object') {
-        return parsed as typeof editFields
+        return {
+          description: parsed.description,
+          character_action: parsed.character_action,
+          duration_seconds: parsed.duration_seconds  // 🔥 新增：解析时长
+        } as typeof editFields
       }
     } catch {
       // 不是 JSON，忽略
@@ -68,7 +73,8 @@ export function Step4VideoCard({
   // 🔥 获取当前编辑字段（优先使用本地状态，其次使用 parsedFields，最后使用 shot 原始值）
   const currentFields = editFields || parsedFields || {
     description: shot?.description || getDefaultPrompt(item.shot_number),
-    character_action: shot?.character_action || ''
+    character_action: shot?.character_action || '',
+    duration_seconds: shot?.duration_seconds || 5  // 🔥 新增：默认 5 秒
   }
 
   const handleRetryClick = async (e: React.MouseEvent) => {
@@ -105,7 +111,7 @@ export function Step4VideoCard({
   const handleFieldChange = (name: string, value: string) => {
     setEditFields(prev => ({
       ...(prev || currentFields),
-      [name]: value
+      [name]: name === 'duration_seconds' ? parseInt(value, 10) : value  // 🔥 duration 转换为数字
     }))
   }
 
@@ -115,31 +121,52 @@ export function Step4VideoCard({
     onUpdatePrompt(item.shot_number, '')
   }
 
-  // 🔥 字段定义
-  const fields: Field[] = [
-    {
-      name: 'description',
-      label: 'Scene Description',
-      value: currentFields.description,
-      placeholder: 'Describe what is happening in this scene...',
-      required: true,
-      rows: 3,
-      maxLength: 500,
-      helpText: 'What is the main focus of this scene?',
-      icon: FileText
-    },
-    {
-      name: 'character_action',
-      label: 'Character Action',
-      value: currentFields.character_action,
-      placeholder: 'What are the characters doing?',
-      required: true,
-      rows: 3,
-      maxLength: 500,
-      helpText: 'Describe character movements and interactions',
-      icon: Clapperboard
-    }
-  ]
+  // 🔥 字段定义 - Scene Description 独立字段
+  const descriptionField: Field = {
+    name: 'description',
+    label: 'Scene Description',
+    value: currentFields.description,
+    placeholder: 'Describe what is happening in this scene...',
+    required: true,
+    rows: 3,
+    maxLength: 500,
+    helpText: 'What is the main focus of this scene?',
+    icon: FileText
+  }
+
+  // 🔥 Character Action + Duration 字段（用于并排显示）
+  const characterActionField: Field = {
+    name: 'character_action',
+    label: 'Character Action',
+    value: currentFields.character_action,
+    placeholder: 'What are the characters doing?',
+    required: true,
+    rows: 3,
+    maxLength: 500,
+    helpText: 'Describe character movements and interactions',
+    icon: Clapperboard
+  }
+
+  const durationField: Field = {
+    name: 'duration_seconds',
+    label: 'Duration',
+    type: 'select',
+    value: String(currentFields.duration_seconds),
+    options: [
+      { value: '2', label: '2s' },
+      { value: '3', label: '3s' },
+      { value: '4', label: '4s' },
+      { value: '5', label: '5s' },
+      { value: '6', label: '6s' },
+      { value: '7', label: '7s' },
+      { value: '8', label: '8s' },
+      { value: '9', label: '9s' },
+      { value: '10', label: '10s' }
+    ],
+    required: true,
+    helpText: 'Video duration for this shot',
+    icon: Clock
+  }
 
   return (
     <Card key={item.shot_number} className="overflow-hidden">
@@ -261,14 +288,94 @@ export function Step4VideoCard({
             <p className="text-xs text-destructive">{item.error_message}</p>
           )}
 
-          {/* 🔥 字段编辑器 */}
+          {/* 🔥 字段编辑器 - 自定义布局 */}
           {expandedPrompts[item.shot_number] && (
-            <FieldsEditor
-              fields={fields}
-              onChange={handleFieldChange}
-              onReset={handleReset}
-              autoAddedInfo="Character consistency (BytePlus mode) and subtitle restrictions will be automatically added"
-            />
+            <div className="space-y-3 pt-2 border-t">
+              {/* Scene Description - 单独一行 */}
+              <div className="space-y-1">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{descriptionField.label}</span>
+                  {descriptionField.required && <span className="text-red-400">*</span>}
+                </label>
+                <textarea
+                  value={descriptionField.value}
+                  onChange={(e) => handleFieldChange('description', e.target.value)}
+                  placeholder={descriptionField.placeholder}
+                  rows={descriptionField.rows}
+                  maxLength={descriptionField.maxLength}
+                  className="w-full text-xs p-2 bg-muted/50 border border-muted focus:border-primary rounded resize-none focus:outline-none transition-colors"
+                />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground/60">{descriptionField.helpText}</p>
+                  <div className="text-xs tabular-nums text-muted-foreground/50">
+                    {descriptionField.value.length}/{descriptionField.maxLength}
+                  </div>
+                </div>
+              </div>
+
+              {/* Character Action + Duration - 并排显示 */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Character Action */}
+                <div className="space-y-1">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <Clapperboard className="w-3.5 h-3.5" />
+                    <span>{characterActionField.label}</span>
+                    {characterActionField.required && <span className="text-red-400">*</span>}
+                  </label>
+                  <textarea
+                    value={characterActionField.value}
+                    onChange={(e) => handleFieldChange('character_action', e.target.value)}
+                    placeholder={characterActionField.placeholder}
+                    rows={characterActionField.rows}
+                    maxLength={characterActionField.maxLength}
+                    className="w-full text-xs p-2 bg-muted/50 border border-muted focus:border-primary rounded resize-none focus:outline-none transition-colors"
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground/60">{characterActionField.helpText}</p>
+                    <div className="text-xs tabular-nums text-muted-foreground/50">
+                      {characterActionField.value.length}/{characterActionField.maxLength}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div className="space-y-1">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{durationField.label}</span>
+                    {durationField.required && <span className="text-red-400">*</span>}
+                  </label>
+                  <select
+                    value={durationField.value}
+                    onChange={(e) => handleFieldChange('duration_seconds', e.target.value)}
+                    className="w-full text-xs p-2 bg-muted/50 border border-muted focus:border-primary rounded focus:outline-none transition-colors"
+                  >
+                    {durationField.options?.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground/60">{durationField.helpText}</p>
+                </div>
+              </div>
+
+              {/* 自动添加信息提示 */}
+              <div className="p-2.5 bg-primary/5 border border-primary/10 rounded text-xs text-muted-foreground leading-relaxed">
+                Character consistency (BytePlus mode) and subtitle restrictions will be automatically added
+              </div>
+
+              {/* Reset 按钮 */}
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={handleReset}
+                  className="text-xs px-3 py-2 bg-muted/30 hover:bg-muted/60 text-muted-foreground rounded transition-colors font-medium"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </CardContent>
