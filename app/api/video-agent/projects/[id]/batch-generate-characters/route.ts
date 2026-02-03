@@ -11,11 +11,13 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-api'
 import { ImageGenerationRequest } from '@/lib/types/image'
 import type { Database } from '@/lib/database.types'
+import { IMAGE_STYLES, type ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
 /**
- * 🔥 强制后处理：清理冲突关键词并强制执行风格规则
+ * 🔥 强制后处理（方案 A）：统一风格处理
+ * 与 character-prompt-generator.ts 中的逻辑保持一致
  */
 function enforceStyleConsistency(
   prompt: string,
@@ -26,125 +28,86 @@ function enforceStyleConsistency(
   prompt: string
   negativePrompt: string
 } {
-  const isSmall = /\b(small|tiny|little|baby|cub|juvenile|toddler)\b/i.test(prompt)
-  const isAnimal = /\b(cat|cats|dog|dogs|puppy|puppies|kitten|kittens|lamb|lambs|sheep|rabbit|rabbits|bunny|bunnies|bird|birds|fox|foxes|tiger|tigers|lion|lions|bear|bears|wolf|wolves|deer|mouse|mice|hamster|hamsters|squirrel|squirrels|raccoon|raccoons|hedgehog|hedgehogs|otter|otters|seal|seals|penguin|penguins|owl|owls|eagle|eagles|hawk|hawks|parrot|parrots|duck|ducks|chicken|chickens|pig|pigs|cow|cows|calf|calves|horse|horses|foal|foals|goat|goats|donkey|donkeys|zebra|zebras|giraffe|giraffes|elephant|elephants|rhino|rhinos|hippo|hippos|monkey|monkeys|ape|apes|gorilla|gorillas|panda|pandas|koala|koalas|kangaroo|kangaroos|dolphin|dolphins|whale|whales|shark|sharks|fish|fishes|turtle|turtles|frog|frogs|lizard|lizards|snake|snakes|crocodile|crocodiles|alligator|alligators|dragon|dragons|chihuahua|chihuahuas|poodle|poodles|bulldog|bulldogs|beagle|beagles|husky|huskies|labrador|labradors|retriever|retrievers|terrier|terriers|pug|pugs|corgi|corgis|dachshund|dachshunds|spaniel|spaniels|shepherd|shepherds)\b/i.test(prompt)
-  const isAnthropomorphic = isAnimal && /\b(wearing|dressed|clothes|shirt|sweater|jacket|coat|hat|scarf|pants|shoes|boots|glasses|necklace|bracelet|ring)\b/i.test(prompt)
+  const styleConfig = IMAGE_STYLES[imageStyle as ImageStyle]
+  if (!styleConfig) {
+    console.warn(`[Enforce Style] Unknown style: ${imageStyle}, using as-is`)
+    return { prompt, negativePrompt }
+  }
 
-  let processedPrompt = prompt
-  let processedNegativePrompt = negativePrompt
+  let cleanedPrompt = prompt
 
-  console.log('[Enforce Style] Character:', {
+  console.log('[Enforce Style] Original:', {
     characterName,
     imageStyle,
-    isSmall,
-    isAnimal,
-    isAnthropomorphic
+    originalPrompt: prompt.substring(0, 150)
   })
 
-  // 🔥 步骤 1: 清理与当前风格冲突的关键词
-  if (imageStyle === 'realistic') {
-    // Realistic 风格：移除卡通/动漫/3D 相关关键词
-    const conflictingKeywords = [
-      'anime', 'manga', 'cartoon', 'comic', 'cel shaded',
-      '3d render', 'octane render', 'unreal engine',
-      'oil painting', 'watercolor', 'painted'
-    ]
-    conflictingKeywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
-      processedPrompt = processedPrompt.replace(regex, '').trim()
-    })
-  } else {
-    // 非 Realistic 风格：移除写实摄影相关关键词
-    const realisticKeywords = [
-      'photorealistic', 'realistic photograph', 'professional photography',
-      'natural lighting', 'dslr', 'film grain', 'Fujifilm',
-      'real photo', 'documentary photography', 'wildlife photography',
-      'national geographic style'
-    ]
-    realisticKeywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
-      processedPrompt = processedPrompt.replace(regex, '').trim()
-    })
+  // 🔥 步骤 1: 清理所有审美评价词
+  const aestheticWords = [
+    'adorable', 'cute', 'kawaii', 'charming', 'lovely', 'sweet',
+    'beautiful', 'stunning', 'gorgeous', 'elegant', 'graceful',
+    'majestic', 'magnificent', 'impressive', 'striking'
+  ]
+  aestheticWords.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi')
+    cleanedPrompt = cleanedPrompt.replace(regex, '').trim()
+  })
 
-    // 清理多余的逗号和空格
-    processedPrompt = processedPrompt.replace(/,\s*,/g, ',').replace(/\s+/g, ' ').trim()
+  // 🔥 步骤 2: 清理所有风格关键词
+  const allStyleKeywords = [
+    'photorealistic', 'realistic photograph', 'professional photography',
+    'natural lighting', 'dslr', 'film grain', 'Fujifilm', 'RAW photo',
+    'real photo', 'documentary photography', 'wildlife photography',
+    'national geographic', 'hyper-realistic',
+    '3d render', '3d rendered', 'octane render', 'unreal engine',
+    'cgi', 'ray tracing', 'Pixar style',
+    'anime', 'anime style', 'manga', 'cel shaded', 'japanese animation',
+    'oil painting', 'watercolor', 'painted', 'painting style',
+    'illustration', 'illustrated', 'drawing', 'sketch',
+    'cartoon', 'comic', 'fantasy art', 'concept art'
+  ]
 
-    console.log('[Enforce Style] 🧹 Cleaned realistic keywords for non-realistic style:', {
-      characterName,
-      cleanedPromptPreview: processedPrompt.substring(0, 150)
-    })
-  }
+  allStyleKeywords.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
+    cleanedPrompt = cleanedPrompt.replace(regex, '').trim()
+  })
 
-  // 🔥 步骤 2: Realistic 风格的动物特殊处理
-  if (imageStyle === 'realistic' && isAnimal) {
-    // 强制添加前缀
-    if (!/^realistic photograph of/i.test(processedPrompt)) {
-      processedPrompt = 'realistic photograph of ' + processedPrompt
-    }
+  // 清理多余的逗号、空格和连续标点
+  cleanedPrompt = cleanedPrompt
+    .replace(/,\s*,/g, ',')
+    .replace(/\s+/g, ' ')
+    .replace(/,\s*\./g, '.')
+    .replace(/^\s*,\s*/, '')
+    .replace(/\s*,\s*$/, '')
+    .trim()
 
-    // 强制添加后缀
-    const requiredSuffixes = [
-      'real photo',
-      'not illustration',
-      'not cartoon',
-      'not 3d render',
-      'not animated',
-      'not drawn',
-      'photorealistic'
-    ]
+  // 🔥 步骤 3: 强制添加风格前缀 + 核心描述 + 风格后缀
+  const finalPrompt = `${styleConfig.promptPrefix} ${cleanedPrompt}, ${styleConfig.promptSuffix}`.trim()
 
-    const missingSuffixes = requiredSuffixes.filter(suffix =>
-      !processedPrompt.toLowerCase().includes(suffix.toLowerCase())
+  // 🔥 步骤 4: 强制添加风格特定的负面 prompt
+  let finalNegativePrompt = negativePrompt
+
+  if (styleConfig.negativePromptExtra) {
+    const extraNegatives = styleConfig.negativePromptExtra.split(',').map(s => s.trim())
+    const missingExtraNegatives = extraNegatives.filter(neg =>
+      !finalNegativePrompt.toLowerCase().includes(neg.toLowerCase())
     )
 
-    if (missingSuffixes.length > 0) {
-      const additionalSuffixes = missingSuffixes.join(', ')
-      if (isSmall) {
-        processedPrompt += `, ${additionalSuffixes}, wildlife photography style, national geographic style`
-      } else {
-        processedPrompt += `, ${additionalSuffixes}, documentary photography style`
-      }
+    if (missingExtraNegatives.length > 0) {
+      finalNegativePrompt += ', ' + missingExtraNegatives.join(', ')
     }
-
-    // 强制增强 negative prompt
-    const additionalNegatives = [
-      'cute style',
-      'adorable',
-      'kawaii',
-      'chibi',
-      'cartoon',
-      'illustrated',
-      'animated',
-      'stylized',
-      'unrealistic proportions',
-      'big eyes',
-      'simplified features',
-      'cel shaded',
-      'disney',
-      'pixar',
-      'dreamworks',
-      '3d render',
-      'cgi'
-    ]
-
-    const missingNegatives = additionalNegatives.filter(neg =>
-      !processedNegativePrompt.toLowerCase().includes(neg.toLowerCase())
-    )
-
-    if (missingNegatives.length > 0) {
-      processedNegativePrompt += ', ' + missingNegatives.join(', ')
-    }
-
-    console.log('[Enforce Style] ✅ Applied realistic rules:', {
-      characterName,
-      promptPrefix: processedPrompt.substring(0, 100) + '...',
-      addedNegatives: missingNegatives.length
-    })
   }
+
+  console.log('[Enforce Style] ✅ Processed:', {
+    characterName,
+    imageStyle,
+    cleanedPrompt: cleanedPrompt.substring(0, 100),
+    finalPromptPreview: finalPrompt.substring(0, 150)
+  })
 
   return {
-    prompt: processedPrompt,
-    negativePrompt: processedNegativePrompt
+    prompt: finalPrompt,
+    negativePrompt: finalNegativePrompt
   }
 }
 
