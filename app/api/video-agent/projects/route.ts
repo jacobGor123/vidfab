@@ -22,6 +22,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       aspect_ratio?: '16:9' | '9:16'
       enable_narration?: boolean
       mute_bgm?: boolean
+      image_style_id?: string  // 🔥 新增：图片风格 ID
     }
 
     try {
@@ -40,7 +41,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       original_script: originalScript,
       aspect_ratio: aspectRatio = '16:9',
       enable_narration: enableNarration = false,
-      mute_bgm: muteBgm = true
+      mute_bgm: muteBgm = true,
+      image_style_id: imageStyleId  // 🔥 新增：接收图片风格 ID
     } = body
 
     // 🔥 YouTube 视频复刻模式：允许 1-120 秒的任意时长（最多 2 分钟）
@@ -87,7 +89,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       scriptLength: originalScript.length,
       aspectRatio,
       enableNarration,
-      muteBgm
+      muteBgm,
+      imageStyleId  // 🔥 记录图片风格
     })
 
     // 创建项目
@@ -101,6 +104,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         aspect_ratio: aspectRatio,
         enable_narration: enableNarration,
         mute_bgm: muteBgm,
+        image_style_id: imageStyleId,  // 🔥 保存图片风格 ID
         status: 'draft',
         current_step: 1
       })

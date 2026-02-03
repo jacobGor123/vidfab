@@ -80,8 +80,15 @@ function buildCharacterPromptGenerationTask(
   const characters = scriptAnalysis.characters || []
   const shots = scriptAnalysis.shots || []
 
-  // 收集每个人物在分镜中的描述
+  // 🔥 收集每个人物在分镜中的描述
+  // 关键修改：拆分人物名称和核心特征
   const characterContexts = characters.map(char => {
+    // 提取人物名称和核心特征
+    // 格式: "Tiger (tall, majestic, adult tiger, fierce expression)"
+    const match = char.match(/^([^(]+)\s*\(([^)]+)\)$/)
+    const characterName = match ? match[1].trim() : char
+    const coreFeatures = match ? match[2].trim() : ''
+
     const appearances = shots
       .filter(shot => shot.characters?.includes(char))
       .map(shot => ({
@@ -92,7 +99,9 @@ function buildCharacterPromptGenerationTask(
       }))
 
     return {
-      name: char,
+      fullName: char,  // 完整名称（包含特征）
+      characterName,   // 仅名称
+      coreFeatures,    // 核心特征
       appearances
     }
   })
@@ -107,66 +116,164 @@ function buildCharacterPromptGenerationTask(
 **图片风格**: ${styleConfig.name} (${styleConfig.description})
 **人物列表**: ${characters.join(', ')}
 
-## 人物在分镜中的描述
+## 人物信息（核心特征 + 场景参考）
 
 ${characterContexts.map(ctx => `
-### ${ctx.name}
-出现在以下分镜中:
+### ${ctx.characterName}
+
+**🔥 核心特征（必须严格遵守，不得修改）**:
+${ctx.coreFeatures || '(无特征描述，需根据场景推断)'}
+
+**场景参考（仅用于调整姿态/表情/动作，不应改变核心外观特征）**:
 ${ctx.appearances.map(app => `
 - **Shot ${app.shotNumber}**
-  - 场景: ${app.description}
-  - 动作: ${app.action}
-  - 情绪: ${app.mood}
+  - 场景描述: ${app.description}
+  - 角色动作: ${app.action}
+  - 情绪氛围: ${app.mood}
 `).join('\n')}
+
+**⚠️ 重要提示**: 场景描述和情绪氛围**仅供参考**，用于生成符合场景的姿态和表情，但**绝对不能**改变"核心特征"中描述的年龄、体型、外观等基本属性。
 `).join('\n')}
 
 ## Prompt 生成要求
 
-### 1. 核心原则
+### 1. 核心原则（极其重要！）
+
+- **🔥 严格复刻**: 必须 100% 遵守"核心特征"中的所有描述，不得根据场景氛围、情绪、动作等因素修改人物的年龄、体型、外观等核心属性
+- **场景适配**: "场景参考"仅用于调整人物的姿态、表情、动作，**绝不能**改变人物本身的外观特征
 - **一致性第一**: 确保同一人物在所有分镜中保持外观一致
 - **风格匹配**: 完全符合 ${styleConfig.name} 风格
 - **细节丰富**: 包含足够的视觉细节（外貌、服装、特征）
 - **英文输出**: 所有 prompt 必须是英文
 
-### 2. Prompt 结构
+### 1.1 ❌ 禁止事项（必须严格遵守）
+
+以下行为是**绝对禁止**的：
+
+- ❌ **禁止根据场景氛围修改年龄**:
+  - 例如：看到 "playful scene" 就将 "adult tiger" 改为 "baby tiger"
+  - 例如：看到 "cute atmosphere" 就将 "elderly wizard" 改为 "young wizard"
+
+- ❌ **禁止根据情绪修改体型**:
+  - 例如：看到 "Happy, Joyful" 就将 "muscular warrior" 改为 "slim, cute warrior"
+  - 例如：看到 "Sad" 就将 "strong giant" 改为 "weak, skinny giant"
+
+- ❌ **禁止根据动作修改外观**:
+  - 例如：看到 "playing with butterfly" 就将 "fierce dragon" 改为 "gentle, cute dragon"
+  - 例如：看到 "dancing" 就将 "heavy armor knight" 改为 "light cloth dancer"
+
+- ❌ **禁止忽略核心特征中的任何描述**:
+  - 如果核心特征写 "tall, majestic, adult"，prompt 中**必须包含**这些关键词
+  - 不能用近义词替换（如不能用 "cute" 替换 "majestic"）
+
+### 1.2 ✅ 正确示例 vs ❌ 错误示例
+
+**示例 1: 成年老虎 vs 幼年老虎**
+- 核心特征: "tall, majestic, adult tiger, fierce expression"
+- 场景参考: "playful scene in the forest", 情绪: "Happy, Joyful"
+- ❌ **错误**: "cute baby tiger playing happily in the forest"
+- ✅ **正确**: "tall, majestic adult tiger in a playful pose in the forest, fierce expression"
+
+**示例 2: 强壮战士 vs 可爱战士**
+- 核心特征: "muscular, battle-hardened warrior, scars on face"
+- 场景参考: "peaceful garden with flowers", 情绪: "Calm, Peaceful"
+- ❌ **错误**: "gentle, peaceful warrior relaxing in garden"
+- ✅ **正确**: "muscular, battle-hardened warrior with scars on face, standing calmly in a peaceful garden"
+
+**示例 3: 巨大体型 vs 普通体型**
+- 核心特征: "massive, towering giant, intimidating presence"
+- 场景参考: "sitting down on a small chair", 情绪: "Tired"
+- ❌ **错误**: "normal-sized person sitting tiredly on a chair"
+- ✅ **正确**: "massive, towering giant with intimidating presence, sitting down on a small chair"
+
+### 2. Prompt 结构（严格按以下顺序）
 
 每个人物的 prompt 应包含以下部分（按顺序）:
 
-**a) 主体描述**
-- 人物类型（human, creature, robot, etc.）
-- 性别/年龄（如适用）
-- 核心特征（发型、面部特征、体型）
+**a) 🔥 核心特征（最重要！必须优先且完整地包含）**
+- **直接复制**"核心特征"中的所有描述
+- 确保年龄、体型、外观等关键词完整保留
+- 例如：如果核心特征是 "tall, majestic, adult tiger, fierce expression"，prompt 开头必须是："A tall, majestic adult tiger with fierce expression"
 
-**b) 服装与配饰**
+**b) 主体描述（补充细节）**
+- 人物类型（human, creature, robot, etc.）
+- 补充核心特征未提及的细节（发型、面部特征等）
+
+**c) 服装与配饰**
 - 详细的服装描述
 - 配饰和道具
 
-**c) 外观细节**
+**d) 外观细节**
 - 皮肤/表面质感
 - 眼睛颜色和表情
 - 独特标识（疤痕、纹身、特殊标记）
 
-**d) 风格关键词**
+**e) 姿态与场景适配（可选）**
+- 根据"场景参考"调整姿态和表情
+- 例如：如果场景是 "playful scene"，可以添加 "in a playful pose" 或 "with a playful gesture"
+- ⚠️ 注意：只能调整姿态，不能改变外观
+
+**f) 风格关键词**
 - 必须添加: "${styleConfig.promptSuffix}"
 - 这些关键词确保风格一致性
 
-**e) 一致性强化**
+**g) 一致性强化**
 - 添加: "consistent character design, character reference sheet, turnaround"
 - 确保 AI 生成一致的外观
 
-### 3. Negative Prompt 要求
+### 3. Negative Prompt 要求（智能排除）
 
-为每个人物生成 negative prompt，避免:
+为每个人物生成 negative prompt，**根据核心特征智能添加排除项**:
+
+**基础排除项（所有人物必须包含）**:
 - 低质量: "low quality, blurry, distorted, deformed, ugly, bad anatomy"
 - 不一致: "inconsistent, multiple characters, different person, character variation"
 - 风格冲突: 列出与目标风格冲突的关键词
 - 其他: "watermark, text, signature, out of frame"
 
-### 4. 示例格式
+**🔥 智能排除项（根据核心特征动态生成）**:
 
-假设人物是 "Young Wizard":
-- **Prompt**: "A young male wizard in his 20s, short messy brown hair, bright blue eyes, wearing a dark blue robe with silver star patterns, holding a wooden staff with a crystal top, confident expression, photorealistic, high detail, natural lighting, consistent character design, character reference sheet"
-- **Negative Prompt**: "low quality, blurry, old person, female, inconsistent, multiple characters, cartoon, anime, watermark"
+如果核心特征包含 "adult" 或 "mature"，必须排除:
+- "baby, infant, child, young, cub, juvenile, toddler"
+
+如果核心特征包含 "young" 或 "child"，必须排除:
+- "old, elderly, aged, senior, mature, adult"
+
+如果核心特征包含 "tall" 或 "large" 或 "giant" 或 "massive"，必须排除:
+- "short, small, tiny, miniature, petite"
+
+如果核心特征包含 "muscular" 或 "strong" 或 "powerful"，必须排除:
+- "skinny, thin, weak, slim, slender, fragile"
+
+如果核心特征包含 "fierce" 或 "intimidating" 或 "aggressive"，必须排除:
+- "cute, adorable, gentle, sweet, friendly, harmless"
+
+如果核心特征包含 "cute" 或 "adorable"，必须排除:
+- "fierce, scary, intimidating, aggressive, menacing"
+
+**示例**:
+- 核心特征: "tall, majestic, adult tiger, fierce expression"
+- Negative Prompt 应包含: "..., baby, cub, young, small, tiny, cute, adorable, gentle, ..."
+
+### 4. 完整示例
+
+**示例 1: 成年老虎（场景：playful）**
+- 核心特征: "tall, majestic, adult tiger, fierce expression, muscular build"
+- 场景参考: "playful scene in the forest", 情绪: "Happy"
+- **Prompt**: "A tall, majestic adult tiger with fierce expression and muscular build, standing in a playful pose in the forest, detailed fur texture, photorealistic, high detail, natural lighting, consistent character design, character reference sheet"
+- **Negative Prompt**: "low quality, blurry, baby, cub, young tiger, small, tiny, cute, adorable, gentle, cartoon, watermark"
+
+**示例 2: 年轻巫师（场景：battle）**
+- 核心特征: "young male wizard in his 20s, short messy brown hair, bright blue eyes"
+- 场景参考: "intense battle scene", 情绪: "Determined"
+- **Prompt**: "A young male wizard in his 20s with short messy brown hair and bright blue eyes, wearing a dark blue robe with silver star patterns, holding a wooden staff with a crystal top, determined expression in battle stance, photorealistic, high detail, natural lighting, consistent character design, character reference sheet"
+- **Negative Prompt**: "low quality, blurry, old person, elderly, aged, child, baby, female, inconsistent, multiple characters, cartoon, watermark"
+
+**示例 3: 强壮战士（场景：peaceful garden）**
+- 核心特征: "muscular, battle-hardened warrior, scars on face, intimidating presence"
+- 场景参考: "peaceful garden with flowers", 情绪: "Calm"
+- **Prompt**: "A muscular, battle-hardened warrior with scars on face and intimidating presence, standing calmly in a peaceful garden with flowers, wearing worn armor, photorealistic, high detail, natural lighting, consistent character design, character reference sheet"
+- **Negative Prompt**: "low quality, blurry, skinny, thin, weak, gentle, cute, young, child, baby, friendly, smiling, cartoon, watermark"
 
 ## 输出格式
 
@@ -182,12 +289,21 @@ ${ctx.appearances.map(app => `
   ]
 }
 
-**重要提示:**
-- 直接输出纯 JSON
-- 确保为 ${characters.length} 个人物生成 prompt
-- 所有内容必须是英文
-- Prompt 长度: 50-150 词
-- 包含风格关键词和一致性关键词`
+**🔥 最重要的提示（必须严格遵守）:**
+
+1. **核心特征优先**: 每个 prompt 必须以"核心特征"开头，100% 保留所有关键词
+2. **禁止修改年龄/体型**: 绝对不能根据场景氛围改变人物的年龄、体型、外观
+3. **场景仅调整姿态**: 场景描述只能影响姿态、表情、动作，不能影响外观
+4. **智能 Negative Prompt**: 根据核心特征添加相应的排除项
+5. **直接输出纯 JSON**: 不要包含 markdown 标记
+6. **确保数量**: 必须为 ${characters.length} 个人物生成 prompt
+7. **英文输出**: 所有内容必须是英文
+8. **合理长度**: Prompt 长度: 50-150 词
+
+**❌ 最常见的错误（务必避免）**:
+- 看到 "playful" 就生成 "baby" 或 "cute" → 这是错误的！
+- 看到 "Happy" 就改变人物体型或年龄 → 这是错误的！
+- 忽略核心特征中的 "adult", "tall", "muscular" 等关键词 → 这是错误的！`
 }
 
 /**

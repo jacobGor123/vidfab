@@ -12,12 +12,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Youtube, Upload, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Youtube, Upload, Loader2, AlertCircle, CheckCircle2, Palette } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { showError, showSuccess } from '@/lib/utils/toast'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { useVideoGenerationAuth } from '@/hooks/use-auth-modal'
 import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
+import { IMAGE_STYLES, type ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
 
 interface VideoUploadDialogProps {
   isOpen: boolean
@@ -40,6 +48,7 @@ export default function VideoUploadDialog({
   const authModal = useVideoGenerationAuth()
   const [inputType, setInputType] = useState<'youtube' | 'local'>('youtube')
   const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [imageStyle, setImageStyle] = useState<ImageStyle>('realistic')  // 🔥 新增：图片风格选择
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [progress, setProgress] = useState<string>('')
   const [createdProject, setCreatedProject] = useState<any>(null)
@@ -97,7 +106,8 @@ export default function VideoUploadDialog({
           original_script: scriptContent,
           aspect_ratio: '9:16',  // 🔥 默认 9:16
           enable_narration: false,  // 🔥 非旁白模式
-          mute_bgm: false  // 🔥 开启背景音乐（默认使用预设音乐）
+          mute_bgm: false,  // 🔥 开启背景音乐（默认使用预设音乐）
+          image_style_id: imageStyle  // 🔥 新增：保存用户选择的图片风格
         } as any)
 
         setProgress('Saving analysis results...')
@@ -129,7 +139,7 @@ export default function VideoUploadDialog({
             const response = await fetch(`/api/video-agent/projects/${project.id}/character-prompts`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ imageStyle: 'realistic' })  // 默认使用写实风格
+              body: JSON.stringify({ imageStyle })  // 🔥 使用用户选择的风格
             })
 
             if (response.ok) {
@@ -270,16 +280,46 @@ export default function VideoUploadDialog({
 
           {/* YouTube URL Input */}
           {inputType === 'youtube' && (
-            <div className="space-y-3">
-              <Label className="text-white/70 text-sm">YouTube Video URL</Label>
-              <Input
-                type="url"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-                disabled={isAnalyzing}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-blue-500/50"
-              />
+            <div className="space-y-6">
+              {/* YouTube URL 输入框 */}
+              <div className="space-y-3">
+                <Label className="text-white/70 text-sm">YouTube Video URL</Label>
+                <Input
+                  type="url"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  disabled={isAnalyzing}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-blue-500/50"
+                />
+              </div>
+
+              {/* 🔥 图片风格选择器 */}
+              <div className="space-y-3">
+                <Label className="text-white/70 text-sm flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  <span>Image Style</span>
+                </Label>
+                <Select value={imageStyle} onValueChange={(value) => setImageStyle(value as ImageStyle)} disabled={isAnalyzing}>
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white hover:bg-white/10 focus:ring-purple-500/50">
+                    <SelectValue placeholder="Select an image style" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900/95 border-white/10 backdrop-blur-xl">
+                    {Object.entries(IMAGE_STYLES).map(([key, style]) => (
+                      <SelectItem
+                        key={key}
+                        value={key}
+                        className="text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer"
+                      >
+                        <div className="flex flex-col py-1">
+                          <span className="font-medium">{style.name}</span>
+                          <span className="text-xs text-white/50">{style.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 
