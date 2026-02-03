@@ -230,11 +230,21 @@ ${ctx.appearances.map(app => `
 - 在结尾添加："real photo, not illustration, not cartoon, not 3d render, not animated, not drawn, documentary photography style"
 - 例如："realistic photograph of a cat wearing orange sweater, real photo, not illustration, not cartoon, photorealistic"
 
-**g) 风格关键词**
+**g) 🔥 小型动物的特殊处理（针对 Realistic 风格）**
+如果同时满足以下条件：
+- 图片风格是 "${styleConfig.name}"（Realistic）
+- 核心特征包含 "small" 或 "tiny" 或 "little" 或 "baby"
+- 是动物角色（cat, dog, lamb, rabbit, bird 等）
+则**必须**在 prompt 和 negative prompt 中添加超强写实约束：
+- Prompt 开头添加："realistic photograph of"
+- Prompt 结尾添加："real photo, not illustration, not cartoon, not animated, not drawn, wildlife photography style, national geographic style"
+- 例如："realistic photograph of a small white lamb, real photo, not illustration, not cartoon, wildlife photography style"
+
+**h) 风格关键词**
 - 必须添加: "${styleConfig.promptSuffix}"
 - 这些关键词确保风格一致性
 
-**h) 一致性强化**
+**i) 一致性强化**
 - 添加: "consistent character design, character reference sheet, turnaround"
 - 确保 AI 生成一致的外观
 
@@ -270,9 +280,15 @@ ${ctx.appearances.map(app => `
 如果核心特征包含 "cute" 或 "adorable"，必须排除:
 - "fierce, scary, intimidating, aggressive, menacing"
 
+**🔥 如果核心特征包含 "small" 或 "tiny" 或 "little" 或 "baby"（针对 Realistic 风格的动物）**，必须额外排除:
+- "cute style, adorable, kawaii, chibi, cartoon, illustrated, animated, stylized, unrealistic proportions, big eyes, simplified features, cel shaded"
+- 这确保小型动物也生成写实照片，而不是卡通/插画风格
+
 **示例**:
 - 核心特征: "tall, majestic, adult tiger, fierce expression"
 - Negative Prompt 应包含: "..., baby, cub, young, small, tiny, cute, adorable, gentle, ..."
+- 核心特征: "small white lamb"（Realistic 风格）
+- Negative Prompt 应包含: "..., cute style, adorable, kawaii, chibi, cartoon, illustrated, animated, stylized, unrealistic proportions, big eyes, ..."
 
 ### 4. 完整示例
 
@@ -287,6 +303,13 @@ ${ctx.appearances.map(app => `
 - 场景参考: "sitting on a wooden chair", 情绪: "Calm"
 - **Prompt**: "realistic photograph of a large, fluffy orange tabby cat wearing an orange knit sweater, sitting on a wooden chair, natural lighting, real photo, not illustration, not cartoon, not 3d render, not animated, not drawn, documentary photography style, photorealistic, ultra realistic, high detail, real life, realistic textures"
 - **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, dreamworks, cel shaded, illustrated, drawing, painting, digital art, stylized, unrealistic proportions, big eyes, cute style, chibi, anime style, anthropomorphic art, furry art, watermark"
+
+**示例 5: 小白羊（场景：grass field, 风格：Realistic）**
+- 核心特征: "small white lamb"
+- 场景参考: "standing in a grass field with flowers", 情绪: "Peaceful"
+- **Prompt**: "realistic photograph of a small white lamb with fluffy wool, standing in a grass field with flowers, natural lighting, real photo, not illustration, not cartoon, not animated, not drawn, wildlife photography style, national geographic style, photorealistic, ultra realistic, high detail, real life, realistic textures"
+- **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, dreamworks, cel shaded, illustrated, drawing, painting, digital art, stylized, unrealistic proportions, big eyes, cute style, adorable, kawaii, chibi, anime style, simplified features, watermark"
+- **🔥 关键**: 即使是"小"动物，也必须生成写实照片，通过 "realistic photograph", "wildlife photography", "national geographic style" 等关键词强制写实风格，并在 negative prompt 中排除 "cute style, adorable, kawaii, chibi" 等卡通元素
 
 **示例 2: 年轻巫师（场景：battle）**
 - 核心特征: "young male wizard in his 20s, short messy brown hair, bright blue eyes"
