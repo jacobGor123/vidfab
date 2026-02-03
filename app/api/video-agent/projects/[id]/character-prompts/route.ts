@@ -74,7 +74,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
     )
 
     console.log('[API] Character prompts generated:', {
-      count: characterPrompts.length
+      count: characterPrompts.length,
+      prompts: characterPrompts.map(cp => ({
+        characterName: cp.characterName,
+        promptPreview: cp.prompt.substring(0, 300) + '...',
+        negativePromptPreview: cp.negativePrompt.substring(0, 200) + '...'
+      }))
     })
 
     return NextResponse.json({

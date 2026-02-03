@@ -426,10 +426,130 @@ export async function generateCharacterPrompts(
       count: parsedResult.characterPrompts.length
     })
 
-    return parsedResult.characterPrompts
+    // 🔥 强制后处理：确保 realistic 风格的规则被严格执行
+    const postProcessedPrompts = postProcessCharacterPrompts(parsedResult.characterPrompts, imageStyle)
+
+    return postProcessedPrompts
 
   } catch (error) {
     console.error('[Character Prompt Generator] Generation failed:', error)
     throw error
   }
+}
+
+/**
+ * 🔥 强制后处理：确保 realistic 风格的规则被严格执行
+ * Gemini 不一定会遵守提示词中的规则，所以需要在代码层面强制执行
+ */
+function postProcessCharacterPrompts(
+  prompts: CharacterPrompt[],
+  imageStyle: ImageStyle
+): CharacterPrompt[] {
+  if (imageStyle !== 'realistic') {
+    return prompts  // 只处理 realistic 风格
+  }
+
+  const styleConfig = IMAGE_STYLES['realistic']
+
+  return prompts.map(cp => {
+    const characterName = cp.characterName.toLowerCase()
+    let prompt = cp.prompt
+    let negativePrompt = cp.negativePrompt
+
+    // 检测关键词
+    const isSmall = /\b(small|tiny|little|baby|cub|juvenile|toddler)\b/i.test(prompt)
+    const isAnimal = /\b(cat|dog|lamb|sheep|rabbit|bunny|bird|fox|tiger|lion|bear|wolf|deer|mouse|hamster|squirrel|raccoon|hedgehog|otter|seal|penguin|owl|eagle|hawk|parrot|duck|chicken|pig|cow|horse|goat|donkey|zebra|giraffe|elephant|rhino|hippo|monkey|ape|gorilla|panda|koala|kangaroo|dolphin|whale|shark|fish|turtle|frog|lizard|snake|crocodile|alligator|dragon)\b/i.test(prompt)
+    const isAnthropomorphic = isAnimal && /\b(wearing|dressed|clothes|shirt|sweater|jacket|coat|hat|scarf|pants|shoes|boots|glasses|necklace|bracelet|ring)\b/i.test(prompt)
+
+    console.log('[Post-Process] Character:', {
+      characterName,
+      isSmall,
+      isAnimal,
+      isAnthropomorphic,
+      originalPromptPreview: prompt.substring(0, 100)
+    })
+
+    // 🔥 规则 1: 小型动物 或 拟人化动物 → 强制写实前缀和后缀
+    if (isAnimal && (isSmall || isAnthropomorphic)) {
+      // 强制添加前缀（如果没有）
+      if (!/^realistic photograph of/i.test(prompt)) {
+        prompt = 'realistic photograph of ' + prompt
+      }
+
+      // 强制添加后缀（如果没有）
+      const requiredSuffixes = [
+        'real photo',
+        'not illustration',
+        'not cartoon',
+        'not 3d render',
+        'not animated',
+        'not drawn',
+        'photorealistic'
+      ]
+
+      let missingSuffixes = requiredSuffixes.filter(suffix =>
+        !prompt.toLowerCase().includes(suffix.toLowerCase())
+      )
+
+      if (missingSuffixes.length > 0) {
+        const additionalSuffixes = missingSuffixes.join(', ')
+        if (isSmall) {
+          prompt += `, ${additionalSuffixes}, wildlife photography style, national geographic style`
+        } else {
+          prompt += `, ${additionalSuffixes}, documentary photography style`
+        }
+      }
+
+      // 强制增强 negative prompt
+      const additionalNegatives = [
+        'cute style',
+        'adorable',
+        'kawaii',
+        'chibi',
+        'cartoon',
+        'illustrated',
+        'animated',
+        'stylized',
+        'unrealistic proportions',
+        'big eyes',
+        'simplified features',
+        'cel shaded',
+        'disney',
+        'pixar',
+        'dreamworks'
+      ]
+
+      const missingNegatives = additionalNegatives.filter(neg =>
+        !negativePrompt.toLowerCase().includes(neg.toLowerCase())
+      )
+
+      if (missingNegatives.length > 0) {
+        negativePrompt += ', ' + missingNegatives.join(', ')
+      }
+
+      console.log('[Post-Process] ✅ Enforced realistic style:', {
+        characterName,
+        promptPrefix: prompt.substring(0, 100),
+        negativePromptAdded: missingNegatives.join(', ')
+      })
+    }
+
+    // 🔥 规则 2: 所有 realistic 角色 → 确保有 style-specific negative prompt
+    if (styleConfig.negativePromptExtra) {
+      const extraNegatives = styleConfig.negativePromptExtra.split(',').map(s => s.trim())
+      const missingExtraNegatives = extraNegatives.filter(neg =>
+        !negativePrompt.toLowerCase().includes(neg.toLowerCase())
+      )
+
+      if (missingExtraNegatives.length > 0) {
+        negativePrompt += ', ' + missingExtraNegatives.join(', ')
+      }
+    }
+
+    return {
+      characterName: cp.characterName,
+      prompt,
+      negativePrompt
+    }
+  })
 }

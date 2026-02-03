@@ -42,7 +42,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
     }
 
     console.log('[Video Agent] Generating character image', {
+      prompt: prompt.substring(0, 500) + (prompt.length > 500 ? '...' : ''),  // 前500字符
       promptLength: prompt.length,
+      negativePrompt: negativePrompt?.substring(0, 300) + (negativePrompt && negativePrompt.length > 300 ? '...' : ''),  // 前300字符
       hasNegativePrompt: !!negativePrompt,
       negativePromptLength: negativePrompt?.length || 0,
       aspectRatio,
