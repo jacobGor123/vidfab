@@ -221,11 +221,20 @@ ${ctx.appearances.map(app => `
 - 例如：如果场景是 "playful scene"，可以添加 "in a playful pose" 或 "with a playful gesture"
 - ⚠️ 注意：只能调整姿态，不能改变外观
 
-**f) 风格关键词**
+**f) 🔥 拟人化角色的特殊处理（针对 Realistic 风格）**
+如果同时满足以下条件：
+- 图片风格是 "${styleConfig.name}"（Realistic）
+- 角色是动物 + 穿衣服/拟人化特征
+则**必须**在 prompt 中添加超强写实约束：
+- 在开头添加："realistic photograph of"
+- 在结尾添加："real photo, not illustration, not cartoon, not 3d render, not animated, not drawn, documentary photography style"
+- 例如："realistic photograph of a cat wearing orange sweater, real photo, not illustration, not cartoon, photorealistic"
+
+**g) 风格关键词**
 - 必须添加: "${styleConfig.promptSuffix}"
 - 这些关键词确保风格一致性
 
-**g) 一致性强化**
+**h) 一致性强化**
 - 添加: "consistent character design, character reference sheet, turnaround"
 - 确保 AI 生成一致的外观
 
@@ -272,6 +281,12 @@ ${ctx.appearances.map(app => `
 - 场景参考: "playful scene in the forest", 情绪: "Happy"
 - **Prompt**: "A tall, majestic adult tiger with fierce expression and muscular build, standing in a playful pose in the forest, detailed fur texture, photorealistic, ultra realistic, high detail, natural lighting, real life, realistic textures, consistent character design, character reference sheet"
 - **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, stylized, unrealistic proportions, big eyes, cute style, baby, cub, young tiger, small, tiny, cute, adorable, gentle, watermark"
+
+**示例 4: 拟人化橙猫（场景：sitting on chair, 风格：Realistic）**
+- 核心特征: "large, fluffy orange tabby cat, wearing orange sweater"
+- 场景参考: "sitting on a wooden chair", 情绪: "Calm"
+- **Prompt**: "realistic photograph of a large, fluffy orange tabby cat wearing an orange knit sweater, sitting on a wooden chair, natural lighting, real photo, not illustration, not cartoon, not 3d render, not animated, not drawn, documentary photography style, photorealistic, ultra realistic, high detail, real life, realistic textures"
+- **Negative Prompt**: "low quality, blurry, 3d render, cgi, animated, cartoon style, disney, pixar, dreamworks, cel shaded, illustrated, drawing, painting, digital art, stylized, unrealistic proportions, big eyes, cute style, chibi, anime style, anthropomorphic art, furry art, watermark"
 
 **示例 2: 年轻巫师（场景：battle）**
 - 核心特征: "young male wizard in his 20s, short messy brown hair, bright blue eyes"
