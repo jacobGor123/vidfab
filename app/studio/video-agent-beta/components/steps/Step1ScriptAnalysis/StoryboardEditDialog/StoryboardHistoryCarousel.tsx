@@ -133,7 +133,7 @@ export function StoryboardHistoryCarousel({
                   key={version.id}
                   onClick={() => handleVersionClick(version.id, version.version)}
                   className={cn(
-                    "relative flex-1 group aspect-video rounded-lg overflow-hidden border-2 transition-all",
+                    "relative group h-20 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
                     isSelected
                       ? "border-blue-500 shadow-lg shadow-blue-500/20"
                       : "border-slate-700 hover:border-slate-500"
@@ -143,7 +143,7 @@ export function StoryboardHistoryCarousel({
                   <img
                     src={version.image_url}
                     alt={`Version ${version.version}`}
-                    className="w-full h-full object-cover"
+                    className="h-full w-auto object-contain"
                   />
 
                   {/* 当前版本标记 */}
@@ -181,11 +181,6 @@ export function StoryboardHistoryCarousel({
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
-      </div>
-
-      {/* 提示文本 */}
-      <div className="text-xs text-slate-500 text-center">
-        Click on a thumbnail to switch to that version
       </div>
     </div>
   )
