@@ -260,31 +260,55 @@ export const POST = withAuth(async (request, { params, userId }) => {
       imageUrl: result.image_url
     })
 
-    // 更新数据库中的分镜图记录
-    const now = new Date().toISOString()
-    const { error: updateError } = await supabaseAdmin
-      .from('project_storyboards')
-      .update({
-        image_url: result.image_url || null,
-        image_url_external: result.image_url || null,
-        status: result.status,
-        storage_status: result.image_url ? 'pending' : null,
-        error_message: result.error || null,
-        updated_at: now
-      } as any)
-      .eq('project_id', projectId)
-      .eq('shot_number', shotNumber)
-      .returns<any>()
+    // 如果生成成功，保存为新的历史版本
+    if (result.status === 'success' && result.image_url) {
+      const { data: newVersionId, error: saveError } = await supabaseAdmin
+        .rpc('save_storyboard_with_history', {
+          p_project_id: projectId,
+          p_shot_number: shotNumber,
+          p_image_url: result.image_url,
+          p_image_storage_path: null,
+          p_seedream_task_id: null
+        })
 
-    if (updateError) {
-      console.error('[Video Agent] Failed to update storyboard:', updateError)
+      if (saveError) {
+        console.error('[Video Agent] Failed to save storyboard history:', saveError)
+        // 降级处理：如果保存历史失败，仍然更新当前记录
+        const now = new Date().toISOString()
+        await supabaseAdmin
+          .from('project_storyboards')
+          .update({
+            image_url: result.image_url,
+            image_url_external: result.image_url,
+            status: result.status,
+            storage_status: 'pending',
+            updated_at: now
+          } as any)
+          .eq('project_id', projectId)
+          .eq('shot_number', shotNumber)
+      } else {
+        console.log('[Video Agent] Storyboard saved as new history version:', {
+          projectId,
+          shotNumber,
+          newVersionId
+        })
+      }
     } else {
-      console.log('[Video Agent] Storyboard DB updated:', {
-        projectId,
-        shotNumber,
-        updatedAt: now,
-        imageUrl: result.image_url
-      })
+      // 生成失败，仅更新状态
+      const now = new Date().toISOString()
+      const { error: updateError } = await supabaseAdmin
+        .from('project_storyboards')
+        .update({
+          status: result.status,
+          error_message: result.error || null,
+          updated_at: now
+        } as any)
+        .eq('project_id', projectId)
+        .eq('shot_number', shotNumber)
+
+      if (updateError) {
+        console.error('[Video Agent] Failed to update storyboard status:', updateError)
+      }
     }
 
     // 🔥 Stable output (async): enqueue a download job so the request can return quickly.

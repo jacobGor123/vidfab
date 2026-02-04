@@ -255,26 +255,48 @@ export async function batchGenerateStoryboardsWithProgress(
         // 生成分镜（只传递相关角色）
         const result = await generateSingleStoryboard(shot, relevantCharacters, style, aspectRatio)
 
-        // 立即更新数据库
-        await supabaseAdmin
-          .from('project_storyboards')
-          .update({
-            image_url: result.image_url,
-            image_url_external: result.image_url, // 保存外部 URL
-            status: result.status,
-            error_message: result.error,
-            storage_status: 'pending', // 标记为待下载
-            updated_at: new Date().toISOString()
-          } as any)
-          .eq('project_id', projectId)
-          .eq('shot_number', shot.shot_number)
+        // 如果生成成功，保存为新的历史版本
+        if (result.status === 'success' && result.image_url) {
+          const { error: saveError } = await supabaseAdmin
+            .rpc('save_storyboard_with_history', {
+              p_project_id: projectId,
+              p_shot_number: shot.shot_number,
+              p_image_url: result.image_url,
+              p_image_storage_path: null,
+              p_seedream_task_id: null
+            })
 
-        if (result.status === 'success') {
+          if (saveError) {
+            console.error('[Storyboard Batch Generator] Failed to save history:', saveError)
+            // 降级处理：保存历史失败时仍更新当前记录
+            await supabaseAdmin
+              .from('project_storyboards')
+              .update({
+                image_url: result.image_url,
+                image_url_external: result.image_url,
+                status: result.status,
+                storage_status: 'pending',
+                updated_at: new Date().toISOString()
+              } as any)
+              .eq('project_id', projectId)
+              .eq('shot_number', shot.shot_number)
+          }
+
           successCount++
-
           // NOTE: do not enqueue downloads from here.
           // Download is handled by dedicated routes/worker jobs to avoid fallback direct-download.
         } else {
+          // 生成失败，仅更新状态
+          await supabaseAdmin
+            .from('project_storyboards')
+            .update({
+              status: result.status,
+              error_message: result.error,
+              updated_at: new Date().toISOString()
+            } as any)
+            .eq('project_id', projectId)
+            .eq('shot_number', shot.shot_number)
+
           failedCount++
         }
 
