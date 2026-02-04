@@ -257,7 +257,7 @@ export function StoryboardSection({
             getFieldValue={(field, originalValue) =>
               getFieldValue(shot.shot_number, field, originalValue)
             }
-            onGenerateVideo={(prompt) => generateSingleVideo(shot.shot_number, prompt)}
+            onGenerateVideo={(prompt, duration) => generateSingleVideo(shot.shot_number, prompt, duration)}  // 🔥 传递 duration 参数
             onUpdateVideoPrompt={(characterAction) => updateCustomPrompt(shot.shot_number, characterAction)}
           />
         ))}

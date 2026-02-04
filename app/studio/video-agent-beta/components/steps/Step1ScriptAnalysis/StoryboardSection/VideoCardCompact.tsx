@@ -13,7 +13,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Video, Loader2, AlertCircle, Play, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react'
+import { Video, Loader2, AlertCircle, Play, RefreshCw, ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import type { VideoClip } from '@/lib/stores/video-agent'
 
 interface VideoCardCompactProps {
@@ -21,10 +21,11 @@ interface VideoCardCompactProps {
     videoClip?: VideoClip
     defaultPrompt: string
     customPrompt?: string
+    defaultDuration?: number  // 🔥 新增：默认时长
     aspectRatio: '16:9' | '9:16'
     isGenerating: boolean
     disabled?: boolean
-    onGenerate: (prompt: string) => void
+    onGenerate: (prompt: string, duration: number) => void  // 🔥 修改：添加 duration 参数
     onUpdatePrompt: (prompt: string) => void
 }
 
@@ -33,6 +34,7 @@ export function VideoCardCompact({
     videoClip,
     defaultPrompt,
     customPrompt,
+    defaultDuration = 5,  // 🔥 新增：默认 5 秒
     aspectRatio,
     isGenerating,
     disabled = false,
@@ -40,6 +42,7 @@ export function VideoCardCompact({
     onUpdatePrompt
 }: VideoCardCompactProps) {
     const [isPromptExpanded, setIsPromptExpanded] = useState(false)
+    const [duration, setDuration] = useState(defaultDuration)  // 🔥 新增：时长状态
 
     // 使用自定义 prompt 或默认 prompt
     const currentPrompt = customPrompt ?? defaultPrompt
@@ -117,12 +120,12 @@ export function VideoCardCompact({
                 )}
             </div>
 
-            {/* Prompt 编辑区 - 可折叠 */}
+            {/* 编辑区 - 可折叠 */}
             <button
                 onClick={() => setIsPromptExpanded(!isPromptExpanded)}
                 className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-800/50 rounded transition-colors"
             >
-                <span>Character Action</span>
+                <span>Edit Fields</span>
                 {isPromptExpanded ? (
                     <ChevronUp className="w-3 h-3" />
                 ) : (
@@ -130,19 +133,53 @@ export function VideoCardCompact({
                 )}
             </button>
 
+            {/* 🔥 Character Action + Duration 并排显示 */}
             {isPromptExpanded && (
-                <Textarea
-                    value={currentPrompt}
-                    onChange={(e) => onUpdatePrompt(e.target.value)}
-                    placeholder="What is the character doing in this shot?"
-                    className="text-xs bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[80px]"
-                    disabled={isCurrentlyGenerating}
-                />
+                <div className="grid grid-cols-2 gap-2">
+                    {/* Character Action */}
+                    <div className="space-y-1">
+                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                            <Video className="w-3 h-3" />
+                            <span>Character Action</span>
+                        </label>
+                        <Textarea
+                            value={currentPrompt}
+                            onChange={(e) => onUpdatePrompt(e.target.value)}
+                            placeholder="What is the character doing?"
+                            className="text-xs bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[60px]"
+                            disabled={isCurrentlyGenerating}
+                        />
+                    </div>
+
+                    {/* Duration */}
+                    <div className="space-y-1">
+                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                            <Clock className="w-3 h-3" />
+                            <span>Duration</span>
+                        </label>
+                        <select
+                            value={duration}
+                            onChange={(e) => setDuration(parseInt(e.target.value, 10))}
+                            disabled={isCurrentlyGenerating}
+                            className="w-full text-xs p-2 bg-slate-900/50 border border-slate-700/50 focus:border-blue-500/50 rounded focus:outline-none transition-colors"
+                        >
+                            <option value={2}>2s</option>
+                            <option value={3}>3s</option>
+                            <option value={4}>4s</option>
+                            <option value={5}>5s</option>
+                            <option value={6}>6s</option>
+                            <option value={7}>7s</option>
+                            <option value={8}>8s</option>
+                            <option value={9}>9s</option>
+                            <option value={10}>10s</option>
+                        </select>
+                    </div>
+                </div>
             )}
 
             {/* 生成按钮 */}
             <Button
-                onClick={() => onGenerate(currentPrompt)}
+                onClick={() => onGenerate(currentPrompt, duration)}  // 🔥 传递 duration 参数
                 disabled={disabled || isCurrentlyGenerating || !currentPrompt.trim()}
                 size="sm"
                 variant={hasVideo ? 'outline' : 'default'}

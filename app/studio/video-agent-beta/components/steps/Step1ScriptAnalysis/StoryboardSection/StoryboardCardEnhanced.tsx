@@ -104,7 +104,7 @@ interface StoryboardCardEnhancedProps {
   onDelete?: () => void
   onFieldChange: (field: 'description', value: string) => void
   getFieldValue: (field: 'description', originalValue: string) => string
-  onGenerateVideo: (prompt: string) => void
+  onGenerateVideo: (prompt: string, duration: number) => void  // 🔥 添加 duration 参数
   onUpdateVideoPrompt: (prompt: string) => void
 }
 
@@ -306,6 +306,7 @@ export function StoryboardCardEnhanced({
               // Unified flow: the editable field is character_action; final prompt is composed.
               defaultPrompt={shot.character_action || ''}
               customPrompt={customVideoPrompt}
+              defaultDuration={shot.duration_seconds}  // 🔥 传递默认时长
               aspectRatio={aspectRatio}
               isGenerating={isVideoGenerating}
               disabled={!hasStoryboard}
