@@ -102,7 +102,6 @@ export function CharacterCard({
               {!state.isGenerating && (
                 <button
                   onClick={() => {
-                    console.log('💥💥💥 [CARD] Regenerate button clicked (hover)!', state.name)
                     onGenerate()
                   }}
                   disabled={!(state.prompt || '').trim()}
@@ -150,7 +149,6 @@ export function CharacterCard({
         <div className="grid grid-cols-3 gap-2">
           <Button
             onClick={() => {
-              console.log('💥💥💥 [CARD] Generate/Regen button clicked (bottom)!', state.name)
               onGenerate()
             }}
             disabled={state.isGenerating || !(state.prompt || '').trim()}

@@ -42,7 +42,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
   // 初始化人物状态 - 从数据库读取已保存的数据
   useEffect(() => {
     async function loadCharacterData() {
-      console.log('[useCharacterState] 🔄 loadCharacterData called')
 
       // 🔥 关键修复：只在首次加载时显示骨架屏，重新加载时后台静默更新
       // 这样避免用户快速操作时出现闪烁的骨架屏，提升体验
@@ -59,7 +58,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
       // 🔥 关键修复：去重角色列表，避免重复的名称
       const uniqueCharacters = Array.from(new Set(characters))
       if (uniqueCharacters.length !== characters.length) {
-        console.warn('[useCharacterState] ⚠️ Detected duplicate character names:', {
           original: characters,
           unique: uniqueCharacters
         })
@@ -80,9 +78,7 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
 
       // 从数据库读取已保存的人物数据
       try {
-        console.log('[useCharacterState] 📤 Fetching characters from database...')
         const data = await getCharacters(project.id)
-        console.log('[useCharacterState] ✅ Received character data:', {
           count: data?.length || 0,
           data: data?.map((char: any) => ({
             name: char.character_name,
@@ -133,7 +129,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             // 数据库角色名匹配，回填数据
             if (initialStates[char.character_name]) {
               const matchedKey = char.character_name
-              console.log(`[useCharacterState] 🔄 Processing DB character: ${matchedKey}`, {
                 hasImage: !!imageUrl,
                 imageUrl,
                 source: char.source,
@@ -148,9 +143,7 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
                 initialStates[matchedKey].name = char.character_name
                 initialStates[matchedKey].imageUrl = imageUrl
                 initialStates[matchedKey].mode = char.source === 'upload' ? 'upload' : 'ai'
-                console.log(`[useCharacterState] ✅ Set imageUrl for ${matchedKey}:`, imageUrl)
               } else {
-                console.warn(`[useCharacterState] ⚠️ No imageUrl for ${matchedKey}`)
               }
 
               // 恢复 prompt 和 negative prompt
@@ -162,7 +155,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               }
             } else {
               // 🔥 名字不匹配的角色，记录下来用于后续的位置映射
-              console.warn('[useCharacterState] ⚠️ DB character not in script_analysis (will try position mapping):', {
                 dbName: char.character_name,
                 hasImage: !!imageUrl,
                 availableNames: Object.keys(initialStates)
@@ -177,7 +169,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
           )
 
           if (unmatchedDbChars.length > 0) {
-            console.log('[useCharacterState] 🔄 Attempting position-based mapping for unmatched DB characters:', {
               unmatchedCount: unmatchedDbChars.length,
               unmatchedNames: unmatchedDbChars.map(c => c.name)
             })
@@ -191,7 +182,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             unmatchedDbChars.forEach((dbChar, index) => {
               if (index < statesWithoutImages.length) {
                 const targetKey = statesWithoutImages[index]
-                console.log(`[useCharacterState] 🔄 Position mapping: ${dbChar.name} → ${targetKey}`, {
                   imageUrl: dbChar.imageUrl
                 })
                 initialStates[targetKey].imageUrl = dbChar.imageUrl
@@ -208,10 +198,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
           // 🔥 关键修复：只在初次加载时自动同步，已初始化后跳过
           // 避免与用户主动选择预设人物的操作冲突，导致无限循环
           if (needsSync && dbCharacterNames.length > 0 && !hasInitializedRef.current) {
-            console.log('[useCharacterState] Auto-syncing character names on initial load')
             await syncCharacterNames(dbCharacterNames, initialStates)
           } else if (needsSync) {
-            console.log('[useCharacterState] ⚠️ Detected name mismatch but skipping auto-sync (already initialized)')
           }
         }
       } catch (error) {
@@ -256,7 +244,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               }
 
               if (preservedIsGenerating) {
-                console.log(`[useCharacterState] 🔄 Preserved isGenerating=true for ${key}`)
               }
             }
 
@@ -273,7 +260,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               if (dbImageUrlForKey && dbImageUrlForKey !== oldStateByKey.imageUrl) {
                 return
               }
-              console.log(`[useCharacterState] 🔄 Recovered image by key: ${key}`, {
                 imageUrl: oldStateByKey.imageUrl
               })
               merged[key] = {
@@ -293,7 +279,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               if (dbImageUrlForKey && dbImageUrlForKey !== oldStateByName.imageUrl) {
                 return
               }
-              console.log(`[useCharacterState] 🔄 Recovered image by name: ${newState.name}`, {
                 imageUrl: oldStateByName.imageUrl
               })
               merged[key] = {
@@ -320,7 +305,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
                   if (dbImageUrlForKey && dbImageUrlForKey !== oldStateByIndex.imageUrl) {
                     return
                   }
-                  console.log(`[useCharacterState] 🔄 Recovered image by position [${index}]: ${key}`, {
                     oldName: oldStateByIndex.name,
                     newName: newState.name,
                     imageUrl: oldStateByIndex.imageUrl
@@ -339,7 +323,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
           })
 
           if (recoveredCount > 0) {
-            console.log(`[useCharacterState] ✅ Smart merge recovered ${recoveredCount} images`)
           }
 
           return merged
@@ -347,7 +330,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
 
         setIsInitialLoading(false)
         hasInitializedRef.current = true
-        console.log('[useCharacterState] ✅ loadCharacterData completed:', {
           characterCount: Object.keys(initialStates).length,
           characters: Object.keys(initialStates),
           characterDetails: Object.entries(initialStates).map(([key, state]) => ({
@@ -374,7 +356,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
         characters.length !== lastCharactersCount)
 
     if (shouldLoad) {
-      console.log('[useCharacterState] Loading character data:', {
         hasInitialized: hasInitializedRef.current,
         charactersKey,
         lastKey: lastCharactersKeyRef.current,
@@ -385,7 +366,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
     } else if (hasInitializedRef.current && charactersKey !== lastCharactersKeyRef.current) {
       // Names changed (e.g. from "Angel" to "Cyber Girl").
       // We must migrate local state keys to match new names, otherwise ghost cards appear.
-      console.log('[useCharacterState] 🔄 Characters renamed, migrating state keys:', {
         oldKeys: lastCharactersKeyRef.current,
         newKeys: charactersKey
       })
@@ -406,7 +386,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               name: newName // Ensure internal name matches key
             }
             // Preserve image if one existed
-            console.log(`[useCharacterState] ➡ Migrated state: ${oldName} -> ${newName}`)
           } else if (prev[newName]) {
             // Already has state for this name
             nextStates[newName] = prev[newName]
@@ -444,7 +423,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
     initialStates: Record<string, CharacterState>
   ) => {
     const syncId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    console.log(`[useCharacterState] [${syncId}] 🔄 syncCharacterNames called:`, {
       dbCharacterNames,
       currentCharacters: characters
     })
@@ -457,11 +435,9 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
       }
     })
 
-    console.log(`[useCharacterState] [${syncId}] nameMapping:`, nameMapping)
 
     // 🔥 修复：不仅更新 name 属性，还要重新构建对象的 key
     if (Object.keys(nameMapping).length > 0) {
-      console.log(`[useCharacterState] [${syncId}] ⚠️ Name mismatch detected, syncing...`)
 
       // 重新构建 initialStates，使用新的 key
       const newInitialStates: Record<string, CharacterState> = {}
@@ -509,20 +485,15 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
 
         // 保存到数据库
         try {
-          console.log(`[useCharacterState] [${syncId}] 📤 Calling updateProject API from syncCharacterNames...`)
           await updateProject(project.id, { script_analysis: updatedAnalysis })
-          console.log(`[useCharacterState] [${syncId}] ✅ updateProject API completed`)
 
-          console.log(`[useCharacterState] [${syncId}] 🔄 Calling onUpdate from syncCharacterNames...`)
           onUpdateRef.current({ script_analysis: updatedAnalysis })
-          console.log(`[useCharacterState] [${syncId}] ✅ syncCharacterNames completed`)
         } catch (error) {
           console.error(`[useCharacterState] [${syncId}] ❌ syncCharacterNames failed:`, error)
           // Silent fail - auto-sync is best effort
         }
       }
     } else {
-      console.log(`[useCharacterState] [${syncId}] ✅ No sync needed, names already match`)
     }
   }
 

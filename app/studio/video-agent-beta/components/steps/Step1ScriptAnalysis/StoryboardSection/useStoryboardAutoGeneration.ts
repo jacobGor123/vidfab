@@ -148,7 +148,6 @@ export function useStoryboardAutoGeneration(
 
   // 开始生成
   const startGeneration = useCallback(async () => {
-    console.log('[StoryboardAutoGen] 🎬 startGeneration called:', {
       hasStarted: hasStartedRef.current,
       currentStatus: status,
       projectId: project.id,
@@ -164,18 +163,15 @@ export function useStoryboardAutoGeneration(
       return
     }
 
-    console.log('[StoryboardAutoGen] ✅ Starting generation flow...')
     hasStartedRef.current = true
     setStatus('generating')
     setProgress({ current: 0, total: analysis.shot_count })
 
     try {
-      console.log('[StoryboardAutoGen] 📤 Calling generateStoryboards API...')
       // 调用批量生成 API
       await generateStoryboards(project.id, {
         imageStyle: project.image_style_id || 'realistic'
       })
-      console.log('[StoryboardAutoGen] ✅ generateStoryboards API completed')
 
       // 设置轮询开始时间，用于超时保护
       pollStartTimeRef.current = Date.now()
@@ -184,7 +180,6 @@ export function useStoryboardAutoGeneration(
       pollIntervalRef.current = setInterval(pollStoryboards, 2000)
 
       // 立即执行一次轮询
-      console.log('[StoryboardAutoGen] 🔄 Starting polling...')
       await pollStoryboards()
 
     } catch (error) {

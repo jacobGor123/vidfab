@@ -24,8 +24,6 @@ interface Step2Props {
 }
 
 export default function Step2CharacterConfig({ project, onNext, onUpdate }: Step2Props) {
-  console.log('🎬🎬🎬 [STEP2] Step2CharacterConfig MOUNTED - Build:', 'b4b4ccea', 'Project:', project.id)
-
   // 状态管理
   const { characterStates, setCharacterStates, isInitialLoading, characters } = useCharacterState({
     project,
@@ -150,7 +148,6 @@ export default function Step2CharacterConfig({ project, onNext, onUpdate }: Step
               }
               onNameChange={(newName) => handleNameChange(state.name, newName)}
               onGenerate={() => {
-                console.log('⚡⚡⚡ [INDEX] onGenerate triggered for:', state.name)
                 handleSingleGenerate(state.name)
               }}
               onUpload={(file) => handleImageUpload(state.name, file)}

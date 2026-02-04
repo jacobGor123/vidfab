@@ -206,7 +206,6 @@ export function useVideoGenerationIntegrated({
 
             if (pollCountRef.current % 10 === 0) {
                 // 每 10 次轮询（20 秒）打印一次状态
-                console.log(`[VideoGenIntegrated] 📊 Poll #${pollCountRef.current} (${elapsed}s):`, {
                     totalClips: data.length,
                     generating: data.filter((c: VideoClip) => c.status === 'generating').length,
                     completed: data.filter((c: VideoClip) => c.status === 'success').length,
@@ -231,7 +230,6 @@ export function useVideoGenerationIntegrated({
             }
 
             if (!hasGenerating && isGeneratingRef.current) {
-                console.log('[VideoGenIntegrated] ✅ All videos completed, stopping poll')
                 setIsGenerating(false)
                 clearPoll()
             }
@@ -375,7 +373,6 @@ export function useVideoGenerationIntegrated({
 
     // 🔥 手动停止生成
     const stopGeneration = useCallback(() => {
-        console.log('[VideoGenIntegrated] 🛑 Manual stop requested')
         setIsGenerating(false)
         clearPoll()
         showInfo('Video generation stopped manually', 3000)
@@ -397,7 +394,6 @@ export function useVideoGenerationIntegrated({
         const hasGenerating = Object.values(videoClips).some(c => c.status === 'generating')
         if (hasGenerating && !isGenerating) {
             hasInitializedRef.current = true
-            console.log('[VideoGenIntegrated] Found generating videos, starting poll')
             startPolling()
         }
     }, [videoClips, isGenerating, startPolling])

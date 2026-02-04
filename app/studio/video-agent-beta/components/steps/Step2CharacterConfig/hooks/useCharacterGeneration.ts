@@ -28,14 +28,12 @@ export function useCharacterGeneration({
   setCharacterStates,
   onUpdate
 }: UseCharacterGenerationProps) {
-  console.log('🔧🔧🔧 [HOOK] useCharacterGeneration INITIALIZED - Build:', 'b4b4ccea')
 
   const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters, replaceCharacterInShots, getProject } = useVideoAgentAPI()
 
   // 🔥 新增：分析角色图片，提取描述
   const analyzeCharacterImage = async (characterName: string, imageUrl: string): Promise<string> => {
     try {
-      console.log('[Character Generation] Analyzing character image:', { characterName, imageUrl })
 
       const response = await fetch('/api/video-agent/analyze-character-image', {
         method: 'POST',
@@ -48,7 +46,6 @@ export function useCharacterGeneration({
       }
 
       const { data } = await response.json()
-      console.log('[Character Generation] Image analysis completed:', data)
 
       return data.description
     } catch (error: any) {
@@ -317,12 +314,10 @@ export function useCharacterGeneration({
               toName: charName,  // 名称不变，但触发同步
               scope: 'mentioned'
             })
-            console.log('[Character Generation] ✅ Synced shots for:', charName)
           } catch (syncErr: any) {
             console.warn(`[Character Generation] ⚠️ Failed to sync shots for ${charName}:`, syncErr)
           }
         }
-        console.log('[Character Generation] ✅ Batch sync completed for', successfulCharacters.length, 'character(s)')
       } catch (err: any) {
         console.warn('[Character Generation] ⚠️ Batch sync error:', err)
       }
@@ -358,7 +353,6 @@ export function useCharacterGeneration({
 
   // 单个人物生成
   const handleSingleGenerate = async (characterName: string) => {
-    console.log('🎯🎯🎯 [DEBUG] handleSingleGenerate called!', { characterName })
 
     const state = characterStates[characterName]
     if (!state || !(state.prompt || '').trim()) {
@@ -372,7 +366,6 @@ export function useCharacterGeneration({
     }))
 
     try {
-      console.log('🎯🎯🎯 [DEBUG] About to call generateCharacterImage', {
         characterName,
         prompt: state.prompt?.substring(0, 100),
         imageStyle: selectedStyle
@@ -385,7 +378,6 @@ export function useCharacterGeneration({
         imageStyle: selectedStyle  // 🔥 传递 imageStyle 以启用后处理
       })
 
-      console.log('🎯🎯🎯 [DEBUG] generateCharacterImage returned', {
         characterName,
         hasImageUrl: !!result?.imageUrl
       })
@@ -416,7 +408,6 @@ export function useCharacterGeneration({
 
           newCharacterName = `${shortName} (${description})`
 
-          console.log('[Character Generation] 🔄 Character name updated:', {
             oldName: characterName,
             newName: newCharacterName,
             newNameLength: newCharacterName.length
@@ -453,7 +444,6 @@ export function useCharacterGeneration({
         const charactersData = buildCharactersPayload(nextStates)
         updateCharacters(project.id, { characters: charactersData })
           .then(() => {
-            console.log('[Character Generation] ✅ Persisted generated character image to DB:', {
               oldName: characterName,
               newName: newCharacterName,
               imageUrl: result.imageUrl
@@ -474,7 +464,6 @@ export function useCharacterGeneration({
             toName: newCharacterName,
             scope: 'mentioned'
           })
-          console.log('[Character Generation] ✅ Synced shots after character name change:', {
             from: characterName,
             to: newCharacterName
           })
@@ -494,7 +483,6 @@ export function useCharacterGeneration({
 
             if (data.success && data.data?.script_analysis) {
               onUpdate({ script_analysis: data.data.script_analysis })
-              console.log('[Character Generation] ✅ Updated project script_analysis in UI')
             }
           } catch (reloadErr: any) {
             console.warn('[Character Generation] ⚠️ Failed to reload project data:', reloadErr)
@@ -504,7 +492,6 @@ export function useCharacterGeneration({
           // 不阻塞主流程，继续
         }
       } else {
-        console.log('[Character Generation] ℹ️ Character name unchanged, skipping shot sync')
       }
     } catch (err: any) {
       console.error(`[Character Generation] Failed to generate ${characterName}:`, err)

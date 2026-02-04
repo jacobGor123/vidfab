@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force rebuild: 2026-02-04 22:40 - Extract character name from prompt not old name
+  // Force rebuild: 2026-02-04 22:50 - Remove all debug console logs
   // Optimize for production hydration
   swcMinify: true,
   compress: true,
