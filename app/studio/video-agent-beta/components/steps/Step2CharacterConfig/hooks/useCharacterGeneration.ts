@@ -26,6 +26,8 @@ export function useCharacterGeneration({
   characterStates,
   setCharacterStates
 }: UseCharacterGenerationProps) {
+  console.log('🔧🔧🔧 [HOOK] useCharacterGeneration INITIALIZED - Build:', 'b4b4ccea')
+
   const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters, replaceCharacterInShots } = useVideoAgentAPI()
 
   // 🔥 新增：分析角色图片，提取描述

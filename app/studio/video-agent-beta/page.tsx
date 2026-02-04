@@ -19,6 +19,8 @@ import ProjectList from './components/ProjectList'
 export const dynamic = 'force-dynamic'
 
 export default function VideoAgentBetaPage() {
+  console.log('🚀🚀🚀🚀🚀 [PAGE] VideoAgentBetaPage INITIALIZED - Build:', 'b4b4ccea', new Date().toISOString())
+
   const router = useRouter()
   const authModal = useAuthModal()
 
