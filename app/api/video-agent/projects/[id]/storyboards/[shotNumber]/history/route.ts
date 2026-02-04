@@ -5,15 +5,13 @@
  * 返回按版本号倒序的版本列表（最新版本在前）
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
+import { NextResponse } from 'next/server'
+import { withAuth } from '@/lib/middleware/auth'
+import { supabaseAdmin } from '@/lib/supabase'
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string; shotNumber: string }> }
-) {
+export const GET = withAuth(async (request, { params, userId }) => {
   try {
-    const { id: projectId, shotNumber } = await context.params
+    const { id: projectId, shotNumber } = params
     const shotNum = parseInt(shotNumber, 10)
 
     if (isNaN(shotNum)) {
@@ -23,23 +21,12 @@ export async function GET(
       )
     }
 
-    const supabase = createClient()
-
-    // 获取当前用户
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     // 验证项目所有权
-    const { data: project, error: projectError } = await supabase
+    const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
       .select('id')
       .eq('id', projectId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
     if (projectError || !project) {
@@ -50,7 +37,7 @@ export async function GET(
     }
 
     // 调用数据库函数获取历史版本
-    const { data: versions, error: historyError } = await supabase
+    const { data: versions, error: historyError } = await supabaseAdmin
       .rpc('get_storyboard_history', {
         p_project_id: projectId,
         p_shot_number: shotNum
@@ -75,4 +62,4 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})

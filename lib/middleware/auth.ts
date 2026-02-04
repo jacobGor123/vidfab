@@ -54,9 +54,14 @@ export function withAuth(handler: AuthenticatedHandler) {
         )
       }
 
+      // 处理 Promise params (Next.js 14+)
+      const params = context.params instanceof Promise
+        ? await context.params
+        : context.params
+
       // 调用实际的处理器，传入 userId
       return handler(req, {
-        params: context.params,
+        params,
         userId: session.user.uuid
       })
     } catch (error) {
@@ -88,8 +93,13 @@ export function withOptionalAuth(
       const session = await auth()
       const userId = session?.user?.uuid || null
 
+      // 处理 Promise params (Next.js 14+)
+      const params = context.params instanceof Promise
+        ? await context.params
+        : context.params
+
       return handler(req, {
-        params: context.params,
+        params,
         userId
       })
     } catch (error) {

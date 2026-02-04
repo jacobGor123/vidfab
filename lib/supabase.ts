@@ -225,18 +225,18 @@ export const TABLES = {
 // Helper function to handle Supabase errors
 export function handleSupabaseError(error: any): never {
   console.error('Supabase error:', error);
-  
+
   if (error?.code === 'PGRST116') {
     throw new Error('No rows found');
   }
-  
+
   if (error?.code === '23505') {
     throw new Error('Resource already exists');
   }
-  
+
   if (error?.message) {
     throw new Error(error.message);
   }
-  
+
   throw new Error('Database operation failed');
 }
