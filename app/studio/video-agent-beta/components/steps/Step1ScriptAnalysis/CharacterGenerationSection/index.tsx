@@ -61,7 +61,8 @@ export function CharacterGenerationSection({
   } = useCharacterGeneration({
     project,
     characterStates,
-    setCharacterStates
+    setCharacterStates,
+    onUpdate  // 🔥 修复：传递 onUpdate prop
   })
 
   // 🔥 复用 Step2 的管理相关操作
