@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force rebuild: 2026-02-04 22:35 - Fix missing onUpdate in CharacterGenerationSection
+  // Force rebuild: 2026-02-04 22:40 - Extract character name from prompt not old name
   // Optimize for production hydration
   swcMinify: true,
   compress: true,

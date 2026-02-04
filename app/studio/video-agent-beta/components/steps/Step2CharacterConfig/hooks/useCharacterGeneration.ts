@@ -403,8 +403,9 @@ export function useCharacterGeneration({
         analysisDescription = await analyzeCharacterImage(characterName, result.imageUrl)
 
         if (analysisDescription && analysisDescription.trim()) {
-          // 提取简称（例如 "Leo"）和新描述
-          const shortName = characterName.split('(')[0].trim()
+          // 🔥 从用户输入的 prompt 中提取新的角色名称，而不是从旧名称中提取
+          // 例如用户输入 "Brown Cat (...)" 则提取 "Brown Cat"
+          const shortName = state.prompt.split('(')[0].trim()
 
           // 🔥 截断描述，确保总长度不超过 400 字符（数据库限制 500，留一些余量）
           let description = analysisDescription.trim()
