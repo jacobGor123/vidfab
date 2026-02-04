@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { RefreshCw, Image as ImageIcon, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { StoryboardHistoryCarousel } from './StoryboardHistoryCarousel'
 
 function resolveStoryboardSrc(storyboard?: Storyboard): string | undefined {
   if (!storyboard) return undefined
@@ -50,21 +51,25 @@ interface Storyboard {
 }
 
 interface StoryboardEditPanelProps {
+  projectId: string
   shotNumber: number
   storyboard?: Storyboard
   prompt: string
   isRegenerating: boolean
   onPromptChange: (prompt: string) => void
   onRegenerate: () => void
+  onVersionSwitch?: (versionId: string, version: number) => void
 }
 
 export function StoryboardEditPanel({
+  projectId,
   shotNumber,
   storyboard,
   prompt,
   isRegenerating,
   onPromptChange,
-  onRegenerate
+  onRegenerate,
+  onVersionSwitch
 }: StoryboardEditPanelProps) {
   const hasImage = !!(storyboard?.image_url || storyboard?.image_url_external || storyboard?.cdn_url)
   const isGenerating = storyboard?.status === 'generating' || isRegenerating
@@ -74,8 +79,9 @@ export function StoryboardEditPanel({
 
   return (
     <div className="flex gap-6">
-      {/* 左侧：分镜图预览 */}
-      <div className="w-1/2 flex-shrink-0">
+      {/* 左侧：分镜图预览 + 历史版本轮播 */}
+      <div className="w-1/2 flex-shrink-0 space-y-4">
+        {/* 当前分镜图预览 */}
         <Card className="border-slate-700 bg-slate-900/50 overflow-hidden">
           <CardContent className="p-0">
             <div className="relative w-full h-[350px] bg-slate-800 flex items-center justify-center">
@@ -125,6 +131,20 @@ export function StoryboardEditPanel({
             </div>
           </CardContent>
         </Card>
+
+        {/* 历史版本轮播 */}
+        {hasImage && !isGenerating && onVersionSwitch && (
+          <Card className="border-slate-700 bg-slate-900/50">
+            <CardContent className="p-4">
+              <StoryboardHistoryCarousel
+                projectId={projectId}
+                shotNumber={shotNumber}
+                currentVersionId={storyboard?.id}
+                onVersionSelect={onVersionSwitch}
+              />
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* 右侧：Prompt 编辑区 */}

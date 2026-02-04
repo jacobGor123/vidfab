@@ -570,31 +570,42 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
 
   // Context methods
   const addJob = useCallback((jobData: Omit<VideoJob, "id" | "createdAt" | "updatedAt">): VideoJob => {
+    // 先清理同用户的僵尸 job（requestId 为空且创建超过 2 分钟）
+    const now = Date.now()
+    const zombieJobs = state.activeJobs.filter(job =>
+      job.userId === jobData.userId &&
+      !job.requestId &&
+      job.status === 'generating' &&
+      (now - new Date(job.createdAt).getTime()) > 2 * 60 * 1000
+    )
+
+    zombieJobs.forEach(zombie => {
+      dispatch({ type: "REMOVE_JOB", payload: zombie.id })
+    })
+
     // 去重检查：防止短时间内创建相同的任务
-    const isDuplicate = state.activeJobs.some(existingJob => {
-      if (existingJob.status !== 'generating' && existingJob.status !== 'processing' && existingJob.status !== 'queued') {
+    const existingJob = state.activeJobs.find(job => {
+      // 跳过非活跃状态的 job
+      if (job.status !== 'generating' && job.status !== 'processing' && job.status !== 'queued') {
         return false
       }
 
-      const sameUser = existingJob.userId === jobData.userId
-      const samePrompt = existingJob.prompt === jobData.prompt
-      const sameImage = existingJob.settings?.imageUrl === jobData.settings?.imageUrl ||
-                        existingJob.sourceImage === jobData.sourceImage
-      const sameGenerationType = existingJob.generationType === (jobData.generationType || (jobData.sourceImage ? "image-to-video" : "text-to-video"))
+      // 跳过没有 requestId 的僵尸 job（说明之前失败了）
+      if (!job.requestId) {
+        return false
+      }
+
+      const sameUser = job.userId === jobData.userId
+      const samePrompt = job.prompt === jobData.prompt
+      const sameImage = job.settings?.imageUrl === jobData.settings?.imageUrl ||
+                        job.sourceImage === jobData.sourceImage
+      const sameGenerationType = job.generationType === (jobData.generationType || (jobData.sourceImage ? "image-to-video" : "text-to-video"))
 
       return sameUser && samePrompt && sameImage && sameGenerationType
     })
 
-    if (isDuplicate) {
-      const existingJob = state.activeJobs.find(existingJob => {
-        const sameUser = existingJob.userId === jobData.userId
-        const samePrompt = existingJob.prompt === jobData.prompt
-        const sameImage = existingJob.settings?.imageUrl === jobData.settings?.imageUrl ||
-                          existingJob.sourceImage === jobData.sourceImage
-        const sameGenerationType = existingJob.generationType === (jobData.generationType || (jobData.sourceImage ? "image-to-video" : "text-to-video"))
-        return sameUser && samePrompt && sameImage && sameGenerationType
-      })
-      return existingJob!
+    if (existingJob) {
+      return existingJob
     }
 
     const job: VideoJob = {
