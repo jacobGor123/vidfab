@@ -158,9 +158,12 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
 
     case "UPDATE_JOB": {
       const { id, updates } = action.payload
+      console.log('[DEBUG] UPDATE_JOB reducer called:', { id, updates })
+
       const existingJob = state.activeJobs.find(job => job.id === id)
 
       if (!existingJob) {
+        console.error('[DEBUG] UPDATE_JOB: job not found:', id, 'activeJobs:', state.activeJobs.map(j => j.id))
         return state
       }
 
@@ -169,6 +172,11 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
         ...updates,
         updatedAt: new Date().toISOString()
       } as VideoJob
+
+      console.log('[DEBUG] UPDATE_JOB: updating job:', {
+        oldRequestId: existingJob.requestId,
+        newRequestId: updatedJob.requestId
+      })
 
       const newActiveJobs = state.activeJobs.map(job =>
         job.id === id ? updatedJob : job

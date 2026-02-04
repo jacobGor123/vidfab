@@ -253,15 +253,24 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       }
 
       if (!data.data?.requestId) {
+        console.error('[DEBUG] API missing requestId:', data)
         videoContext.removeJob(job.id)
         throw new Error('API response is missing requestId')
       }
+
+      console.log('[DEBUG] Updating job with requestId:', {
+        jobId: job.id,
+        requestId: data.data.requestId,
+        reservationId: data.data.reservationId
+      })
 
       videoContext.updateJob(job.id, {
         requestId: data.data.requestId,
         reservationId: data.data.reservationId,
         status: 'processing'
       })
+
+      console.log('[DEBUG] Job updated, creating updatedJob object')
 
       const updatedJob = {
         ...job,
@@ -272,6 +281,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
       setState(prev => ({ ...prev, isGenerating: false }))
 
+      console.log('[DEBUG] Calling onSuccess with updatedJob:', updatedJob)
       hookOptionsRef.current?.onSuccess?.(updatedJob, data.data.requestId)
 
       return job.id
