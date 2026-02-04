@@ -298,15 +298,21 @@ export function useVideoPollingV2(
   })
 
   const startPolling = useCallback((job: VideoJob) => {
+    console.log('[useVideoPollingV2] startPolling called:', { jobId: job?.id, requestId: job?.requestId })
+
     if (!job || !job.id) {
+      console.error('[useVideoPollingV2] Invalid job:', job)
       return
     }
 
     if (!job.requestId) {
+      console.warn('[useVideoPollingV2] No requestId yet, retrying in 500ms:', job.id)
       setTimeout(() => {
         const updatedJob = videoContext.activeJobs.find(j => j.id === job.id)
         if (updatedJob && updatedJob.requestId) {
           startPolling(updatedJob)
+        } else {
+          console.error('[useVideoPollingV2] Still no requestId after retry:', job.id)
         }
       }, 500)
       return
@@ -323,6 +329,12 @@ export function useVideoPollingV2(
       generationType: job.generationType,
       settings: job.settings
     }
+
+    console.log('[useVideoPollingV2] Starting unified polling:', {
+      requestId: job.requestId,
+      localId: job.id,
+      jobData
+    })
 
     unifiedPolling.startPolling(job.requestId, job.id, jobData)
 

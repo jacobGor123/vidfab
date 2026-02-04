@@ -187,15 +187,23 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
 
     case "COMPLETE_JOB": {
       const { id, result } = action.payload
+      console.log('[DEBUG] COMPLETE_JOB reducer called:', { id, resultUrl: result.videoUrl })
+
       const job = state.activeJobs.find(job => job.id === id)
 
-      if (!job) return state
+      if (!job) {
+        console.warn('[DEBUG] COMPLETE_JOB: job not found in activeJobs:', id)
+        return state
+      }
 
       // 防止重复添加：如果已经在 temporaryVideos 中，直接返回
       const alreadyCompleted = state.temporaryVideos.some(v => v.id === id)
       if (alreadyCompleted) {
+        console.warn('[DEBUG] COMPLETE_JOB: already in temporaryVideos, skipping:', id)
         return state
       }
+
+      console.log('[DEBUG] COMPLETE_JOB: adding to temporaryVideos and completedVideos:', id)
 
       const videoResult: VideoResult = {
         id: result.id || id,
