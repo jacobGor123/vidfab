@@ -255,33 +255,20 @@ export async function batchGenerateStoryboardsWithProgress(
         // 生成分镜（只传递相关角色）
         const result = await generateSingleStoryboard(shot, relevantCharacters, style, aspectRatio)
 
-        // 如果生成成功，保存为新的历史版本
+        // 批量生成时直接更新现有记录（不创建新版本）
         if (result.status === 'success' && result.image_url) {
-          const { error: saveError } = await supabaseAdmin
-            .rpc('save_storyboard_with_history', {
-              p_project_id: projectId,
-              p_shot_number: shot.shot_number,
-              p_image_url: result.image_url,
-              p_image_storage_path: null,
-              p_seedream_task_id: null
-            })
-
-          if (saveError) {
-            console.error('[Storyboard Batch Generator] Failed to save history:', saveError)
-            // 降级处理：保存历史失败时仍更新当前记录
-            await supabaseAdmin
-              .from('project_storyboards')
-              .update({
-                image_url: result.image_url,
-                image_url_external: result.image_url,
-                status: result.status,
-                storage_status: 'pending',
-                updated_at: new Date().toISOString()
-              } as any)
-              .eq('project_id', projectId)
-              .eq('shot_number', shot.shot_number)
-              .eq('is_current', true)
-          }
+          await supabaseAdmin
+            .from('project_storyboards')
+            .update({
+              image_url: result.image_url,
+              image_url_external: result.image_url,
+              status: result.status,
+              storage_status: 'pending',
+              updated_at: new Date().toISOString()
+            } as any)
+            .eq('project_id', projectId)
+            .eq('shot_number', shot.shot_number)
+            .eq('is_current', true)
 
           successCount++
           // NOTE: do not enqueue downloads from here.
