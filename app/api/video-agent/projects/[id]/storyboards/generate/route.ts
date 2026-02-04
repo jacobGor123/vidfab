@@ -248,13 +248,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
       project_id: projectId,
       shot_number: shot.shot_number,
       status: 'generating',
-      generation_attempts: 1
+      generation_attempts: 1,
+      version: 1,          // 🔥 新增：初始版本号
+      is_current: true     // 🔥 新增：标记为当前版本
     }))
 
     const { data: insertedStoryboards, error: insertError } = await supabaseAdmin
       .from('project_storyboards')
       .upsert(initialStoryboards as any, {
-        onConflict: 'project_id,shot_number',
+        onConflict: 'project_id,shot_number,version',  // 🔥 修复：使用新的唯一约束
         ignoreDuplicates: false
       })
       .select()
