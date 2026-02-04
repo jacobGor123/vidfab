@@ -280,13 +280,14 @@ export async function batchGenerateStoryboardsWithProgress(
               } as any)
               .eq('project_id', projectId)
               .eq('shot_number', shot.shot_number)
+              .eq('is_current', true)
           }
 
           successCount++
           // NOTE: do not enqueue downloads from here.
           // Download is handled by dedicated routes/worker jobs to avoid fallback direct-download.
         } else {
-          // 生成失败，仅更新状态
+          // 生成失败，仅更新当前版本的状态
           await supabaseAdmin
             .from('project_storyboards')
             .update({
@@ -296,6 +297,7 @@ export async function batchGenerateStoryboardsWithProgress(
             } as any)
             .eq('project_id', projectId)
             .eq('shot_number', shot.shot_number)
+            .eq('is_current', true)
 
           failedCount++
         }
@@ -321,7 +323,7 @@ export async function batchGenerateStoryboardsWithProgress(
         failedCount++
         console.error('[Storyboard Batch Generator] ❌ Generation failed:', error)
 
-        // 更新为失败状态
+        // 更新当前版本为失败状态
         await supabaseAdmin
           .from('project_storyboards')
           .update({
@@ -331,6 +333,7 @@ export async function batchGenerateStoryboardsWithProgress(
           } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
+          .eq('is_current', true)
 
         // 报告失败进度
         const completedProgress = successCount + failedCount

@@ -260,7 +260,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
       imageUrl: result.image_url
     })
 
-    // 如果生成成功，保存为新的历史版本
+    // 保存新版本并获取完整记录
+    let newStoryboard: any = null
+
     if (result.status === 'success' && result.image_url) {
       const { data: newVersionId, error: saveError } = await supabaseAdmin
         .rpc('save_storyboard_with_history', {
@@ -275,7 +277,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         console.error('[Video Agent] Failed to save storyboard history:', saveError)
         // 降级处理：如果保存历史失败，仍然更新当前记录
         const now = new Date().toISOString()
-        await supabaseAdmin
+        const { data: updated } = await supabaseAdmin
           .from('project_storyboards')
           .update({
             image_url: result.image_url,
@@ -286,15 +288,29 @@ export const POST = withAuth(async (request, { params, userId }) => {
           } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shotNumber)
+          .eq('is_current', true)
+          .select()
+          .single()
+
+        newStoryboard = updated
       } else {
         console.log('[Video Agent] Storyboard saved as new history version:', {
           projectId,
           shotNumber,
           newVersionId
         })
+
+        // 查询新创建的记录
+        const { data: newRecord } = await supabaseAdmin
+          .from('project_storyboards')
+          .select('*')
+          .eq('id', newVersionId)
+          .single()
+
+        newStoryboard = newRecord
       }
     } else {
-      // 生成失败，仅更新状态
+      // 生成失败，仅更新当前版本的状态
       const now = new Date().toISOString()
       const { error: updateError } = await supabaseAdmin
         .from('project_storyboards')
@@ -305,6 +321,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         } as any)
         .eq('project_id', projectId)
         .eq('shot_number', shotNumber)
+        .eq('is_current', true)
 
       if (updateError) {
         console.error('[Video Agent] Failed to update storyboard status:', updateError)
@@ -504,7 +521,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
         imageUrl: result.image_url,
         status: result.status,
         error: result.error,
-        remainingQuota: project.regenerate_quota_remaining  // 暂时不扣除，用于调试
+        remainingQuota: project.regenerate_quota_remaining,  // 暂时不扣除，用于调试
+        storyboard: newStoryboard  // 返回新创建的完整记录
       }
     })
 
