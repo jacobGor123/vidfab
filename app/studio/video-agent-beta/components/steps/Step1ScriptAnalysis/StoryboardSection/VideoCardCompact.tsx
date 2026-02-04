@@ -133,25 +133,10 @@ export function VideoCardCompact({
                 )}
             </button>
 
-            {/* 🔥 Character Action + Duration 并排显示 */}
+            {/* 🔥 Duration 在上，Character Action 在下 */}
             {isPromptExpanded && (
-                <div className="grid grid-cols-2 gap-2">
-                    {/* Character Action */}
-                    <div className="space-y-1">
-                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
-                            <Video className="w-3 h-3" />
-                            <span>Character Action</span>
-                        </label>
-                        <Textarea
-                            value={currentPrompt}
-                            onChange={(e) => onUpdatePrompt(e.target.value)}
-                            placeholder="What is the character doing?"
-                            className="text-xs bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[60px]"
-                            disabled={isCurrentlyGenerating}
-                        />
-                    </div>
-
-                    {/* Duration */}
+                <div className="space-y-3">
+                    {/* Duration - 单独一行 */}
                     <div className="space-y-1">
                         <label className="flex items-center gap-1 text-[10px] text-slate-500">
                             <Clock className="w-3 h-3" />
@@ -173,6 +158,21 @@ export function VideoCardCompact({
                             <option value={9}>9s</option>
                             <option value={10}>10s</option>
                         </select>
+                    </div>
+
+                    {/* Character Action - 单独一行 */}
+                    <div className="space-y-1">
+                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                            <Video className="w-3 h-3" />
+                            <span>Character Action</span>
+                        </label>
+                        <Textarea
+                            value={currentPrompt}
+                            onChange={(e) => onUpdatePrompt(e.target.value)}
+                            placeholder="What is the character doing?"
+                            className="text-xs bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[60px]"
+                            disabled={isCurrentlyGenerating}
+                        />
                     </div>
                 </div>
             )}
