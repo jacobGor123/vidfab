@@ -148,13 +148,6 @@ export function useStoryboardAutoGeneration(
 
   // 开始生成
   const startGeneration = useCallback(async () => {
-      hasStarted: hasStartedRef.current,
-      currentStatus: status,
-      projectId: project.id,
-      shotCount: analysis.shot_count,
-      timestamp: new Date().toISOString()
-    })
-
     if (hasStartedRef.current) {
       console.warn('[StoryboardAutoGen] ⚠️ Generation already started, skipping', {
         hasStarted: hasStartedRef.current,

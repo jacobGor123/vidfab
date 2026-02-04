@@ -366,20 +366,11 @@ export function useCharacterGeneration({
     }))
 
     try {
-        characterName,
-        prompt: state.prompt?.substring(0, 100),
-        imageStyle: selectedStyle
-      })
-
       const result = await generateCharacterImage({
         prompt: state.prompt,
         negativePrompt: state.negativePrompt,
         aspectRatio: '1:1',
         imageStyle: selectedStyle  // 🔥 传递 imageStyle 以启用后处理
-      })
-
-        characterName,
-        hasImageUrl: !!result?.imageUrl
       })
 
       // 安全检查：确保有 imageUrl 才更新
@@ -407,11 +398,6 @@ export function useCharacterGeneration({
           }
 
           newCharacterName = `${shortName} (${description})`
-
-            oldName: characterName,
-            newName: newCharacterName,
-            newNameLength: newCharacterName.length
-          })
         }
       } catch (analysisErr: any) {
         console.warn('[Character Generation] ⚠️ Failed to analyze image:', analysisErr)
@@ -443,12 +429,7 @@ export function useCharacterGeneration({
         // (Non-blocking; errors are logged but don't break the UX.)
         const charactersData = buildCharactersPayload(nextStates)
         updateCharacters(project.id, { characters: charactersData })
-          .then(() => {
-              oldName: characterName,
-              newName: newCharacterName,
-              imageUrl: result.imageUrl
-            })
-          })
+          .then(() => {})
           .catch((e: any) => {
             console.error('[Character Generation] ❌ Failed to persist generated image to DB:', e)
           })
@@ -463,9 +444,6 @@ export function useCharacterGeneration({
             fromName: characterName,
             toName: newCharacterName,
             scope: 'mentioned'
-          })
-            from: characterName,
-            to: newCharacterName
           })
 
           // 🔥 新增：重新加载项目数据，更新前端 script_analysis

@@ -57,11 +57,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
 
       // 🔥 关键修复：去重角色列表，避免重复的名称
       const uniqueCharacters = Array.from(new Set(characters))
-      if (uniqueCharacters.length !== characters.length) {
-          original: characters,
-          unique: uniqueCharacters
-        })
-      }
 
       // 先创建默认状态（使用去重后的列表）
       // 🔥 优化：尝试从当前快照中恢复状态，避免"空白期"
@@ -79,13 +74,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
       // 从数据库读取已保存的人物数据
       try {
         const data = await getCharacters(project.id)
-          count: data?.length || 0,
-          data: data?.map((char: any) => ({
-            name: char.character_name,
-            hasImage: !!char.character_reference_images?.[0]?.image_url,
-            imageUrl: char.character_reference_images?.[0]?.image_url
-          }))
-        })
 
         // 检测数据库中的角色名和 script_analysis 中的是否一致
         let needsSync = false
@@ -129,11 +117,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             // 数据库角色名匹配，回填数据
             if (initialStates[char.character_name]) {
               const matchedKey = char.character_name
-                hasImage: !!imageUrl,
-                imageUrl,
-                source: char.source,
-                refImages: char.character_reference_images
-              })
 
               if (dbId) {
                 initialStates[matchedKey].id = dbId
@@ -155,10 +138,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               }
             } else {
               // 🔥 名字不匹配的角色，记录下来用于后续的位置映射
-                dbName: char.character_name,
-                hasImage: !!imageUrl,
-                availableNames: Object.keys(initialStates)
-              })
             }
           })
 
@@ -169,10 +148,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
           )
 
           if (unmatchedDbChars.length > 0) {
-              unmatchedCount: unmatchedDbChars.length,
-              unmatchedNames: unmatchedDbChars.map(c => c.name)
-            })
-
             // 找出 initialStates 中还没有图片的角色
             const statesWithoutImages = initialStateKeys.filter(
               key => !initialStates[key].imageUrl
@@ -182,8 +157,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             unmatchedDbChars.forEach((dbChar, index) => {
               if (index < statesWithoutImages.length) {
                 const targetKey = statesWithoutImages[index]
-                  imageUrl: dbChar.imageUrl
-                })
                 initialStates[targetKey].imageUrl = dbChar.imageUrl
                 initialStates[targetKey].mode = dbChar.mode
                 initialStates[targetKey].prompt = dbChar.prompt || initialStates[targetKey].prompt
@@ -260,8 +233,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               if (dbImageUrlForKey && dbImageUrlForKey !== oldStateByKey.imageUrl) {
                 return
               }
-                imageUrl: oldStateByKey.imageUrl
-              })
               merged[key] = {
                 ...merged[key],  // 🔥 使用 merged[key] 而不是 newState，保留之前的 isGenerating
                 id: oldStateByKey.id,
@@ -279,8 +250,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
               if (dbImageUrlForKey && dbImageUrlForKey !== oldStateByName.imageUrl) {
                 return
               }
-                imageUrl: oldStateByName.imageUrl
-              })
               merged[key] = {
                 ...merged[key],  // 🔥 使用 merged[key] 而不是 newState，保留之前的 isGenerating
                 id: oldStateByName.id,
@@ -305,10 +274,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
                   if (dbImageUrlForKey && dbImageUrlForKey !== oldStateByIndex.imageUrl) {
                     return
                   }
-                    oldName: oldStateByIndex.name,
-                    newName: newState.name,
-                    imageUrl: oldStateByIndex.imageUrl
-                  })
                   merged[key] = {
                     ...merged[key],  // 🔥 使用 merged[key] 而不是 newState，保留之前的 isGenerating
                     id: oldStateByIndex.id,
@@ -330,15 +295,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
 
         setIsInitialLoading(false)
         hasInitializedRef.current = true
-          characterCount: Object.keys(initialStates).length,
-          characters: Object.keys(initialStates),
-          characterDetails: Object.entries(initialStates).map(([key, state]) => ({
-            key,
-            name: state.name,
-            hasImage: !!state.imageUrl,
-            imageUrl: state.imageUrl
-          }))
-        })
       }
     }
 
@@ -356,20 +312,11 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
         characters.length !== lastCharactersCount)
 
     if (shouldLoad) {
-        hasInitialized: hasInitializedRef.current,
-        charactersKey,
-        lastKey: lastCharactersKeyRef.current,
-        reason: !hasInitializedRef.current ? 'initial' : 'count_changed'
-      })
       lastCharactersKeyRef.current = charactersKey
       loadCharacterData()
     } else if (hasInitializedRef.current && charactersKey !== lastCharactersKeyRef.current) {
       // Names changed (e.g. from "Angel" to "Cyber Girl").
       // We must migrate local state keys to match new names, otherwise ghost cards appear.
-        oldKeys: lastCharactersKeyRef.current,
-        newKeys: charactersKey
-      })
-
       setCharacterStates(prev => {
         const nextStates: Record<string, CharacterState> = {}
         const oldNames = lastCharactersKeyRef.current.split(',').filter(Boolean)
@@ -423,10 +370,6 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
     initialStates: Record<string, CharacterState>
   ) => {
     const syncId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      dbCharacterNames,
-      currentCharacters: characters
-    })
-
     const nameMapping: Record<string, string> = {}
     characters.forEach((oldName, index) => {
       const newName = dbCharacterNames[index]

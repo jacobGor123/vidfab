@@ -206,15 +206,6 @@ export function useVideoGenerationIntegrated({
 
             if (pollCountRef.current % 10 === 0) {
                 // 每 10 次轮询（20 秒）打印一次状态
-                    totalClips: data.length,
-                    generating: data.filter((c: VideoClip) => c.status === 'generating').length,
-                    completed: data.filter((c: VideoClip) => c.status === 'success').length,
-                    failed: data.filter((c: VideoClip) => c.status === 'failed').length,
-                    clips: data.map((c: VideoClip) => ({
-                        shot: c.shot_number,
-                        status: c.status
-                    }))
-                })
             }
 
             // 🔥 友好提示：如果生成时间过长（5分钟），给用户一个提示
