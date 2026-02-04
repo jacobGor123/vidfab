@@ -462,18 +462,33 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           const allActiveJobs = loadFromStorage(STORAGE_KEYS.ACTIVE_JOBS, [])
           const allFailedJobs = loadFromStorage(STORAGE_KEYS.FAILED_JOBS, [])
 
-          // 清理僵尸 job：只清理创建超过10分钟且 requestId 仍为空的任务
+          // 🔥 激进清理策略：确保 localStorage 中没有脏数据
           const now = Date.now()
-          const ZOMBIE_AGE = 10 * 60 * 1000 // 10 分钟
+          const STALE_JOB_AGE = 60 * 60 * 1000 // 1 小时
+          const ZOMBIE_AGE = 2 * 60 * 1000 // 2 分钟
 
           const cleanActiveJobs = allActiveJobs.filter(job => {
+            // 保留其他用户的 jobs
             if (job.userId !== session.user.uuid) return true
 
             const createdAt = new Date(job.createdAt || 0).getTime()
             const age = now - createdAt
 
-            // 只移除：创建超过10分钟 + requestId为空 + status是generating
-            if (age > ZOMBIE_AGE && !job.requestId && job.status === 'generating') {
+            // 规则 1: 移除所有超过 1 小时的旧 jobs（无论什么状态）
+            if (age > STALE_JOB_AGE) {
+              console.log('[VideoContext] Removing stale job:', job.id, 'age:', Math.floor(age / 60000), 'minutes')
+              return false
+            }
+
+            // 规则 2: 移除所有 requestId 为空且超过 2 分钟的 jobs
+            if (!job.requestId && age > ZOMBIE_AGE) {
+              console.log('[VideoContext] Removing zombie job:', job.id, 'no requestId, age:', Math.floor(age / 1000), 'seconds')
+              return false
+            }
+
+            // 规则 3: 移除所有状态为 'completed' 或 'failed' 的 jobs（不应该在 activeJobs 中）
+            if (job.status === 'completed' || job.status === 'failed') {
+              console.log('[VideoContext] Removing completed/failed job from activeJobs:', job.id, 'status:', job.status)
               return false
             }
 
