@@ -430,22 +430,18 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           const allActiveJobs = loadFromStorage(STORAGE_KEYS.ACTIVE_JOBS, [])
           const allFailedJobs = loadFromStorage(STORAGE_KEYS.FAILED_JOBS, [])
 
-          // 清理僵尸 job：过滤掉 requestId 为空或超时的任务
+          // 清理僵尸 job：只清理创建超过10分钟且 requestId 仍为空的任务
           const now = Date.now()
-          const MAX_AGE = 30 * 60 * 1000 // 30 分钟
+          const ZOMBIE_AGE = 10 * 60 * 1000 // 10 分钟
 
           const cleanActiveJobs = allActiveJobs.filter(job => {
             if (job.userId !== session.user.uuid) return true
 
-            // 移除 requestId 为空的僵尸 job
-            if (!job.requestId && job.status === 'generating') {
-              return false
-            }
-
-            // 移除超时的 job（创建超过30分钟还在处理中）
             const createdAt = new Date(job.createdAt || 0).getTime()
             const age = now - createdAt
-            if (age > MAX_AGE && (job.status === 'generating' || job.status === 'processing')) {
+
+            // 只移除：创建超过10分钟 + requestId为空 + status是generating
+            if (age > ZOMBIE_AGE && !job.requestId && job.status === 'generating') {
               return false
             }
 
@@ -455,7 +451,6 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           const userActiveJobs = cleanActiveJobs.filter(job => job.userId === session.user.uuid)
           const userFailedJobs = allFailedJobs.filter(job => job.userId === session.user.uuid)
 
-          // 保存清理后的数据
           if (cleanActiveJobs.length < allActiveJobs.length) {
             saveToStorage(STORAGE_KEYS.ACTIVE_JOBS, cleanActiveJobs)
           }
