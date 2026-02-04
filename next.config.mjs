@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force rebuild: 2026-02-04 22:50 - Remove all debug console logs
+  // Force rebuild: 2026-02-04 23:10 - Add storyboard history version feature
   // Optimize for production hydration
   swcMinify: true,
   compress: true,

@@ -101,6 +101,28 @@ export function StoryboardEditDialog({
     await handleRegenerate(onRegenerate, () => onOpenChange(false))
   }
 
+  const handleVersionSwitch = async (versionId: string, version: number) => {
+    try {
+      const response = await fetch(
+        `/api/video-agent/projects/${project.id}/storyboards/${shotNumber}/switch-version`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version })
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to switch version')
+      }
+
+      // 刷新项目数据以显示切换后的版本
+      window.location.reload()
+    } catch (error) {
+      console.error('[StoryboardEdit] Failed to switch version:', error)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[1800px] h-[90vh] p-0 gap-0 bg-slate-950 border-slate-800">
@@ -136,12 +158,14 @@ export function StoryboardEditDialog({
           <div className="flex-1 min-w-0">
             <ScrollArea className="h-full pr-4">
               <StoryboardEditPanel
+                projectId={project.id}
                 shotNumber={shotNumber || 0}
                 storyboard={storyboard}
                 prompt={editedPrompt}
                 isRegenerating={isRegenerating}
                 onPromptChange={handlePromptChange}
                 onRegenerate={handleRegenerateClick}
+                onVersionSwitch={handleVersionSwitch}
               />
             </ScrollArea>
           </div>
