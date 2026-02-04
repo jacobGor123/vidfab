@@ -387,11 +387,20 @@ export function useCharacterGeneration({
         if (analysisDescription && analysisDescription.trim()) {
           // 提取简称（例如 "Leo"）和新描述
           const shortName = characterName.split('(')[0].trim()
-          newCharacterName = `${shortName} (${analysisDescription.trim()})`
+
+          // 🔥 截断描述，确保总长度不超过 400 字符（数据库限制 500，留一些余量）
+          let description = analysisDescription.trim()
+          const maxDescriptionLength = 400 - shortName.length - 3  // 3 = " ()"
+          if (description.length > maxDescriptionLength) {
+            description = description.substring(0, maxDescriptionLength - 3) + '...'
+          }
+
+          newCharacterName = `${shortName} (${description})`
 
           console.log('[Character Generation] 🔄 Character name updated:', {
             oldName: characterName,
-            newName: newCharacterName
+            newName: newCharacterName,
+            newNameLength: newCharacterName.length
           })
         }
       } catch (analysisErr: any) {

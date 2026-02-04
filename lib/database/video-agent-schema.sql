@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS project_characters (
   project_id UUID NOT NULL REFERENCES video_agent_projects(id) ON DELETE CASCADE,
 
   -- 人物基本信息
-  character_name VARCHAR(100) NOT NULL,
+  character_name VARCHAR(500) NOT NULL,
 
   -- 人物来源
   source VARCHAR(20) NOT NULL CHECK (source IN (
