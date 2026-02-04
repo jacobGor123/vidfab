@@ -153,19 +153,21 @@ export function ImageToVideoPanelEnhanced() {
     ? videoContext.activeJobs.filter(job => job.userId === currentUserId)
     : []
 
-  // 🔥 调试日志
-  console.log('[ImageToVideoPanel] Render state:', {
-    currentUserId,
-    totalActiveJobs: videoContext.activeJobs.length,
-    userJobs: userJobs.length,
-    userTemporaryVideos: videoContext.temporaryVideos.filter(v => v.userId === currentUserId).length,
-    activeJobsDetails: videoContext.activeJobs.map(j => ({
-      id: j.id,
-      userId: j.userId,
-      status: j.status,
-      requestId: j.requestId
-    }))
-  })
+  // 🔥 调试日志 - 使用 useEffect 避免无限循环
+  useEffect(() => {
+    console.log('[ImageToVideoPanel] Render state:', {
+      currentUserId,
+      totalActiveJobs: videoContext.activeJobs.length,
+      userJobs: userJobs.length,
+      userTemporaryVideos: videoContext.temporaryVideos.filter(v => v.userId === currentUserId).length,
+      activeJobsDetails: videoContext.activeJobs.map(j => ({
+        id: j.id,
+        userId: j.userId,
+        status: j.status,
+        requestId: j.requestId
+      }))
+    })
+  }, [videoContext.activeJobs.length, userJobs.length])
 
   const userVideos = currentUserId
     ? videoContext.completedVideos.filter(video => video.userId === currentUserId)
