@@ -479,10 +479,20 @@ export function useCharacterGeneration({
           })
 
           // 🔥 新增：重新加载项目数据，更新前端 script_analysis
+          // 直接调用 API 而不依赖 hook（避免缓存问题）
           try {
-            const updatedProject = await getProject(project.id)
-            if (updatedProject?.script_analysis) {
-              onUpdate({ script_analysis: updatedProject.script_analysis })
+            const response = await fetch(`/api/video-agent/projects/${project.id}`, {
+              credentials: 'include'
+            })
+
+            if (!response.ok) {
+              throw new Error(`Failed to reload project: ${response.statusText}`)
+            }
+
+            const data = await response.json()
+
+            if (data.success && data.data?.script_analysis) {
+              onUpdate({ script_analysis: data.data.script_analysis })
               console.log('[Character Generation] ✅ Updated project script_analysis in UI')
             }
           } catch (reloadErr: any) {

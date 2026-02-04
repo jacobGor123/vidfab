@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force rebuild: 2026-02-04 - Clear Vercel build cache
+  // Force rebuild: 2026-02-04 22:30 - Fix project reload with direct API call
   // Optimize for production hydration
   swcMinify: true,
   compress: true,
