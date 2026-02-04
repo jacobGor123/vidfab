@@ -202,13 +202,19 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     } = {},
     options?: GenerationOptions
   ): Promise<string> => {
+    console.log('[DEBUG] generateImageToVideo called:', { imageUrl, prompt, settings })
+
     if (!session?.user?.uuid) {
+      console.error('[DEBUG] No user session')
       throw new Error('Please sign in to access this feature')
     }
 
+    console.log('[DEBUG] Setting isGenerating to true')
     setState(prev => ({ ...prev, isGenerating: true }))
 
     try {
+      console.log('[DEBUG] Creating job via videoContext.addJob')
+
       const job = videoContext.addJob({
         requestId: '',
         userId: session.user.uuid,
@@ -225,9 +231,13 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         progress: 0
       })
 
+      console.log('[DEBUG] Job created:', { jobId: job.id, requestId: job.requestId })
+
       if (options) {
         optionsRef.current.set(job.id, options)
       }
+
+      console.log('[DEBUG] Calling API /api/video/generate-image-to-video')
 
       const response = await fetch('/api/video/generate-image-to-video', {
         method: 'POST',
@@ -245,9 +255,14 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         })
       })
 
+      console.log('[DEBUG] API response received, parsing JSON')
+
       const data = await response.json()
 
+      console.log('[DEBUG] API response parsed:', { success: data.success, hasData: !!data.data, hasRequestId: !!data.data?.requestId })
+
       if (!response.ok) {
+        console.error('[DEBUG] API failed:', response.status, data)
         videoContext.removeJob(job.id)
         throw new Error(data.error || `HTTP ${response.status}`)
       }
