@@ -162,7 +162,8 @@ export function VideoTaskGridItem({
   }
 
   // If there's a processing task, show loading state
-  if (job && (job.status === "processing" || job.status === "queued" || job.status === "pending")) {
+  // 🔥 关键修复：添加 "generating" 状态支持（初始创建时的状态）
+  if (job && (job.status === "processing" || job.status === "queued" || job.status === "pending" || job.status === "generating")) {
 
     return (
       <Card className="h-full bg-gray-950 border-gray-800 relative">
@@ -188,11 +189,13 @@ export function VideoTaskGridItem({
             <h3 className="text-sm font-semibold text-white mb-1">
               {job.status === "pending" ? "Preparing..." :
                job.status === "queued" ? "In Queue" :
+               job.status === "generating" ? "Starting Generation..." :
                "Creating Your Video"}
             </h3>
             <p className="text-xs text-gray-400 mb-4">
               {job.status === "pending" ? "Initializing video generation..." :
                job.status === "queued" ? "Waiting for processing slot..." :
+               job.status === "generating" ? "Submitting to video generation service..." :
                "This may take a few minutes..."}
             </p>
 
