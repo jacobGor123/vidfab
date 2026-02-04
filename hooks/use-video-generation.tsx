@@ -174,6 +174,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
+      // 清理失败的 job
+      videoContext.removeJob(job.id)
+
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'text-to-video',
         errorType: error instanceof Error ? error.name : 'UnknownError',
@@ -181,10 +184,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         modelType: settings.model || 'vidfab-q1',
       })
 
-      // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
-
-      // 🔥 调用onError回调
       hookOptionsRef.current?.onError?.(errorMessage)
 
       throw error
@@ -279,6 +279,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
+      // 清理失败的 job
+      videoContext.removeJob(job.id)
+
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'image-to-video',
         errorType: error instanceof Error ? error.name : 'UnknownError',
@@ -286,10 +289,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         modelType: settings.model || 'vidfab-q1',
       })
 
-      // 🔥 重置生成状态
       setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
-
-      // 🔥 调用onError回调
       hookOptionsRef.current?.onError?.(errorMessage)
 
       throw error
@@ -402,6 +402,9 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
+      // 清理失败的 job
+      videoContext.removeJob(job.id)
+
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'video-effects',
         errorType: error instanceof Error ? error.name : 'UnknownError',
@@ -411,7 +414,6 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       })
 
       setState(prev => ({ ...prev, isGenerating: false, error: errorMessage }))
-
       hookOptionsRef.current?.onError?.(errorMessage)
 
       throw error

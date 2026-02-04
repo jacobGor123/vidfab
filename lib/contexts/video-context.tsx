@@ -183,6 +183,12 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
 
       if (!job) return state
 
+      // 防止重复添加：如果已经在 temporaryVideos 中，直接返回
+      const alreadyCompleted = state.temporaryVideos.some(v => v.id === id)
+      if (alreadyCompleted) {
+        return state
+      }
+
       const videoResult: VideoResult = {
         id: result.id || id,
         videoUrl: result.videoUrl,
@@ -424,8 +430,35 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
           const allActiveJobs = loadFromStorage(STORAGE_KEYS.ACTIVE_JOBS, [])
           const allFailedJobs = loadFromStorage(STORAGE_KEYS.FAILED_JOBS, [])
 
-          const userActiveJobs = allActiveJobs.filter(job => job.userId === session.user.uuid)
+          // 清理僵尸 job：过滤掉 requestId 为空或超时的任务
+          const now = Date.now()
+          const MAX_AGE = 30 * 60 * 1000 // 30 分钟
+
+          const cleanActiveJobs = allActiveJobs.filter(job => {
+            if (job.userId !== session.user.uuid) return true
+
+            // 移除 requestId 为空的僵尸 job
+            if (!job.requestId && job.status === 'generating') {
+              return false
+            }
+
+            // 移除超时的 job（创建超过30分钟还在处理中）
+            const createdAt = new Date(job.createdAt || 0).getTime()
+            const age = now - createdAt
+            if (age > MAX_AGE && (job.status === 'generating' || job.status === 'processing')) {
+              return false
+            }
+
+            return true
+          })
+
+          const userActiveJobs = cleanActiveJobs.filter(job => job.userId === session.user.uuid)
           const userFailedJobs = allFailedJobs.filter(job => job.userId === session.user.uuid)
+
+          // 保存清理后的数据
+          if (cleanActiveJobs.length < allActiveJobs.length) {
+            saveToStorage(STORAGE_KEYS.ACTIVE_JOBS, cleanActiveJobs)
+          }
 
           try {
             const response = await fetch(`/api/user/videos?page=1&limit=20&orderBy=created_at&orderDirection=desc`)
