@@ -354,6 +354,8 @@ export function useCharacterGeneration({
 
   // 单个人物生成
   const handleSingleGenerate = async (characterName: string) => {
+    console.log('🎯🎯🎯 [DEBUG] handleSingleGenerate called!', { characterName })
+
     const state = characterStates[characterName]
     if (!state || !(state.prompt || '').trim()) {
       setError('Please enter a prompt first')
@@ -366,11 +368,22 @@ export function useCharacterGeneration({
     }))
 
     try {
+      console.log('🎯🎯🎯 [DEBUG] About to call generateCharacterImage', {
+        characterName,
+        prompt: state.prompt?.substring(0, 100),
+        imageStyle: selectedStyle
+      })
+
       const result = await generateCharacterImage({
         prompt: state.prompt,
         negativePrompt: state.negativePrompt,
         aspectRatio: '1:1',
         imageStyle: selectedStyle  // 🔥 传递 imageStyle 以启用后处理
+      })
+
+      console.log('🎯🎯🎯 [DEBUG] generateCharacterImage returned', {
+        characterName,
+        hasImageUrl: !!result?.imageUrl
       })
 
       // 安全检查：确保有 imageUrl 才更新
