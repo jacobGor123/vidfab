@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Force rebuild: 2026-02-04 - Clear Vercel build cache
   // Optimize for production hydration
   swcMinify: true,
   compress: true,
@@ -55,9 +56,11 @@ const nextConfig = {
   
   // Compiler optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    // 🔥 临时禁用 removeConsole 用于 DEBUG
+    removeConsole: false,
+    // removeConsole: process.env.NODE_ENV === 'production' ? {
+    //   exclude: ['error', 'warn'],
+    // } : false,
   },
 
   // Enable experimental features for better performance
