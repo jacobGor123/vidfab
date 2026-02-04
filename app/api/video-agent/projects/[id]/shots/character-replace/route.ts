@@ -29,6 +29,69 @@ function shortName(name: string): string {
   return String(name || '').split('(')[0].trim()
 }
 
+/**
+ * 从角色名称的括号描述中提取动物类型
+ * 例如: "Alex (a cat, wearing...)" → "cat"
+ *       "Alex (Golden Retriever puppy, ...)" → "golden retriever puppy"
+ */
+function extractAnimalTypeFromDescription(name: string): string | null {
+  const fullName = String(name || '').trim()
+  const parenMatch = fullName.match(/\(([^)]+)\)/)
+  if (!parenMatch) return null
+
+  const description = parenMatch[1].trim().toLowerCase()
+
+  // 动物词典（包括常见的品种和描述）
+  const animalPatterns = [
+    // 狗的品种
+    /\b(golden retriever|labrador|poodle|bulldog|beagle|husky|corgi|dachshund|chihuahua|pug|shepherd|retriever|terrier)\s*(puppy|dog)?\b/i,
+    // 猫的品种
+    /\b(persian|siamese|maine coon|ragdoll|bengal|british shorthair|tabby)\s*(cat|kitten)?\b/i,
+    // 通用动物 + 修饰词
+    /\b(a|an|the)?\s*(cute|adorable|fluffy|small|big|little|young|baby)?\s*(cat|dog|tiger|lion|bear|cow|horse|duck|chicken|sheep|pig|rabbit|mouse|bird|fish|elephant|giraffe|monkey|panda|fox|wolf|deer|puppy|kitten)\b/i,
+    // 纯动物名
+    /\b(cat|dog|tiger|lion|bear|cow|horse|duck|chicken|sheep|pig|rabbit|mouse|bird|fish|elephant|giraffe|monkey|panda|fox|wolf|deer|puppy|kitten)\b/i
+  ]
+
+  for (const pattern of animalPatterns) {
+    const match = description.match(pattern)
+    if (match) {
+      // 提取匹配到的动物类型，去掉冠词
+      let animalType = match[0].trim()
+      animalType = animalType.replace(/^(a|an|the)\s+/i, '').trim()
+      return animalType
+    }
+  }
+
+  return null
+}
+
+/**
+ * 生成动物描述的所有可能变体
+ * 例如: "golden retriever puppy" → ["golden retriever puppy", "the golden retriever puppy", "a golden retriever puppy"]
+ */
+function generateAnimalDescriptionVariants(animalType: string): string[] {
+  const variants = new Set<string>()
+  const lower = animalType.toLowerCase().trim()
+
+  variants.add(lower)
+  variants.add(`the ${lower}`)
+  variants.add(`a ${lower}`)
+  variants.add(`an ${lower}`)
+
+  // 如果包含多个单词，也尝试首字母大写的版本
+  const words = lower.split(/\s+/)
+  if (words.length > 1) {
+    const titleCase = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    variants.add(titleCase)
+    variants.add(`the ${titleCase}`)
+    variants.add(`a ${titleCase}`)
+    variants.add(`an ${titleCase}`)
+  }
+
+  return Array.from(variants)
+}
+
 function toGenericAliases(name: string): string[] {
   const n = shortName(name).trim().toLowerCase()
   if (!n) return []
@@ -89,6 +152,40 @@ function replaceCharacterNameInText(input: string, from: string, to: string): st
     out = out.replace(reAlias, toShort)
   }
 
+  // 🔥 新增：处理括号描述中的动物类型替换
+  // 例如: "Alex" → "Alex (a cat, ...)" 时，需要把 "golden retriever puppy" 替换为 "cat"
+  const oldAnimalType = extractAnimalTypeFromDescription(from)
+  const newAnimalType = extractAnimalTypeFromDescription(to)
+
+  if (newAnimalType) {
+    // 如果新角色有动物类型描述
+    if (oldAnimalType) {
+      // 情况1：旧角色也有动物描述 → 直接替换旧动物为新动物
+      // 例如: "golden retriever puppy" → "cat"
+      const oldVariants = generateAnimalDescriptionVariants(oldAnimalType)
+      for (const oldVariant of oldVariants) {
+        if (!oldVariant) continue
+        const reOldAnimal = new RegExp(`\\b${escapeRegExp(oldVariant)}\\b`, 'gi')
+        // 替换时保持冠词的一致性：如果原文是 "A/The"，保留 "A/The"
+        out = out.replace(reOldAnimal, (match) => {
+          // 检查匹配的前缀
+          if (match.toLowerCase().startsWith('a ')) return `a ${newAnimalType}`
+          if (match.toLowerCase().startsWith('an ')) return `an ${newAnimalType}`
+          if (match.toLowerCase().startsWith('the ')) return `the ${newAnimalType}`
+          // 如果是首字母大写，保持首字母大写
+          if (match[0] === match[0].toUpperCase()) {
+            return newAnimalType.charAt(0).toUpperCase() + newAnimalType.slice(1)
+          }
+          return newAnimalType
+        })
+      }
+    } else {
+      // 情况2：旧角色没有动物描述，但可能文本中有通用的动物引用
+      // 尝试查找并替换常见的动物描述
+      // 这种情况比较复杂，暂时跳过，避免误替换
+    }
+  }
+
   return out
 }
 
@@ -103,6 +200,18 @@ function hasAnyReplacementTarget(input: string, from: string): boolean {
     const re = new RegExp(`\\b${escapeRegExp(t)}\\b`, 'i')
     if (re.test(text)) return true
   }
+
+  // 🔥 新增：也检查是否包含旧的动物类型描述
+  const oldAnimalType = extractAnimalTypeFromDescription(from)
+  if (oldAnimalType) {
+    const animalVariants = generateAnimalDescriptionVariants(oldAnimalType)
+    for (const variant of animalVariants) {
+      if (!variant) continue
+      const re = new RegExp(`\\b${escapeRegExp(variant)}\\b`, 'i')
+      if (re.test(text)) return true
+    }
+  }
+
   return false
 }
 
