@@ -1,6 +1,7 @@
 /**
  * Character Generation Hook
  * 处理角色生成相关的操作：生成Prompts、批量生成、单个生成
+ * Updated: 2026-02-04 - Force Vercel rebuild
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
