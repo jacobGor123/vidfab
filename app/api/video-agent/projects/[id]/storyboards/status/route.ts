@@ -52,11 +52,12 @@ export const GET = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 获取所有分镜图
+    // 获取所有分镜图（只查询当前版本）
     let { data: storyboards, error: storyboardsError } = await supabaseAdmin
       .from('project_storyboards')
       .select('*')
       .eq('project_id', projectId)
+      .eq('is_current', true)
       .order('shot_number', { ascending: true })
       .returns<ProjectStoryboard[]>()
 

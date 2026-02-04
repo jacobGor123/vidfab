@@ -36,11 +36,12 @@ export const GET = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 🔥 查询 storyboards
+    // 🔥 查询 storyboards（只查询当前版本）
     const { data: storyboards, error: storyboardsError } = await supabaseAdmin
       .from('project_storyboards')
       .select('*')
       .eq('project_id', projectId)
+      .eq('is_current', true)
       .order('shot_number', { ascending: true })
 
     if (storyboardsError) {

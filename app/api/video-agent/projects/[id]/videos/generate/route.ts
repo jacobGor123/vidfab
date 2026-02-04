@@ -300,6 +300,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .from('project_storyboards')
       .select('shot_number, status')
       .eq('project_id', projectId)
+      .eq('is_current', true)
       .eq('status', 'success')
 
     if (sbCheckError) {
@@ -407,11 +408,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
       }
     }
 
-    // 获取分镜图
+    // 获取分镜图（只查询当前版本）
     const { data: storyboards, error: storyboardsError } = await supabaseAdmin
       .from('project_storyboards')
       .select('*')
       .eq('project_id', projectId)
+      .eq('is_current', true)
       .eq('status', 'success')  // 只处理成功生成的分镜图
       .order('shot_number', { ascending: true })
 
