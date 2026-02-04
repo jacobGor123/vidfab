@@ -105,6 +105,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         requestId: '', // 将在API调用后设置
         userId: session.user.uuid,
         prompt,
+        generationType: 'text-to-video',  // 🔥 明确设置顶层 generationType
         settings: {
           generationType: 'text-to-video',
           model: settings.model || 'vidfab-q1',
@@ -219,6 +220,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         requestId: '',
         userId: session.user.uuid,
         prompt: prompt || 'Convert image to video',
+        sourceImage: imageUrl,  // 🔥 添加 sourceImage 以触发正确的 generationType 推断
+        generationType: 'image-to-video',  // 🔥 明确设置顶层 generationType
         settings: {
           generationType: 'image-to-video',
           imageUrl,
