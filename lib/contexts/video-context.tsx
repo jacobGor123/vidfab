@@ -299,8 +299,32 @@ function videoReducer(state: VideoState, action: VideoAction): VideoState {
     case "RESTORE_STATE":
       return { ...state, ...action.payload }
 
-    case "SYNC_FROM_BROADCAST":
-      return { ...state, ...action.payload }
+    case "SYNC_FROM_BROADCAST": {
+      // 🔥 智能合并：保留本地新创建的 jobs，避免被远程覆盖
+      const remoteActiveJobs = action.payload.activeJobs || []
+      const remoteFailedJobs = action.payload.failedJobs || []
+
+      // 找出本地有但远程没有的 jobs（最近创建的）
+      const localOnlyJobs = state.activeJobs.filter(localJob => {
+        const existsInRemote = remoteActiveJobs.some(remoteJob => remoteJob.id === localJob.id)
+        if (existsInRemote) return false
+
+        // 保留最近 5 秒内创建的本地 job（可能还没同步到其他 tabs）
+        const createdAt = new Date(localJob.createdAt).getTime()
+        const age = Date.now() - createdAt
+        return age < 5000
+      })
+
+      // 合并：远程 jobs + 本地新 jobs
+      const mergedActiveJobs = [...remoteActiveJobs, ...localOnlyJobs]
+
+      return {
+        ...state,
+        activeJobs: mergedActiveJobs,
+        failedJobs: remoteFailedJobs,
+        quotaInfo: action.payload.quotaInfo || state.quotaInfo
+      }
+    }
 
     case "ADD_TEMPORARY_VIDEO":
       return {
