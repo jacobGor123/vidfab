@@ -19,16 +19,18 @@ interface UseCharacterGenerationProps {
   project: VideoAgentProject
   characterStates: Record<string, CharacterState>
   setCharacterStates: React.Dispatch<React.SetStateAction<Record<string, CharacterState>>>
+  onUpdate: (updates: Partial<VideoAgentProject>) => void
 }
 
 export function useCharacterGeneration({
   project,
   characterStates,
-  setCharacterStates
+  setCharacterStates,
+  onUpdate
 }: UseCharacterGenerationProps) {
   console.log('🔧🔧🔧 [HOOK] useCharacterGeneration INITIALIZED - Build:', 'b4b4ccea')
 
-  const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters, replaceCharacterInShots } = useVideoAgentAPI()
+  const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters, replaceCharacterInShots, getProject } = useVideoAgentAPI()
 
   // 🔥 新增：分析角色图片，提取描述
   const analyzeCharacterImage = async (characterName: string, imageUrl: string): Promise<string> => {
@@ -466,7 +468,7 @@ export function useCharacterGeneration({
       // 🔥 增强：如果角色名称变化了，同步分镜描述
       if (newCharacterName !== characterName) {
         try {
-          await replaceCharacterInShots(project.id, {
+          const result = await replaceCharacterInShots(project.id, {
             fromName: characterName,
             toName: newCharacterName,
             scope: 'mentioned'
@@ -475,6 +477,17 @@ export function useCharacterGeneration({
             from: characterName,
             to: newCharacterName
           })
+
+          // 🔥 新增：重新加载项目数据，更新前端 script_analysis
+          try {
+            const updatedProject = await getProject(project.id)
+            if (updatedProject?.script_analysis) {
+              onUpdate({ script_analysis: updatedProject.script_analysis })
+              console.log('[Character Generation] ✅ Updated project script_analysis in UI')
+            }
+          } catch (reloadErr: any) {
+            console.warn('[Character Generation] ⚠️ Failed to reload project data:', reloadErr)
+          }
         } catch (syncErr: any) {
           console.warn('[Character Generation] ⚠️ Failed to sync shots after regeneration:', syncErr)
           // 不阻塞主流程，继续

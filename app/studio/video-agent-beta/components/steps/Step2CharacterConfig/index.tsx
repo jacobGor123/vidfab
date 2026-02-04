@@ -44,7 +44,8 @@ export default function Step2CharacterConfig({ project, onNext, onUpdate }: Step
   } = useCharacterGeneration({
     project,
     characterStates,
-    setCharacterStates
+    setCharacterStates,
+    onUpdate
   })
 
   // 管理相关操作
