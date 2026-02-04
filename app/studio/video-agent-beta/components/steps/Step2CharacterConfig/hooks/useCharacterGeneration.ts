@@ -27,6 +27,31 @@ export function useCharacterGeneration({
 }: UseCharacterGenerationProps) {
   const { generateCharacterPrompts, batchGenerateCharacters, generateCharacterImage, getCharacters, updateCharacters, replaceCharacterInShots } = useVideoAgentAPI()
 
+  // 🔥 新增：分析角色图片，提取描述
+  const analyzeCharacterImage = async (characterName: string, imageUrl: string): Promise<string> => {
+    try {
+      console.log('[Character Generation] Analyzing character image:', { characterName, imageUrl })
+
+      const response = await fetch('/api/video-agent/analyze-character-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl, characterName })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze character image')
+      }
+
+      const { data } = await response.json()
+      console.log('[Character Generation] Image analysis completed:', data)
+
+      return data.description
+    } catch (error: any) {
+      console.error('[Character Generation] Image analysis failed:', error)
+      return ''
+    }
+  }
+
   // IMPORTANT: Always send all characters (even without images) to avoid backend orphan cleanup.
   // Backend enforces unique names (case-insensitive).
   const buildCharactersPayload = useCallback((states: Record<string, CharacterState>) => {
@@ -352,11 +377,43 @@ export function useCharacterGeneration({
         throw new Error('No image URL returned from API')
       }
 
+      // 🔥 新增：分析新图片，提取角色描述
+      let newCharacterName = characterName
+      let analysisDescription = ''
+
+      try {
+        analysisDescription = await analyzeCharacterImage(characterName, result.imageUrl)
+
+        if (analysisDescription && analysisDescription.trim()) {
+          // 提取简称（例如 "Leo"）和新描述
+          const shortName = characterName.split('(')[0].trim()
+          newCharacterName = `${shortName} (${analysisDescription.trim()})`
+
+          console.log('[Character Generation] 🔄 Character name updated:', {
+            oldName: characterName,
+            newName: newCharacterName
+          })
+        }
+      } catch (analysisErr: any) {
+        console.warn('[Character Generation] ⚠️ Failed to analyze image:', analysisErr)
+        // 继续，使用原名称
+      }
+
       // 立即更新本地状态
       setCharacterStates(prev => {
-        const nextStates = {
-          ...prev,
-          [characterName]: {
+        const nextStates = { ...prev }
+
+        // 🔥 如果名称变化了，需要删除旧的 key，添加新的 key
+        if (newCharacterName !== characterName) {
+          delete nextStates[characterName]
+          nextStates[newCharacterName] = {
+            ...prev[characterName],
+            name: newCharacterName,
+            imageUrl: result.imageUrl,
+            isGenerating: false
+          }
+        } else {
+          nextStates[characterName] = {
             ...prev[characterName],
             imageUrl: result.imageUrl,
             isGenerating: false
@@ -369,7 +426,8 @@ export function useCharacterGeneration({
         updateCharacters(project.id, { characters: charactersData })
           .then(() => {
             console.log('[Character Generation] ✅ Persisted generated character image to DB:', {
-              characterName,
+              oldName: characterName,
+              newName: newCharacterName,
               imageUrl: result.imageUrl
             })
           })
@@ -380,19 +438,24 @@ export function useCharacterGeneration({
         return nextStates
       })
 
-      // 🔥 新增：重新生成人物后，同步分镜描述
-      // 无法判断用户是换了同一个人物的外形，还是完全换了人物
-      // 所以统一触发一次同步，确保数据一致性
-      try {
-        await replaceCharacterInShots(project.id, {
-          fromName: characterName,
-          toName: characterName,  // 名称不变，但触发同步
-          scope: 'mentioned'
-        })
-        console.log('[Character Generation] ✅ Synced shots after regenerating character:', characterName)
-      } catch (syncErr: any) {
-        console.warn('[Character Generation] ⚠️ Failed to sync shots after regeneration:', syncErr)
-        // 不阻塞主流程，继续
+      // 🔥 增强：如果角色名称变化了，同步分镜描述
+      if (newCharacterName !== characterName) {
+        try {
+          await replaceCharacterInShots(project.id, {
+            fromName: characterName,
+            toName: newCharacterName,
+            scope: 'mentioned'
+          })
+          console.log('[Character Generation] ✅ Synced shots after character name change:', {
+            from: characterName,
+            to: newCharacterName
+          })
+        } catch (syncErr: any) {
+          console.warn('[Character Generation] ⚠️ Failed to sync shots after regeneration:', syncErr)
+          // 不阻塞主流程，继续
+        }
+      } else {
+        console.log('[Character Generation] ℹ️ Character name unchanged, skipping shot sync')
       }
     } catch (err: any) {
       console.error(`[Character Generation] Failed to generate ${characterName}:`, err)
