@@ -146,7 +146,10 @@ export default function Step2CharacterConfig({ project, onNext, onUpdate }: Step
                 }))
               }
               onNameChange={(newName) => handleNameChange(state.name, newName)}
-              onGenerate={() => handleSingleGenerate(state.name)}
+              onGenerate={() => {
+                console.log('⚡⚡⚡ [INDEX] onGenerate triggered for:', state.name)
+                handleSingleGenerate(state.name)
+              }}
               onUpload={(file) => handleImageUpload(state.name, file)}
               onOpenPreset={() => handleOpenPresetDialog(state.name)}
             />

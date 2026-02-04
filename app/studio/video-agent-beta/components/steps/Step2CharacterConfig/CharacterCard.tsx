@@ -101,7 +101,10 @@ export function CharacterCard({
               {/* 重新生成按钮 - 悬停时显示（不在加载时显示） */}
               {!state.isGenerating && (
                 <button
-                  onClick={onGenerate}
+                  onClick={() => {
+                    console.log('💥💥💥 [CARD] Regenerate button clicked (hover)!', state.name)
+                    onGenerate()
+                  }}
                   disabled={!(state.prompt || '').trim()}
                   className="absolute top-2 right-2 p-2 bg-background/90 hover:bg-background border border-border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Regenerate image"
@@ -146,7 +149,10 @@ export function CharacterCard({
         {/* 操作按钮 */}
         <div className="grid grid-cols-3 gap-2">
           <Button
-            onClick={onGenerate}
+            onClick={() => {
+              console.log('💥💥💥 [CARD] Generate/Regen button clicked (bottom)!', state.name)
+              onGenerate()
+            }}
             disabled={state.isGenerating || !(state.prompt || '').trim()}
             size="sm"
             variant="outline"
