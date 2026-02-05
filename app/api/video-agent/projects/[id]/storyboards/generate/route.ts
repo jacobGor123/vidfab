@@ -424,23 +424,51 @@ export const POST = withAuth(async (request, { params, userId }) => {
             .filter((sb) => typeof sb?.image_url_external === 'string' && sb.image_url_external.length > 0)
 
           if (toDownload.length > 0) {
+            // 🛡️ 防止副作用：查询每个分镜图的实际版本 ID，确保唯一性
+            const { data: storyboardsWithIds } = await supabaseAdmin
+              .from('project_storyboards')
+              .select('id, shot_number')
+              .eq('project_id', projectId)
+              .eq('is_current', true)
+              .in('shot_number', toDownload.map(sb => sb.shot_number))
+              .returns<any[]>()
+
+            const idMap = new Map((storyboardsWithIds || []).map(sb => [sb.shot_number, sb.id]))
+
             await Promise.allSettled(
-              toDownload.map((sb) =>
-                videoQueueManager.addJob(
+              toDownload.map((sb) => {
+                const storyboardId = idMap.get(sb.shot_number)
+                if (!storyboardId) {
+                  console.warn(`[Video Agent] No storyboard ID found for shot ${sb.shot_number}`)
+                  return Promise.resolve()
+                }
+
+                // 🛡️ 使用版本 ID 作为 jobId 的一部分，避免重复下载
+                const uniqueJobId = `storyboard_download_${projectId}_${sb.shot_number}_${storyboardId}`
+
+                return videoQueueManager.addJob(
                   'storyboard_download',
                   {
-                    jobId: `storyboard_download_${projectId}_${sb.shot_number}`,
+                    jobId: uniqueJobId,
                     userId,
                     videoId: projectId,
                     projectId,
                     shotNumber: sb.shot_number,
+                    storyboardId,  // 🔥 传递版本 ID
                     externalUrl: sb.image_url_external,
                     createdAt: new Date().toISOString(),
                   } as any,
-                  { priority: 'high', attempts: 3 }
+                  {
+                    priority: 'low',  // 🔥 改为低优先级，不影响视频生成
+                    attempts: 3,
+                    removeOnComplete: true,
+                    removeOnFail: false
+                  }
                 )
-              )
+              })
             )
+
+            console.log(`[Video Agent] Queued ${toDownload.length} storyboard downloads`)
           }
 
           console.log('[Video Agent] Background generation completed:', {

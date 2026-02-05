@@ -58,7 +58,50 @@ export async function handleStoryboardDownload(job: Job): Promise<any> {
   console.log('[Queue] Starting storyboard download', {
     projectId: jobData.projectId,
     shotNumber: jobData.shotNumber,
+    storyboardId: jobData.storyboardId,
   })
+
+  // 🛡️ 防止重复下载：检查指定版本的存储状态
+  const { supabaseAdmin } = await import('@/lib/supabase')
+
+  let targetStoryboard: any = null
+
+  if (jobData.storyboardId) {
+    // 如果有版本 ID，精确查询这个版本
+    const { data } = await supabaseAdmin
+      .from('project_storyboards')
+      .select('id, storage_status')
+      .eq('id', jobData.storyboardId)
+      .single()
+    targetStoryboard = data
+  } else {
+    // 向后兼容：没有版本 ID 时，查询当前版本（旧任务）
+    const { data } = await supabaseAdmin
+      .from('project_storyboards')
+      .select('id, storage_status')
+      .eq('project_id', jobData.projectId)
+      .eq('shot_number', jobData.shotNumber)
+      .eq('is_current', true)
+      .single()
+    targetStoryboard = data
+  }
+
+  // 如果该版本已经下载完成，跳过（防止重复下载）
+  if (targetStoryboard?.storage_status === 'completed') {
+    console.log('[Queue] Storyboard already downloaded, skipping', {
+      projectId: jobData.projectId,
+      shotNumber: jobData.shotNumber,
+      storyboardId: targetStoryboard.id
+    })
+    return {
+      downloaded: false,
+      skipped: true,
+      reason: 'Already completed',
+      projectId: jobData.projectId,
+      shotNumber: jobData.shotNumber,
+      storyboardId: targetStoryboard.id,
+    }
+  }
 
   await job.updateProgress({ percent: 10, message: `Downloading storyboard shot ${jobData.shotNumber}...` })
 

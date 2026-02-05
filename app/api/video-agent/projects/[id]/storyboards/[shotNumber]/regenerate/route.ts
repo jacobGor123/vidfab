@@ -262,9 +262,10 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     // 保存新版本并获取完整记录
     let newStoryboard: any = null
+    let newVersionId: string | null = null
 
     if (result.status === 'success' && result.image_url) {
-      const { data: newVersionId, error: saveError } = await supabaseAdmin
+      const { data: returnedVersionId, error: saveError } = await supabaseAdmin
         .rpc('save_storyboard_with_history', {
           p_project_id: projectId,
           p_shot_number: shotNumber,
@@ -274,6 +275,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
           p_image_url_external: result.image_url,  // 🔥 外部 URL（来自 seedream）
           p_storage_status: 'pending'  // 🔥 标记为待下载，resolveStoryboardSrc 会使用代理 URL
         })
+
+      newVersionId = returnedVersionId
 
       if (saveError) {
         console.error('[Video Agent] Failed to save storyboard history:', saveError)
@@ -295,6 +298,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
           .single()
 
         newStoryboard = updated
+        newVersionId = updated?.id
       } else {
         console.log('[Video Agent] Storyboard saved as new history version:', {
           projectId,
@@ -332,29 +336,37 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     // 🔥 Stable output (async): enqueue a download job so the request can return quickly.
     // The worker will retry/backoff, which is critical on flaky networks.
-    if (result.status === 'success' && result.image_url) {
+    if (result.status === 'success' && result.image_url && newVersionId) {
       try {
+        // 🛡️ 防止副作用：使用版本 ID 作为 jobId 的一部分，确保每个版本只下载一次
+        const uniqueJobId = `storyboard_download_${projectId}_${shotNumber}_${newVersionId}`
+
         await videoQueueManager.addJob(
           'storyboard_download',
           {
-            jobId: `storyboard_download_${projectId}_${shotNumber}`,
+            jobId: uniqueJobId,
             userId,
             videoId: projectId,
             projectId,
             shotNumber,
+            storyboardId: newVersionId,  // 🔥 新增：传递版本 ID，用于精确检查
             externalUrl: result.image_url,
             createdAt: new Date().toISOString(),
           },
           {
-            priority: 'normal',
+            priority: 'low',  // 🔥 改为低优先级，不影响视频生成
             attempts: 6,
             backoff: { type: 'exponential', delay: 10000 },
+            removeOnComplete: true,  // 🔥 完成后自动删除，节省内存
+            removeOnFail: false      // 🔥 失败保留，便于排查问题
           }
         )
 
         console.log('[Video Agent] Queued storyboard download after regenerate', {
           projectId,
           shotNumber,
+          versionId: newVersionId,
+          jobId: uniqueJobId
         })
       } catch (queueErr) {
         console.error('[Video Agent] Failed to enqueue storyboard download:', queueErr)
