@@ -8,6 +8,7 @@
 
 'use client'
 
+import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,18 @@ export function StoryboardEditDialog({
   shotNumber,
   onRegenerate
 }: StoryboardEditDialogProps) {
+  // 预览版本状态（点击历史版本时只预览，不切换）
+  const [previewVersion, setPreviewVersion] = useState<{
+    id: string
+    version: number
+    image_url: string
+    image_url_external?: string
+    cdn_url?: string
+    storage_status?: string
+    is_current: boolean
+    updated_at?: string
+  } | null>(null)
+
   const {
     selectedCharacterNames,
     selectedCharacterIds,
@@ -101,14 +114,40 @@ export function StoryboardEditDialog({
     await handleRegenerate(onRegenerate, () => onOpenChange(false))
   }
 
-  const handleVersionSwitch = async (versionId: string, version: number) => {
+  // 🔥 预览历史版本（不关闭弹框，不切换数据库记录）
+  const handleVersionPreview = async (versionId: string, version: number) => {
+    try {
+      // 从历史 API 获取该版本的完整数据
+      const response = await fetch(
+        `/api/video-agent/projects/${project.id}/storyboards/${shotNumber}/history`
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to load version data')
+      }
+
+      const data = await response.json()
+      const versionData = data.data?.find((v: any) => v.id === versionId)
+
+      if (versionData) {
+        setPreviewVersion(versionData)
+      }
+    } catch (error) {
+      console.error('[StoryboardEdit] Failed to preview version:', error)
+    }
+  }
+
+  // 🔥 真正切换版本（设置为当前版本）
+  const handleSetAsCurrent = async () => {
+    if (!previewVersion) return
+
     try {
       const response = await fetch(
         `/api/video-agent/projects/${project.id}/storyboards/${shotNumber}/switch-version`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ version })
+          body: JSON.stringify({ version: previewVersion.version })
         }
       )
 
@@ -116,7 +155,7 @@ export function StoryboardEditDialog({
         throw new Error('Failed to switch version')
       }
 
-      // 刷新项目数据以显示切换后的版本
+      // 刷新页面以显示切换后的版本
       window.location.reload()
     } catch (error) {
       console.error('[StoryboardEdit] Failed to switch version:', error)
@@ -161,11 +200,13 @@ export function StoryboardEditDialog({
                 projectId={project.id}
                 shotNumber={shotNumber || 0}
                 storyboard={storyboard}
+                previewVersion={previewVersion}
                 prompt={editedPrompt}
                 isRegenerating={isRegenerating}
                 onPromptChange={handlePromptChange}
                 onRegenerate={handleRegenerateClick}
-                onVersionSwitch={handleVersionSwitch}
+                onVersionPreview={handleVersionPreview}
+                onSetAsCurrent={handleSetAsCurrent}
               />
             </ScrollArea>
           </div>

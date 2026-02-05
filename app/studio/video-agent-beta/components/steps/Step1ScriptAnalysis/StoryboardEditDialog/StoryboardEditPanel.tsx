@@ -50,32 +50,50 @@ interface Storyboard {
   updated_at?: string | null
 }
 
+interface PreviewVersion {
+  id: string
+  version: number
+  image_url: string
+  image_url_external?: string
+  cdn_url?: string
+  storage_status?: string
+  is_current: boolean
+  updated_at?: string
+}
+
 interface StoryboardEditPanelProps {
   projectId: string
   shotNumber: number
   storyboard?: Storyboard
+  previewVersion?: PreviewVersion | null
   prompt: string
   isRegenerating: boolean
   onPromptChange: (prompt: string) => void
   onRegenerate: () => void
-  onVersionSwitch?: (versionId: string, version: number) => void
+  onVersionPreview?: (versionId: string, version: number) => void
+  onSetAsCurrent?: () => void
 }
 
 export function StoryboardEditPanel({
   projectId,
   shotNumber,
   storyboard,
+  previewVersion,
   prompt,
   isRegenerating,
   onPromptChange,
   onRegenerate,
-  onVersionSwitch
+  onVersionPreview,
+  onSetAsCurrent
 }: StoryboardEditPanelProps) {
-  const hasImage = !!(storyboard?.image_url || storyboard?.image_url_external || storyboard?.cdn_url)
+  // 🔥 优先使用预览版本，否则使用当前分镜图
+  const displayStoryboard = previewVersion || storyboard
+  const hasImage = !!(displayStoryboard?.image_url || displayStoryboard?.image_url_external || displayStoryboard?.cdn_url)
   const isGenerating = storyboard?.status === 'generating' || isRegenerating
+  const isPreviewing = !!previewVersion
 
   // Reuse the same resolution strategy as the Step1 preview card.
-  const resolvedSrc = resolveStoryboardSrc(storyboard)
+  const resolvedSrc = resolveStoryboardSrc(displayStoryboard as any)
 
   return (
     <div className="flex gap-6">
@@ -88,7 +106,7 @@ export function StoryboardEditPanel({
               {hasImage ? (
                 <>
                   <img
-                    key={`storyboard-${storyboard?.id}-${storyboard?.updated_at || 'initial'}`}
+                    key={`storyboard-${displayStoryboard?.id}-${displayStoryboard?.updated_at || 'initial'}`}
                     src={resolvedSrc}
                     alt={`Shot ${shotNumber}`}
                     className={cn(
@@ -106,6 +124,27 @@ export function StoryboardEditPanel({
                           Regenerating...
                         </p>
                       </div>
+                    </div>
+                  )}
+                  {/* 🔥 预览提示 */}
+                  {isPreviewing && previewVersion && (
+                    <div className="absolute top-2 left-2 right-2 bg-blue-600/90 rounded-lg px-3 py-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-white" />
+                        <span className="text-xs text-white font-medium">
+                          Previewing Version {previewVersion.version}
+                          {previewVersion.is_current && " (Current)"}
+                        </span>
+                      </div>
+                      {!previewVersion.is_current && onSetAsCurrent && (
+                        <Button
+                          onClick={onSetAsCurrent}
+                          size="sm"
+                          className="h-6 text-xs bg-white text-blue-600 hover:bg-slate-100"
+                        >
+                          Set as Current
+                        </Button>
+                      )}
                     </div>
                   )}
                 </>
@@ -133,14 +172,14 @@ export function StoryboardEditPanel({
         </Card>
 
         {/* 历史版本轮播 */}
-        {hasImage && !isGenerating && onVersionSwitch && (
+        {hasImage && !isGenerating && onVersionPreview && (
           <Card className="border-slate-700 bg-slate-900/50">
             <CardContent className="p-4">
               <StoryboardHistoryCarousel
                 projectId={projectId}
                 shotNumber={shotNumber}
-                currentVersionId={storyboard?.id}
-                onVersionSelect={onVersionSwitch}
+                currentVersionId={previewVersion?.id || storyboard?.id}
+                onVersionSelect={onVersionPreview}
               />
             </CardContent>
           </Card>
