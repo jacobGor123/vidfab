@@ -137,7 +137,7 @@ export function StoryboardEditDialog({
     }
   }
 
-  // 🔥 真正切换版本（设置为当前版本）
+  // 🔥 真正切换版本（设置为当前版本）- 不关闭弹框
   const handleSetAsCurrent = async () => {
     if (!previewVersion) return
 
@@ -155,10 +155,22 @@ export function StoryboardEditDialog({
         throw new Error('Failed to switch version')
       }
 
-      // 刷新页面以显示切换后的版本
-      window.location.reload()
+      // ✅ 成功切换后，将预览版本标记为当前版本
+      // 这样显示逻辑会认为它就是新的"当前版本"
+      setPreviewVersion({
+        ...previewVersion,
+        is_current: true
+      })
+
+      // 提示用户：版本已切换成功，关闭弹框后外层会显示新版本
+      console.log('[StoryboardEdit] Version switched successfully to V' + previewVersion.version)
+
+      // 注意：外层列表的预览图要在关闭弹框重新打开后才会更新
+      // 这是正常的，因为我们不想在编辑过程中刷新整个页面
+
     } catch (error) {
       console.error('[StoryboardEdit] Failed to switch version:', error)
+      // 可选：显示错误提示
     }
   }
 

@@ -126,14 +126,21 @@ export function StoryboardEditPanel({
                       </div>
                     </div>
                   )}
-                  {/* 🔥 预览提示 */}
+                  {/* 🔥 预览/成功提示 */}
                   {isPreviewing && previewVersion && (
-                    <div className="absolute top-2 left-2 right-2 bg-blue-600/90 rounded-lg px-3 py-2 flex items-center justify-between">
+                    <div className={cn(
+                      "absolute top-2 left-2 right-2 rounded-lg px-3 py-2 flex items-center justify-between",
+                      previewVersion.is_current
+                        ? "bg-green-600/90" // 切换成功：绿色
+                        : "bg-blue-600/90"   // 预览中：蓝色
+                    )}>
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-white" />
                         <span className="text-xs text-white font-medium">
-                          Previewing Version {previewVersion.version}
-                          {previewVersion.is_current && " (Current)"}
+                          {previewVersion.is_current
+                            ? `Version ${previewVersion.version} is now current` // 切换成功提示
+                            : `Previewing Version ${previewVersion.version}`     // 预览提示
+                          }
                         </span>
                       </div>
                       {!previewVersion.is_current && onSetAsCurrent && (
