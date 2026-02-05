@@ -16,6 +16,16 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { VideoAgentProject } from '@/lib/stores/video-agent'
 import { useStoryboardEditor } from './useStoryboardEditor'
@@ -72,6 +82,30 @@ export function StoryboardEditDialog({
 
   // 🔥 强制刷新历史版本列表的 key
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
+
+  // 🔥 关闭确认弹框状态
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
+
+  // 🔥 拦截关闭事件，显示确认弹框
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      // 用户尝试关闭弹框，显示确认提示
+      setShowCloseConfirm(true)
+    } else {
+      onOpenChange(newOpen)
+    }
+  }
+
+  // 🔥 确认关闭
+  const handleConfirmClose = () => {
+    setShowCloseConfirm(false)
+    onOpenChange(false)
+  }
+
+  // 🔥 取消关闭
+  const handleCancelClose = () => {
+    setShowCloseConfirm(false)
+  }
 
   // 🔥 清空预览状态：当弹框关闭或 shotNumber 变化时
   useEffect(() => {
@@ -202,8 +236,9 @@ export function StoryboardEditDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[1800px] h-[90vh] p-0 gap-0 bg-slate-950 border-slate-800">
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="w-[95vw] max-w-[1800px] h-[90vh] p-0 gap-0 bg-slate-950 border-slate-800">
         {/* Header */}
         <DialogHeader className="px-8 py-6 border-b border-slate-800 flex-shrink-0">
           <DialogTitle className="text-2xl text-slate-100 font-bold">
@@ -253,5 +288,32 @@ export function StoryboardEditDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* 🔥 关闭确认弹框 */}
+    <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+      <AlertDialogContent className="bg-slate-900 border-slate-700">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-white">Close Storyboard Editor?</AlertDialogTitle>
+          <AlertDialogDescription className="text-slate-400">
+            Are you sure you want to close the editor? Any unsaved changes in the prompt will be lost.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel
+            onClick={handleCancelClose}
+            className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+          >
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirmClose}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            Close Editor
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   )
 }
