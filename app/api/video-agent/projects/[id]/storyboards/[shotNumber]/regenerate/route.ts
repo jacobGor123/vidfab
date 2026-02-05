@@ -270,7 +270,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
           p_shot_number: shotNumber,
           p_image_url: result.image_url,
           p_image_storage_path: null,
-          p_seedream_task_id: null
+          p_seedream_task_id: null,
+          p_image_url_external: result.image_url,  // 🔥 外部 URL（来自 seedream）
+          p_storage_status: 'pending'  // 🔥 标记为待下载，resolveStoryboardSrc 会使用代理 URL
         })
 
       if (saveError) {
