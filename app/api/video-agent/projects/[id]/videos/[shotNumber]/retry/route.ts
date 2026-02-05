@@ -74,11 +74,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // 🔥 查询当前版本的分镜图（添加 is_current=true 过滤）
     const { data: storyboard } = await supabaseAdmin
       .from('project_storyboards')
       .select('*')
       .eq('project_id', projectId)
       .eq('shot_number', shotNumber)
+      .eq('is_current', true)
       .single<ProjectStoryboard>()
 
     if (!storyboard) {
@@ -121,12 +123,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
       // 🎙️ Veo3.1 旁白模式：独立生成
       console.log(`[Video Agent] 🔄 Using Veo3.1 (narration mode) for shot ${shotNumber}`)
 
-      // 获取下一个分镜图（用于流畅过渡）
+      // 🔥 获取下一个分镜图（用于流畅过渡，只查询当前版本）
       const { data: nextStoryboard } = await supabaseAdmin
         .from('project_storyboards')
         .select('*')
         .eq('project_id', projectId)
         .eq('shot_number', shotNumber + 1)
+        .eq('is_current', true)
         .single<ProjectStoryboard>()
 
       const images = getVideoGenerationImages(
