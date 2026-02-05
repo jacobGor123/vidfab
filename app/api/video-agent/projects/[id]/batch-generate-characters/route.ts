@@ -125,6 +125,7 @@ interface BatchGenerationResult {
   imageUrl?: string
   status: 'success' | 'failed'
   error?: string
+  characterId?: string  // 🔥 新增：返回数据库中的人物 ID
 }
 
 /**
@@ -320,6 +321,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
           if (refError) {
             console.error(`[API] Failed to save reference image for ${char.characterName}:`, refError)
           }
+
+          // 🔥 关键修复：把数据库 ID 回填到返回结果中
+          char.characterId = characterId
         }
 
         console.log('[API] Auto-saved characters to database:', successfulCharacters.length)

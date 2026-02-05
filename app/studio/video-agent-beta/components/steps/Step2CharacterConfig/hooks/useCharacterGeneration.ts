@@ -283,6 +283,10 @@ export function useCharacterGeneration({
           tempStates[result.characterName].isGenerating = false
           if (result.status === 'success' && result.imageUrl) {
             tempStates[result.characterName].imageUrl = result.imageUrl
+            // 🔥 关键修复：保存数据库中的真实 ID，避免使用临时 ID
+            if (result.characterId) {
+              tempStates[result.characterName].id = result.characterId
+            }
           } else {
             tempStates[result.characterName].error = result.error || 'Generation failed'
             allSuccess = false
