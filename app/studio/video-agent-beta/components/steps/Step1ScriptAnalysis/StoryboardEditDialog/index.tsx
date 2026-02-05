@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -67,6 +67,17 @@ export function StoryboardEditDialog({
     is_current: boolean
     updated_at?: string
   } | null>(null)
+
+  // 🔥 清空预览状态：当弹框关闭或 shotNumber 变化时
+  useEffect(() => {
+    if (!open) {
+      setPreviewVersion(null)
+    }
+  }, [open])
+
+  useEffect(() => {
+    setPreviewVersion(null)
+  }, [shotNumber])
 
   const {
     selectedCharacterNames,
