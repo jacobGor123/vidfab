@@ -34,7 +34,7 @@ interface Step1Props {
 }
 
 export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1Props) {
-  const { analyzeScript, updateProject, deleteShot, regenerateStoryboard, composeVideo } = useVideoAgentAPI()
+  const { analyzeScript, updateProject, deleteShot, regenerateStoryboard, composeVideo, getProject } = useVideoAgentAPI()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<ScriptAnalysis | null>(
     project.script_analysis || null
@@ -487,6 +487,27 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
     }
   }
 
+  // 🔥 处理版本切换（刷新项目数据以更新外层预览图）
+  const handleVersionSwitched = async () => {
+    try {
+      console.log('[Step1] Refreshing project data after version switch...')
+
+      // 重新获取项目数据
+      const updatedProject = await getProject(project.id) as any
+
+      // 更新本地状态（包括 storyboards）
+      onUpdate({
+        storyboards: [...((updatedProject as any).storyboards || [])],
+        // 也可以更新其他字段，如果 API 返回了完整数据
+        characters: (updatedProject as any).characters,
+      } as any)
+
+      console.log('[Step1] Project data refreshed successfully')
+    } catch (error: any) {
+      console.error('[Step1] Failed to refresh project data:', error)
+    }
+  }
+
   // Analyzing State
   if (isAnalyzing && !analysis) {
     return (
@@ -786,6 +807,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
         project={project}
         shotNumber={editingShotNumber}
         onRegenerate={handleRegenerateStoryboard}
+        onVersionSwitched={handleVersionSwitched}
       />
 
       {/* 🔥 删除确认对话框 */}

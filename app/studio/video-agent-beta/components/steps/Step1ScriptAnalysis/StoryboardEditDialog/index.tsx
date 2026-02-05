@@ -47,6 +47,7 @@ interface StoryboardEditDialogProps {
   project: VideoAgentProject
   shotNumber: number | null
   onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>
+  onVersionSwitched?: () => void // 🔥 版本切换后的回调，用于通知父组件刷新数据
 }
 
 export function StoryboardEditDialog({
@@ -54,7 +55,8 @@ export function StoryboardEditDialog({
   onOpenChange,
   project,
   shotNumber,
-  onRegenerate
+  onRegenerate,
+  onVersionSwitched
 }: StoryboardEditDialogProps) {
   // 预览版本状态（点击历史版本时只预览，不切换）
   const [previewVersion, setPreviewVersion] = useState<{
@@ -71,20 +73,12 @@ export function StoryboardEditDialog({
   // 🔥 强制刷新历史版本列表的 key
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
 
-  // 🔥 标记是否切换过版本（关闭时需要刷新外层数据）
-  const [hasVersionSwitched, setHasVersionSwitched] = useState(false)
-
   // 🔥 清空预览状态：当弹框关闭或 shotNumber 变化时
   useEffect(() => {
     if (!open) {
-      // 关闭弹框时，如果切换过版本，刷新页面以更新外层预览图
-      if (hasVersionSwitched) {
-        window.location.reload()
-      }
       setPreviewVersion(null)
-      setHasVersionSwitched(false)
     }
-  }, [open, hasVersionSwitched])
+  }, [open])
 
   useEffect(() => {
     setPreviewVersion(null)
@@ -178,9 +172,6 @@ export function StoryboardEditDialog({
         throw new Error('Failed to switch version')
       }
 
-      // ✅ 标记已切换版本（关闭弹框时会刷新页面）
-      setHasVersionSwitched(true)
-
       // ✅ 成功切换后，刷新历史版本列表（更新打勾状态和高亮）
       setHistoryRefreshKey(prev => prev + 1)
 
@@ -199,6 +190,9 @@ export function StoryboardEditDialog({
           setPreviewVersion(newCurrentVersion)
         }
       }
+
+      // ✅ 通知父组件刷新数据（外层预览图会更新）
+      onVersionSwitched?.()
 
       console.log('[StoryboardEdit] Version switched successfully to V' + previewVersion.version)
 
