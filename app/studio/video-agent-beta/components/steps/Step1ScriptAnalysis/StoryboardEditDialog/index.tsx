@@ -128,20 +128,6 @@ export function StoryboardEditDialog({
     : undefined
 
   const handleRegenerateClick = async () => {
-    // 🔥 调试：打印当前选择的人物信息
-    console.log('[StoryboardEdit] Regenerating with:', {
-      shotNumber,
-      selectedCharacterIds,
-      selectedCharacterNames,
-      characterCount: characters.length,
-      characters: characters.map(c => ({
-        id: c.id,
-        name: c.character_name,
-        refImageCount: c.character_reference_images?.length || 0,
-        firstRefImage: c.character_reference_images?.[0]?.image_url
-      }))
-    })
-
     await handleRegenerate(onRegenerate)
 
     // 🔥 重新生成完成后刷新历史版本列表和预览
