@@ -194,8 +194,6 @@ export function StoryboardEditDialog({
       // ✅ 通知父组件刷新数据（外层预览图会更新）
       onVersionSwitched?.()
 
-      console.log('[StoryboardEdit] Version switched successfully to V' + previewVersion.version)
-
     } catch (error) {
       console.error('[StoryboardEdit] Failed to switch version:', error)
     }
