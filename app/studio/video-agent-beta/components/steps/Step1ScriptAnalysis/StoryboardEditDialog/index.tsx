@@ -68,15 +68,27 @@ export function StoryboardEditDialog({
     updated_at?: string
   } | null>(null)
 
+  // 🔥 强制刷新历史版本列表的 key
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
+
+  // 🔥 标记是否切换过版本（关闭时需要刷新外层数据）
+  const [hasVersionSwitched, setHasVersionSwitched] = useState(false)
+
   // 🔥 清空预览状态：当弹框关闭或 shotNumber 变化时
   useEffect(() => {
     if (!open) {
+      // 关闭弹框时，如果切换过版本，刷新页面以更新外层预览图
+      if (hasVersionSwitched) {
+        window.location.reload()
+      }
       setPreviewVersion(null)
+      setHasVersionSwitched(false)
     }
-  }, [open])
+  }, [open, hasVersionSwitched])
 
   useEffect(() => {
     setPreviewVersion(null)
+    setHistoryRefreshKey(prev => prev + 1) // 重置历史列表
   }, [shotNumber])
 
   const {
@@ -166,22 +178,32 @@ export function StoryboardEditDialog({
         throw new Error('Failed to switch version')
       }
 
-      // ✅ 成功切换后，将预览版本标记为当前版本
-      // 这样显示逻辑会认为它就是新的"当前版本"
-      setPreviewVersion({
-        ...previewVersion,
-        is_current: true
-      })
+      // ✅ 标记已切换版本（关闭弹框时会刷新页面）
+      setHasVersionSwitched(true)
 
-      // 提示用户：版本已切换成功，关闭弹框后外层会显示新版本
+      // ✅ 成功切换后，刷新历史版本列表（更新打勾状态和高亮）
+      setHistoryRefreshKey(prev => prev + 1)
+
+      // ✅ 重新加载历史版本数据，获取最新状态
+      const historyResponse = await fetch(
+        `/api/video-agent/projects/${project.id}/storyboards/${shotNumber}/history`
+      )
+
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json()
+        // 找到刚刚设置为 current 的版本
+        const newCurrentVersion = historyData.data?.find((v: any) => v.version === previewVersion.version)
+
+        if (newCurrentVersion) {
+          // 更新预览版本为最新数据（包含 is_current = true）
+          setPreviewVersion(newCurrentVersion)
+        }
+      }
+
       console.log('[StoryboardEdit] Version switched successfully to V' + previewVersion.version)
-
-      // 注意：外层列表的预览图要在关闭弹框重新打开后才会更新
-      // 这是正常的，因为我们不想在编辑过程中刷新整个页面
 
     } catch (error) {
       console.error('[StoryboardEdit] Failed to switch version:', error)
-      // 可选：显示错误提示
     }
   }
 
@@ -230,6 +252,7 @@ export function StoryboardEditDialog({
                 onRegenerate={handleRegenerateClick}
                 onVersionPreview={handleVersionPreview}
                 onSetAsCurrent={handleSetAsCurrent}
+                historyRefreshKey={historyRefreshKey}
               />
             </ScrollArea>
           </div>

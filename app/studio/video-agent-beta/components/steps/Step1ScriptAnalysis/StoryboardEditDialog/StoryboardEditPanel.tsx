@@ -72,6 +72,7 @@ interface StoryboardEditPanelProps {
   onRegenerate: () => void
   onVersionPreview?: (versionId: string, version: number) => void
   onSetAsCurrent?: () => void
+  historyRefreshKey?: number
 }
 
 export function StoryboardEditPanel({
@@ -84,7 +85,8 @@ export function StoryboardEditPanel({
   onPromptChange,
   onRegenerate,
   onVersionPreview,
-  onSetAsCurrent
+  onSetAsCurrent,
+  historyRefreshKey
 }: StoryboardEditPanelProps) {
   // 🔥 优先使用预览版本，否则使用当前分镜图
   const displayStoryboard = previewVersion || storyboard
@@ -183,6 +185,7 @@ export function StoryboardEditPanel({
           <Card className="border-slate-700 bg-slate-900/50">
             <CardContent className="p-4">
               <StoryboardHistoryCarousel
+                key={`history-${historyRefreshKey || 0}`}
                 projectId={projectId}
                 shotNumber={shotNumber}
                 currentVersionId={previewVersion?.id || storyboard?.id}
