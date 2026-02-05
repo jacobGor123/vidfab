@@ -22,8 +22,7 @@ interface UseStoryboardEditorReturn {
   handleToggleCharacterId: (characterId: string) => void
   handlePromptChange: (prompt: string) => void
   handleRegenerate: (
-    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>,
-    onClose: () => void
+    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>
   ) => Promise<void>
 }
 
@@ -152,8 +151,7 @@ export function useStoryboardEditor(
 
   // 重新生成
   const handleRegenerate = useCallback(async (
-    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>,
-    onClose: () => void
+    onRegenerate: (shotNumber: number, prompt: string, characterNames: string[], characterIds: string[]) => Promise<void>
   ) => {
     if (!shotNumber) {
       console.warn('[StoryboardEditor] Cannot regenerate: shotNumber is null')
@@ -164,8 +162,8 @@ export function useStoryboardEditor(
     try {
       await onRegenerate(shotNumber, editedPrompt, selectedCharacterNames, selectedCharacterIds)
 
-      // 成功后关闭弹框
-      onClose()
+      // 🔥 不自动关闭弹框，让用户看到新生成的图片
+      // 用户可以查看结果后自己决定是否关闭
     } catch (error) {
       console.error('[StoryboardEditor] Regenerate failed:', error)
       // 错误处理由父组件负责（通过 toast 等）
