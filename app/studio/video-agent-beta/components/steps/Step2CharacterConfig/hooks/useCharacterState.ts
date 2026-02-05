@@ -208,8 +208,9 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             // Preserve loading/error state only when it refers to the same logical character.
             // After renames/replacements, keeping isGenerating=true can create "ghost" cards
             // that appear to poll forever.
+            // 🔥 关键修复：如果新状态已有图片，强制设置 isGenerating=false，避免卡死
             if (oldStateByKey && oldStateByKey.name === newState.name) {
-              const preservedIsGenerating = oldStateByKey.isGenerating ?? newState.isGenerating
+              const preservedIsGenerating = newState.imageUrl ? false : (oldStateByKey.isGenerating ?? newState.isGenerating)
               merged[key] = {
                 ...newState,
                 isGenerating: preservedIsGenerating,
@@ -237,7 +238,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
                 ...merged[key],  // 🔥 使用 merged[key] 而不是 newState，保留之前的 isGenerating
                 id: oldStateByKey.id,
                 imageUrl: oldStateByKey.imageUrl,
-                mode: oldStateByKey.mode
+                mode: oldStateByKey.mode,
+                isGenerating: false  // 🔥 有图片就不应该 generating
               }
               recoveredCount++
               return
@@ -254,7 +256,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
                 ...merged[key],  // 🔥 使用 merged[key] 而不是 newState，保留之前的 isGenerating
                 id: oldStateByName.id,
                 imageUrl: oldStateByName.imageUrl,
-                mode: oldStateByName.mode
+                mode: oldStateByName.mode,
+                isGenerating: false  // 🔥 有图片就不应该 generating
               }
               recoveredCount++
               return
@@ -278,7 +281,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
                     ...merged[key],  // 🔥 使用 merged[key] 而不是 newState，保留之前的 isGenerating
                     id: oldStateByIndex.id,
                     imageUrl: oldStateByIndex.imageUrl,
-                    mode: oldStateByIndex.mode
+                    mode: oldStateByIndex.mode,
+                    isGenerating: false  // 🔥 有图片就不应该 generating
                   }
                   recoveredCount++
                   return
