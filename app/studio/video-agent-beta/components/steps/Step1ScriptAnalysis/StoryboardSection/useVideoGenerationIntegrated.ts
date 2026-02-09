@@ -29,7 +29,7 @@ interface UseVideoGenerationIntegratedReturn {
     generatingShots: Set<number>
 
     // 动作
-    generateSingleVideo: (shotNumber: number, prompt: string, duration?: number) => Promise<void>  // 🔥 添加 duration 参数
+    generateSingleVideo: (shotNumber: number, prompt: string, duration?: number, resolution?: string) => Promise<void>  // 🔥 添加 duration 和 resolution 参数
     generateAllVideos: () => Promise<void>
     updateCustomPrompt: (shotNumber: number, characterAction: string) => void
     stopGeneration: () => void  // 🔥 新增：手动停止轮询
@@ -269,7 +269,7 @@ export function useVideoGenerationIntegrated({
     // 单个生成视频
     // Unified flow: the editable field is character_action (prompt arg), and we build the final prompt
     // by combining shot.description + character_action so the backend gets consistent inputs.
-    const generateSingleVideo = useCallback(async (shotNumber: number, prompt: string, duration?: number) => {  // 🔥 添加 duration 参数
+    const generateSingleVideo = useCallback(async (shotNumber: number, prompt: string, duration?: number, resolution?: string) => {  // 🔥 添加 duration 和 resolution 参数
         if (generatingShots.has(shotNumber)) {
             showError('This video is already generating')
             return
@@ -286,7 +286,8 @@ export function useVideoGenerationIntegrated({
         const customPrompt = JSON.stringify({
             description,
             character_action: action,
-            duration_seconds: duration || shot?.duration_seconds || 5  // 🔥 添加 duration_seconds
+            duration_seconds: duration || shot?.duration_seconds || 5,  // 🔥 添加 duration_seconds
+            resolution: resolution || '480p'  // 🔥 添加 resolution，默认 480p
         })
 
         // 更新本地状态为 generating

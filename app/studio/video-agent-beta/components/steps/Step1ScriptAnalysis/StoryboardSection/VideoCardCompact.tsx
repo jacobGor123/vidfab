@@ -13,7 +13,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Video, Loader2, AlertCircle, Play, RefreshCw, ChevronDown, ChevronUp, Clock } from 'lucide-react'
+import { Video, Loader2, AlertCircle, Play, RefreshCw, ChevronDown, ChevronUp, Clock, Monitor } from 'lucide-react'
 import type { VideoClip } from '@/lib/stores/video-agent'
 
 interface VideoCardCompactProps {
@@ -22,10 +22,11 @@ interface VideoCardCompactProps {
     defaultPrompt: string
     customPrompt?: string
     defaultDuration?: number  // 🔥 新增：默认时长
+    defaultResolution?: string  // 🔥 新增：默认分辨率
     aspectRatio: '16:9' | '9:16'
     isGenerating: boolean
     disabled?: boolean
-    onGenerate: (prompt: string, duration: number) => void  // 🔥 修改：添加 duration 参数
+    onGenerate: (prompt: string, duration: number, resolution: string) => void  // 🔥 修改：添加 duration 和 resolution 参数
     onUpdatePrompt: (prompt: string) => void
 }
 
@@ -35,6 +36,7 @@ export function VideoCardCompact({
     defaultPrompt,
     customPrompt,
     defaultDuration = 5,  // 🔥 新增：默认 5 秒
+    defaultResolution = '480p',  // 🔥 新增：默认 480p
     aspectRatio,
     isGenerating,
     disabled = false,
@@ -43,6 +45,7 @@ export function VideoCardCompact({
 }: VideoCardCompactProps) {
     const [isPromptExpanded, setIsPromptExpanded] = useState(false)
     const [duration, setDuration] = useState(defaultDuration)  // 🔥 新增：时长状态
+    const [resolution, setResolution] = useState(defaultResolution)  // 🔥 新增：分辨率状态
 
     // 使用自定义 prompt 或默认 prompt
     const currentPrompt = customPrompt ?? defaultPrompt
@@ -133,7 +136,7 @@ export function VideoCardCompact({
                 )}
             </button>
 
-            {/* 🔥 Duration 在上，Character Action 在下 */}
+            {/* 🔥 Duration 在上，Resolution 中间，Character Action 在下 */}
             {isPromptExpanded && (
                 <div className="space-y-3">
                     {/* Duration - 单独一行 */}
@@ -160,6 +163,24 @@ export function VideoCardCompact({
                         </select>
                     </div>
 
+                    {/* Resolution - 单独一行 */}
+                    <div className="space-y-1">
+                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                            <Monitor className="w-3 h-3" />
+                            <span>Resolution</span>
+                        </label>
+                        <select
+                            value={resolution}
+                            onChange={(e) => setResolution(e.target.value)}
+                            disabled={isCurrentlyGenerating}
+                            className="w-full text-xs p-2 bg-slate-900/50 border border-slate-700/50 focus:border-blue-500/50 rounded focus:outline-none transition-colors"
+                        >
+                            <option value="480p">480p</option>
+                            <option value="720p">720p</option>
+                            <option value="1080p">1080p</option>
+                        </select>
+                    </div>
+
                     {/* Character Action - 单独一行 */}
                     <div className="space-y-1">
                         <label className="flex items-center gap-1 text-[10px] text-slate-500">
@@ -179,7 +200,7 @@ export function VideoCardCompact({
 
             {/* 生成按钮 */}
             <Button
-                onClick={() => onGenerate(currentPrompt, duration)}  // 🔥 传递 duration 参数
+                onClick={() => onGenerate(currentPrompt, duration, resolution)}  // 🔥 传递 duration 和 resolution 参数
                 disabled={disabled || isCurrentlyGenerating || !currentPrompt.trim()}
                 size="sm"
                 variant={hasVideo ? 'outline' : 'default'}

@@ -104,7 +104,7 @@ interface StoryboardCardEnhancedProps {
   onDelete?: () => void
   onFieldChange: (field: 'description', value: string) => void
   getFieldValue: (field: 'description', originalValue: string) => string
-  onGenerateVideo: (prompt: string, duration: number) => void  // 🔥 添加 duration 参数
+  onGenerateVideo: (prompt: string, duration: number, resolution: string) => void  // 🔥 添加 duration 和 resolution 参数
   onUpdateVideoPrompt: (prompt: string) => void
 }
 

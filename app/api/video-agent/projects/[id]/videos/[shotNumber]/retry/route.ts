@@ -146,6 +146,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       // The UI now edits character_action separately and sends both fields in JSON mode.
       let finalPrompt: string
       let customDuration: number | undefined
+      let customResolution: string | undefined
 
       if (customPrompt && customPrompt.trim()) {
         try {
@@ -153,16 +154,18 @@ export const POST = withAuth(async (request, { params, userId }) => {
           const parsedFields = JSON.parse(customPrompt)
 
           if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds
+            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds + resolution
             const description = parsedFields.description || shot.description
             const characterAction = parsedFields.character_action || shot.character_action
             customDuration = parsedFields.duration_seconds ? parseInt(parsedFields.duration_seconds, 10) : undefined
+            customResolution = parsedFields.resolution || undefined
 
             finalPrompt = `${description}. ${characterAction}`.trim()
             console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
               description: description.substring(0, 50) + '...',
               characterAction: String(characterAction || '').substring(0, 50) + '...',
-              customDuration: customDuration || shot.duration_seconds
+              customDuration: customDuration || shot.duration_seconds,
+              customResolution: customResolution || '480p'
             })
           } else {
             // JSON 解析成功但不是对象，作为纯文本处理
@@ -227,6 +230,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       let description: string
       let characterAction: string
       let customDuration: number | undefined
+      let customResolution: string | undefined
 
       if (customPrompt && customPrompt.trim()) {
         try {
@@ -234,15 +238,17 @@ export const POST = withAuth(async (request, { params, userId }) => {
           const parsedFields = JSON.parse(customPrompt)
 
           if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds
+            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds + resolution
             description = parsedFields.description || shot.description
             characterAction = parsedFields.character_action || shot.character_action
             customDuration = parsedFields.duration_seconds ? parseInt(parsedFields.duration_seconds, 10) : undefined
+            customResolution = parsedFields.resolution || undefined
 
             console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
               description: description.substring(0, 50) + '...',
               characterAction: characterAction.substring(0, 50) + '...',
-              customDuration: customDuration || shot.duration_seconds
+              customDuration: customDuration || shot.duration_seconds,
+              customResolution: customResolution || '480p'
             })
           } else {
             // JSON 解析成功但不是对象，作为纯文本处理
@@ -267,13 +273,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
       // 🔥 使用自定义时长（如果有），否则使用原始时长
       const finalDuration = customDuration || shot.duration_seconds
+      // 🔥 使用自定义分辨率（如果有），否则使用默认 480p
+      const finalResolution = customResolution || '480p'
 
       const videoRequest: VideoGenerationRequest = {
         image: storyboard.image_url,
         prompt: finalPrompt,
         model: 'vidfab-q1',
         duration: finalDuration,  // 🔥 使用自定义时长
-        resolution: '720p',  // 🔥 修复：使用 720p（更快，缓存优化）
+        resolution: finalResolution,  // 🔥 使用自定义分辨率（默认 480p）
         aspectRatio: project.aspect_ratio || '16:9',
         cameraFixed: true,
         watermark: false,
