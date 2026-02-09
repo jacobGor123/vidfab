@@ -34,8 +34,10 @@ export const STORAGE_CONFIG = {
     getUserImagesFolder: (userId: string) => `images/${userId}`,
 
     // Video Agent 专用路径生成器
-    getVideoAgentStoryboardPath: (userId: string, projectId: string, shotNumber: number) =>
-      `images/${userId}/video-agent/${projectId}/storyboards/shot-${shotNumber}.jpg`,
+    getVideoAgentStoryboardPath: (userId: string, projectId: string, shotNumber: number, storyboardId?: string) =>
+      storyboardId
+        ? `images/${userId}/video-agent/${projectId}/storyboards/shot-${shotNumber}-${storyboardId}.jpg`
+        : `images/${userId}/video-agent/${projectId}/storyboards/shot-${shotNumber}.jpg`,
     getVideoAgentClipPath: (userId: string, projectId: string, shotNumber: number) =>
       `videos/${userId}/video-agent/${projectId}/clips/shot-${shotNumber}.mp4`,
   },

@@ -109,7 +109,8 @@ export async function handleStoryboardDownload(job: Job): Promise<any> {
     jobData.userId,
     jobData.projectId,
     jobData.shotNumber,
-    jobData.externalUrl
+    jobData.externalUrl,
+    jobData.storyboardId  // 🔥 传递版本 ID，确保存储路径唯一
   )
 
   await job.updateProgress({ percent: 100, message: 'Download completed' })

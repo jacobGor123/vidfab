@@ -19,6 +19,10 @@ interface StoryboardVersion {
   id: string
   version: number
   image_url: string
+  image_url_external?: string
+  cdn_url?: string
+  image_storage_path?: string
+  storage_status?: string
   is_current: boolean
   created_at: string
 }
@@ -128,6 +132,12 @@ export function StoryboardHistoryCarousel({
               const isCurrent = version.is_current
               const isSelected = version.id === currentVersionId
 
+              // 解析图片 URL（优先使用 CDN，降级到代理）
+              const imageUrl = version.cdn_url ||
+                (version.image_url_external
+                  ? `/api/video-agent/proxy-image?u=${encodeURIComponent(version.image_url_external)}`
+                  : version.image_url)
+
               return (
                 <button
                   key={version.id}
@@ -141,7 +151,7 @@ export function StoryboardHistoryCarousel({
                 >
                   {/* 缩略图 */}
                   <img
-                    src={version.image_url}
+                    src={imageUrl}
                     alt={`Version ${version.version}`}
                     className="h-full w-auto object-contain"
                   />

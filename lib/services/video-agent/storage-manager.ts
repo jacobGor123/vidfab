@@ -33,7 +33,8 @@ export class VideoAgentStorageManager {
     userId: string,
     projectId: string,
     shotNumber: number,
-    externalUrl: string
+    externalUrl: string,
+    storyboardId?: string
   ) {
     try {
       console.log(`[Storage Manager] 📥 Downloading storyboard shot ${shotNumber}...`)
@@ -55,11 +56,12 @@ export class VideoAgentStorageManager {
 
       console.log(`[Storage Manager] Downloaded ${fileSize} bytes`)
 
-      // 2. 生成存储路径
+      // 2. 生成存储路径（包含版本ID确保唯一性）
       const storagePath = STORAGE_CONFIG.paths.getVideoAgentStoryboardPath(
         userId,
         projectId,
-        shotNumber
+        shotNumber,
+        storyboardId
       )
 
       // Helpful for diagnosing policy/bucket/misconfig quickly.
@@ -101,22 +103,28 @@ export class VideoAgentStorageManager {
 
       const cdnUrl = urlData.publicUrl
 
-      // 5. 更新数据库记录
-      const { error: updateError } = await supabaseAdmin
+      // 5. 更新数据库记录（精确匹配版本ID或当前版本）
+      const updateQuery = supabaseAdmin
         .from('project_storyboards')
         .update({
           image_url_external: externalUrl, // 保存原始外部 URL
           // Ensure project fetch (which normalizes image_url from cdn_url/external/image_url)
           // never serves a stale storage URL after regeneration.
           image_url: cdnUrl,
-          storage_path: storagePath,
+          image_storage_path: storagePath,
           cdn_url: cdnUrl,
           storage_status: 'completed',
           file_size: fileSize,
           updated_at: new Date().toISOString(),
         } as any)
-        .eq('project_id', projectId)
-        .eq('shot_number', shotNumber)
+
+      // 如果提供了 storyboardId，精确匹配该版本；否则匹配当前版本
+      const { error: updateError } = storyboardId
+        ? await updateQuery.eq('id', storyboardId)
+        : await updateQuery
+            .eq('project_id', projectId)
+            .eq('shot_number', shotNumber)
+            .eq('is_current', true)
 
       if (updateError) {
         console.error(`[Storage Manager] Failed to update database:`, updateError)
@@ -140,17 +148,23 @@ export class VideoAgentStorageManager {
       const cause = toErrorCause(error)
       if (cause) console.error('[Storage Manager] Underlying cause:', cause)
 
-      // 更新失败状态
-      await supabaseAdmin
+      // 更新失败状态（精确匹配版本ID或当前版本）
+      const failQuery = supabaseAdmin
         .from('project_storyboards')
         .update({
-          status: 'failed',
-          error_message: toErrorMessage(error),
           storage_status: 'failed',
+          error_message: toErrorMessage(error),
           updated_at: new Date().toISOString(),
         } as any)
-        .eq('project_id', projectId)
-        .eq('shot_number', shotNumber)
+
+      if (storyboardId) {
+        await failQuery.eq('id', storyboardId)
+      } else {
+        await failQuery
+          .eq('project_id', projectId)
+          .eq('shot_number', shotNumber)
+          .eq('is_current', true)
+      }
 
       throw error
     }
