@@ -79,13 +79,28 @@ export const GET = withAuth(async (req: NextRequest) => {
     const upstream = await fetchWithRedirects(raw)
 
     if (!upstream.ok) {
+      // 获取响应体以获取更多错误信息
+      let errorBody = ''
+      try {
+        errorBody = await upstream.text()
+      } catch (e) {
+        errorBody = '(无法读取响应体)'
+      }
+
       console.error('[ProxyImage] Upstream failed:', {
         url: raw.substring(0, 150),
         status: upstream.status,
-        statusText: upstream.statusText
+        statusText: upstream.statusText,
+        errorBody: errorBody.substring(0, 500), // 限制长度避免日志过大
+        headers: Object.fromEntries(upstream.headers.entries())
       })
       return NextResponse.json(
-        { error: 'Upstream fetch failed', status: upstream.status },
+        {
+          error: 'Upstream fetch failed',
+          status: upstream.status,
+          statusText: upstream.statusText,
+          details: process.env.NODE_ENV === 'development' ? errorBody.substring(0, 200) : undefined
+        },
         { status: 502 }
       )
     }
