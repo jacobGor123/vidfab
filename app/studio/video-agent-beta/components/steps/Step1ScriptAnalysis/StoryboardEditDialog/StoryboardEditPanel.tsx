@@ -7,7 +7,6 @@
 
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { RefreshCw, Image as ImageIcon, Sparkles } from 'lucide-react'
@@ -98,13 +97,13 @@ export function StoryboardEditPanel({
   const resolvedSrc = resolveStoryboardSrc(displayStoryboard as any)
 
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-6 h-full">
       {/* 左侧：分镜图预览 + 历史版本轮播 */}
-      <div className="w-1/2 flex-shrink-0 space-y-4">
-        {/* 当前分镜图预览 */}
-        <Card className="border-slate-700 bg-slate-900/50 overflow-hidden">
-          <CardContent className="p-0">
-            <div className="relative w-full h-[350px] bg-slate-800 flex items-center justify-center">
+      <div className="w-1/2 flex-shrink-0 flex flex-col gap-3">
+        {/* 当前分镜图预览 - 占据更多空间 */}
+        <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40" style={{ flex: '1 1 0', minHeight: '0' }}>
+          <div className="p-0 h-full">
+            <div className="relative w-full h-full bg-slate-950/50 flex items-center justify-center rounded-lg overflow-hidden">
               {hasImage ? (
                 <>
                   <img
@@ -177,31 +176,29 @@ export function StoryboardEditPanel({
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* 历史版本轮播 */}
+        {/* 历史版本轮播 - 更小的高度 */}
         {hasImage && !isGenerating && onVersionPreview && (
-          <Card className="border-slate-700 bg-slate-900/50">
-            <CardContent className="p-4">
-              <StoryboardHistoryCarousel
-                key={`history-${historyRefreshKey || 0}`}
-                projectId={projectId}
-                shotNumber={shotNumber}
-                currentVersionId={previewVersion?.id || storyboard?.id}
-                onVersionSelect={onVersionPreview}
-              />
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3 flex-shrink-0" style={{ maxHeight: '120px' }}>
+            <StoryboardHistoryCarousel
+              key={`history-${historyRefreshKey || 0}`}
+              projectId={projectId}
+              shotNumber={shotNumber}
+              currentVersionId={previewVersion?.id || storyboard?.id}
+              onVersionSelect={onVersionPreview}
+            />
+          </div>
         )}
       </div>
 
       {/* 右侧：Prompt 编辑区 */}
-      <div className="flex-1 flex flex-col space-y-4">
+      <div className="flex-1 flex flex-col gap-4 min-h-0">
         {/* Prompt Editor */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-slate-200">
+        <div className="flex-1 flex flex-col gap-2 min-h-0">
+          <div className="flex items-center justify-between flex-shrink-0">
+            <label className="text-sm font-medium text-slate-200">
               Generation Prompt
             </label>
             <span className="text-xs text-slate-400">
@@ -212,18 +209,27 @@ export function StoryboardEditPanel({
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
             placeholder="Describe the scene and any specific details..."
-            className="h-[200px] bg-slate-900/50 border-slate-700 focus:border-blue-500 text-slate-200 placeholder:text-slate-500 resize-none"
+            className="flex-1 bg-slate-900/50 border-slate-700 focus:border-blue-500/50 text-white placeholder:text-slate-500 resize-none min-h-0"
             disabled={isRegenerating}
           />
         </div>
 
         {/* Regenerate Button */}
-        <div>
+        <div className="flex-shrink-0">
           <Button
             onClick={onRegenerate}
             disabled={isRegenerating || !prompt.trim()}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            size="lg"
+            className="w-full h-12 text-white text-base font-bold rounded-xl"
+            style={
+              isRegenerating || !prompt.trim()
+                ? {
+                    background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
+                  }
+                : {
+                    background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                    boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+                  }
+            }
           >
             {isRegenerating ? (
               <>
@@ -237,11 +243,6 @@ export function StoryboardEditPanel({
               </>
             )}
           </Button>
-          {!prompt.trim() && (
-            <p className="text-xs text-amber-400 mt-2 text-center">
-              Please enter a prompt to regenerate
-            </p>
-          )}
         </div>
       </div>
     </div>

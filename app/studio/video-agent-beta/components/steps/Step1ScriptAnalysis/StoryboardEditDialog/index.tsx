@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Film } from 'lucide-react'
 import type { VideoAgentProject } from '@/lib/stores/video-agent'
 import { useStoryboardEditor } from './useStoryboardEditor'
 import { CharacterReferencePanel } from './CharacterReferencePanel'
@@ -99,7 +99,7 @@ export function StoryboardEditDialog({
   // 🔥 修复：映射人物数据，兼容两种格式
   // 数据库格式: character_name, character_reference_images[{image_url}]
   // Store 格式: name, reference_images[{url}]
-  const characters: Character[] = Array.isArray(project.characters)
+  const allCharacters: Character[] = Array.isArray(project.characters)
     ? project.characters.map((char: any) => ({
         id: char.id,
         character_name: char.character_name || char.name || '',
@@ -117,6 +117,12 @@ export function StoryboardEditDialog({
             : []
       }))
     : []
+
+  // 🔥 去重：优先使用带括号描述的完整名称（新格式），过滤掉简短名称（旧格式）
+  const characters: Character[] = allCharacters.filter((char) => {
+    // 只保留带括号的完整描述格式
+    return char.character_name.includes('(')
+  })
 
   const storyboard = shotNumber
     ? (project.storyboards?.find(s => s.shot_number === shotNumber) as unknown as Storyboard)
@@ -205,52 +211,55 @@ export function StoryboardEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-[1800px] h-[90vh] p-0 gap-0 bg-slate-950 border-slate-800">
+      <DialogContent
+        className="bg-[#1a1d2e] border-white/10 backdrop-blur-xl p-0 gap-0 flex flex-col"
+        style={{ maxWidth: '1400px', width: '95vw', maxHeight: '90vh', height: '90vh' }}
+      >
         {/* Header */}
-        <DialogHeader className="px-8 py-6 border-b border-slate-800 flex-shrink-0">
-          <DialogTitle className="text-2xl text-slate-100 font-bold">
-            Edit Storyboard - Shot {shotNumber}
-          </DialogTitle>
-          <DialogDescription className="text-slate-400">
-            Select characters and edit the prompt to regenerate this storyboard
-          </DialogDescription>
-        </DialogHeader>
+        <div className="px-6 py-3 border-b border-white/10 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
+              <Film className="w-5 h-5 text-purple-400" />
+            </div>
+            <div>
+              <h2 className="text-xl text-white font-bold">
+                Edit Storyboard - Shot {shotNumber}
+              </h2>
+              <p className="text-sm text-slate-400 mt-0.5">
+                Select characters and edit the prompt to regenerate this storyboard
+              </p>
+            </div>
+          </div>
+        </div>
 
-        {/* Main Content */}
-        <div className="flex flex-row gap-8 p-8 overflow-hidden flex-1">
-          {/* Left Panel - Character Selection */}
-          <div className="w-[400px] flex-shrink-0">
-            <ScrollArea className="h-full pr-4">
-              <CharacterReferencePanel
-                characters={characters}
-                selectedCharacterNames={selectedCharacterNames}
-                selectedCharacterIds={selectedCharacterIds}
-                onToggle={handleToggleCharacter}
-                onToggleById={handleToggleCharacterId}
-              />
-            </ScrollArea>
+        {/* Main Content - 上下布局 */}
+        <div className="flex flex-col gap-4 p-6 overflow-hidden flex-1 min-h-0">
+          {/* 上部 - 人物选择区域（固定高度） */}
+          <div className="flex-shrink-0">
+            <CharacterReferencePanel
+              characters={characters}
+              selectedCharacterNames={selectedCharacterNames}
+              selectedCharacterIds={selectedCharacterIds}
+              onToggle={handleToggleCharacter}
+              onToggleById={handleToggleCharacterId}
+            />
           </div>
 
-          {/* Divider */}
-          <div className="w-px bg-slate-800 flex-shrink-0" />
-
-          {/* Right Panel - Storyboard Editor */}
-          <div className="flex-1 min-w-0">
-            <ScrollArea className="h-full pr-4">
-              <StoryboardEditPanel
-                projectId={project.id}
-                shotNumber={shotNumber || 0}
-                storyboard={storyboard}
-                previewVersion={previewVersion}
-                prompt={editedPrompt}
-                isRegenerating={isRegenerating}
-                onPromptChange={handlePromptChange}
-                onRegenerate={handleRegenerateClick}
-                onVersionPreview={handleVersionPreview}
-                onSetAsCurrent={handleSetAsCurrent}
-                historyRefreshKey={historyRefreshKey}
-              />
-            </ScrollArea>
+          {/* 下部 - 分镜编辑区域（填充剩余空间） */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <StoryboardEditPanel
+              projectId={project.id}
+              shotNumber={shotNumber || 0}
+              storyboard={storyboard}
+              previewVersion={previewVersion}
+              prompt={editedPrompt}
+              isRegenerating={isRegenerating}
+              onPromptChange={handlePromptChange}
+              onRegenerate={handleRegenerateClick}
+              onVersionPreview={handleVersionPreview}
+              onSetAsCurrent={handleSetAsCurrent}
+              historyRefreshKey={historyRefreshKey}
+            />
           </div>
         </div>
       </DialogContent>

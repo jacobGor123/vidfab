@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
+import { cn } from '@/lib/utils'
 
 // 导入各个步骤组件
 import Step1ScriptAnalysis from './steps/Step1ScriptAnalysis'
@@ -136,7 +137,7 @@ export default function StepDialog({
     <>
       <Dialog open={internalOpen} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="w-[90vw] max-w-[1600px] h-[90vh] overflow-hidden bg-slate-950/90 backdrop-blur-xl border-slate-800 shadow-2xl p-0 gap-0 flex flex-col"
+        className="w-[90vw] max-w-[1600px] h-[90vh] overflow-hidden bg-[#1a1d2e] backdrop-blur-xl border-white/10 shadow-2xl p-0 gap-0 flex flex-col"
         onInteractOutside={(e) => {
           // 🔥 阻止点击外部关闭，显示确认弹框
           e.preventDefault()
@@ -148,9 +149,9 @@ export default function StepDialog({
           setShowCloseConfirm(true)
         }}
       >
-        <DialogHeader className="p-6 border-b border-white/10 bg-white/5 flex-shrink-0">
-          <DialogTitle className="flex items-center gap-3 text-white">
-            <span className="font-medium tracking-wide">Video Agent</span>
+        <DialogHeader className="p-6 border-b border-white/10 flex-shrink-0" style={{ background: 'transparent' }}>
+          <DialogTitle className="flex items-center gap-3 text-white text-xl font-bold">
+            <span className="font-bold tracking-wide">Video Agent</span>
             {project.status === 'processing' && (
               <span className="flex items-center gap-2 text-xs font-normal px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 ml-auto">
                 <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
@@ -160,32 +161,43 @@ export default function StepDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 space-y-6 overflow-y-auto flex-1">
+        <div className={cn(
+          "p-6 flex-1 min-h-0",
+          view === 'compose' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'
+        )}>
           {/* Single-flow content */}
-          <div className="mt-2">{renderView()}</div>
+          <div className={cn(
+            view === 'compose' ? 'flex-1 min-h-0 flex flex-col' : ''
+          )}>
+            {renderView()}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
 
     {/* 🔥 关闭确认弹框 */}
     <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
-      <AlertDialogContent className="bg-slate-900 border-slate-700">
+      <AlertDialogContent className="bg-[#1a1d2e] border-white/10">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">Close Video Agent?</AlertDialogTitle>
-          <AlertDialogDescription className="text-slate-400">
+          <AlertDialogTitle className="text-white text-xl font-bold">Close Video Agent?</AlertDialogTitle>
+          <AlertDialogDescription className="text-white/60">
             Are you sure you want to close the Video Agent? Any unsaved progress may be lost.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="gap-3">
           <AlertDialogCancel
             onClick={handleCancelClose}
-            className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+            className="h-12 border-white/20 text-white hover:bg-slate-800/50 hover:text-white rounded-xl"
           >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirmClose}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="h-12 text-white text-base font-bold rounded-xl"
+            style={{
+              background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+              boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+            }}
           >
             Close Video Agent
           </AlertDialogAction>

@@ -101,17 +101,7 @@ export function StoryboardHistoryCarousel({
   const hasNext = currentPage < totalPages - 1
 
   return (
-    <div className="space-y-2">
-      {/* 标题 */}
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-          History Versions ({versions.length})
-        </h4>
-        <div className="text-xs text-slate-500">
-          Page {currentPage + 1} / {totalPages}
-        </div>
-      </div>
-
+    <div>
       {/* 轮播容器 */}
       <div className="relative flex items-center gap-2">
         {/* 左滑按钮 */}
@@ -120,9 +110,9 @@ export function StoryboardHistoryCarousel({
           disabled={!hasPrev}
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 flex-shrink-0 disabled:opacity-30"
+          className="h-6 w-6 p-0 flex-shrink-0 disabled:opacity-30"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-3 h-3" />
         </Button>
 
         {/* 缩略图列表 */}
@@ -143,7 +133,7 @@ export function StoryboardHistoryCarousel({
                   key={version.id}
                   onClick={() => handleVersionClick(version.id, version.version)}
                   className={cn(
-                    "relative group h-20 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
+                    "relative group h-14 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
                     isSelected
                       ? "border-blue-500 shadow-lg shadow-blue-500/20"
                       : "border-slate-700 hover:border-slate-500"
@@ -187,9 +177,9 @@ export function StoryboardHistoryCarousel({
           disabled={!hasNext}
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 flex-shrink-0 disabled:opacity-30"
+          className="h-6 w-6 p-0 flex-shrink-0 disabled:opacity-30"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-3 h-3" />
         </Button>
       </div>
     </div>

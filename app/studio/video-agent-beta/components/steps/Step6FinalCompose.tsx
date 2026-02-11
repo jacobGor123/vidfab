@@ -6,6 +6,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -385,43 +386,113 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     const { url, file_size, resolution, duration } = composeStatus.finalVideo
     const fileSizeMB = (file_size / (1024 * 1024)).toFixed(2)
 
+    // 格式化时长显示
+    const formatDuration = (seconds: number) => {
+      const mins = Math.floor(seconds / 60)
+      const secs = Math.floor(seconds % 60)
+      return `${mins}:${secs.toString().padStart(2, '0')}`
+    }
+
+    // 转换分辨率显示为简化格式
+    const getResolutionDisplay = (res: string) => {
+      // 如果已经是简化格式，直接返回
+      if (res === '480p' || res === '720p' || res === '1080p') {
+        return res
+      }
+
+      // 反向转换：从 1920x1080 转为 1080p
+      if (res.includes('1920') || res.includes('1080')) {
+        return '1080p'
+      } else if (res.includes('1280') || res.includes('720')) {
+        return '720p'
+      } else if (res.includes('854') || res.includes('480')) {
+        return '480p'
+      }
+
+      return res
+    }
+
     return (
-      <div className="space-y-6">
-        <div className="text-center py-6">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold mb-2">Your Video is Ready!</h2>
+      <div className="flex flex-col h-full">
+        {/* 标题 - 带图标 */}
+        <div className="flex items-center justify-center gap-3 py-4 flex-shrink-0">
+          <Image
+            src="/logo/video-ready-icon.svg"
+            alt="Video Ready"
+            width={48}
+            height={48}
+          />
+          <h2 className="text-2xl font-bold text-white">Your Video is Ready!</h2>
         </div>
 
-        {/* 视频预览 */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-center">
+        {/* 左右布局：视频预览 + 详情/按钮 */}
+        <div className="flex gap-6 flex-1 min-h-0">
+          {/* 左侧：视频预览 */}
+          <div className="flex-1 flex items-stretch">
+            <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40 w-full flex items-center justify-center">
               <video
                 src={url}
                 controls
-                className="w-full max-h-[500px] rounded-lg object-contain"
+                className="w-full h-full object-contain bg-black"
+                style={{ maxHeight: '100%' }}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
+          {/* 右侧：Video Details + 按钮组 */}
+          <div className="w-[400px] flex flex-col gap-4">
+            {/* Video Details - 填充剩余空间 */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex-1 flex flex-col">
+              <h3 className="text-lg font-bold text-white mb-4">Video Details</h3>
 
-        {/* 操作按钮 */}
-        <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent flex justify-center items-center gap-4 pt-8 pb-8 z-10">
-          <Button
-            onClick={handleDownload}
-            variant="ghost"
-            className="text-slate-400 hover:text-white"
-          >
-            Download Video
-          </Button>
-          <Button
-            onClick={handleComplete}
-            size="lg"
-            className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105"
-          >
-            Complete Project
-          </Button>
+              <div className="space-y-3 text-sm flex-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Ratio:</span>
+                  <span className="text-white">{project.aspect_ratio || '16:9'}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Resolution:</span>
+                  <span className="text-white">{getResolutionDisplay(resolution)}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Style:</span>
+                  <span className="text-white">{project.story_style || 'Realistic'}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Format:</span>
+                  <span className="text-white">MP4</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-500 pt-4 border-t border-slate-800 mt-auto">
+                You can download now,or complete the project to return to your workspace.
+              </p>
+            </div>
+
+            {/* 按钮组 - 固定高度 */}
+            <div className="space-y-3 flex-shrink-0">
+              <Button
+                onClick={handleDownload}
+                variant="outline"
+                className="w-full h-12 border-slate-700 text-white hover:bg-slate-800/50 hover:text-white rounded-xl"
+              >
+                Download Video
+              </Button>
+              <Button
+                onClick={handleComplete}
+                className="w-full h-14 text-white font-bold text-base transition-all rounded-xl"
+                style={{
+                  background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                  boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+                }}
+              >
+                Complete Project
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     )

@@ -8,8 +8,7 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Check, User } from 'lucide-react'
+import { User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Character {
@@ -34,58 +33,49 @@ export function CharacterReferencePanel({
   characters,
   selectedCharacterNames,
   selectedCharacterIds,
-  onToggle
-  ,
+  onToggle,
   onToggleById
 }: CharacterReferencePanelProps) {
+  const selectedCount = selectedCharacterIds?.length || selectedCharacterNames.length
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-semibold text-slate-200 mb-1">
-          Character References
-        </h3>
-      </div>
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      {characters.length === 0 ? (
+        <div className="text-center py-8 text-slate-400">
+          <User className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">No characters available</p>
+        </div>
+      ) : (
+        <>
+          {/* 3栏 Grid 布局 */}
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            {characters.map((character) => {
+              const isSelected = selectedCharacterIds
+                ? selectedCharacterIds.includes(character.id)
+                : selectedCharacterNames.includes(character.character_name)
+              const imageUrl = character.character_reference_images?.[0]?.image_url
 
-      {/* Character List */}
-      {/*
-        Avoid nested scrollbars: the parent Dialog already wraps this panel in a ScrollArea.
-        Also, prevent flex children from overflowing by allowing the text column to shrink.
-      */}
-      <div className="space-y-3 pr-2">
-        {characters.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
-            <User className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No characters available</p>
-          </div>
-        ) : (
-          characters.map((character) => {
-            const isSelected = selectedCharacterIds
-              ? selectedCharacterIds.includes(character.id)
-              : selectedCharacterNames.includes(character.character_name)
-            const imageUrl = character.character_reference_images?.[0]?.image_url
-
-            return (
-              <Card
-                key={character.id}
-                className={cn(
-                  "cursor-pointer transition-all duration-200 overflow-hidden",
-                  isSelected
-                    ? "border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/20"
-                    : "border-slate-700 bg-slate-900/50 hover:border-slate-600 hover:bg-slate-900"
-                )}
-                onClick={() => {
-                  if (onToggleById) {
-                    onToggleById(character.id)
-                  } else {
-                    onToggle(character.character_name)
-                  }
-                }}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-3 min-w-0">
+              return (
+                <div
+                  key={character.id}
+                  className={cn(
+                    "cursor-pointer transition-all duration-200 rounded-lg border p-3",
+                    isSelected
+                      ? "border-purple-500/50 bg-purple-500/10"
+                      : "border-slate-700 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60"
+                  )}
+                  onClick={() => {
+                    if (onToggleById) {
+                      onToggleById(character.id)
+                    } else {
+                      onToggle(character.character_name)
+                    }
+                  }}
+                >
+                  <div className="flex items-start gap-3">
                     {/* Character Image */}
                     <div className="relative flex-shrink-0">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-800">
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-800/50">
                         {imageUrl ? (
                           <img
                             src={imageUrl}
@@ -94,55 +84,45 @@ export function CharacterReferencePanel({
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-500">
-                            <User className="w-6 h-6" />
+                            <User className="w-5 h-5" />
                           </div>
                         )}
                       </div>
 
-                      {/* Selection Indicator */}
+                      {/* Selection Indicator - 右上角紫色圆点 */}
                       {isSelected && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                          <Check className="w-3 h-3 text-white" />
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900">
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
                         </div>
                       )}
                     </div>
 
                     {/* Character Info */}
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      <div className="flex items-start gap-2 mb-1">
-                        <h4 className="text-sm font-semibold text-slate-200 whitespace-normal break-words line-clamp-2">
-                          {character.character_name}
-                        </h4>
-                        {isSelected && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] leading-none text-blue-400 border-blue-400 flex-shrink-0 self-start mt-0.5"
-                          >
-                            Selected
-                          </Badge>
-                        )}
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-white mb-1 line-clamp-1">
+                        {character.character_name}
+                      </h4>
                       {character.generation_prompt && (
-                        <p className="text-xs text-slate-400 whitespace-normal break-words line-clamp-3">
+                        <p className="text-xs text-slate-400 line-clamp-2">
                           {character.generation_prompt}
                         </p>
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })
-        )}
-      </div>
+                </div>
+              )
+            })}
+          </div>
 
-      {/* Selection Summary */}
-      {characters.length > 0 && (
-        <div className="pt-3 border-t border-slate-700">
-          <p className="text-xs text-slate-400">
-            {selectedCharacterNames.length} of {characters.length} character(s) selected
-          </p>
-        </div>
+          {/* Selection Summary */}
+          <div className="pt-3 border-t border-slate-800 flex-shrink-0">
+            <p className="text-sm text-slate-400">
+              {selectedCount} of {characters.length} character(s) selected
+            </p>
+          </div>
+        </>
       )}
     </div>
   )

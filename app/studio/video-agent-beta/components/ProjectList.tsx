@@ -106,53 +106,55 @@ export default function ProjectList({ onResume }: ProjectListProps) {
       {projects.map(project => (
         <div
           key={project.id}
-          className="group relative bg-slate-900/40 hover:bg-slate-800/60 border border-slate-800 hover:border-slate-700 rounded-xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
+          className="group relative border border-slate-800/50 hover:border-slate-700/50 rounded-xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
+          style={{
+            background: 'linear-gradient(to bottom right, #252238, #1a1828, #281a28)'
+          }}
           onClick={() => onResume(project)}
         >
           {/* Gradient Glow Effect on Hover */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/5 group-hover:via-purple-500/5 group-hover:to-pink-500/5 transition-all duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/3 group-hover:via-purple-500/3 group-hover:to-pink-500/3 transition-all duration-500" />
 
           <div className="relative flex justify-between items-start mb-6">
             <div className="flex items-center gap-2">
               <span className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
-                project.status === 'completed' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
-                  project.status === 'processing' ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
-                    "bg-slate-800 text-slate-400 border border-slate-700"
+                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider",
+                project.status === 'completed' ? "bg-transparent text-green-500 border-2 border-green-500" :
+                  project.status === 'processing' ? "bg-blue-500/10 text-blue-400 border-2 border-blue-500/20" :
+                    "bg-slate-800/60 text-slate-500 border-2 border-slate-700/60"
               )}>
                 {project.status === 'processing' && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />}
-                {project.status === 'completed' ? 'Ready' : project.status === 'processing' ? 'Processing' : 'Draft'}
+                {project.status === 'completed' ? 'READY' : project.status === 'processing' ? 'PROCESSING' : 'DRAFT'}
               </span>
 
             </div>
 
             <button
               onClick={(e) => handleDelete(project.id, e)}
-              className="text-slate-600 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-red-500/10"
+              className="text-red-400 hover:text-red-300 transition-colors p-1 rounded-md hover:bg-red-500/10"
             >
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
 
           <div className="relative mb-6">
-            <h4 className="text-base font-semibold text-slate-200 mb-2 flex items-center gap-2">
-              {project.story_style === 'auto' ? '✨' : ''}
+            <h4 className="text-lg font-semibold text-white mb-2">
               {project.story_style.charAt(0).toUpperCase() + project.story_style.slice(1)} Story
             </h4>
-            <p className="text-sm text-slate-500 line-clamp-2 h-10 leading-relaxed">
+            <p className="text-sm text-slate-400 line-clamp-2 h-10 leading-relaxed">
               {project.original_script}
             </p>
           </div>
 
-          <div className="relative flex items-center justify-between pt-6 border-t border-slate-800/50">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div className="relative flex items-center justify-between pt-6 border-t border-slate-700/30">
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <Clock className="w-3.5 h-3.5" />
               <span>{formatDate(project.created_at)}</span>
-              <span className="w-1 h-1 rounded-full bg-slate-700 mx-1" />
+              <span className="w-1 h-1 rounded-full bg-slate-600 mx-1" />
               <span>{project.duration}s</span>
             </div>
 
-            <div className="text-purple-400 group-hover:translate-x-1 transition-transform duration-300">
+            <div className="text-slate-400 group-hover:translate-x-1 transition-transform duration-300">
               {project.status === 'completed' ? <PlayCircle className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
             </div>
           </div>
