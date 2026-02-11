@@ -65,10 +65,24 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     console.log('[Video Agent] 📹 Saving video to my-assets...', {
       finalVideoUrl: project.final_video_url,
+      finalVideoStoragePath: project.final_video_storage_path,
       aspectRatio: project.aspect_ratio,
       duration: project.duration,
       thumbnailUrl: thumbnailUrl
     })
+
+    // 🔥 验证关键字段
+    if (!project.final_video_url) {
+      console.error('[Video Agent] ❌ CRITICAL: final_video_url is missing!', {
+        projectId,
+        step_6_status: project.step_6_status,
+        hasProject: !!project
+      })
+      return NextResponse.json(
+        { error: 'Video URL is missing. Please ensure the video composition is completed.', code: 'VIDEO_URL_MISSING' },
+        { status: 400 }
+      )
+    }
 
     // 🔥 检查是否已经保存过（防止重复保存）
     const wavespeedRequestId = `video-agent-${projectId}`
@@ -124,7 +138,10 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     console.log('[Video Agent] ✅ Video saved to my-assets', {
       videoId: video.id,
-      prompt: prompt.substring(0, 100)
+      prompt: prompt.substring(0, 100),
+      originalUrl: project.final_video_url,
+      storagePath: project.final_video_storage_path,
+      thumbnailPath: thumbnailUrl
     })
 
     return NextResponse.json({

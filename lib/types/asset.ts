@@ -61,28 +61,36 @@ export function isImageAsset(asset: UnifiedAsset): asset is UnifiedAsset & { raw
  * @returns 统一的资产列表（不做排序，由调用方决定排序规则）
  */
 export function mergeAssets(videos: UserVideo[], images: UserImage[]): UnifiedAsset[] {
-  const videoAssets: UnifiedAsset[] = videos.map(v => ({
-    id: v.id,
-    type: 'video' as AssetType,
-    prompt: v.prompt,
-    // 🔄 CLOUD NATIVE MIGRATION: 处理缩略图 URL
-    // thumbnail_path 可能是完整 URL（视频 URL）或相对路径（图片路径）
-    previewUrl: v.thumbnail_path
-      ? (v.thumbnail_path.startsWith('http://') || v.thumbnail_path.startsWith('https://'))
-        ? v.thumbnail_path  // 完整 URL（临时方案：视频 URL）
-        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/video-thumbnails/${v.thumbnail_path}`  // 相对路径（真实缩略图）
-      : v.storage_path
-      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/user-videos/${v.storage_path}`
-      : v.original_url || '',
-    downloadUrl: v.storage_path
-      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/user-videos/${v.storage_path}`
-      : v.original_url || '',
-    status: v.status as UnifiedAsset['status'],
-    fileSize: v.file_size,
-    createdAt: v.created_at,
-    updatedAt: v.updated_at,
-    rawData: v
-  }))
+  const videoAssets: UnifiedAsset[] = videos.map(v => {
+    // 🔥 修复：检测 storage_path 是否为外部服务标记（如 "shotstack:xxx"）
+    const isExternalStorage = v.storage_path?.startsWith('shotstack:') || false
+
+    return {
+      id: v.id,
+      type: 'video' as AssetType,
+      prompt: v.prompt,
+      // 🔄 CLOUD NATIVE MIGRATION: 处理缩略图 URL
+      // thumbnail_path 可能是完整 URL（视频 URL）或相对路径（图片路径）
+      previewUrl: v.thumbnail_path
+        ? (v.thumbnail_path.startsWith('http://') || v.thumbnail_path.startsWith('https://'))
+          ? v.thumbnail_path  // 完整 URL（临时方案：视频 URL）
+          : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/video-thumbnails/${v.thumbnail_path}`  // 相对路径（真实缩略图）
+        : v.storage_path && !isExternalStorage
+        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/user-videos/${v.storage_path}`
+        : v.original_url || '',
+      // 🔥 修复：如果是外部存储（如 Shotstack），直接使用 original_url
+      downloadUrl: isExternalStorage
+        ? v.original_url || ''
+        : v.storage_path
+        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/user-videos/${v.storage_path}`
+        : v.original_url || '',
+      status: v.status as UnifiedAsset['status'],
+      fileSize: v.file_size,
+      createdAt: v.created_at,
+      updatedAt: v.updated_at,
+      rawData: v
+    }
+  })
 
   const imageAssets: UnifiedAsset[] = images.map(i => ({
     id: i.id,
