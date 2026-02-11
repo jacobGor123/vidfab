@@ -13,6 +13,8 @@ import { Progress } from '@/components/ui/progress'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
 import { cn } from '@/lib/utils'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
+import { useToast } from '@/hooks/use-toast'
+import { Loader2 } from 'lucide-react'
 
 interface Step7Props {
   project: VideoAgentProject
@@ -36,6 +38,7 @@ interface ComposeStatus {
 
 export default function Step7FinalCompose({ project, onComplete, onUpdate }: Step7Props) {
   const { getComposeStatus, composeVideo, saveToAssets } = useVideoAgentAPI()
+  const { toast } = useToast()
   const debugEnabled =
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('va_debug')
@@ -45,6 +48,8 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   const [error, setError] = useState<string | null>(null)
   const [simulatedProgress, setSimulatedProgress] = useState(0)
   const autoStartAttemptedRef = useRef(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
 
   // 页面不可见时暂停定时器，避免后台占用主线程导致交互卡顿
   const [isPageVisible, setIsPageVisible] = useState(true)
@@ -282,6 +287,8 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   }
 
   const handleComplete = async () => {
+    setIsSaving(true)
+
     try {
       console.log('[Video Agent] 💾 Saving video to My Assets...')
 
@@ -290,17 +297,34 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
 
       console.log('[Video Agent] ✅ Video saved to My Assets', { videoId: result.videoId })
 
+      // 标记为已保存
+      setIsSaved(true)
+
+      // 显示成功提示
+      toast({
+        title: '✨ Video saved successfully!',
+        description: 'Your video has been added to My Assets.',
+        variant: 'default',
+      })
+
       // 更新项目状态为完成
       onUpdate({ status: 'completed' })
 
-      // 完成流程
-      onComplete()
+      // 延迟 1.5 秒后完成流程（让用户看到成功状态）
+      setTimeout(() => {
+        onComplete()
+      }, 1500)
     } catch (err) {
       console.error('[Video Agent] ❌ Failed to save video to assets:', err)
 
-      // 即使保存失败，也允许用户继续（视频已经生成成功）
-      onUpdate({ status: 'completed' })
-      onComplete()
+      setIsSaving(false)
+
+      // 显示错误提示
+      toast({
+        title: '❌ Save failed',
+        description: 'Failed to save video to My Assets. Please try again.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -481,16 +505,28 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
               >
                 Download Video
               </Button>
-              <Button
-                onClick={handleComplete}
-                className="w-full h-14 text-white font-bold text-base transition-all rounded-xl"
-                style={{
-                  background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
-                  boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
-                }}
-              >
-                Complete Project
-              </Button>
+              {!isSaved && (
+                <Button
+                  onClick={handleComplete}
+                  disabled={isSaving}
+                  className="w-full h-14 text-white font-bold text-base transition-all rounded-xl disabled:opacity-70 disabled:cursor-not-allowed"
+                  style={{
+                    background: isSaving
+                      ? 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
+                      : 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                    boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+                  }}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save to My Assets'
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </div>
