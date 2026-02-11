@@ -267,4 +267,13 @@
   [data-sonner-toast] .sonner-close-button:hover {
     opacity: 1 !important;
   }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE 和 Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome、Safari、Opera */
+  }
 }

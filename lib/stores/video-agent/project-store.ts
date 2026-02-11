@@ -18,7 +18,6 @@ export interface ProjectActions {
     storyStyle: string
     originalScript: string
     aspectRatio: '16:9' | '9:16'
-    enableNarration: boolean
     muteBgm: boolean
   }) => Promise<VideoAgentProject>
   loadProject: (id: string) => Promise<void>
@@ -56,7 +55,6 @@ export const createProjectSlice: StateCreator<
           story_style: data.storyStyle,
           original_script: data.originalScript,
           aspect_ratio: data.aspectRatio,
-          enable_narration: data.enableNarration,
           mute_bgm: data.muteBgm
         })
       })

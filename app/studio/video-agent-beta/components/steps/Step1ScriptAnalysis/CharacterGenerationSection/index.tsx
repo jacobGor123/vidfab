@@ -224,6 +224,7 @@ export function CharacterGenerationSection({
             variant="outline"
             size="sm"
             disabled={isBatchGenerating}
+            className="border-white/20 text-white hover:bg-slate-800/50 hover:text-white rounded-xl h-10"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isBatchGenerating ? 'animate-spin' : ''}`} />
             Regenerate All

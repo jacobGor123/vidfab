@@ -8,7 +8,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import Image from 'next/image'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -242,22 +243,38 @@ export default function VideoUploadDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[600px] bg-slate-950/95 border-white/10 backdrop-blur-xl">
+        <DialogContent
+          className="bg-[#1a1d2e] border-white/10 backdrop-blur-xl"
+          style={{ maxWidth: '700px', width: '700px' }}
+        >
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-white">Analyze Video</DialogTitle>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+              <div className="w-12 h-12 rounded-xl bg-[#211F43] flex items-center justify-center">
+                <Image
+                  src="/logo/analyze-video-icon.svg"
+                  alt="Analyze"
+                  width={24}
+                  height={24}
+                />
+              </div>
+              Analyze Video
+            </DialogTitle>
+            <DialogDescription className="text-white/60 text-sm mt-2">
+              Paste a YouTube link to generate a structured script prompt. Local upload is coming soon.
+            </DialogDescription>
           </DialogHeader>
 
         <div className="space-y-6 pt-4">
           {/* Input Type Selector */}
-          <div className="flex gap-2 bg-white/5 p-1.5 rounded-xl border border-white/10">
+          <div className="flex gap-3">
             <button
               onClick={() => setInputType('youtube')}
               disabled={isAnalyzing}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all",
                 inputType === 'youtube'
-                  ? "bg-red-600 text-white shadow-lg shadow-red-900/20"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
+                  ? "bg-transparent border-2 border-[#7B5CFF] text-white shadow-lg shadow-purple-900/20"
+                  : "bg-transparent border border-white/20 text-white/60 hover:text-white hover:border-white/30"
               )}
             >
               <Youtube className="w-5 h-5" />
@@ -265,12 +282,10 @@ export default function VideoUploadDialog({
             </button>
             <button
               onClick={() => setInputType('local')}
-              disabled={true} // 暂时禁用本地上传
+              disabled={true}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all opacity-50 cursor-not-allowed",
-                inputType === 'local'
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-                  : "text-white/60"
+                "flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all cursor-not-allowed",
+                "bg-transparent border border-white/20 text-white/40"
               )}
             >
               <Upload className="w-5 h-5" />
@@ -283,25 +298,25 @@ export default function VideoUploadDialog({
             <div className="space-y-6">
               {/* YouTube URL 输入框 */}
               <div className="space-y-3">
-                <Label className="text-white/70 text-sm">YouTube Video URL</Label>
+                <Label className="text-white/70 text-sm font-medium">YouTube Video URL</Label>
                 <Input
                   type="url"
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=..."
                   disabled={isAnalyzing}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-blue-500/50"
+                  className="h-12 bg-white/5 border border-[#7B5CFF]/50 text-white placeholder:text-white/30 focus-visible:ring-2 focus-visible:ring-[#7B5CFF]/50 rounded-xl"
                 />
               </div>
 
               {/* 🔥 图片风格选择器 */}
               <div className="space-y-3">
-                <Label className="text-white/70 text-sm">Image Style</Label>
+                <Label className="text-white/70 text-sm font-medium">Image Style</Label>
                 <Select value={imageStyle} onValueChange={(value) => setImageStyle(value as ImageStyle)} disabled={isAnalyzing}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white hover:bg-white/10 focus:ring-purple-500/50">
+                  <SelectTrigger className="h-12 bg-[#0f1117] border border-white/20 text-white hover:bg-[#0f1117] focus:ring-2 focus:ring-[#7B5CFF]/50 rounded-xl">
                     <SelectValue placeholder="Select an image style" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900/95 border-white/10 backdrop-blur-xl">
+                  <SelectContent className="bg-slate-900 border-white/10 backdrop-blur-xl rounded-xl">
                     {Object.entries(IMAGE_STYLES).map(([key, style]) => (
                       <SelectItem
                         key={key}
@@ -320,26 +335,15 @@ export default function VideoUploadDialog({
           {/* Local File Upload (Placeholder) */}
           {inputType === 'local' && (
             <div className="space-y-3">
-              <Label className="text-white/70 text-sm">Upload Video File</Label>
-              <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center">
+              <Label className="text-white/70 text-sm font-medium">Upload Video File</Label>
+              <div className="border-2 border-dashed border-white/20 rounded-xl p-12 text-center bg-white/5">
                 <Upload className="w-12 h-12 text-white/30 mx-auto mb-4" />
-                <p className="text-white/40 text-sm">Local file upload coming soon...</p>
+                <p className="text-white/50 text-sm font-medium">Local file upload coming soon...</p>
               </div>
             </div>
           )}
 
-          {/* Progress Indicator */}
-          {isAnalyzing && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
-                <div>
-                  <p className="text-blue-400 font-medium">{progress}</p>
-                  <p className="text-white/40 text-xs mt-1">This may take 1-2 minutes...</p>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Progress Indicator - Hidden during analysis */}
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3 pt-4">
@@ -347,14 +351,24 @@ export default function VideoUploadDialog({
               variant="outline"
               onClick={handleClose}
               disabled={isAnalyzing}
-              className="flex-1 border-white/10 text-white/70 hover:bg-white/5 hover:text-white"
+              className="flex-1 h-12 border-white/20 text-white hover:bg-slate-800/50 hover:text-white rounded-xl"
             >
               Cancel
             </Button>
             <Button
               onClick={handleAnalyze}
               disabled={isAnalyzing || (inputType === 'youtube' && !youtubeUrl.trim())}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-medium shadow-lg"
+              className="flex-1 h-12 text-white text-base font-bold transition-all duration-300 disabled:cursor-not-allowed rounded-xl"
+              style={
+                isAnalyzing || (inputType === 'youtube' && !youtubeUrl.trim())
+                  ? {
+                      background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
+                    }
+                  : {
+                      background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                      boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+                    }
+              }
             >
               {isAnalyzing ? (
                 <div className="flex items-center gap-2">
@@ -368,12 +382,12 @@ export default function VideoUploadDialog({
           </div>
 
           {/* Info Box */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="bg-[#2a2416] border border-[#4a3f1f] rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-white/60 space-y-2">
-                <p className="font-medium text-white/80">Tips:</p>
-                <ul className="list-disc list-inside space-y-1 text-xs">
+              <AlertCircle className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-white/70 space-y-2">
+                <p className="font-semibold text-white/90">Tips:</p>
+                <ul className="list-disc list-inside space-y-1.5 text-sm">
                   <li>Only public YouTube videos are supported</li>
                   <li>Video analysis may take 1-2 minutes depending on video length</li>
                   <li>The generated script will be editable before creating the project</li>

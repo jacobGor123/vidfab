@@ -48,10 +48,26 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // 🎬 获取第一个分镜图作为封面图
+    const { data: firstStoryboard } = await supabaseAdmin
+      .from('project_storyboards')
+      .select('cdn_url, image_url_external, image_url')
+      .eq('project_id', projectId)
+      .eq('is_current', true)
+      .eq('shot_number', 1)
+      .maybeSingle()
+
+    // 获取封面图 URL（优先级：cdn_url > image_url_external > image_url）
+    const thumbnailUrl = firstStoryboard?.cdn_url
+      || firstStoryboard?.image_url_external
+      || firstStoryboard?.image_url
+      || null
+
     console.log('[Video Agent] 📹 Saving video to my-assets...', {
       finalVideoUrl: project.final_video_url,
       aspectRatio: project.aspect_ratio,
-      duration: project.duration
+      duration: project.duration,
+      thumbnailUrl: thumbnailUrl
     })
 
     // 🔥 检查是否已经保存过（防止重复保存）
@@ -102,7 +118,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       status: 'completed',
       downloadProgress: 100,
       durationSeconds: project.duration || undefined,
-      originalUrl: project.final_video_url
+      originalUrl: project.final_video_url,
+      thumbnailPath: thumbnailUrl || undefined  // 🎬 添加封面图
     })
 
     console.log('[Video Agent] ✅ Video saved to my-assets', {

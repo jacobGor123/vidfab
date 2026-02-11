@@ -70,7 +70,6 @@ export default function VideoAgentBetaPage() {
     storyStyle: string
     originalScript: string
     aspectRatio: '16:9' | '9:16'
-    enableNarration: boolean
     muteBgm: boolean
   }) => {
     // 检查登录状态
@@ -124,17 +123,14 @@ export default function VideoAgentBetaPage() {
         <div className="relative z-10 max-w-5xl mx-auto px-8 sm:px-12 py-12 pb-32">
           {/* Premium Hero Header */}
           <div className="mb-12 text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 mb-2 backdrop-blur-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+            <div className="flex items-center justify-center gap-3">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent pb-2">
+                AI Story-to-Video Workflow
+              </h1>
+              <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 text-xs font-medium text-purple-200 tracking-wide uppercase backdrop-blur-sm">
+                Beta
               </span>
-              <span className="text-xs font-medium text-purple-200 tracking-wide uppercase">Video Agent Beta</span>
             </div>
-
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent pb-2">
-              Create Stunning Videos with AI
-            </h1>
             <p className="text-lg text-slate-400 max-w-2xl mx-auto">
               Transform your ideas into fully produced videos in minutes.
             </p>

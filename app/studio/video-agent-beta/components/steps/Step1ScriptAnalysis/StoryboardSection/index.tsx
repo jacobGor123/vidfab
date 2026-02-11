@@ -165,7 +165,6 @@ export function StoryboardSection({
       {/* Section Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Film className="w-5 h-5" />
           Storyboard & Video
           {allStoryboardsGenerated && (
             <Badge variant="outline" className="ml-2 bg-green-950/30 text-green-400 border-green-800">
@@ -187,10 +186,14 @@ export function StoryboardSection({
           {hasUngeneratedStoryboards && storyboardStatus !== 'generating' && (
             <Button
               onClick={startStoryboardGeneration}
-              className="gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white shadow-lg"
+              className="gap-2 text-white font-bold rounded-xl h-10"
+              style={{
+                background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+              }}
             >
               <Wand2 className="w-4 h-4" />
-              Generate Storyboards
+              Generate All Storyboards
             </Button>
           )}
 
@@ -199,7 +202,7 @@ export function StoryboardSection({
             <Button
               onClick={retryStoryboardGeneration}
               variant="outline"
-              className="gap-2 border-violet-600 text-violet-400 hover:bg-violet-600/10"
+              className="gap-2 border-white/20 text-white hover:bg-slate-800/50 hover:text-white rounded-xl h-10"
             >
               <RefreshCw className="w-4 h-4" />
               Regenerate All Storyboards
@@ -211,7 +214,7 @@ export function StoryboardSection({
             <Button
               onClick={generateAllVideos}
               variant="outline"
-              className="gap-2 border-blue-600 text-blue-400 hover:bg-blue-600/10"
+              className="gap-2 border-white/20 text-white hover:bg-slate-800/50 hover:text-white rounded-xl h-10"
             >
               <Video className="w-4 h-4" />
               Generate All Videos

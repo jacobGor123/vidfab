@@ -13,7 +13,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Video, Loader2, AlertCircle, Play, RefreshCw, ChevronDown, ChevronUp, Clock, Monitor } from 'lucide-react'
+import { Video, Loader2, AlertCircle, Play, RefreshCw, Clock, Monitor } from 'lucide-react'
 import type { VideoClip } from '@/lib/stores/video-agent'
 
 interface VideoCardCompactProps {
@@ -43,7 +43,6 @@ export function VideoCardCompact({
     onGenerate,
     onUpdatePrompt
 }: VideoCardCompactProps) {
-    const [isPromptExpanded, setIsPromptExpanded] = useState(false)
     const [duration, setDuration] = useState(defaultDuration)  // 🔥 新增：时长状态
     const [resolution, setResolution] = useState(defaultResolution)  // 🔥 新增：分辨率状态
 
@@ -58,132 +57,62 @@ export function VideoCardCompact({
     const isCurrentlyGenerating = status === 'generating' || isGenerating
 
     return (
-        <div className="space-y-2">
-            <label className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Video className="w-3 h-3" />
+        <div className="space-y-3">
+            <label className="flex items-center gap-1.5 text-xs text-slate-400 font-medium pb-2 border-b border-slate-700/50">
+                <Video className="w-3.5 h-3.5" />
                 Video Clip
             </label>
 
-            {/* 视频预览区域 - 使用固定高度与 Storyboard 保持一致 */}
-            <div className="relative h-[200px] bg-slate-950 rounded-lg border border-slate-800 overflow-hidden">
-                {hasVideo ? (
-                    // 成功状态 - 显示视频
-                    <video
-                        src={videoClip.video_url}
-                        poster={(videoClip as any)?.poster_url}
-                        controls
-                        className="w-full h-full object-contain"
-                        preload="metadata"
-                        playsInline
-                    />
-                ) : isOutdated ? (
-                    // 过期状态
-                    <div className="absolute inset-0 flex items-center justify-center bg-yellow-950/20">
-                        <div className="text-center">
-                            <AlertCircle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                            <div className="text-xs text-yellow-400">Outdated</div>
-                            <div className="text-[10px] text-yellow-400/70 mt-1 max-w-[180px]">
-                                Regenerate recommended
-                            </div>
+            {/* 左右布局：左侧选项，右侧视频预览 */}
+            <div className="flex gap-4">
+                {/* 左侧：所有选项 */}
+                <div className="flex-1 flex flex-col gap-3">
+                    {/* Duration 和 Resolution 横向排列 */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-1 text-xs text-slate-400">
+                                <Clock className="w-3 h-3" />
+                                <span>Duration</span>
+                            </label>
+                            <select
+                                value={duration}
+                                onChange={(e) => setDuration(parseInt(e.target.value, 10))}
+                                disabled={isCurrentlyGenerating}
+                                className="w-full text-sm p-2 bg-slate-900/50 border border-slate-700/50 focus:border-blue-500/50 rounded-lg focus:outline-none transition-colors text-white"
+                            >
+                                <option value={2}>2s</option>
+                                <option value={3}>3s</option>
+                                <option value={4}>4s</option>
+                                <option value={5}>5s</option>
+                                <option value={6}>6s</option>
+                                <option value={7}>7s</option>
+                                <option value={8}>8s</option>
+                                <option value={9}>9s</option>
+                                <option value={10}>10s</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-1 text-xs text-slate-400">
+                                <Monitor className="w-3 h-3" />
+                                <span>Resolution</span>
+                            </label>
+                            <select
+                                value={resolution}
+                                onChange={(e) => setResolution(e.target.value)}
+                                disabled={isCurrentlyGenerating}
+                                className="w-full text-sm p-2 bg-slate-900/50 border border-slate-700/50 focus:border-blue-500/50 rounded-lg focus:outline-none transition-colors text-white"
+                            >
+                                <option value="480p">480p</option>
+                                <option value="720p">720p</option>
+                                <option value="1080p">1080p</option>
+                            </select>
                         </div>
                     </div>
-                ) : isCurrentlyGenerating ? (
-                    // 生成中状态
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-500/5 via-blue-500/10 to-blue-500/5">
-                        <div className="text-center">
-                            <div className="relative w-12 h-12 mx-auto mb-2">
-                                <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500/60 rounded-full animate-spin" />
-                                <div className="absolute inset-2 border-4 border-blue-500/30 border-b-blue-500/70 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
-                            </div>
-                            <div className="text-xs font-medium text-blue-400">Generating...</div>
-                            <div className="text-[10px] text-slate-500 mt-1">30-60s</div>
-                        </div>
-                    </div>
-                ) : isFailed ? (
-                    // 失败状态
-                    <div className="absolute inset-0 flex items-center justify-center bg-red-950/20">
-                        <div className="text-center">
-                            <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-                            <div className="text-xs text-red-400">Failed</div>
-                            {videoClip?.error_message && (
-                                <div className="text-[10px] text-red-400/70 mt-1 max-w-[180px] truncate">
-                                    {videoClip.error_message}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ) : (
-                    // 空占位状态
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center text-slate-600">
-                            <Play className="w-8 h-8 mx-auto mb-2" />
-                            <div className="text-xs">No video yet</div>
-                        </div>
-                    </div>
-                )}
-            </div>
 
-            {/* 编辑区 - 可折叠 */}
-            <button
-                onClick={() => setIsPromptExpanded(!isPromptExpanded)}
-                className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-800/50 rounded transition-colors"
-            >
-                <span>Edit Fields</span>
-                {isPromptExpanded ? (
-                    <ChevronUp className="w-3 h-3" />
-                ) : (
-                    <ChevronDown className="w-3 h-3" />
-                )}
-            </button>
-
-            {/* 🔥 Duration 在上，Resolution 中间，Character Action 在下 */}
-            {isPromptExpanded && (
-                <div className="space-y-3">
-                    {/* Duration - 单独一行 */}
-                    <div className="space-y-1">
-                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
-                            <Clock className="w-3 h-3" />
-                            <span>Duration</span>
-                        </label>
-                        <select
-                            value={duration}
-                            onChange={(e) => setDuration(parseInt(e.target.value, 10))}
-                            disabled={isCurrentlyGenerating}
-                            className="w-full text-xs p-2 bg-slate-900/50 border border-slate-700/50 focus:border-blue-500/50 rounded focus:outline-none transition-colors"
-                        >
-                            <option value={2}>2s</option>
-                            <option value={3}>3s</option>
-                            <option value={4}>4s</option>
-                            <option value={5}>5s</option>
-                            <option value={6}>6s</option>
-                            <option value={7}>7s</option>
-                            <option value={8}>8s</option>
-                            <option value={9}>9s</option>
-                            <option value={10}>10s</option>
-                        </select>
-                    </div>
-
-                    {/* Resolution - 单独一行 */}
-                    <div className="space-y-1">
-                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
-                            <Monitor className="w-3 h-3" />
-                            <span>Resolution</span>
-                        </label>
-                        <select
-                            value={resolution}
-                            onChange={(e) => setResolution(e.target.value)}
-                            disabled={isCurrentlyGenerating}
-                            className="w-full text-xs p-2 bg-slate-900/50 border border-slate-700/50 focus:border-blue-500/50 rounded focus:outline-none transition-colors"
-                        >
-                            <option value="480p">480p</option>
-                            <option value="720p">720p</option>
-                            <option value="1080p">1080p</option>
-                        </select>
-                    </div>
-
-                    {/* Character Action - 单独一行 */}
-                    <div className="space-y-1">
-                        <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                    {/* Character Action - 填充剩余空间 */}
+                    <div className="flex-1 flex flex-col gap-1.5">
+                        <label className="flex items-center gap-1 text-xs text-slate-400">
                             <Video className="w-3 h-3" />
                             <span>Character Action</span>
                         </label>
@@ -191,51 +120,118 @@ export function VideoCardCompact({
                             value={currentPrompt}
                             onChange={(e) => onUpdatePrompt(e.target.value)}
                             placeholder="What is the character doing?"
-                            className="text-xs bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none min-h-[60px]"
+                            className="flex-1 text-sm bg-slate-900/50 border-slate-700/50 focus:border-blue-500/50 resize-none text-white"
                             disabled={isCurrentlyGenerating}
                         />
                     </div>
                 </div>
-            )}
 
-            {/* 生成按钮 */}
-            <Button
-                onClick={() => onGenerate(currentPrompt, duration, resolution)}  // 🔥 传递 duration 和 resolution 参数
-                disabled={disabled || isCurrentlyGenerating || !currentPrompt.trim()}
-                size="sm"
-                variant={hasVideo ? 'outline' : 'default'}
-                className={`w-full text-xs ${hasVideo
-                    ? 'border-slate-700 hover:border-blue-500 hover:bg-blue-500/10'
-                    : 'bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500'
-                    }`}
-            >
-                {isCurrentlyGenerating ? (
-                    <>
-                        <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                        Generating...
-                    </>
-                ) : hasVideo ? (
-                    <>
-                        <RefreshCw className="w-3 h-3 mr-1.5" />
-                        Regenerate
-                    </>
-                ) : isOutdated ? (
-                    <>
-                        <RefreshCw className="w-3 h-3 mr-1.5" />
-                        Regenerate
-                    </>
-                ) : isFailed ? (
-                    <>
-                        <RefreshCw className="w-3 h-3 mr-1.5" />
-                        Retry
-                    </>
-                ) : (
-                    <>
-                        <Video className="w-3 h-3 mr-1.5" />
-                        Generate Video
-                    </>
-                )}
-            </Button>
+                {/* 右侧：视频预览 + 按钮 */}
+                <div className="space-y-2" style={{ flex: '0 0 200px' }}>
+                    <div className="relative bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden" style={{ height: '200px' }}>
+                        {hasVideo ? (
+                            // 成功状态 - 显示视频
+                            <video
+                                src={videoClip.video_url}
+                                poster={(videoClip as any)?.poster_url}
+                                controls
+                                className="w-full h-full object-contain"
+                                preload="metadata"
+                                playsInline
+                            />
+                        ) : isOutdated ? (
+                            // 过期状态
+                            <div className="absolute inset-0 flex items-center justify-center bg-yellow-950/20">
+                                <div className="text-center">
+                                    <AlertCircle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                                    <div className="text-xs text-yellow-400">Outdated</div>
+                                    <div className="text-[10px] text-yellow-400/70 mt-1 max-w-[180px]">
+                                        Regenerate recommended
+                                    </div>
+                                </div>
+                            </div>
+                        ) : isCurrentlyGenerating ? (
+                            // 生成中状态
+                            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-500/5 via-blue-500/10 to-blue-500/5">
+                                <div className="text-center">
+                                    <div className="relative w-12 h-12 mx-auto mb-2">
+                                        <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500/60 rounded-full animate-spin" />
+                                        <div className="absolute inset-2 border-4 border-blue-500/30 border-b-blue-500/70 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+                                    </div>
+                                    <div className="text-xs font-medium text-blue-400">Generating...</div>
+                                    <div className="text-[10px] text-slate-500 mt-1">30-60s</div>
+                                </div>
+                            </div>
+                        ) : isFailed ? (
+                            // 失败状态
+                            <div className="absolute inset-0 flex items-center justify-center bg-red-950/20">
+                                <div className="text-center">
+                                    <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                                    <div className="text-xs text-red-400">Failed</div>
+                                    {videoClip?.error_message && (
+                                        <div className="text-[10px] text-red-400/70 mt-1 max-w-[180px] truncate">
+                                            {videoClip.error_message}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            // 空占位状态
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-center text-slate-600">
+                                    <Play className="w-8 h-8 mx-auto mb-2" />
+                                    <div className="text-xs">No video yet</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Generate Clip 按钮 */}
+                    <Button
+                        onClick={() => onGenerate(currentPrompt, duration, resolution)}
+                        disabled={disabled || isCurrentlyGenerating || !currentPrompt.trim()}
+                        size="sm"
+                        className="w-full text-sm text-white font-bold rounded-xl"
+                        style={
+                            disabled || isCurrentlyGenerating || !currentPrompt.trim()
+                                ? {
+                                    background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
+                                }
+                                : {
+                                    background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                                    boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+                                }
+                        }
+                    >
+                        {isCurrentlyGenerating ? (
+                            <>
+                                <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                                Generating...
+                            </>
+                        ) : hasVideo ? (
+                            <>
+                                <RefreshCw className="w-3 h-3 mr-1.5" />
+                                Regenerate
+                            </>
+                        ) : isOutdated ? (
+                            <>
+                                <RefreshCw className="w-3 h-3 mr-1.5" />
+                                Regenerate
+                            </>
+                        ) : isFailed ? (
+                            <>
+                                <RefreshCw className="w-3 h-3 mr-1.5" />
+                                Retry
+                            </>
+                        ) : (
+                            <>
+                                <Video className="w-3 h-3 mr-1.5" />
+                                Generate Clip
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </div>
         </div>
     )
 }

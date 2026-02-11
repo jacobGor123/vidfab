@@ -589,35 +589,50 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       </div>
 
       {/* 1. Analysis Overview Card */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="px-6 py-6 bg-blue-500/10 border border-blue-500/20 rounded-xl relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
-          <div className="absolute top-4 right-4 text-blue-400/20 group-hover:text-blue-400/40 transition-colors">
-            <Film className="w-12 h-12" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* CHARACTERS */}
+        <div
+          className="px-6 py-3 rounded-xl relative overflow-hidden flex items-center justify-between"
+          style={{
+            background: 'rgba(59, 47, 97, 0.3)',
+            border: '2px solid rgba(123, 92, 255, 0.4)'
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Users className="w-6 h-6" style={{ color: '#7B7AFF' }} />
+            <span className="text-sm font-medium uppercase tracking-wider text-white/60">Characters</span>
           </div>
-          <div>
-            <div className="text-4xl font-bold text-white mb-1 tracking-tight">{analysis?.shot_count}</div>
-            <div className="text-sm text-blue-200/60 font-medium uppercase tracking-wider">Total Shots</div>
-          </div>
+          <div className="text-3xl font-bold text-white tracking-tight">{analysis?.characters.length}</div>
         </div>
 
-        <div className="px-6 py-6 bg-purple-500/10 border border-purple-500/20 rounded-xl relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
-          <div className="absolute top-4 right-4 text-purple-400/20 group-hover:text-purple-400/40 transition-colors">
-            <Users className="w-12 h-12" />
+        {/* TOTAL SHOTS */}
+        <div
+          className="px-6 py-3 rounded-xl relative overflow-hidden flex items-center justify-between"
+          style={{
+            background: 'rgba(75, 47, 97, 0.3)',
+            border: '2px solid rgba(147, 92, 255, 0.4)'
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Video className="w-6 h-6" style={{ color: '#9B7AFF' }} />
+            <span className="text-sm font-medium uppercase tracking-wider text-white/60">Total Shots</span>
           </div>
-          <div>
-            <div className="text-4xl font-bold text-white mb-1 tracking-tight">{analysis?.characters.length}</div>
-            <div className="text-sm text-purple-200/60 font-medium uppercase tracking-wider">Characters</div>
-          </div>
+          <div className="text-3xl font-bold text-white tracking-tight">{analysis?.shot_count}</div>
         </div>
 
-        <div className="px-6 py-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl relative overflow-hidden group flex flex-col justify-between min-h-[140px]">
-          <div className="absolute top-4 right-4 text-emerald-400/20 group-hover:text-emerald-400/40 transition-colors">
-            <Clock className="w-12 h-12" />
+        {/* EST. DURATION */}
+        <div
+          className="px-6 py-3 rounded-xl relative overflow-hidden flex items-center justify-between"
+          style={{
+            background: 'rgba(30, 60, 50, 0.3)',
+            border: '2px solid rgba(34, 197, 94, 0.4)'
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Clock className="w-6 h-6" style={{ color: '#22C55E' }} />
+            <span className="text-sm font-medium uppercase tracking-wider text-white/60">Est. Duration</span>
           </div>
-          <div>
-            <div className="text-4xl font-bold text-white mb-1 tracking-tight">{analysis?.duration}s</div>
-            <div className="text-sm text-emerald-200/60 font-medium uppercase tracking-wider">Est. Duration</div>
-          </div>
+          <div className="text-3xl font-bold text-white tracking-tight">{analysis?.duration}s</div>
         </div>
       </div>
 
@@ -790,7 +805,17 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
             onClick={handleConfirm}
             disabled={shouldShowIntegratedFeatures && (!videoCanProceed)}
             size="lg"
-            className="h-14 px-12 rounded-full bg-white text-black hover:bg-blue-50 hover:text-blue-600 font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-14 px-12 text-white font-bold text-lg transition-all disabled:cursor-not-allowed rounded-xl"
+            style={
+              shouldShowIntegratedFeatures && !videoCanProceed
+                ? {
+                    background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
+                  }
+                : {
+                    background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                    boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
+                  }
+            }
           >
             {!videoCanProceed && shouldShowIntegratedFeatures
               ? 'Generate All Videos to Continue'

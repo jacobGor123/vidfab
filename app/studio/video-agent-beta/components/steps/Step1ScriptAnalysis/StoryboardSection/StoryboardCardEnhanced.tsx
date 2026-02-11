@@ -131,87 +131,58 @@ export function StoryboardCardEnhanced({
   const isGenerating = storyboard?.status === 'generating' || isStoryboardGenerating
 
   return (
-    <Card className="group relative bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-xl overflow-hidden transition-all duration-300">
+    <Card
+      className="group relative border border-slate-700/50 rounded-xl overflow-hidden transition-all duration-300"
+      style={{
+        background: 'rgba(58, 51, 80, 0.6)'
+      }}
+    >
       <CardContent className="p-6">
-        <div className="flex flex-row gap-4">
-          {/* Shot Number Column - Fixed Width */}
-          <div className="w-12 flex-none flex flex-col items-center gap-2 pt-1">
-            <div className="text-2xl font-bold text-slate-600 group-hover:text-blue-500 transition-colors font-mono">
-              {shot.shot_number.toString().padStart(2, '0')}
-            </div>
-            {/* 删除按钮 */}
-            {onDelete && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete()
-                }}
-                className="mt-2 p-2 text-red-400/80 hover:text-red-300 bg-red-950/30 hover:bg-red-900/50 border border-red-900/50 rounded-lg transition-all duration-200"
-                title="Delete shot"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+        {/* 删除按钮 - 右上角绝对定位 */}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+            className="absolute top-4 right-4 p-2 text-red-400/80 hover:text-red-300 bg-red-950/30 hover:bg-red-900/50 border border-red-900/50 rounded-lg transition-all duration-200 z-10"
+            title="Delete shot"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
 
-          {/* 分镜描述 (Flex-1) */}
-          <div className="flex-1 min-w-0 space-y-3">
-            {/* Time Range */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-950/50 border border-slate-800 text-xs font-mono text-slate-400">
-                <Clock className="w-3 h-3" />
-                <span className="text-slate-300">{shot.time_range}</span>
-              </span>
-            </div>
+        {/* Shot Number + Time Range - 顶部 */}
+        <div className="flex items-center gap-3 flex-wrap mb-4">
+          <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-950/50 border border-slate-800 text-xs font-mono text-slate-400">
+            <Film className="w-3 h-3" />
+            <span className="text-slate-300">{shot.shot_number.toString().padStart(2, '0')}</span>
+          </span>
+          <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-950/50 border border-slate-800 text-xs font-mono text-slate-400">
+            <Clock className="w-3 h-3" />
+            <span className="text-slate-300">{shot.time_range}</span>
+          </span>
+        </div>
 
-            {/* 分镜描述（按规划改为只读；编辑走 Edit Dialog） */}
-            <div className="text-sm text-slate-200 leading-relaxed bg-slate-900/50 border border-slate-700/50 rounded-md p-3 min-h-[80px]">
-              {getFieldValue('description', shot.description)}
-            </div>
+        {/* 左右两列布局 */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* 左列 - Storyboard */}
+          <div className="space-y-3">
+            <label className="flex items-center gap-1.5 text-xs text-slate-400 font-medium pb-2 border-b border-slate-700/50">
+              <Film className="w-3.5 h-3.5" />
+              Storyboard
+            </label>
 
-            {/* camera_angle / mood removed from the unified storyboard flow */}
-
-            {/* Characters */}
-            {Array.isArray(shot.characters) && shot.characters.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {shot.characters.map((rawName) => {
-                  const { baseName, legacyDetail } = normalizeCharacterName(rawName)
-                  const latestName = getLatestCharacterDisplayName(projectCharacters, baseName)
-                  const latestPrompt = getLatestCharacterPrompt(projectCharacters, baseName)
-
-                  return (
-                    <span
-                      key={rawName}
-                      className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800/50 border border-slate-700/50 text-xs text-slate-300"
-                      title={[
-                        legacyDetail ? `Legacy: ${legacyDetail}` : '',
-                        latestPrompt ? `Latest: ${latestPrompt}` : ''
-                      ].filter(Boolean).join('\n')}
-                    >
-                      <Users className="w-3 h-3 text-slate-400" />
-                      <span className="text-slate-200">{latestName}</span>
-                      {latestPrompt && (
-                        <span className="text-slate-400 truncate max-w-[120px]">— {latestPrompt}</span>
-                      )}
-                      {legacyDetail && (
-                        <span className="text-slate-500 truncate max-w-[120px]">{legacyDetail}</span>
-                      )}
-                    </span>
-                  )
-                })}
+            {/* 分镜描述 + 分镜图（横向布局） */}
+            <div className="flex gap-4">
+              {/* 分镜描述文字 */}
+              <div className="flex-1 text-sm text-slate-200 leading-relaxed bg-slate-900/50 border border-slate-700/50 rounded-md p-4">
+                {getFieldValue('description', shot.description)}
               </div>
-            )}
-          </div>
 
-          {/* 分镜图（220px） */}
-          <div className="w-[220px] flex-none">
-            <div className="space-y-2">
-              <label className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Film className="w-3 h-3" />
-                Storyboard
-              </label>
-
-              <div className="relative group/image overflow-hidden rounded-lg bg-slate-950 h-[200px]">
+              {/* 分镜图 + 按钮（右侧垂直排列） */}
+              <div className="space-y-2" style={{ flex: '0 0 200px' }}>
+                <div className="relative group/image overflow-hidden rounded-lg">
                 {/* 状态徽章 */}
                 {storyboard?.status === 'outdated' && !isGenerating && (
                   <div className="absolute top-2 right-2 z-30 px-2 py-1 rounded-md bg-yellow-950/90 text-yellow-400 border border-yellow-800 text-[10px] font-medium flex items-center gap-1">
@@ -227,7 +198,7 @@ export function StoryboardCardEnhanced({
                       key={`storyboard-${storyboard.id}-${storyboard.updated_at || 'initial'}`}
                       src={resolvedStoryboardSrc}
                       alt={`Storyboard ${shot.shot_number}`}
-                      className={`w-full h-full object-cover rounded-lg border border-slate-700 transition-all duration-300 ${isGenerating ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+                      className={`w-full max-h-[200px] object-cover rounded-lg border border-slate-700 transition-all duration-300 ${isGenerating ? 'opacity-50 grayscale pointer-events-none' : ''}`}
                       loading="lazy"
                       decoding="async"
                       onError={(e) => {
@@ -294,27 +265,62 @@ export function StoryboardCardEnhanced({
                     </div>
                   </button>
                 )}
+                </div>
+
+                {/* Edit / Generate 按钮 - 在图片下方，与图片同宽 */}
+                {hasStoryboard ? (
+                  <button
+                    onClick={onEdit}
+                    className="w-full px-4 py-2.5 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-blue-500 rounded-lg text-sm font-medium text-slate-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    Edit
+                  </button>
+                ) : (
+                  <button
+                    onClick={onEdit}
+                    className="w-full px-4 py-2.5 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-blue-500 rounded-lg text-sm font-medium text-slate-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    Generate
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* 角色信息 */}
+            {Array.isArray(shot.characters) && shot.characters.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {shot.characters.map((rawName) => {
+                  const { baseName } = normalizeCharacterName(rawName)
+                  const latestName = getLatestCharacterDisplayName(projectCharacters, baseName)
+
+                  return (
+                    <span
+                      key={rawName}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800/50 border border-slate-700/50 text-xs text-slate-300"
+                    >
+                      <Users className="w-3 h-3 text-slate-400" />
+                      <span className="text-slate-200">{latestName}</span>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          {/* 🆕 视频卡片（220px） */}
-          <div className="w-[220px] flex-none">
+          {/* 右列 - Video Clip */}
+          <div className="space-y-3">
             <VideoCardCompact
               shotNumber={shot.shot_number}
               videoClip={videoClip}
-              // Unified flow: the editable field is character_action; final prompt is composed.
               defaultPrompt={shot.character_action || ''}
               customPrompt={customVideoPrompt}
-              defaultDuration={shot.duration_seconds}  // 🔥 传递默认时长
+              defaultDuration={shot.duration_seconds}
               aspectRatio={aspectRatio}
               isGenerating={isVideoGenerating}
               disabled={!hasStoryboard}
               onGenerate={onGenerateVideo}
               onUpdatePrompt={onUpdateVideoPrompt}
             />
-
-            {/* Final prompt preview removed: user only edits character_action and doesn't need prompt text duplication */}
           </div>
         </div>
       </CardContent>
