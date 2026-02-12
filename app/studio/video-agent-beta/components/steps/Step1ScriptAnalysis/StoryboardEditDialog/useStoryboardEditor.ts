@@ -68,6 +68,18 @@ export function useStoryboardEditor(
     const normalize = (name: string) => name.split('(')[0].trim().toLowerCase()
     const projectChars = Array.isArray(project.characters) ? project.characters : []
 
+    // 🔥 Debug: 打印原始数据
+    console.log('[StoryboardEditor] 🔍 Initializing character selection for shot', {
+      shotNumber,
+      shotCharacters: shot.characters,
+      shotDescription: shot.description?.substring(0, 100),
+      projectCharactersCount: projectChars.length,
+      projectCharacters: projectChars.map((c: any) => ({
+        id: c.id,
+        name: c.character_name || c.name
+      }))
+    })
+
     // 1) Name selection is used only for UI labels / legacy fallback.
     setSelectedCharacterNames((shot.characters || []).map((n: string) => normalize(String(n))).filter(Boolean))
 
@@ -78,18 +90,31 @@ export function useStoryboardEditor(
       if (!c?.id) return
       const name = String(c.character_name || c.name || '').trim()
       if (!name) return
-      nameToId.set(normalize(name), String(c.id))
+      const normalizedName = normalize(name)
+      nameToId.set(normalizedName, String(c.id))
       idToName.set(String(c.id), name)
+      console.log('[StoryboardEditor] 🗺️  Mapping:', { original: name, normalized: normalizedName, id: c.id })
     })
 
     const mappedIds = (shot.characters || [])
-      .map((n: string) => nameToId.get(normalize(String(n))))
+      .map((n: string) => {
+        const normalized = normalize(String(n))
+        const id = nameToId.get(normalized)
+        console.log('[StoryboardEditor] 🔄 Mapping shot character:', { original: n, normalized, foundId: id })
+        return id
+      })
       .filter(Boolean) as string[]
 
     // 🔥 修复：不再 fallback 到全选，如果映射失败就保持空数组
+    console.log('[StoryboardEditor] ✅ Mapping result:', {
+      inputCount: shot.characters?.length || 0,
+      mappedCount: mappedIds.length,
+      mappedIds
+    })
+
     // 如果映射失败，记录日志便于调试
     if (mappedIds.length === 0 && shot.characters && shot.characters.length > 0) {
-      console.warn('[StoryboardEditor] Character name mapping failed for shot', {
+      console.warn('[StoryboardEditor] ⚠️  Character name mapping failed for shot', {
         shotNumber,
         shotCharacters: shot.characters,
         availableCharacters: projectChars.map((c: any) => ({
