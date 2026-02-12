@@ -106,13 +106,28 @@ export function useStoryboardEditor(
         // 策略2: 检查描述中的关键词是否与人物描述匹配
         // 例如: 描述有 "dog"，人物描述有 "Chihuahua-like dog"
         if (charDesc) {
-          const descWords = descLower.split(/\s+/)
-          const charWords = charDesc.split(/\s+/)
+          // 改进分词：按空格和标点符号分割，提取纯单词
+          const extractWords = (text: string) => {
+            return text
+              .toLowerCase()
+              .split(/[\s,;.!?:()\-]+/)  // 按空格和常见标点分割
+              .filter(w => w.length > 0)
+          }
+
+          const descWords = extractWords(descLower)
+          const charWords = extractWords(charDesc)
+
+          console.log('[StoryboardEditor] 🔍 Checking entity match:', {
+            character: baseName,
+            descWords: descWords.slice(0, 10),
+            charWords: charWords.slice(0, 10)
+          })
 
           // 检查是否有共同的实体类型词（dog, man, woman, cat, robot等）
           const entityTypes = ['dog', 'cat', 'man', 'woman', 'boy', 'girl', 'robot', 'creature', 'person', 'animal']
           for (const entityType of entityTypes) {
             if (descWords.includes(entityType) && charWords.includes(entityType)) {
+              console.log('[StoryboardEditor] ✅ Found match via entity type:', entityType)
               foundChars.push(baseName)
               return
             }
