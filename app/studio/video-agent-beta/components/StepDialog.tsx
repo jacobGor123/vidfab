@@ -191,7 +191,7 @@ export default function StepDialog({
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white text-xl font-bold">Close AI Story-to-Video Workflow?</AlertDialogTitle>
           <AlertDialogDescription className="text-white/60">
-            Are you sure you want to close the AI Story-to-Video Workflow? Any unsaved progress may be lost.
+            After closing, you can open it again to return to the current step.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-3">

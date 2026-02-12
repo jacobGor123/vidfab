@@ -379,9 +379,6 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
         <div className="text-center py-8">
           <div className="inline-block w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-6" />
           <h3 className="text-xl font-bold mb-2">Composing Your Video...</h3>
-          <p className="text-muted-foreground">
-            {composeStatus.message || getProgressMessage(simulatedProgress)}
-          </p>
         </div>
 
         <Card>
@@ -439,7 +436,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
     return (
       <div className="flex flex-col h-full">
         {/* 标题 - 带图标 */}
-        <div className="flex items-center justify-center gap-3 py-4 flex-shrink-0">
+        <div className="flex items-center justify-center gap-3 py-10 flex-shrink-0">
           <Image
             src="/logo/video-ready-icon.svg"
             alt="Video Ready"
@@ -450,7 +447,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
         </div>
 
         {/* 左右布局：视频预览 + 详情/按钮 */}
-        <div className="flex gap-6 flex-1 min-h-0">
+        <div className="flex gap-6 flex-1 min-h-0 pb-4">
           {/* 左侧：视频预览 */}
           <div className="flex-1 flex items-stretch">
             <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40 w-full flex items-center justify-center">
@@ -465,11 +462,11 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
 
           {/* 右侧：Video Details + 按钮组 */}
           <div className="w-[400px] flex flex-col gap-4">
-            {/* Video Details - 填充剩余空间 */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex-1 flex flex-col">
+            {/* Video Details - 固定内容高度 */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 flex flex-col">
               <h3 className="text-lg font-bold text-white mb-4">Video Details</h3>
 
-              <div className="space-y-3 text-sm flex-1">
+              <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Ratio:</span>
                   <span className="text-white">{project.aspect_ratio || '16:9'}</span>
@@ -490,14 +487,10 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
                   <span className="text-white">MP4</span>
                 </div>
               </div>
-
-              <p className="text-xs text-slate-500 pt-4 border-t border-slate-800 mt-auto">
-                You can download now,or complete the project to return to your workspace.
-              </p>
             </div>
 
-            {/* 按钮组 - 固定高度 */}
-            <div className="space-y-3 flex-shrink-0">
+            {/* 按钮组 - 紧凑布局 */}
+            <div className="space-y-3">
               <Button
                 onClick={handleDownload}
                 variant="outline"

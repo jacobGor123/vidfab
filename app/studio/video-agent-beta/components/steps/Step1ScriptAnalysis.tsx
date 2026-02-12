@@ -813,10 +813,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
                 : "bg-gradient-primary shadow-glow-primary"
             )}
           >
-            {!videoCanProceed && shouldShowIntegratedFeatures
-              ? 'Generate All Videos to Continue'
-              : 'Compose Video'
-            }
+            Combine Video Clips
           </Button>
         </div>
       </div>
