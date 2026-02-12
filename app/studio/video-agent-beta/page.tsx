@@ -113,33 +113,34 @@ export default function VideoAgentBetaPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex-1 overflow-y-auto bg-black relative w-full h-full">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden bg-black relative w-full">
         {/* Background Gradients */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 rounded-full blur-[120px]" />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-8 sm:px-12 py-12 pb-32">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 py-8 sm:py-12 pb-32 box-border">
           {/* Premium Hero Header */}
-          <div className="mb-12 text-center space-y-4">
-            <div className="flex items-center justify-center gap-3">
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent pb-2">
+          <div className="mb-8 sm:mb-12 text-center space-y-3 sm:space-y-4">
+            {/* 标题区域 - 移动端垂直排列 */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full">
+              <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent pb-2 px-2 break-words text-center w-full sm:w-auto">
                 AI Story-to-Video Workflow
               </h1>
               <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 text-xs font-medium text-purple-200 tracking-wide uppercase backdrop-blur-sm">
                 Beta
               </span>
             </div>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base lg:text-lg text-slate-400 max-w-2xl mx-auto px-4 w-full break-words">
               Transform your ideas into fully produced videos in minutes.
             </p>
           </div>
 
           {/* 错误提示 */}
           {error && (
-            <div className="mb-8 p-4 bg-red-950/30 border border-red-500/30 rounded-xl max-w-2xl mx-auto backdrop-blur-md">
-              <div className="flex items-start gap-4">
+            <div className="mb-6 sm:mb-8 p-4 bg-red-950/30 border border-red-500/30 rounded-xl max-w-2xl mx-4 sm:mx-auto backdrop-blur-md">
+              <div className="flex items-start gap-3 sm:gap-4">
                 <div className="p-2 bg-red-500/10 rounded-full">
                   <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -162,13 +163,13 @@ export default function VideoAgentBetaPage() {
           )}
 
           {/* Main Content Area */}
-          <div className="space-y-16">
+          <div className="space-y-12 sm:space-y-16">
             <InputStage onStart={handleStart} />
 
-            <div className="border-t border-white/5 pt-16">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-white/90">Your Drafts</h2>
-                <div className="text-sm text-slate-500">
+            <div className="border-t border-white/5 pt-12 sm:pt-16">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-white/90">Your Drafts</h2>
+                <div className="text-xs sm:text-sm text-slate-500">
                   Auto-saved while you work
                 </div>
               </div>

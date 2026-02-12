@@ -97,11 +97,11 @@ export function StoryboardEditPanel({
   const resolvedSrc = resolveStoryboardSrc(displayStoryboard as any)
 
   return (
-    <div className="flex gap-6 h-full">
+    <div className="flex gap-6 h-full flex-col overflow-y-auto pb-10 md:flex-row md:overflow-y-visible md:pb-0">
       {/* 左侧：分镜图预览 + 历史版本轮播 */}
-      <div className="w-1/2 flex-shrink-0 flex flex-col gap-3">
-        {/* 当前分镜图预览 - 占据更多空间 */}
-        <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40" style={{ flex: '1 1 0', minHeight: '0' }}>
+      <div className="w-full md:w-1/2 flex-shrink-0 flex flex-col gap-3">
+        {/* 当前分镜图预览 - 移动端固定高度，桌面端自适应 */}
+        <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40 storyboard-preview-container">
           <div className="p-0 h-full">
             <div className="relative w-full h-full bg-slate-950/50 flex items-center justify-center rounded-lg overflow-hidden">
               {hasImage ? (
@@ -194,9 +194,9 @@ export function StoryboardEditPanel({
       </div>
 
       {/* 右侧：Prompt 编辑区 */}
-      <div className="flex-1 flex flex-col gap-4 min-h-0">
+      <div className="flex-1 flex flex-col gap-4 md:min-h-0">
         {/* Prompt Editor */}
-        <div className="flex-1 flex flex-col gap-2 min-h-0">
+        <div className="flex-1 flex flex-col gap-2 md:min-h-0">
           <div className="flex items-center justify-between flex-shrink-0">
             <label className="text-sm font-medium text-slate-200">
               Generation Prompt
@@ -209,7 +209,7 @@ export function StoryboardEditPanel({
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
             placeholder="Describe the scene and any specific details..."
-            className="flex-1 bg-slate-900/50 border-slate-700 focus:border-blue-500/50 text-white placeholder:text-slate-500 resize-none min-h-0"
+            className="flex-1 bg-slate-900/50 border-slate-700 focus:border-blue-500/50 text-white placeholder:text-slate-500 resize-none min-h-[200px] md:min-h-0"
             disabled={isRegenerating}
           />
         </div>

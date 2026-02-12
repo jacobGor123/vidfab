@@ -88,6 +88,11 @@ const config: Config = {
         // Maintained
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        // Video Agent Beta - 样式常量
+        "gradient-primary": "linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)",
+        "gradient-card": "linear-gradient(135deg, #1a1d2e 0%, #181921 50%, #16181f 100%)",
+        "gradient-card-inner": "linear-gradient(180deg, #111319 0%, #111319 100%)",
+        "gradient-disabled": "linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)",
       },
       // Apple-esque transition timing
       transitionTimingFunction: {
@@ -97,6 +102,10 @@ const config: Config = {
         "apple-soft": "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.08)",
         "apple-medium": "0 4px 12px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05)",
         "apple-strong": "0 10px 30px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.07)",
+        // Video Agent Beta - 样式常量
+        "glow-primary": "0 8px 34px 0 rgba(115, 108, 255, 0.40)",
+        "glow-purple": "0 0 12px rgba(207, 203, 255, 0.4)",
+        "glow-purple-hover": "0 0 20px rgba(207, 203, 255, 0.6)",
       },
       animation: {
         shine: "shine 2.5s ease-in-out infinite",

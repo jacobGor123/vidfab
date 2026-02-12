@@ -102,11 +102,23 @@ export default function ProjectList({ onResume }: ProjectListProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className={cn(
+      "grid gap-4",                          // 移动端: 16px 间距
+      "md:gap-6 md:grid-cols-2",             // 平板: 24px 间距, 2列
+      "lg:grid-cols-3"                       // 桌面: 3列
+    )}>
       {projects.map(project => (
         <div
           key={project.id}
-          className="group relative border border-slate-800/50 hover:border-slate-700/50 rounded-xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
+          className={cn(
+            "group relative border rounded-xl cursor-pointer transition-all duration-300 overflow-hidden",
+            "border-slate-800/50",
+            // 移动端: 24px 边距, 200px 最小高度
+            "p-6 min-h-[200px]",
+            // 桌面: 32px 边距, 240px 最小高度, hover 效果
+            "md:p-8 md:min-h-[240px]",
+            "md:hover:border-slate-700/50 md:hover:shadow-xl md:hover:-translate-y-1"
+          )}
           style={{
             background: 'linear-gradient(to bottom right, #252238, #1a1828, #281a28)'
           }}
@@ -131,7 +143,14 @@ export default function ProjectList({ onResume }: ProjectListProps) {
 
             <button
               onClick={(e) => handleDelete(project.id, e)}
-              className="text-red-400 hover:text-red-300 transition-colors p-1 rounded-md hover:bg-red-500/10"
+              className={cn(
+                "text-red-400 transition-colors rounded-md",
+                // 移动端: 44x44px 触摸区域
+                "min-w-[44px] min-h-[44px] flex items-center justify-center",
+                // 桌面: hover 效果
+                "md:min-w-0 md:min-h-0 md:p-1",
+                "md:hover:text-red-300 md:hover:bg-red-500/10"
+              )}
             >
               <Trash2 className="w-4 h-4" />
             </button>

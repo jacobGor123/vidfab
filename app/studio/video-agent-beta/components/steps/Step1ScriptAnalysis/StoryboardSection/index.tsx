@@ -162,35 +162,36 @@ export function StoryboardSection({
 
   return (
     <div className="space-y-6">
-      {/* Section Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          Storyboard & Video
-          {allStoryboardsGenerated && (
-            <Badge variant="outline" className="ml-2 bg-green-950/30 text-green-400 border-green-800">
-              <Check className="w-3 h-3 mr-1" />
-              Storyboards Ready
-            </Badge>
-          )}
-          {allVideosGenerated && (
-            <Badge variant="outline" className="ml-2 bg-blue-950/30 text-blue-400 border-blue-800">
-              <Check className="w-3 h-3 mr-1" />
-              Videos Ready
-            </Badge>
-          )}
-        </h2>
+      {/* Section Header - 响应式布局 */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mt-8">
+        {/* 标题和状态徽章 */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <h2 className="text-xl font-semibold">
+            Storyboard & Video
+          </h2>
+          <div className="flex flex-wrap items-center gap-2">
+            {allStoryboardsGenerated && (
+              <Badge variant="outline" className="bg-green-950/30 text-green-400 border-green-800">
+                <Check className="w-3 h-3 mr-1" />
+                Storyboards Ready
+              </Badge>
+            )}
+            {allVideosGenerated && (
+              <Badge variant="outline" className="bg-blue-950/30 text-blue-400 border-blue-800">
+                <Check className="w-3 h-3 mr-1" />
+                Videos Ready
+              </Badge>
+            )}
+          </div>
+        </div>
 
-        {/* 批量操作按钮区 */}
-        <div className="flex items-center gap-2">
+        {/* 批量操作按钮区 - 移动端垂直排列，桌面端横向排列 */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           {/* 批量生成分镜按钮 */}
           {hasUngeneratedStoryboards && storyboardStatus !== 'generating' && (
             <Button
               onClick={startStoryboardGeneration}
-              className="gap-2 text-white font-bold rounded-xl h-10"
-              style={{
-                background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
-                boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
-              }}
+              className="gap-2 text-white font-bold rounded-xl h-10 bg-gradient-primary shadow-glow-primary"
             >
               <Wand2 className="w-4 h-4" />
               Generate All Storyboards

@@ -164,8 +164,8 @@ export function StoryboardCardEnhanced({
           </span>
         </div>
 
-        {/* 左右两列布局 */}
-        <div className="grid grid-cols-2 gap-6">
+        {/* 左右两列布局 - 移动端单列，桌面端双列 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 左列 - Storyboard */}
           <div className="space-y-3">
             <label className="flex items-center gap-1.5 text-xs text-slate-400 font-medium pb-2 border-b border-slate-700/50">
@@ -173,15 +173,15 @@ export function StoryboardCardEnhanced({
               Storyboard
             </label>
 
-            {/* 分镜描述 + 分镜图（横向布局） */}
-            <div className="flex gap-4">
+            {/* 分镜描述 + 分镜图 - 移动端垂直，桌面端水平 */}
+            <div className="flex flex-col sm:flex-row gap-4">
               {/* 分镜描述文字 */}
               <div className="flex-1 text-sm text-slate-200 leading-relaxed bg-slate-900/50 border border-slate-700/50 rounded-md p-4">
                 {getFieldValue('description', shot.description)}
               </div>
 
-              {/* 分镜图 + 按钮（右侧垂直排列） */}
-              <div className="space-y-2" style={{ flex: '0 0 200px' }}>
+              {/* 分镜图 + 按钮（右侧垂直排列）- 移动端全宽，桌面端固定 200px */}
+              <div className="space-y-2 w-full sm:w-auto sm:flex-shrink-0 sm:basis-[200px]">
                 <div className="relative group/image overflow-hidden rounded-lg">
                 {/* 状态徽章 */}
                 {storyboard?.status === 'outdated' && !isGenerating && (

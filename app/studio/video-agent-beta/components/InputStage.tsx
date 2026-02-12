@@ -10,10 +10,11 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Settings } from 'lucide-react'
 import InspirationDialog from './InspirationDialog'
 import VideoUploadDialog from './VideoUploadDialog'
 import VideoToolbar from './InputStage/VideoToolbar'
+import OptionsDrawer from './InputStage/OptionsDrawer'
 import StoryStyleSelector from './InputStage/StoryStyleSelector'
 import { cn } from '@/lib/utils'
 import { showError, showSuccess } from '@/lib/utils/toast'
@@ -44,6 +45,9 @@ export default function InputStage({ onStart }: InputStageProps) {
 
   // 🔥 新增:视频分析相关状态
   const [showVideoDialog, setShowVideoDialog] = useState(false)
+
+  // 🔥 新增:选项抽屉状态
+  const [showOptionsDrawer, setShowOptionsDrawer] = useState(false)
 
   const handleSubmit = async () => {
     if (!script.trim()) {
@@ -94,51 +98,77 @@ export default function InputStage({ onStart }: InputStageProps) {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8">
+    <div className={cn(
+      "w-full mx-auto",
+      "px-4 space-y-6",              // 移动端: 16px 边距, 24px 间距
+      "md:px-0 md:space-y-8",        // 桌面: 无边距, 32px 间距
+      "md:max-w-4xl"
+    )}>
       {/* 1. Main Script Input Area - The Hero */}
       <div className="relative">
         <Card
-          className="relative overflow-hidden rounded-2xl transition-all duration-300"
+          className="relative overflow-hidden rounded-2xl bg-gradient-card p-6 md:p-8 transition-all duration-300"
           style={{
-            borderRadius: '16px',
-            border: '1px solid #23263A',
-            background: 'linear-gradient(135deg, #1a1d2e 0%, #181921 50%, #16181f 100%)',
-            padding: '24px'
+            border: '1px solid #23263A'
           }}
         >
           <div className="relative">
+            {/* 字符计数 - 右上角 (仅移动端) */}
+            <div className="absolute top-4 right-4 text-xs text-white/30 font-mono px-3 py-1 bg-black/20 rounded-lg backdrop-blur-sm md:hidden z-10">
+              {script.length} chars
+            </div>
+
             <Textarea
               value={script}
               onChange={(e) => setScript(e.target.value)}
               placeholder="Start writing your story here..."
-              className="w-full min-h-[380px] resize-none text-xl md:text-2xl leading-relaxed text-white font-medium placeholder:text-white/20 pb-20 selection:bg-purple-500/30 focus-visible:ring-0 focus:ring-0 focus:outline-none border-0 focus:border-0"
-              style={{
-                borderTopLeftRadius: '13px',
-                borderTopRightRadius: '13px',
-                borderBottomLeftRadius: '13px',
-                borderBottomRightRadius: '13px',
-                background: 'linear-gradient(180deg, #111319 0%, #111319 100%)',
-                outline: 'none',
-                boxShadow: 'none',
-                padding: '32px'
-              }}
+              className={cn(
+                "w-full resize-none leading-relaxed text-white font-medium",
+                "text-lg p-6",                        // 移动端: 18px 字体, 24px 边距
+                "md:text-2xl md:p-8",                 // 桌面: 24px 字体, 32px 边距
+                "placeholder:text-white/20",
+                "pb-20 md:pb-20",                     // 底部留空间给按钮/工具栏
+                "selection:bg-purple-500/30",
+                "focus-visible:ring-0 focus:ring-0 focus:outline-none border-0 focus:border-0",
+                "rounded-[13px] bg-gradient-card-inner"
+              )}
+              style={{ height: '380px' }}
               spellCheck={false}
               autoFocus
             />
 
-            {/* 底部工具栏 */}
-            <VideoToolbar
-              aspectRatio={aspectRatio}
-              onAspectRatioChange={setAspectRatio}
-              duration={duration}
-              onDurationChange={setDuration}
-              muteBgm={muteBgm}
-              onMuteBgmChange={setMuteBgm}
-              charCount={script.length}
-              onAIInspiration={handleGetInspiration}
-              onAnalyzeVideo={() => setShowVideoDialog(true)}
-              isGeneratingInspiration={isGeneratingInspiration}
-            />
+            {/* 悬浮 Options 按钮 - 移动端 */}
+            <button
+              onClick={() => setShowOptionsDrawer(true)}
+              className={cn(
+                "md:hidden",                        // 仅移动端显示
+                "absolute bottom-6 right-6",
+                "w-14 h-14 rounded-full",
+                "bg-gradient-primary shadow-glow-primary",
+                "flex items-center justify-center",
+                "transition-all duration-200",
+                "hover:scale-110 hover:shadow-glow-purple",
+                "active:scale-95"
+              )}
+            >
+              <Settings className="w-6 h-6 text-white" />
+            </button>
+
+            {/* 底部工具栏 - 桌面端 */}
+            <div className="hidden md:block">
+              <VideoToolbar
+                aspectRatio={aspectRatio}
+                onAspectRatioChange={setAspectRatio}
+                duration={duration}
+                onDurationChange={setDuration}
+                muteBgm={muteBgm}
+                onMuteBgmChange={setMuteBgm}
+                charCount={script.length}
+                onAIInspiration={handleGetInspiration}
+                onAnalyzeVideo={() => setShowVideoDialog(true)}
+                isGeneratingInspiration={isGeneratingInspiration}
+              />
+            </div>
           </div>
         </Card>
       </div>
@@ -154,19 +184,13 @@ export default function InputStage({ onStart }: InputStageProps) {
         <Button
           onClick={handleSubmit}
           disabled={isLoading || !script.trim()}
-          className="w-full max-w-2xl h-14 text-white text-lg font-bold transition-all duration-300 disabled:cursor-not-allowed"
-          style={
+          className={cn(
+            "w-full max-w-2xl h-14 text-white text-lg font-bold transition-all duration-300",
+            "rounded-[147px]",
             isLoading || !script.trim()
-              ? {
-                  borderRadius: '147px',
-                  background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
-                }
-              : {
-                  borderRadius: '147px',
-                  background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
-                  boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
-                }
-          }
+              ? "bg-gradient-disabled cursor-not-allowed"
+              : "bg-gradient-primary shadow-glow-primary"
+          )}
         >
           {isLoading ? (
             <div className="flex items-center gap-2">
@@ -182,6 +206,7 @@ export default function InputStage({ onStart }: InputStageProps) {
         </Button>
       </div>
 
+      {/* 灵感对话框 */}
       <InspirationDialog
         isOpen={showInspirationDialog}
         onClose={() => setShowInspirationDialog(false)}
@@ -189,7 +214,7 @@ export default function InputStage({ onStart }: InputStageProps) {
         onSelect={handleSelectInspiration}
       />
 
-      {/* 🔥 新增：Video Upload Dialog */}
+      {/* 视频上传对话框 */}
       <VideoUploadDialog
         isOpen={showVideoDialog}
         onClose={() => setShowVideoDialog(false)}
@@ -197,6 +222,21 @@ export default function InputStage({ onStart }: InputStageProps) {
         duration={duration}
         storyStyle={storyStyle}
         aspectRatio={aspectRatio}
+      />
+
+      {/* 选项抽屉 */}
+      <OptionsDrawer
+        isOpen={showOptionsDrawer}
+        onClose={() => setShowOptionsDrawer(false)}
+        aspectRatio={aspectRatio}
+        onAspectRatioChange={setAspectRatio}
+        duration={duration}
+        onDurationChange={setDuration}
+        muteBgm={muteBgm}
+        onMuteBgmChange={setMuteBgm}
+        onAIInspiration={handleGetInspiration}
+        onAnalyzeVideo={() => setShowVideoDialog(true)}
+        isGeneratingInspiration={isGeneratingInspiration}
       />
     </div>
   )

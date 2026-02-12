@@ -16,6 +16,7 @@ import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { CharacterGenerationSection } from './Step1ScriptAnalysis/CharacterGenerationSection'
 import { StoryboardSection } from './Step1ScriptAnalysis/StoryboardSection'
 import { StoryboardEditDialog } from './Step1ScriptAnalysis/StoryboardEditDialog'
+import { cn } from '@/lib/utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -568,11 +569,11 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
   return (
     <div
       ref={scrollContainerRef}
-      className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700"
+      className="p-8 pb-0 animate-in fade-in slide-in-from-bottom-4 duration-700"
     >
-      {/* 1. Header & Actions */}
-      <div className="flex items-end justify-between px-1">
-        <div>
+      {/* 1. Header & Actions - 响应式布局 */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between px-1 pb-8">
+        <div className="flex-1">
           <h2 className="text-2xl font-bold text-white tracking-tight">Script Analysis</h2>
           <p className="text-slate-400 text-sm mt-1">Review the AI-generated breakdown of your script.</p>
         </div>
@@ -581,7 +582,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
           variant="outline"
           size="sm"
           disabled={isAnalyzing}
-          className="border-slate-700 hover:bg-slate-800 text-slate-300 gap-2 mb-1"
+          className="border-slate-700 hover:bg-slate-800 text-slate-300 gap-2 w-full sm:w-auto"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-spin' : ''}`} />
           Re-analyze Script
@@ -589,7 +590,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       </div>
 
       {/* 1. Analysis Overview Card */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-8">
         {/* CHARACTERS */}
         <div
           className="px-6 py-3 rounded-xl relative overflow-hidden flex items-center justify-between"
@@ -788,7 +789,7 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
       )}
 
       {/* Confirm Action */}
-      <div className="sticky bottom-0 -mx-6 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-8 pb-8 z-10">
+      <div className="sticky bottom-0 -mb-6 p-6 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-8 pb-8 z-10">
         {/* 🔥 提示：有未保存修改时显示提醒 */}
         {hasUnsavedChanges && (
           <div className="flex justify-center mb-3">
@@ -805,17 +806,12 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
             onClick={handleConfirm}
             disabled={shouldShowIntegratedFeatures && (!videoCanProceed)}
             size="lg"
-            className="h-14 px-12 text-white font-bold text-lg transition-all disabled:cursor-not-allowed rounded-xl"
-            style={
+            className={cn(
+              "h-14 px-12 text-white font-bold text-lg transition-all rounded-xl",
               shouldShowIntegratedFeatures && !videoCanProceed
-                ? {
-                    background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
-                  }
-                : {
-                    background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
-                    boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
-                  }
-            }
+                ? "bg-gradient-disabled cursor-not-allowed"
+                : "bg-gradient-primary shadow-glow-primary"
+            )}
           >
             {!videoCanProceed && shouldShowIntegratedFeatures
               ? 'Generate All Videos to Continue'

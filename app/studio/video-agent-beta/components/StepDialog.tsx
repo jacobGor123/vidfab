@@ -137,7 +137,17 @@ export default function StepDialog({
     <>
       <Dialog open={internalOpen} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="w-[90vw] max-w-[1600px] h-[90vh] overflow-hidden bg-[#1a1d2e] backdrop-blur-xl border-white/10 shadow-2xl p-0 gap-0 flex flex-col"
+        className={cn(
+          // 移动端全屏 (dvh 避免地址栏问题)
+          "w-full h-[100dvh]",
+          // 平板 90%
+          "md:w-[90vw] md:h-[90vh]",
+          // 桌面限制宽度 + 圆角
+          "md:max-w-[1600px] md:rounded-2xl",
+          // 通用样式
+          "overflow-hidden bg-[#1a1d2e] backdrop-blur-xl",
+          "border-white/10 shadow-2xl p-0 gap-0 flex flex-col"
+        )}
         onInteractOutside={(e) => {
           // 🔥 阻止点击外部关闭，显示确认弹框
           e.preventDefault()
@@ -151,7 +161,7 @@ export default function StepDialog({
       >
         <DialogHeader className="p-6 border-b border-white/10 flex-shrink-0" style={{ background: 'transparent' }}>
           <DialogTitle className="flex items-center gap-3 text-white text-xl font-bold">
-            <span className="font-bold tracking-wide">Video Agent</span>
+            <span className="font-bold tracking-wide">AI Story-to-Video Workflow</span>
             {project.status === 'processing' && (
               <span className="flex items-center gap-2 text-xs font-normal px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 ml-auto">
                 <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
@@ -162,7 +172,7 @@ export default function StepDialog({
         </DialogHeader>
 
         <div className={cn(
-          "p-6 flex-1 min-h-0",
+          "flex-1 min-h-0",
           view === 'compose' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'
         )}>
           {/* Single-flow content */}
@@ -179,9 +189,9 @@ export default function StepDialog({
     <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
       <AlertDialogContent className="bg-[#1a1d2e] border-white/10">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white text-xl font-bold">Close Video Agent?</AlertDialogTitle>
+          <AlertDialogTitle className="text-white text-xl font-bold">Close AI Story-to-Video Workflow?</AlertDialogTitle>
           <AlertDialogDescription className="text-white/60">
-            Are you sure you want to close the Video Agent? Any unsaved progress may be lost.
+            Are you sure you want to close the AI Story-to-Video Workflow? Any unsaved progress may be lost.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-3">
@@ -193,13 +203,9 @@ export default function StepDialog({
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirmClose}
-            className="h-12 text-white text-base font-bold rounded-xl"
-            style={{
-              background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
-              boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
-            }}
+            className="h-12 text-white text-base font-bold rounded-xl bg-red-600 hover:bg-red-700"
           >
-            Close Video Agent
+            Close Workflow
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

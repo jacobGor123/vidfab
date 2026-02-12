@@ -277,3 +277,20 @@
     display: none;  /* Chrome、Safari、Opera */
   }
 }
+
+/* 🔥 StoryboardEditPanel 响应式布局 */
+/* 移动端：固定高度 280px */
+@media (max-width: 767px) {
+  .storyboard-preview-container {
+    height: 280px;
+    flex: none;
+  }
+}
+
+/* 桌面端：flex 自适应剩余空间 */
+@media (min-width: 768px) {
+  .storyboard-preview-container {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+}

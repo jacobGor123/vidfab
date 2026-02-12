@@ -63,8 +63,8 @@ export function VideoCardCompact({
                 Video Clip
             </label>
 
-            {/* 左右布局：左侧选项，右侧视频预览 */}
-            <div className="flex gap-4">
+            {/* 左右布局：移动端垂直，桌面端水平 */}
+            <div className="flex flex-col sm:flex-row gap-4">
                 {/* 左侧：所有选项 */}
                 <div className="flex-1 flex flex-col gap-3">
                     {/* Duration 和 Resolution 横向排列 */}
@@ -126,9 +126,9 @@ export function VideoCardCompact({
                     </div>
                 </div>
 
-                {/* 右侧：视频预览 + 按钮 */}
-                <div className="space-y-2" style={{ flex: '0 0 200px' }}>
-                    <div className="relative bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden" style={{ height: '200px' }}>
+                {/* 右侧：视频预览 + 按钮 - 移动端全宽，桌面端固定 200px */}
+                <div className="space-y-2 w-full sm:w-auto sm:flex-shrink-0 sm:basis-[200px]">
+                    <div className="relative bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden h-[200px]">
                         {hasVideo ? (
                             // 成功状态 - 显示视频
                             <video

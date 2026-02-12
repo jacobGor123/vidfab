@@ -55,9 +55,16 @@ export default function VideoToolbar({
         paddingBottom: '16px'
       }}
     >
-      <div className="flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
+      <div className={cn(
+        "flex flex-col items-stretch gap-4",     // 移动端垂直,按钮拉伸
+        "px-4 sm:px-6",                          // 水平边距
+        "md:flex-row md:items-center md:gap-4 md:justify-between"   // 桌面水平
+      )}>
         {/* 左侧工具组 */}
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+        <div className={cn(
+          "flex flex-col gap-2",              // 移动端垂直排列
+          "sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"  // 小屏幕以上水平排列
+        )}>
           {/* Aspect Ratio Select */}
           <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
             <SelectTrigger className={cn(selectTriggerClass, "group")}>
@@ -95,9 +102,13 @@ export default function VideoToolbar({
           <button
             onClick={() => onMuteBgmChange(!muteBgm)}
             className={cn(
-              "flex items-center justify-center h-9 w-9 rounded-lg transition-all group",
+              "flex items-center justify-center rounded-lg transition-all group",
+              // 移动端: 全宽, 44px 高
+              "w-full h-11",
+              // 平板以上: 36px 正方形
+              "sm:w-9 sm:h-9",
               muteBgm
-                ? "bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50 hover:border-blue-400/60 hover:shadow-[0_0_8px_rgba(96,165,250,0.3)]"
+                ? "bg-slate-800/50 border border-slate-700/50 md:hover:bg-slate-700/50 md:hover:border-blue-400/60 md:hover:shadow-[0_0_8px_rgba(96,165,250,0.3)]"
                 : "bg-blue-600/90 border border-blue-500/50 shadow-lg shadow-blue-900/20"
             )}
             title={muteBgm ? "Enable Background Music" : "Mute Background Music"}
@@ -127,7 +138,10 @@ export default function VideoToolbar({
         </div>
 
         {/* 右侧工具组 */}
-        <div className="flex items-center gap-2 md:gap-3 justify-end">
+        <div className={cn(
+          "flex flex-col gap-2",              // 移动端垂直排列
+          "sm:flex-row sm:items-center sm:gap-3 sm:justify-end"  // 小屏幕以上水平排列
+        )}>
           <div className="text-xs text-white/40 font-mono px-2">{charCount} chars</div>
           <button
             onClick={onAnalyzeVideo}
@@ -155,13 +169,19 @@ export default function VideoToolbar({
 
 // 样式常量
 const selectTriggerClass = cn(
-  "w-[100px] h-9 px-3 py-2",
-  "bg-slate-800/50 hover:bg-slate-700/50",
-  "border border-slate-700/50 hover:border-blue-400/60",
-  "text-[#AAA9B4] hover:text-white text-sm font-medium",
+  // 移动端: 全宽, 44px 高 (触摸友好)
+  "w-full h-11",
+  // 平板以上: 100px 宽, 36px 高
+  "sm:w-[100px] sm:h-9",
+  "px-3 py-2",
+  "bg-slate-800/50",
+  "border border-slate-700/50",
+  "text-[#AAA9B4] text-sm font-medium",
   "rounded-lg transition-all",
   "focus:ring-2 focus:ring-purple-500/50",
-  "hover:shadow-[0_0_8px_rgba(96,165,250,0.3)]"
+  // 仅桌面启用 hover 效果
+  "md:hover:bg-slate-700/50 md:hover:border-blue-400/60",
+  "md:hover:text-white md:hover:shadow-[0_0_8px_rgba(96,165,250,0.3)]"
 )
 
 const selectContentClass = cn(
@@ -176,11 +196,27 @@ const selectItemClass = cn(
 )
 
 const buttonClass = cn(
-  "flex items-center gap-2 h-9 px-3 py-2 rounded-lg",
-  "bg-slate-800/50 hover:bg-slate-700/50",
-  "border border-slate-700/50 hover:border-blue-400/60",
-  "text-[#AAA9B4] hover:text-white text-sm font-medium transition-all",
-  "hover:shadow-[0_0_8px_rgba(96,165,250,0.3)]"
+  "flex items-center justify-center gap-2 rounded-lg",
+  // 移动端: 全宽, 44px 高
+  "w-full h-11",
+  // 平板以上: 自适应宽, 36px 高
+  "sm:w-auto sm:h-9",
+  "px-3 py-2",
+  "bg-slate-800/50",
+  "border border-slate-700/50",
+  "text-[#AAA9B4] text-sm font-medium transition-all",
+  // 仅桌面启用 hover 效果
+  "md:hover:bg-slate-700/50 md:hover:border-blue-400/60",
+  "md:hover:text-white md:hover:shadow-[0_0_8px_rgba(96,165,250,0.3)]"
 )
 
-const analyzeButtonClass = "flex items-center gap-2 h-10 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:shadow-[0_0_12px_rgba(207,203,255,0.4)]"
+const analyzeButtonClass = cn(
+  "flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all duration-200",
+  // 移动端: 全宽, 44px 高
+  "w-full h-11",
+  // 平板以上: 自适应宽, 40px 高
+  "sm:w-auto sm:h-10",
+  "px-4 py-2",
+  // 仅桌面启用 hover 效果
+  "md:hover:shadow-[0_0_12px_rgba(207,203,255,0.4)]"
+)

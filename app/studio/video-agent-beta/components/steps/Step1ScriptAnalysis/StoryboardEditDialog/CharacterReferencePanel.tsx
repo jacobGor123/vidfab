@@ -47,35 +47,35 @@ export function CharacterReferencePanel({
         </div>
       ) : (
         <>
-          {/* 3栏 Grid 布局 */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            {characters.map((character) => {
-              const isSelected = selectedCharacterIds
-                ? selectedCharacterIds.includes(character.id)
-                : selectedCharacterNames.includes(character.character_name)
-              const imageUrl = character.character_reference_images?.[0]?.image_url
+          {/* 横向滚动布局 */}
+          <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 mb-4 scrollbar-hide">
+            <div className="flex gap-3 pb-2">
+              {characters.map((character) => {
+                const isSelected = selectedCharacterIds
+                  ? selectedCharacterIds.includes(character.id)
+                  : selectedCharacterNames.includes(character.character_name)
+                const imageUrl = character.character_reference_images?.[0]?.image_url
 
-              return (
-                <div
-                  key={character.id}
-                  className={cn(
-                    "cursor-pointer transition-all duration-200 rounded-lg border p-3",
-                    isSelected
-                      ? "border-purple-500/50 bg-purple-500/10"
-                      : "border-slate-700 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60"
-                  )}
-                  onClick={() => {
-                    if (onToggleById) {
-                      onToggleById(character.id)
-                    } else {
-                      onToggle(character.character_name)
-                    }
-                  }}
-                >
-                  <div className="flex items-start gap-3">
+                return (
+                  <div
+                    key={character.id}
+                    className={cn(
+                      "flex-shrink-0 w-32 cursor-pointer transition-all duration-200 rounded-lg border p-3",
+                      isSelected
+                        ? "border-purple-500/50 bg-purple-500/10"
+                        : "border-slate-700 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-900/60"
+                    )}
+                    onClick={() => {
+                      if (onToggleById) {
+                        onToggleById(character.id)
+                      } else {
+                        onToggle(character.character_name)
+                      }
+                    }}
+                  >
                     {/* Character Image */}
-                    <div className="relative flex-shrink-0">
-                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-800/50">
+                    <div className="relative mb-2">
+                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-slate-800/50">
                         {imageUrl ? (
                           <img
                             src={imageUrl}
@@ -84,7 +84,7 @@ export function CharacterReferencePanel({
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-500">
-                            <User className="w-5 h-5" />
+                            <User className="w-8 h-8" />
                           </div>
                         )}
                       </div>
@@ -100,20 +100,20 @@ export function CharacterReferencePanel({
                     </div>
 
                     {/* Character Info */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-white mb-1 line-clamp-1">
+                    <div>
+                      <h4 className="text-xs font-medium text-white mb-1 line-clamp-1">
                         {character.character_name}
                       </h4>
                       {character.generation_prompt && (
-                        <p className="text-xs text-slate-400 line-clamp-2">
+                        <p className="text-[10px] text-slate-400 line-clamp-2">
                           {character.generation_prompt}
                         </p>
                       )}
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
 
           {/* Selection Summary */}

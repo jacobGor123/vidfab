@@ -232,13 +232,12 @@ export function StoryboardEditDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="bg-[#1a1d2e] border-white/10 backdrop-blur-xl p-0 gap-0 flex flex-col"
-        style={{ maxWidth: '1400px', width: '95vw', maxHeight: '90vh', height: '90vh' }}
+        className="bg-[#1a1d2e] border-white/10 backdrop-blur-xl p-0 gap-0 flex flex-col w-full h-[100dvh] max-w-full max-h-[100dvh] md:w-[95vw] md:h-[90vh] md:max-w-[1400px] md:max-h-[90vh] md:rounded-2xl"
       >
         {/* Header */}
         <div className="px-6 py-3 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
+            <div className="px-3 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
               <Image
                 src="/logo/edit-storyboard-logo.svg"
                 alt="Edit Storyboard"
@@ -259,7 +258,7 @@ export function StoryboardEditDialog({
         </div>
 
         {/* Main Content - 上下布局 */}
-        <div className="flex flex-col gap-4 p-6 overflow-hidden flex-1 min-h-0">
+        <div className="flex flex-col gap-4 p-6 overflow-visible md:overflow-hidden flex-1 min-h-0">
           {/* 上部 - 人物选择区域（固定高度） */}
           <div className="flex-shrink-0">
             <CharacterReferencePanel
@@ -272,7 +271,7 @@ export function StoryboardEditDialog({
           </div>
 
           {/* 下部 - 分镜编辑区域（填充剩余空间） */}
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-visible md:overflow-hidden">
             <StoryboardEditPanel
               projectId={project.id}
               shotNumber={shotNumber || 0}

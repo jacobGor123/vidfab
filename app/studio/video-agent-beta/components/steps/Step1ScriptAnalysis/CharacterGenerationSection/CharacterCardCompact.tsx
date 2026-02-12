@@ -120,7 +120,7 @@ export function CharacterCardCompact({
                             disabled={state.isGenerating || !(state.prompt || '').trim()}
                             size="sm"
                             variant="outline"
-                            className="h-7 text-xs px-2"
+                            className="h-7 text-xs px-2 transition-all duration-200 hover:border-blue-500/50 hover:bg-blue-500/10 hover:shadow-[0_0_12px_rgba(59,130,246,0.3)]"
                         >
                             {state.imageUrl ? (
                                 <RefreshCw className="w-3 h-3" />
@@ -143,7 +143,7 @@ export function CharacterCardCompact({
                                 type="button"
                                 size="sm"
                                 variant="outline"
-                                className="w-full h-7 text-xs px-2"
+                                className="w-full h-7 text-xs px-2 transition-all duration-200 hover:border-blue-500/50 hover:bg-blue-500/10 hover:shadow-[0_0_12px_rgba(59,130,246,0.3)]"
                                 asChild
                             >
                                 <span>
@@ -156,7 +156,7 @@ export function CharacterCardCompact({
                             onClick={onOpenPreset}
                             size="sm"
                             variant="outline"
-                            className="h-7 text-xs px-2"
+                            className="h-7 text-xs px-2 transition-all duration-200 hover:border-blue-500/50 hover:bg-blue-500/10 hover:shadow-[0_0_12px_rgba(59,130,246,0.3)]"
                             title="Choose preset"
                         >
                             <Library className="w-3 h-3" />
