@@ -88,21 +88,43 @@ export function useStoryboardEditor(
       const foundChars: string[] = []
 
       projectChars.forEach((c: any) => {
-        const name = String(c.character_name || c.name || '').trim()
-        if (!name) return
+        const fullName = String(c.character_name || c.name || '').trim()
+        if (!fullName) return
 
-        // 提取基础名称（括号前的部分）
-        const baseName = name.split('(')[0].trim()
+        // 提取基础名称和完整描述
+        const baseName = fullName.split('(')[0].trim()
+        const charDesc = fullName.includes('(')
+          ? fullName.substring(fullName.indexOf('(') + 1, fullName.lastIndexOf(')')).toLowerCase()
+          : ''
 
-        // 检查描述中是否包含人物名称
+        // 策略1: 检查描述中是否包含人物名称
         if (descLower.includes(baseName.toLowerCase())) {
           foundChars.push(baseName)
+          return
+        }
+
+        // 策略2: 检查描述中的关键词是否与人物描述匹配
+        // 例如: 描述有 "dog"，人物描述有 "Chihuahua-like dog"
+        if (charDesc) {
+          const descWords = descLower.split(/\s+/)
+          const charWords = charDesc.split(/\s+/)
+
+          // 检查是否有共同的实体类型词（dog, man, woman, cat, robot等）
+          const entityTypes = ['dog', 'cat', 'man', 'woman', 'boy', 'girl', 'robot', 'creature', 'person', 'animal']
+          for (const entityType of entityTypes) {
+            if (descWords.includes(entityType) && charWords.includes(entityType)) {
+              foundChars.push(baseName)
+              return
+            }
+          }
         }
       })
 
       if (foundChars.length > 0) {
         console.log('[StoryboardEditor] 🔧 Auto-inferred characters from description:', foundChars)
         shotCharactersToUse = foundChars
+      } else {
+        console.warn('[StoryboardEditor] ⚠️  Could not infer characters from description')
       }
     }
 
