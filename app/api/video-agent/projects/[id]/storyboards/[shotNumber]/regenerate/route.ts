@@ -146,8 +146,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
       ids: (charactersData || []).map(c => c.id)
     })
 
-    // 映射人物配置
+    // 映射人物配置（包含 id 字段以便追踪实际使用的人物）
     let characterConfigs: CharacterConfig[] = (charactersData || []).map(char => ({
+      id: char.id,  // 🔥 必须包含 id，用于生成 used_character_ids
       name: char.character_name,
       reference_images: (char.character_reference_images || [])
         .sort((a: any, b: any) => a.image_order - b.image_order)
@@ -289,6 +290,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
             image_url_external: result.image_url,
             status: result.status,
             storage_status: 'pending',
+            used_character_ids: result.used_character_ids || [],  // 🔥 保存实际使用的人物 IDs
             updated_at: now
           } as any)
           .eq('project_id', projectId)
@@ -305,6 +307,14 @@ export const POST = withAuth(async (request, { params, userId }) => {
           shotNumber,
           newVersionId
         })
+
+        // 🔥 RPC 函数不支持 used_character_ids，需要单独更新
+        await supabaseAdmin
+          .from('project_storyboards')
+          .update({
+            used_character_ids: result.used_character_ids || []
+          } as any)
+          .eq('id', newVersionId)
 
         // 查询新创建的记录
         const { data: newRecord } = await supabaseAdmin

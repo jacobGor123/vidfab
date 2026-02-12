@@ -264,6 +264,7 @@ export async function batchGenerateStoryboardsWithProgress(
               image_url_external: result.image_url,
               status: result.status,
               storage_status: 'pending',
+              used_character_ids: result.used_character_ids || [],  // 🔥 保存实际使用的人物 IDs
               updated_at: new Date().toISOString()
             } as any)
             .eq('project_id', projectId)
