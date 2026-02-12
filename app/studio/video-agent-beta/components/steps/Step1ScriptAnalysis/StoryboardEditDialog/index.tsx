@@ -9,6 +9,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,6 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog'
-import { Film } from 'lucide-react'
 import type { VideoAgentProject } from '@/lib/stores/video-agent'
 import { useStoryboardEditor } from './useStoryboardEditor'
 import { CharacterReferencePanel } from './CharacterReferencePanel'
@@ -239,7 +239,13 @@ export function StoryboardEditDialog({
         <div className="px-6 py-3 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
-              <Film className="w-5 h-5 text-purple-400" />
+              <Image
+                src="/logo/edit-storyboard-logo.svg"
+                alt="Edit Storyboard"
+                width={20}
+                height={20}
+                className="opacity-90"
+              />
             </div>
             <div>
               <h2 className="text-xl text-white font-bold">
