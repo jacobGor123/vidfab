@@ -86,12 +86,23 @@ export function useStoryboardEditor(
       .map((n: string) => nameToId.get(normalize(String(n))))
       .filter(Boolean) as string[]
 
-    const fallbackAllIds = projectChars.map((c: any) => String(c.id)).filter(Boolean)
-    const nextIds = mappedIds.length > 0 ? mappedIds : fallbackAllIds
-    setSelectedCharacterIds(nextIds)
+    // 🔥 修复：不再 fallback 到全选，如果映射失败就保持空数组
+    // 如果映射失败，记录日志便于调试
+    if (mappedIds.length === 0 && shot.characters && shot.characters.length > 0) {
+      console.warn('[StoryboardEditor] Character name mapping failed for shot', {
+        shotNumber,
+        shotCharacters: shot.characters,
+        availableCharacters: projectChars.map((c: any) => ({
+          id: c.id,
+          name: c.character_name || c.name
+        }))
+      })
+    }
+
+    setSelectedCharacterIds(mappedIds)
 
     // Keep the display names in sync with ids so the panel doesn't show stale labels.
-    const nextNames = nextIds
+    const nextNames = mappedIds
       .map((id) => idToName.get(id))
       .filter(Boolean) as string[]
     if (nextNames.length > 0) setSelectedCharacterNames(nextNames)
