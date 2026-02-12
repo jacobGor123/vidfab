@@ -5,7 +5,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
 import { buildScriptAnalysisPrompt } from './prompt-builder'
-import { MODEL_NAME, UNIFIED_SEGMENT_DURATION, sleep } from './constants'
+import { MODEL_NAME, UNIFIED_SEGMENT_DURATION, SHOT_COUNT_MAP, sleep } from './constants'
 import {
   cleanJsonResponse,
   getDuplicateShotDescriptions,
@@ -84,6 +84,18 @@ export async function analyzeScript(
       // 验证结果
       if (!analysis.shots || analysis.shots.length === 0) {
         throw new Error('No shots generated in analysis result')
+      }
+
+      // 🔥 验证镜头数量：至少应该有 3 个镜头（即使是 15 秒视频）
+      const expectedShotCount = SHOT_COUNT_MAP[duration] || Math.ceil(duration / UNIFIED_SEGMENT_DURATION)
+      if (analysis.shots.length < Math.min(3, expectedShotCount)) {
+        console.warn('[Script Analyzer Core] ⚠️  Shot count too low!', {
+          expected: expectedShotCount,
+          actual: analysis.shots.length,
+          duration,
+          scriptLength: script.length
+        })
+        console.warn('[Script Analyzer Core] ⚠️  This may indicate a problem with the script or Gemini response')
       }
 
       // 🔥 统一分镜时长

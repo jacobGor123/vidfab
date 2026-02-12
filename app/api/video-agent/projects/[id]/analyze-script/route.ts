@@ -100,6 +100,47 @@ export const POST = withAuth(async (request, { params, userId }) => {
       musicPrompt = undefined
     }
 
+    // 🔥 智能管理人物数据：对比新旧人物列表，只删除不需要的人物
+    if (force && analysis.characters && Array.isArray(analysis.characters)) {
+      try {
+        // 1. 查询现有的 project_characters
+        const { data: existingCharacters } = await supabaseAdmin
+          .from('project_characters')
+          .select('id, character_name')
+          .eq('project_id', projectId)
+
+        if (existingCharacters && existingCharacters.length > 0) {
+          const newCharNames = analysis.characters
+          const existingCharNames = existingCharacters.map(c => c.character_name)
+
+          // 2. 找出需要删除的人物（不在新列表中）
+          const toDelete = existingCharacters.filter(
+            char => !newCharNames.includes(char.character_name)
+          )
+
+          if (toDelete.length > 0) {
+            console.log('[Video Agent] 🗑️  Removing obsolete characters:', toDelete.map(c => c.character_name))
+
+            // 3. 删除这些人物（级联删除关联的 character_reference_images）
+            const { error: deleteError } = await supabaseAdmin
+              .from('project_characters')
+              .delete()
+              .in('id', toDelete.map(c => c.id))
+
+            if (deleteError) {
+              console.error('[Video Agent] ⚠️  Failed to delete obsolete characters:', deleteError)
+              // 不阻断主流程，继续保存分析结果
+            }
+          } else {
+            console.log('[Video Agent] ✅ All existing characters still valid in new analysis')
+          }
+        }
+      } catch (charCleanupError) {
+        console.error('[Video Agent] ⚠️  Error during character cleanup:', charCleanupError)
+        // 不阻断主流程
+      }
+    }
+
     // 保存分析结果到数据库
     const { error: updateError } = await supabaseAdmin
       .from('video_agent_projects')
