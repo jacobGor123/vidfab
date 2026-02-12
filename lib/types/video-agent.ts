@@ -30,6 +30,7 @@ export interface Shot {
  * 人物角色配置
  */
 export interface CharacterConfig {
+  id?: string                    // 人物 ID（可选，用于记录实际使用的人物）
   name: string
   reference_images: string[]    // 参考图 URL 列表
 }
@@ -146,6 +147,7 @@ export interface StoryboardResult {
   image_url?: string
   status: 'success' | 'failed'
   error?: string
+  used_character_ids?: string[]  // 🔥 实际使用的人物 IDs
 }
 
 // ==================== 类型守卫 ====================

@@ -70,13 +70,33 @@ ${getStyleGuide(storyStyle)}
 - 摄像机角度: Eye level / High angle / Low angle / Bird's eye view / Dutch angle
 - 示例: "Medium shot, eye level"
 
-**c) characters (出现的角色)**
-- **重要：仔细检查 description 中提到的所有命名实体**
-- 列出该分镜中出现的所有角色名称（包括人类、动物、生物、机器人等）
-- 使用与全局角色列表（characters 字段）完全一致的名称
-- 即使角色只是在背景中出现或被提及，也必须列出
-- 示例：如果 description 是 "A man and a cat looking at a robot"，则 characters 应该是 ["Man", "Cat", "Robot"]
-- 只有在没有任何命名实体时才返回空数组
+**c) characters (出现的角色) - 极其重要！**
+- **这是最关键的字段，必须准确填写！**
+- **任务：从 description 中识别所有角色，并从全局 characters 列表中找到对应的名称**
+- **即使 description 中只提到特征（如 "white dog", "elderly man"），也必须匹配到具体的角色名称**
+
+**填写步骤：**
+1. 仔细阅读该分镜的 description
+2. 识别所有出现的实体（人、动物、机器人等）及其特征
+3. 从全局 characters 列表中找到匹配的角色名称
+4. 将匹配的角色名称填入该分镜的 characters 数组
+
+**示例：**
+- 全局角色: ["Buddy (brown dog)", "Richie (white dog)", "Buster (white dog)"]
+- Description: "Two white dogs standing side by side"
+- ✅ 正确: characters: ["Richie", "Buster"]  // 根据"white dogs"匹配到两只白狗
+- ❌ 错误: characters: []  // 绝对不能为空！
+
+**示例 2：**
+- 全局角色: ["John (young man)", "Sarah (elderly woman)"]
+- Description: "An elderly woman walking in the park"
+- ✅ 正确: characters: ["Sarah"]  // 根据"elderly woman"匹配到 Sarah
+- ❌ 错误: characters: []
+
+**关键原则：**
+- 每个分镜的 characters 数组**绝不能为空**（除非真的没有任何角色）
+- 必须使用全局 characters 列表中的**完整名称**（如 "Buddy"，不是 "dog"）
+- 如果 description 提到多个相同类型的角色（如 "two dogs"），必须列出所有匹配的角色名称
 
 **d) mood (情绪氛围)**
 - 用 2-4 个英文形容词描述场景的情绪基调

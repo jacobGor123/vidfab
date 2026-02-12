@@ -96,10 +96,16 @@ export async function generateSingleStoryboard(
       throw new Error('No image URL returned from API')
     }
 
+    // 🔥 提取实际使用的人物 IDs（从 charactersWithRefs 映射回原始 characters）
+    const usedCharacterIds = charactersWithRefs
+      .map(c => characters.find(ch => ch.name === c.name)?.id)
+      .filter((id): id is string => Boolean(id))
+
     return {
       shot_number: shot.shot_number,
       image_url: result.imageUrl,
-      status: 'success'
+      status: 'success',
+      used_character_ids: usedCharacterIds
     }
 
   } catch (error) {

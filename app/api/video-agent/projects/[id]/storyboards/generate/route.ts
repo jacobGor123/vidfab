@@ -59,7 +59,7 @@ async function generateStoryboardsAsync(
       try {
         const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
 
-        // 立即更新数据库
+        // 立即更新数据库（包含实际使用的人物 IDs）
         await supabaseAdmin
           .from('project_storyboards')
           .update({
@@ -68,6 +68,7 @@ async function generateStoryboardsAsync(
             image_url_external: result.image_url,
             status: result.status,
             error_message: result.error,
+            used_character_ids: result.used_character_ids || [],  // 🔥 保存实际使用的人物 IDs
             updated_at: new Date().toISOString()
           } as any)
           .eq('project_id', projectId)
@@ -174,8 +175,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 转换人物数据格式
+    // 转换人物数据格式（保留 ID 用于记录实际使用的人物）
     const characters: CharacterConfig[] = (charactersData || []).map(char => ({
+      id: char.id,  // 🔥 保留人物 ID
       name: char.character_name,
       reference_images: (char.character_reference_images || [])
         .sort((a: any, b: any) => a.image_order - b.image_order)

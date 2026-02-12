@@ -68,135 +68,57 @@ export function useStoryboardEditor(
     const normalize = (name: string) => name.split('(')[0].trim().toLowerCase()
     const projectChars = Array.isArray(project.characters) ? project.characters : []
 
-    // 🔥 Debug: 打印原始数据
-    console.log('[StoryboardEditor] 🔍 Initializing character selection for shot', {
-      shotNumber,
-      shotCharacters: shot.characters,
-      shotDescription: shot.description?.substring(0, 100),
-      projectCharactersCount: projectChars.length,
-      projectCharacters: projectChars.map((c: any) => ({
-        id: c.id,
-        name: c.character_name || c.name
-      }))
-    })
+    // 🔥 核心改动：直接从 storyboard.used_character_ids 读取实际使用的人物
+    const storyboard = project.storyboards?.find(s => s.shot_number === shotNumber)
 
-    // 🔥 兜底逻辑：如果 shot.characters 为空，从 description 中自动匹配人物
-    let shotCharactersToUse = shot.characters || []
+    let characterIdsToUse: string[] = []
 
-    if (shotCharactersToUse.length === 0 && shot.description) {
-      const descLower = shot.description.toLowerCase()
-      const foundChars: string[] = []
-
+    // 优先使用 storyboard 记录的实际使用的人物 IDs（单一数据源）
+    if (storyboard && 'used_character_ids' in storyboard && Array.isArray(storyboard.used_character_ids)) {
+      characterIdsToUse = (storyboard.used_character_ids as string[]).filter(Boolean)
+      console.log('[StoryboardEditor] ✅ Using stored used_character_ids:', characterIdsToUse)
+    } else {
+      // Fallback: 从 shot.characters 名称映射（兼容旧数据）
+      const shotCharacters = shot.characters || []
+      const nameToId = new Map<string, string>()
       projectChars.forEach((c: any) => {
-        const fullName = String(c.character_name || c.name || '').trim()
-        if (!fullName) return
-
-        // 提取基础名称和完整描述
-        const baseName = fullName.split('(')[0].trim()
-        const charDesc = fullName.includes('(')
-          ? fullName.substring(fullName.indexOf('(') + 1, fullName.lastIndexOf(')')).toLowerCase()
-          : ''
-
-        // 策略1: 检查描述中是否包含人物名称
-        if (descLower.includes(baseName.toLowerCase())) {
-          foundChars.push(baseName)
-          return
-        }
-
-        // 策略2: 检查描述中的关键词是否与人物描述匹配
-        // 例如: 描述有 "dog"，人物描述有 "Chihuahua-like dog"
-        if (charDesc) {
-          // 改进分词：按空格和标点符号分割，提取纯单词
-          const extractWords = (text: string) => {
-            return text
-              .toLowerCase()
-              .split(/[\s,;.!?:()\-]+/)  // 按空格和常见标点分割
-              .filter(w => w.length > 0)
-          }
-
-          const descWords = extractWords(descLower)
-          const charWords = extractWords(charDesc)
-
-          console.log('[StoryboardEditor] 🔍 Checking entity match:', {
-            character: baseName,
-            descWords: descWords.slice(0, 10),
-            charWords: charWords.slice(0, 10)
-          })
-
-          // 检查是否有共同的实体类型词（dog, man, woman, cat, robot等）
-          const entityTypes = ['dog', 'cat', 'man', 'woman', 'boy', 'girl', 'robot', 'creature', 'person', 'animal']
-          for (const entityType of entityTypes) {
-            if (descWords.includes(entityType) && charWords.includes(entityType)) {
-              console.log('[StoryboardEditor] ✅ Found match via entity type:', entityType)
-              foundChars.push(baseName)
-              return
-            }
-          }
-        }
+        if (!c?.id) return
+        const name = String(c.character_name || c.name || '').trim()
+        if (!name) return
+        const normalizedName = normalize(name)
+        nameToId.set(normalizedName, String(c.id))
       })
 
-      if (foundChars.length > 0) {
-        console.log('[StoryboardEditor] 🔧 Auto-inferred characters from description:', foundChars)
-        shotCharactersToUse = foundChars
-      } else {
-        console.warn('[StoryboardEditor] ⚠️  Could not infer characters from description')
-      }
+      characterIdsToUse = shotCharacters
+        .map((n: string) => {
+          const normalized = normalize(String(n))
+          return nameToId.get(normalized)
+        })
+        .filter(Boolean) as string[]
+
+      console.log('[StoryboardEditor] ⚠️  Falling back to shot.characters mapping:', {
+        shotCharacters,
+        mappedIds: characterIdsToUse
+      })
     }
 
-    // 1) Name selection is used only for UI labels / legacy fallback.
-    setSelectedCharacterNames(shotCharactersToUse.map((n: string) => normalize(String(n))).filter(Boolean))
+    setSelectedCharacterIds(characterIdsToUse)
 
-    // 2) Id selection is the source of truth for reference images.
-    const nameToId = new Map<string, string>()
+    // 同步 name selection（用于 UI 显示）
     const idToName = new Map<string, string>()
     projectChars.forEach((c: any) => {
       if (!c?.id) return
       const name = String(c.character_name || c.name || '').trim()
-      if (!name) return
-      const normalizedName = normalize(name)
-      nameToId.set(normalizedName, String(c.id))
-      idToName.set(String(c.id), name)
-      console.log('[StoryboardEditor] 🗺️  Mapping:', { original: name, normalized: normalizedName, id: c.id })
+      if (name) idToName.set(String(c.id), name)
     })
 
-    const mappedIds = shotCharactersToUse
-      .map((n: string) => {
-        const normalized = normalize(String(n))
-        const id = nameToId.get(normalized)
-        console.log('[StoryboardEditor] 🔄 Mapping shot character:', { original: n, normalized, foundId: id })
-        return id
-      })
+    const nextNames = characterIdsToUse
+      .map(id => idToName.get(id))
       .filter(Boolean) as string[]
 
-    // 🔥 修复：不再 fallback 到全选，如果映射失败就保持空数组
-    console.log('[StoryboardEditor] ✅ Mapping result:', {
-      inputCount: shot.characters?.length || 0,
-      mappedCount: mappedIds.length,
-      mappedIds
-    })
-
-    // 如果映射失败，记录日志便于调试
-    if (mappedIds.length === 0 && shot.characters && shot.characters.length > 0) {
-      console.warn('[StoryboardEditor] ⚠️  Character name mapping failed for shot', {
-        shotNumber,
-        shotCharacters: shot.characters,
-        availableCharacters: projectChars.map((c: any) => ({
-          id: c.id,
-          name: c.character_name || c.name
-        }))
-      })
-    }
-
-    setSelectedCharacterIds(mappedIds)
-
-    // Keep the display names in sync with ids so the panel doesn't show stale labels.
-    const nextNames = mappedIds
-      .map((id) => idToName.get(id))
-      .filter(Boolean) as string[]
-    if (nextNames.length > 0) setSelectedCharacterNames(nextNames)
+    setSelectedCharacterNames(nextNames)
 
     // 预填充 prompt
-    const storyboard = project.storyboards?.find(s => s.shot_number === shotNumber)
     if (storyboard && 'prompt' in storyboard && storyboard.prompt) {
       setEditedPrompt(storyboard.prompt as string)
     } else {
