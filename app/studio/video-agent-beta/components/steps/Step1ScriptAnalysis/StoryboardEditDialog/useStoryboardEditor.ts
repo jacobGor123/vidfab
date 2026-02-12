@@ -80,8 +80,34 @@ export function useStoryboardEditor(
       }))
     })
 
+    // 🔥 兜底逻辑：如果 shot.characters 为空，从 description 中自动匹配人物
+    let shotCharactersToUse = shot.characters || []
+
+    if (shotCharactersToUse.length === 0 && shot.description) {
+      const descLower = shot.description.toLowerCase()
+      const foundChars: string[] = []
+
+      projectChars.forEach((c: any) => {
+        const name = String(c.character_name || c.name || '').trim()
+        if (!name) return
+
+        // 提取基础名称（括号前的部分）
+        const baseName = name.split('(')[0].trim()
+
+        // 检查描述中是否包含人物名称
+        if (descLower.includes(baseName.toLowerCase())) {
+          foundChars.push(baseName)
+        }
+      })
+
+      if (foundChars.length > 0) {
+        console.log('[StoryboardEditor] 🔧 Auto-inferred characters from description:', foundChars)
+        shotCharactersToUse = foundChars
+      }
+    }
+
     // 1) Name selection is used only for UI labels / legacy fallback.
-    setSelectedCharacterNames((shot.characters || []).map((n: string) => normalize(String(n))).filter(Boolean))
+    setSelectedCharacterNames(shotCharactersToUse.map((n: string) => normalize(String(n))).filter(Boolean))
 
     // 2) Id selection is the source of truth for reference images.
     const nameToId = new Map<string, string>()
@@ -96,7 +122,7 @@ export function useStoryboardEditor(
       console.log('[StoryboardEditor] 🗺️  Mapping:', { original: name, normalized: normalizedName, id: c.id })
     })
 
-    const mappedIds = (shot.characters || [])
+    const mappedIds = shotCharactersToUse
       .map((n: string) => {
         const normalized = normalize(String(n))
         const id = nameToId.get(normalized)
