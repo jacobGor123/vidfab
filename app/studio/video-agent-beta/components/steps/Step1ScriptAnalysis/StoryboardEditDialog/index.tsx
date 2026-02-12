@@ -119,10 +119,30 @@ export function StoryboardEditDialog({
     : []
 
   // 🔥 去重：优先使用带括号描述的完整名称（新格式），过滤掉简短名称（旧格式）
-  const characters: Character[] = allCharacters.filter((char) => {
-    // 只保留带括号的完整描述格式
-    return char.character_name.includes('(')
-  })
+  // 但如果人物名称本身就没有括号，也应该保留
+  const characters: Character[] = (() => {
+    // 按名称分组（括号前的部分作为key）
+    const groupedByBaseName = new Map<string, Character[]>()
+
+    allCharacters.forEach(char => {
+      // 提取基础名称（括号前的部分，或完整名称）
+      const baseName = char.character_name.split('(')[0].trim()
+      if (!groupedByBaseName.has(baseName)) {
+        groupedByBaseName.set(baseName, [])
+      }
+      groupedByBaseName.get(baseName)!.push(char)
+    })
+
+    // 对每组，优先选择带括号的完整格式，否则选择第一个
+    const deduplicated: Character[] = []
+    groupedByBaseName.forEach((group) => {
+      // 优先选择带括号的（完整描述）
+      const withParentheses = group.find(char => char.character_name.includes('('))
+      deduplicated.push(withParentheses || group[0])
+    })
+
+    return deduplicated
+  })()
 
   const storyboard = shotNumber
     ? (project.storyboards?.find(s => s.shot_number === shotNumber) as unknown as Storyboard)
