@@ -13,6 +13,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import type { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
+import { emitCreditsUpdated } from '@/lib/events/credits-events'
 
 // 数据库中的 project_characters 表结构
 interface ProjectCharacter {
@@ -88,6 +89,8 @@ export function useCharacterAutoGeneration(
       if (completed === total) {
         clearPoll()
         setStatus('completed')
+        // ✅ 人物图全部生成完成后，触发积分更新事件
+        emitCreditsUpdated('video-agent-characters-completed')
       }
     } catch (error: any) {
       console.error('[CharacterAutoGen] Poll failed:', error)
@@ -133,6 +136,9 @@ export function useCharacterAutoGeneration(
       // 步骤 2: 批量生成人物图片
       console.log('[CharacterAutoGen] Step 2: Starting batch image generation...')
       await batchGenerateCharacters(project.id, { characterPrompts } as any)
+
+      // ✅ API 调用成功后立即触发积分更新（后端已扣费）
+      emitCreditsUpdated('video-agent-characters-api-called')
 
       console.log('[CharacterAutoGen] Batch generation started, polling for status...')
 

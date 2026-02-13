@@ -8,6 +8,7 @@ import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { showConfirm, showSuccess, showError, showLoading } from '@/lib/utils/toast'
 import type { VideoAgentProject, Storyboard } from '@/lib/stores/video-agent'
 import type { StoryboardGenerationState, StoryboardGenerationActions } from './Step3StoryboardGen.types'
+import { emitCreditsUpdated } from '@/lib/events/credits-events'
 
 interface UseStoryboardGenerationProps {
   project: VideoAgentProject
@@ -176,6 +177,8 @@ export function useStoryboardGeneration({
 
     try {
       await generateStoryboards(project.id)
+      // ✅ 立即触发积分更新事件，实时刷新右上角显示
+      emitCreditsUpdated('video-agent-storyboards-generated')
       // ✅ 立即轮询一次，获取刚创建的 generating 记录
       await pollStatus()
       // 后续轮询由 useEffect 自动触发
@@ -257,6 +260,9 @@ export function useStoryboardGeneration({
         customPrompt: customPrompt || undefined,
         fieldsUpdate: fieldsUpdate  // 🔥 传递字段更新
       })
+
+      // ✅ 立即触发积分更新事件，实时刷新右上角显示
+      emitCreditsUpdated('video-agent-storyboard-regenerated')
 
       dismissLoading()
 

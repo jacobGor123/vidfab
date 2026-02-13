@@ -3,7 +3,7 @@
  * 使用简单的积分检查，移除复杂的权限验证
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { calculateRequiredCredits, hasEnoughCredits, type VideoModel } from '@/lib/credits-calculator'
 import { onCreditsUpdated } from '@/lib/events/credits-events'
@@ -209,6 +209,12 @@ export function useSimpleSubscription(): UseSimpleSubscriptionReturn {
     }
   }, [session?.user?.uuid, fetchCreditsInfo])
 
+  // 🔥 使用 ref 存储最新的 fetchCreditsInfo 函数，避免监听器频繁重新注册
+  const fetchCreditsInfoRef = useRef(fetchCreditsInfo)
+  useEffect(() => {
+    fetchCreditsInfoRef.current = fetchCreditsInfo
+  }, [fetchCreditsInfo])
+
   // 🔥 监听积分更新事件（生成完成时自动刷新积分）
   useEffect(() => {
     // 使用新的事件系统监听积分更新
@@ -216,12 +222,16 @@ export function useSimpleSubscription(): UseSimpleSubscriptionReturn {
       if (process.env.NODE_ENV === 'development') {
         console.log('[useSimpleSubscription] Credits update detected:', detail?.reason)
       }
-      refreshCredits()
+      // 🔥 使用 ref 调用最新的 fetchCreditsInfo，避免依赖数组变化
+      if (session?.user?.uuid) {
+        setIsLoading(true)
+        fetchCreditsInfoRef.current()
+      }
     })
 
     // 返回清理函数
     return unsubscribe
-  }, [refreshCredits])
+  }, [session?.user?.uuid])
 
   return {
     creditsInfo,

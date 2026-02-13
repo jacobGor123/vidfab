@@ -27,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { emitCreditsUpdated } from '@/lib/events/credits-events'
 
 interface Step1Props {
   project: VideoAgentProject
@@ -469,6 +470,9 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
           // Do not overwrite video_prompt; avoid drifting copies of the same text.
         } as any
       })
+
+      // ✅ 立即触发积分更新事件，实时刷新右上角显示
+      emitCreditsUpdated('video-agent-storyboard-regenerated-step1')
 
       // 重新获取项目数据以更新 storyboards
       const response = await fetch(`/api/video-agent/projects/${project.id}`)

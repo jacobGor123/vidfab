@@ -12,6 +12,7 @@ import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-ap
 import { ImageGenerationRequest } from '@/lib/types/image'
 import type { Database } from '@/lib/database.types'
 import { IMAGE_STYLES, type ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
+import { checkAndDeductCharacterInitialBatch, checkAndDeductCharacterRegenerate } from '@/lib/video-agent/credits-check'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
@@ -162,11 +163,40 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    console.log('[API] Batch generating character images:', {
-      projectId,
-      count: characterPrompts.length,
-      aspectRatio: project.aspect_ratio
-    })
+    // ✅ 积分检查: 判断是否为初始批量（检查是否有已生成图片的人物）
+    const { data: existingCharsWithImages } = await supabaseAdmin
+      .from('project_characters')
+      .select(`
+        id,
+        character_reference_images (id)
+      `)
+      .eq('project_id', projectId)
+
+    // 🔥 关键修复：只有当存在有图片的人物时，才算重新生成
+    const hasGeneratedImages = existingCharsWithImages && existingCharsWithImages.some(
+      (char: any) => char.character_reference_images && char.character_reference_images.length > 0
+    )
+    const isInitialBatch = !hasGeneratedImages
+    const count = characterPrompts.length
+
+    let creditResult
+    if (isInitialBatch) {
+      creditResult = await checkAndDeductCharacterInitialBatch(userId)
+    } else {
+      creditResult = await checkAndDeductCharacterRegenerate(userId, count)
+    }
+
+    if (!creditResult.canAfford) {
+      return NextResponse.json(
+        {
+          error: creditResult.error || 'Insufficient credits',
+          code: 'INSUFFICIENT_CREDITS',
+          requiredCredits: creditResult.requiredCredits,
+          userCredits: creditResult.userCredits
+        },
+        { status: 402 }
+      )
+    }
 
     // 4. 批量生成图片
     const generateTasks = characterPrompts.map(async (charPrompt) => {

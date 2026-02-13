@@ -8,6 +8,7 @@ import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { showConfirm, showSuccess, showError, showLoading } from '@/lib/utils/toast'
 import type { VideoAgentProject, VideoClip } from '@/lib/stores/video-agent'
 import type { VideoGenerationState, VideoGenerationActions } from './Step4VideoGen.types'
+import { emitCreditsUpdated } from '@/lib/events/credits-events'
 
 interface UseVideoGenerationProps {
   project: VideoAgentProject
@@ -193,6 +194,8 @@ export function useVideoGeneration({
 
     try {
       await generateVideos(project.id)
+      // ✅ 立即触发积分更新事件，实时刷新右上角显示
+      emitCreditsUpdated('video-agent-videos-generated')
       // ✅ 立即轮询一次，获取刚创建的 generating 记录
       await pollStatus()
       // 后续轮询由 useEffect 自动触发
@@ -236,6 +239,9 @@ export function useVideoGeneration({
         shotNumber,
         customPrompt: customPrompt || undefined
       })
+
+      // ✅ 立即触发积分更新事件，实时刷新右上角显示
+      emitCreditsUpdated('video-agent-video-retried')
 
       dismissLoading()
 

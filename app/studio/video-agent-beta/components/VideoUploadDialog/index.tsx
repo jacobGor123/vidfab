@@ -20,6 +20,9 @@ import { useVideoAnalysis } from './hooks/useVideoAnalysis'
 import { YouTubeInput } from './components/YouTubeInput'
 import { ImageStyleSelector } from './components/ImageStyleSelector'
 import { InfoBox } from './components/InfoBox'
+import { useSimpleSubscription } from '@/hooks/use-subscription-simple'
+import { UpgradeDialog } from '@/components/subscription/upgrade-dialog'
+import { emitCreditsUpdated } from '@/lib/events/credits-events'
 
 interface VideoUploadDialogProps {
   isOpen: boolean
@@ -39,9 +42,11 @@ export default function VideoUploadDialog({
   aspectRatio
 }: VideoUploadDialogProps) {
   const authModal = useVideoGenerationAuth()
+  const { creditsRemaining, refreshCredits } = useSimpleSubscription()
   const [inputType, setInputType] = useState<'youtube' | 'local'>('youtube')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [imageStyle, setImageStyle] = useState<ImageStyle>('realistic')
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   const { isAnalyzing, progress, analyzeYouTubeVideo } = useVideoAnalysis({
     duration,
@@ -69,10 +74,29 @@ export default function VideoUploadDialog({
       }
     }
 
+    // ✅ 检查10积分 (人物图初始生成)
+    if (creditsRemaining < 10) {
+      showError('Insufficient credits. You need 10 credits to analyze video.')
+      setShowUpgradeDialog(true)
+      return
+    }
+
     // 🔥 检查用户登录状态，未登录则弹出登录弹框
     const success = await authModal.requireAuth(async () => {
-      await analyzeYouTubeVideo(youtubeUrl, imageStyle)
-      onClose()
+      try {
+        await analyzeYouTubeVideo(youtubeUrl, imageStyle)
+        onClose()
+        // ✅ 立即触发积分更新事件，实时刷新右上角显示
+        emitCreditsUpdated('video-agent-youtube-analyzed')
+      } catch (error: any) {
+        // ✅ 捕获402错误
+        if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
+          showError('Insufficient credits. Please upgrade your plan.')
+          setShowUpgradeDialog(true)
+        } else {
+          showError(error.message || 'Failed to analyze video')
+        }
+      }
     })
 
     // 如果未登录，requireAuth 会返回 false 并显示登录弹框
@@ -221,6 +245,12 @@ export default function VideoUploadDialog({
           <UnifiedAuthModal className="min-h-0 p-0" />
         </DialogContent>
       </Dialog>
+
+      {/* ✅ 升级对话框 */}
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+      />
     </>
   )
 }

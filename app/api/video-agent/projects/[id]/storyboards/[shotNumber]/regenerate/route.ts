@@ -12,6 +12,7 @@ import { VideoAgentStorageManager } from '@/lib/services/video-agent/storage-man
 import { extractFieldsFromPrompt } from '@/lib/services/video-agent/prompt-field-extractor'
 import type { Shot, CharacterConfig, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
 import type { Database } from '@/lib/database.types'
+import { checkAndDeductStoryboardGeneration } from '@/lib/video-agent/credits-check'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectCharacter = Database['public']['Tables']['project_characters']['Row']
@@ -124,6 +125,21 @@ export const POST = withAuth(async (request, { params, userId }) => {
       return NextResponse.json(
         { error: 'Shot not found', code: 'SHOT_NOT_FOUND' },
         { status: 404 }
+      )
+    }
+
+    // ✅ 积分检查 (单个分镜)
+    const creditResult = await checkAndDeductStoryboardGeneration(userId, 1)
+
+    if (!creditResult.canAfford) {
+      return NextResponse.json(
+        {
+          error: creditResult.error || 'Insufficient credits',
+          code: 'INSUFFICIENT_CREDITS',
+          requiredCredits: creditResult.requiredCredits,
+          userCredits: creditResult.userCredits
+        },
+        { status: 402 }
       )
     }
 

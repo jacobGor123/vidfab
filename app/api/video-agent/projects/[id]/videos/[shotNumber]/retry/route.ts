@@ -13,6 +13,8 @@ import {
   getVideoGenerationImages
 } from '@/lib/services/video-agent/veo3-video-generator'
 import type { Database } from '@/lib/database.types'
+import { checkAndDeductSingleVideo } from '@/lib/video-agent/credits-check'
+import { isVeo3Model, getDefaultResolution, type VideoResolution } from '@/lib/video-agent/credits-config'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectShot = Database['public']['Tables']['project_shots']['Row']
@@ -89,6 +91,35 @@ export const POST = withAuth(async (request, { params, userId }) => {
         { status: 404 }
       )
     }
+
+    // ✅ 积分检查 (单个视频)
+    const modelId = project.model_id || 'vidfab-q1'
+    const useVeo3 = isVeo3Model(modelId)
+    const duration = shot.duration_seconds || 5
+    const resolution = getDefaultResolution(modelId) as VideoResolution
+
+    const creditResult = await checkAndDeductSingleVideo(userId, duration, resolution, useVeo3)
+
+    if (!creditResult.canAfford) {
+      return NextResponse.json(
+        {
+          error: creditResult.error || 'Insufficient credits',
+          code: 'INSUFFICIENT_CREDITS',
+          requiredCredits: creditResult.requiredCredits,
+          userCredits: creditResult.userCredits
+        },
+        { status: 402 }
+      )
+    }
+
+    console.log('[Video Agent] ✅ Credits checked and deducted for retry:', {
+      projectId,
+      shotNumber,
+      model: modelId,
+      duration,
+      resolution,
+      creditsDeducted: creditResult.requiredCredits
+    })
 
     // 🔥 使用 UPSERT 确保记录存在（解决首次生成时没有记录的问题）
     // 🔥 修复：清除旧的视频 URL 和任务 ID，避免数据混乱

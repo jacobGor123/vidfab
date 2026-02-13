@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { analyzeVideoToScript, isValidYouTubeUrl, getYouTubeDuration, convertToStandardYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
+import { deductUserCredits } from '@/lib/simple-credits-check'
+import { supabaseAdmin, TABLES } from '@/lib/supabase'
 
 export const maxDuration = 300 // 最长 5 分钟（视频分析可能较慢）
 
@@ -84,6 +86,28 @@ export const POST = withAuth(async (req, { params, userId }) => {
       return NextResponse.json(
         { success: false, error: 'Invalid YouTube URL format' },
         { status: 400 }
+      )
+    }
+
+    // ✅ 积分检查 (YouTube 分析入口 - 只检查余额，不扣除)
+    // 实际扣除在人物图生成时进行
+    const { data: user } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('credits_remaining')
+      .eq('uuid', userId)
+      .single()
+
+    const userCredits = user?.credits_remaining || 0
+
+    if (userCredits < 10) {
+      return NextResponse.json(
+        {
+          error: `Insufficient credits. You need at least 10 credits to start, but only have ${userCredits}.`,
+          code: 'INSUFFICIENT_CREDITS',
+          requiredCredits: 10,
+          userCredits
+        },
+        { status: 402 }
       )
     }
 

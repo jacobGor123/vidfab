@@ -14,6 +14,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { showSuccess, showError, showLoading, showInfo } from '@/lib/utils/toast'
 import type { VideoAgentProject, VideoClip, ScriptAnalysis } from '@/lib/stores/video-agent'
+import { emitCreditsUpdated } from '@/lib/events/credits-events'
 
 interface UseVideoGenerationIntegratedProps {
     project: VideoAgentProject
@@ -254,6 +255,9 @@ export function useVideoGenerationIntegrated({
             // 🔥 调用批量生成 API（会自动跳过已成功的）
             await generateVideos(project.id)
 
+            // ✅ 立即触发积分更新事件
+            emitCreditsUpdated('video-agent-videos-generated-step1')
+
             dismissLoading()
             showSuccess('Video generation started')
 
@@ -310,6 +314,9 @@ export function useVideoGenerationIntegrated({
                 shotNumber,
                 customPrompt
             })
+
+            // ✅ 立即触发积分更新事件
+            emitCreditsUpdated('video-agent-video-retried-step1')
 
             dismissLoading()
             showSuccess(`Video ${shotNumber} generation started`)

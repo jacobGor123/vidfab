@@ -10,6 +10,7 @@ import { generateSingleStoryboard, IMAGE_STYLES } from '@/lib/services/video-age
 import type { CharacterConfig, Shot, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
 import type { Database } from '@/lib/database.types'
 import pLimit from 'p-limit'
+import { checkAndDeductStoryboardGeneration } from '@/lib/video-agent/credits-check'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectStoryboard = Database['public']['Tables']['project_storyboards']['Row']
@@ -202,6 +203,22 @@ export const POST = withAuth(async (request, { params, userId }) => {
       return NextResponse.json(
         { error: 'No shots found in script analysis' },
         { status: 400 }
+      )
+    }
+
+    // ✅ 积分检查
+    const shotCount = shots.length
+    const creditResult = await checkAndDeductStoryboardGeneration(userId, shotCount)
+
+    if (!creditResult.canAfford) {
+      return NextResponse.json(
+        {
+          error: creditResult.error || 'Insufficient credits',
+          code: 'INSUFFICIENT_CREDITS',
+          requiredCredits: creditResult.requiredCredits,
+          userCredits: creditResult.userCredits
+        },
+        { status: 402 }
       )
     }
 

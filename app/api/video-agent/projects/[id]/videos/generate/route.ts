@@ -15,6 +15,8 @@ import {
 } from '@/lib/services/video-agent/veo3-video-generator'
 import type { Database } from '@/lib/database.types'
 import pLimit from 'p-limit'
+import { checkAndDeductBatchVideos } from '@/lib/video-agent/credits-check'
+import { isVeo3Model, getDefaultResolution } from '@/lib/video-agent/credits-config'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
@@ -437,6 +439,40 @@ export const POST = withAuth(async (request, { params, userId }) => {
         { status: 400 }
       )
     }
+
+    // ✅ 积分检查: 计算所有分镜的总积分
+    // 需要知道使用的模型和分辨率
+    const modelId = project.model_id || 'vidfab-q1'  // 默认 BytePlus 模型
+    const useVeo3 = isVeo3Model(modelId)
+    const resolution = getDefaultResolution(modelId)
+
+    const shotsForCredits = shots.map(shot => ({
+      duration_seconds: shot.duration_seconds || 5,
+      resolution: resolution
+    }))
+
+    const creditResult = await checkAndDeductBatchVideos(userId, shotsForCredits, useVeo3)
+
+    if (!creditResult.canAfford) {
+      return NextResponse.json(
+        {
+          error: creditResult.error || 'Insufficient credits',
+          code: 'INSUFFICIENT_CREDITS',
+          requiredCredits: creditResult.requiredCredits,
+          userCredits: creditResult.userCredits
+        },
+        { status: 402 }
+      )
+    }
+
+    console.log('[Video Agent] ✅ Credits checked and deducted:', {
+      projectId,
+      model: modelId,
+      resolution,
+      shotsCount: shots.length,
+      creditsDeducted: creditResult.requiredCredits,
+      remainingCredits: creditResult.remainingCredits
+    })
 
     // 🔥 幂等性检查：检查是否已经有视频生成记录
     const { data: existingClips } = await supabaseAdmin

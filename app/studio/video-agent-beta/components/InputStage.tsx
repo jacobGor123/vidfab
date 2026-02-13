@@ -19,6 +19,9 @@ import StoryStyleSelector from './InputStage/StoryStyleSelector'
 import { cn } from '@/lib/utils'
 import { showError, showSuccess } from '@/lib/utils/toast'
 import { useVideoAgentAPI, type ScriptInspiration } from '@/lib/hooks/useVideoAgentAPI'
+import { useSimpleSubscription } from '@/hooks/use-subscription-simple'
+import { UpgradeDialog } from '@/components/subscription/upgrade-dialog'
+import { emitCreditsUpdated } from '@/lib/events/credits-events'
 
 interface InputStageProps {
   onStart: (data: {
@@ -32,6 +35,7 @@ interface InputStageProps {
 
 export default function InputStage({ onStart }: InputStageProps) {
   const { getInspirations } = useVideoAgentAPI()
+  const { creditsRemaining, refreshCredits } = useSimpleSubscription()
   const [duration, setDuration] = useState(30)
   const [storyStyle, setStoryStyle] = useState('auto')
   const [script, setScript] = useState('')
@@ -49,9 +53,19 @@ export default function InputStage({ onStart }: InputStageProps) {
   // 🔥 新增:选项抽屉状态
   const [showOptionsDrawer, setShowOptionsDrawer] = useState(false)
 
+  // ✅ 新增:升级对话框状态
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+
   const handleSubmit = async () => {
     if (!script.trim()) {
       showError('Please enter a video script')
+      return
+    }
+
+    // ✅ 检查10积分 (人物图初始生成)
+    if (creditsRemaining < 10) {
+      showError('Insufficient credits. You need 10 credits to start video generation.')
+      setShowUpgradeDialog(true)
       return
     }
 
@@ -64,8 +78,16 @@ export default function InputStage({ onStart }: InputStageProps) {
         aspectRatio,
         muteBgm
       })
+      // ✅ 立即触发积分更新事件，实时刷新右上角显示
+      emitCreditsUpdated('video-agent-project-created')
     } catch (error: any) {
-      showError(error.message)
+      // ✅ 捕获402错误
+      if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
+        showError('Insufficient credits. Please upgrade your plan.')
+        setShowUpgradeDialog(true)
+      } else {
+        showError(error.message || 'Failed to create project')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -237,6 +259,12 @@ export default function InputStage({ onStart }: InputStageProps) {
         onAIInspiration={handleGetInspiration}
         onAnalyzeVideo={() => setShowVideoDialog(true)}
         isGeneratingInspiration={isGeneratingInspiration}
+      />
+
+      {/* ✅ 升级对话框 */}
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
       />
     </div>
   )
