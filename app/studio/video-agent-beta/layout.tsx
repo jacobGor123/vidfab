@@ -29,7 +29,7 @@ export default function VideoAgentLayout({
   return (
     <div className="h-screen bg-black text-white overflow-hidden">
       <Navbar scrolled={scrolled} />
-      <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden">
+      <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden mt-16">
         {/* Sidebar - Hidden on mobile, shown as tabs instead */}
         {!isMobile && (
           <Suspense fallback={<div className="w-64 flex-shrink-0" />}>
