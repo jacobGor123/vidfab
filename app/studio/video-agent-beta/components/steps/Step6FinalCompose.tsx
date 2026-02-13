@@ -50,6 +50,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   const autoStartAttemptedRef = useRef(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   // 页面不可见时暂停定时器，避免后台占用主线程导致交互卡顿
   const [isPageVisible, setIsPageVisible] = useState(true)
@@ -241,6 +242,8 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
   const handleDownload = async () => {
     if (!composeStatus.finalVideo?.url) return
 
+    setIsDownloading(true)
+
     const videoUrl = composeStatus.finalVideo.url
 
     try {
@@ -268,6 +271,9 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
 
       // 释放 Blob URL
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+
+      // 下载成功后短暂延迟再关闭 loading，让用户看到反馈
+      setTimeout(() => setIsDownloading(false), 800)
     } catch (err) {
       // 方法2：尝试使用 download 属性的链接（可能被浏览器阻止）
       try {
@@ -279,9 +285,12 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+
+        setTimeout(() => setIsDownloading(false), 800)
       } catch (linkErr) {
         // 最后降级方案：直接打开新标签页
         window.open(videoUrl, '_blank')
+        setTimeout(() => setIsDownloading(false), 800)
       }
     }
   }
@@ -493,10 +502,18 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
             <div className="space-y-3">
               <Button
                 onClick={handleDownload}
+                disabled={isDownloading}
                 variant="outline"
-                className="w-full h-12 border-slate-700 text-white hover:bg-slate-800/50 hover:text-white rounded-xl"
+                className="w-full h-12 border-slate-700 text-white hover:bg-slate-800/50 hover:text-white rounded-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Download Video
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Downloading...
+                  </>
+                ) : (
+                  'Download Video'
+                )}
               </Button>
               {!isSaved && (
                 <Button
@@ -504,9 +521,7 @@ export default function Step7FinalCompose({ project, onComplete, onUpdate }: Ste
                   disabled={isSaving}
                   className="w-full h-14 text-white font-bold text-base transition-all rounded-xl disabled:opacity-70 disabled:cursor-not-allowed"
                   style={{
-                    background: isSaving
-                      ? 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)'
-                      : 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
+                    background: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)',
                     boxShadow: '0 8px 34px 0 rgba(115, 108, 255, 0.40)'
                   }}
                 >
