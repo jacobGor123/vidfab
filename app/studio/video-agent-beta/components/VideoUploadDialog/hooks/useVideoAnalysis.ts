@@ -58,7 +58,8 @@ export function useVideoAnalysis({
         },
         duration,  // YouTube 模式下会被实际时长覆盖
         storyStyle,
-        aspectRatio
+        aspectRatio,
+        imageStyle  // 🔥 直接传递图片风格，API 创建项目时设置
       }) as any
 
       // 🔥 API 现在返回 { analysis, project, meta }
@@ -70,22 +71,12 @@ export function useVideoAnalysis({
         throw new Error('Invalid response from analyze API')
       }
 
-      setProgress('Saving image style...')
-
-      // 🔥 步骤2: 更新图片风格（如果用户选择了）
-      if (imageStyle) {
-        await updateProject(project.id, {
-          image_style_id: imageStyle
-        } as any)
-      }
-
-      console.log('[YouTube Mode] Project created and analysis saved:', {
+      console.log('[YouTube Mode] Project created with image style:', {
         projectId: project.id,
         shotsCount: analysisData?.shots?.length || 0,
-        duration: project.duration
+        duration: project.duration,
+        imageStyle: project.image_style_id
       })
-
-      console.log('[YouTube Mode] ✅ script_analysis saved successfully')
 
       // 🔥 步骤4: 自动生成角色 Prompts（YouTube 模式）
       if (analysisData.characters && analysisData.characters.length > 0) {
