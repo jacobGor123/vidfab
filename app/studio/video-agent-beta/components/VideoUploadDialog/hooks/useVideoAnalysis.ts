@@ -59,14 +59,15 @@ export function useVideoAnalysis({
         duration,  // YouTube 模式下会被实际时长覆盖
         storyStyle,
         aspectRatio
-      })
+      }) as any
 
-      // 🔥 API 现在直接返回创建好的项目
-      const analysisData = response.data || response
+      // 🔥 API 现在返回 { analysis, project, meta }
+      const analysisData = response.analysis
       const project = response.project
 
-      if (!project) {
-        throw new Error('Project was not created by analyze API')
+      if (!project || !analysisData) {
+        console.error('[YouTube Mode] Invalid API response:', response)
+        throw new Error('Invalid response from analyze API')
       }
 
       setProgress('Saving image style...')

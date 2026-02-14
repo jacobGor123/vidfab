@@ -248,15 +248,18 @@ export const POST = withAuth(async (req, { params, userId }) => {
     })
 
     // 8. 返回结果（包含项目 ID）
+    // 🔥 将 project 和 analysis 都放在 data 里，避免 callAPI 自动提取时丢失 project
     return NextResponse.json({
       success: true,
-      data: analysis,
-      project: project,  // 🔥 返回创建的项目
-      meta: {
-        analysisTimeMs: analysisTime,
-        videoSource: videoSource.type,
-        actualDuration,
-        userSelectedDuration: duration
+      data: {
+        analysis: analysis,
+        project: project,
+        meta: {
+          analysisTimeMs: analysisTime,
+          videoSource: videoSource.type,
+          actualDuration,
+          userSelectedDuration: duration
+        }
       }
     })
 
