@@ -84,7 +84,6 @@ export function StoryboardSection({
       await startStoryboardGeneration()
     } catch (error: any) {
       if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
-        showError('Insufficient credits. Please upgrade your plan.')
         setShowUpgradeDialog(true)
       } else {
         showError(error.message || 'Failed to start generation')
@@ -97,7 +96,6 @@ export function StoryboardSection({
       await retryStoryboardGeneration()
     } catch (error: any) {
       if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
-        showError('Insufficient credits. Please upgrade your plan.')
         setShowUpgradeDialog(true)
       } else {
         showError(error.message || 'Failed to retry generation')
@@ -111,7 +109,6 @@ export function StoryboardSection({
       await generateAllVideos()
     } catch (error: any) {
       if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
-        showError('Insufficient credits. Please upgrade your plan.')
         setShowUpgradeDialog(true)
       }
       // 其他错误已经在 hook 中处理了
@@ -123,7 +120,6 @@ export function StoryboardSection({
       await generateSingleVideo(shotNumber, prompt, duration, resolution)
     } catch (error: any) {
       if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
-        showError('Insufficient credits. Please upgrade your plan.')
         setShowUpgradeDialog(true)
       }
       // 其他错误已经在 hook 中处理了

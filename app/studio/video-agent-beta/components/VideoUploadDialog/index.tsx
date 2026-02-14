@@ -76,7 +76,6 @@ export default function VideoUploadDialog({
 
     // ✅ 检查10积分 (人物图初始生成)
     if (creditsRemaining < 10) {
-      showError('Insufficient credits. You need 10 credits to analyze video.')
       setShowUpgradeDialog(true)
       return
     }
@@ -91,7 +90,6 @@ export default function VideoUploadDialog({
       } catch (error: any) {
         // ✅ 捕获402错误
         if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
-          showError('Insufficient credits. Please upgrade your plan.')
           setShowUpgradeDialog(true)
         } else {
           showError(error.message || 'Failed to analyze video')

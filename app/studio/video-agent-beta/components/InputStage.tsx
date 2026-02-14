@@ -68,7 +68,6 @@ export default function InputStage({ onStart }: InputStageProps) {
 
     // ✅ 检查10积分 (人物图初始生成)
     if (creditsRemaining < 10) {
-      showError('Insufficient credits. You need 10 credits to start video generation.')
       setShowUpgradeDialog(true)
       return
     }
@@ -89,7 +88,6 @@ export default function InputStage({ onStart }: InputStageProps) {
       } catch (error: any) {
         // ✅ 捕获402错误
         if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
-          showError('Insufficient credits. Please upgrade your plan.')
           setShowUpgradeDialog(true)
         } else {
           showError(error.message || 'Failed to create project')
