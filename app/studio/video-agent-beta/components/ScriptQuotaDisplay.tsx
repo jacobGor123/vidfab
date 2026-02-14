@@ -5,7 +5,7 @@
 
 "use client"
 
-import { Sparkles, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
 import { useScriptQuota } from '@/hooks/use-script-quota'
 import { useSimpleSubscription } from '@/hooks/use-subscription-simple'
 import {
@@ -30,9 +30,8 @@ export function ScriptQuotaDisplay() {
   // 配额内显示
   if (isWithinQuota) {
     return (
-      <div className="flex items-center justify-center gap-2 py-3">
+      <div className="flex items-center gap-2 py-3">
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/20">
-          <Sparkles className="w-4 h-4 text-purple-400" />
           <span className="text-sm text-white/80">
             Remaining: <span className="font-semibold text-white">{remainingFree}/{monthlyQuota}</span> free scripts this month
           </span>
@@ -69,9 +68,8 @@ export function ScriptQuotaDisplay() {
 
   if (hasEnoughCredits) {
     return (
-      <div className="flex items-center justify-center gap-2 py-3">
+      <div className="flex items-center gap-2 py-3">
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
-          <Sparkles className="w-4 h-4 text-yellow-400" />
           <span className="text-sm text-white/80">
             Next script: <span className="font-semibold text-yellow-300">3 credits</span>
             <span className="text-white/50 ml-1">(monthly quota used)</span>
@@ -106,9 +104,8 @@ export function ScriptQuotaDisplay() {
 
   // 配额外且积分不足
   return (
-    <div className="flex items-center justify-center gap-2 py-3">
+    <div className="flex items-center gap-2 py-3">
       <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30">
-        <Sparkles className="w-4 h-4 text-red-400" />
         <span className="text-sm text-white/80">
           Monthly quota exceeded · Need <span className="font-semibold text-red-300">3 credits</span>
         </span>
