@@ -4,7 +4,7 @@
  * ⚠️ 此文件由 scripts/generate-embedded-docs.mjs 自动生成
  * 请勿手动编辑！如需修改文档内容，请编辑 docs/ 目录下的源文件
  *
- * 生成时间: 2026-02-13T11:25:33.377Z
+ * 生成时间: 2026-02-14T03:04:38.774Z
  */
 
 export interface EmbeddedDoc {

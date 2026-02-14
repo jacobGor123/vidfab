@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,8 @@ import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
 import { useStoryboardAutoGeneration } from './useStoryboardAutoGeneration'
 import { useVideoGenerationIntegrated } from './useVideoGenerationIntegrated'
 import { StoryboardCardEnhanced } from './StoryboardCardEnhanced'
+import { UpgradeDialog } from '@/components/subscription/upgrade-dialog'
+import { showError } from '@/lib/utils/toast'
 
 interface StoryboardSectionProps {
   project: VideoAgentProject
@@ -46,6 +48,9 @@ export function StoryboardSection({
   onAddShot,
   onVideoStatusChange
 }: StoryboardSectionProps) {
+  // 🔥 升级对话框状态
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+
   // 分镜图生成 Hook
   const {
     status: storyboardStatus,
@@ -72,6 +77,58 @@ export function StoryboardSection({
     analysis,
     onUpdate
   })
+
+  // 🔥 包装分镜生成函数，捕获 402 错误
+  const handleStartStoryboardGeneration = async () => {
+    try {
+      await startStoryboardGeneration()
+    } catch (error: any) {
+      if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
+        showError('Insufficient credits. Please upgrade your plan.')
+        setShowUpgradeDialog(true)
+      } else {
+        showError(error.message || 'Failed to start generation')
+      }
+    }
+  }
+
+  const handleRetryStoryboardGeneration = async () => {
+    try {
+      await retryStoryboardGeneration()
+    } catch (error: any) {
+      if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
+        showError('Insufficient credits. Please upgrade your plan.')
+        setShowUpgradeDialog(true)
+      } else {
+        showError(error.message || 'Failed to retry generation')
+      }
+    }
+  }
+
+  // 🔥 包装视频生成函数，捕获 402 错误
+  const handleGenerateAllVideos = async () => {
+    try {
+      await generateAllVideos()
+    } catch (error: any) {
+      if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
+        showError('Insufficient credits. Please upgrade your plan.')
+        setShowUpgradeDialog(true)
+      }
+      // 其他错误已经在 hook 中处理了
+    }
+  }
+
+  const handleGenerateSingleVideo = async (shotNumber: number, prompt: string, duration?: number, resolution?: string) => {
+    try {
+      await generateSingleVideo(shotNumber, prompt, duration, resolution)
+    } catch (error: any) {
+      if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
+        showError('Insufficient credits. Please upgrade your plan.')
+        setShowUpgradeDialog(true)
+      }
+      // 其他错误已经在 hook 中处理了
+    }
+  }
 
   const storyboardsSyncKey = useMemo(() => {
     if (!Array.isArray(project.storyboards)) return ''
@@ -190,7 +247,7 @@ export function StoryboardSection({
           {/* 批量生成分镜按钮 */}
           {hasUngeneratedStoryboards && storyboardStatus !== 'generating' && (
             <Button
-              onClick={startStoryboardGeneration}
+              onClick={handleStartStoryboardGeneration}
               className="gap-2 text-white font-bold rounded-xl h-10 bg-gradient-primary shadow-glow-primary"
             >
               <Wand2 className="w-4 h-4" />
@@ -201,7 +258,7 @@ export function StoryboardSection({
           {/* 🔥 重新生成所有分镜按钮 - 当所有分镜已生成时显示 */}
           {allStoryboardsGenerated && storyboardStatus !== 'generating' && (
             <Button
-              onClick={retryStoryboardGeneration}
+              onClick={handleRetryStoryboardGeneration}
               variant="outline"
               className="gap-2 border-white/20 text-white hover:bg-slate-800/50 hover:text-white rounded-xl h-10"
             >
@@ -213,7 +270,7 @@ export function StoryboardSection({
           {/* 批量生成视频按钮 */}
           {allStoryboardsGenerated && hasUngeneratedVideos && !isVideoGenerating && (
             <Button
-              onClick={generateAllVideos}
+              onClick={handleGenerateAllVideos}
               variant="outline"
               className="gap-2 border-white/20 text-white hover:bg-slate-800/50 hover:text-white rounded-xl h-10"
             >
@@ -261,7 +318,7 @@ export function StoryboardSection({
             getFieldValue={(field, originalValue) =>
               getFieldValue(shot.shot_number, field, originalValue)
             }
-            onGenerateVideo={(prompt, duration, resolution) => generateSingleVideo(shot.shot_number, prompt, duration, resolution)}  // 🔥 传递 duration 和 resolution 参数
+            onGenerateVideo={(prompt, duration, resolution) => handleGenerateSingleVideo(shot.shot_number, prompt, duration, resolution)}  // 🔥 传递 duration 和 resolution 参数，包装错误处理
             onUpdateVideoPrompt={(characterAction) => updateCustomPrompt(shot.shot_number, characterAction)}
           />
         ))}
@@ -352,6 +409,12 @@ export function StoryboardSection({
           )}
         </div>
       )}
+
+      {/* 🔥 升级对话框 */}
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+      />
     </div>
   )
 }

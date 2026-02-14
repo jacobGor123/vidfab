@@ -267,6 +267,8 @@ export function useVideoGenerationIntegrated({
             dismissLoading()
             console.error('[VideoGenIntegrated] Batch generate failed:', error)
             showError(error.message || 'Failed to start video generation')
+            // 🔥 重新抛出错误，让调用方可以捕获并显示 UpgradeDialog
+            throw error
         }
     }, [project.id, isGenerating, generateVideos, startPolling])
 
@@ -344,6 +346,8 @@ export function useVideoGenerationIntegrated({
                 next.delete(shotNumber)
                 return next
             })
+            // 🔥 重新抛出错误，让调用方可以捕获并显示 UpgradeDialog
+            throw error
         }
     }, [project.id, generatingShots, retryVideo, startPolling, analysis])
 

@@ -180,6 +180,8 @@ export function useStoryboardAutoGeneration(
       setStatus('failed')
       hasStartedRef.current = false
       clearPoll()
+      // 🔥 重新抛出错误，让调用方可以捕获并显示 UpgradeDialog
+      throw error
     }
   }, [
     project.id,

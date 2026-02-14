@@ -22,6 +22,9 @@ import { useVideoAgentAPI, type ScriptInspiration } from '@/lib/hooks/useVideoAg
 import { useSimpleSubscription } from '@/hooks/use-subscription-simple'
 import { UpgradeDialog } from '@/components/subscription/upgrade-dialog'
 import { emitCreditsUpdated } from '@/lib/events/credits-events'
+import { useVideoGenerationAuth } from '@/hooks/use-auth-modal'
+import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 interface InputStageProps {
   onStart: (data: {
@@ -36,6 +39,7 @@ interface InputStageProps {
 export default function InputStage({ onStart }: InputStageProps) {
   const { getInspirations } = useVideoAgentAPI()
   const { creditsRemaining, refreshCredits } = useSimpleSubscription()
+  const authModal = useVideoGenerationAuth()
   const [duration, setDuration] = useState(30)
   const [storyStyle, setStoryStyle] = useState('auto')
   const [script, setScript] = useState('')
@@ -69,41 +73,55 @@ export default function InputStage({ onStart }: InputStageProps) {
       return
     }
 
-    setIsLoading(true)
-    try {
-      await onStart({
-        duration,
-        storyStyle,
-        originalScript: script,
-        aspectRatio,
-        muteBgm
-      })
-      // ✅ 立即触发积分更新事件，实时刷新右上角显示
-      emitCreditsUpdated('video-agent-project-created')
-    } catch (error: any) {
-      // ✅ 捕获402错误
-      if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
-        showError('Insufficient credits. Please upgrade your plan.')
-        setShowUpgradeDialog(true)
-      } else {
-        showError(error.message || 'Failed to create project')
+    // ✅ 检查用户登录状态，未登录则弹出登录弹框
+    const success = await authModal.requireAuth(async () => {
+      setIsLoading(true)
+      try {
+        await onStart({
+          duration,
+          storyStyle,
+          originalScript: script,
+          aspectRatio,
+          muteBgm
+        })
+        // ✅ 立即触发积分更新事件，实时刷新右上角显示
+        emitCreditsUpdated('video-agent-project-created')
+      } catch (error: any) {
+        // ✅ 捕获402错误
+        if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
+          showError('Insufficient credits. Please upgrade your plan.')
+          setShowUpgradeDialog(true)
+        } else {
+          showError(error.message || 'Failed to create project')
+        }
+      } finally {
+        setIsLoading(false)
       }
-    } finally {
-      setIsLoading(false)
+    })
+
+    if (!success) {
+      console.log('User not authenticated, showing login modal')
     }
   }
 
   const handleGetInspiration = async () => {
-    setIsGeneratingInspiration(true)
-    try {
-      const data = await getInspirations()
-      setInspirations(data)
-      setShowInspirationDialog(true)
-    } catch (error: any) {
-      console.error('Failed to get inspirations:', error)
-      showError('Failed to generate AI inspirations.')
-    } finally {
-      setIsGeneratingInspiration(false)
+    // ✅ 检查用户登录状态，未登录则弹出登录弹框
+    const success = await authModal.requireAuth(async () => {
+      setIsGeneratingInspiration(true)
+      try {
+        const data = await getInspirations()
+        setInspirations(data)
+        setShowInspirationDialog(true)
+      } catch (error: any) {
+        console.error('Failed to get inspirations:', error)
+        showError('Failed to generate AI inspirations.')
+      } finally {
+        setIsGeneratingInspiration(false)
+      }
+    })
+
+    if (!success) {
+      console.log('User not authenticated, showing login modal')
     }
   }
 
@@ -266,6 +284,14 @@ export default function InputStage({ onStart }: InputStageProps) {
         open={showUpgradeDialog}
         onOpenChange={setShowUpgradeDialog}
       />
+
+      {/* ✅ 登录认证弹框 */}
+      <Dialog open={authModal.isAuthModalOpen} onOpenChange={() => authModal.hideAuthModal()}>
+        <DialogContent className="p-0 max-w-md">
+          <DialogTitle className="sr-only">user login</DialogTitle>
+          <UnifiedAuthModal className="min-h-0 p-0" />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
