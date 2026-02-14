@@ -186,16 +186,8 @@ export async function checkAndDeductScriptCreation(
     const success = await incrementUsage(userId, month)
 
     if (!success) {
-      return {
-        canAfford: false,
-        withinQuota: true,
-        currentUsage,
-        monthlyQuota,
-        creditsDeducted: 0,
-        creditsRemaining: userCredits,
-        error: 'Failed to update usage count',
-        details: { month, planId }
-      }
+      // ⚠️ 配额跟踪失败，但不阻止用户操作（只是记录警告）
+      console.warn('[ScriptQuota] ⚠️ Failed to update usage count, but allowing operation to continue')
     }
 
     console.log('[ScriptQuota] ✅ Within quota, no credits deducted')
@@ -203,14 +195,16 @@ export async function checkAndDeductScriptCreation(
     return {
       canAfford: true,
       withinQuota: true,
-      currentUsage: currentUsage + 1,
+      currentUsage: success ? currentUsage + 1 : currentUsage,
       monthlyQuota,
       creditsDeducted: 0,
       creditsRemaining: userCredits,
       details: {
         month,
         planId,
-        message: `Used ${currentUsage + 1}/${monthlyQuota} free scripts this month`
+        message: success
+          ? `Used ${currentUsage + 1}/${monthlyQuota} free scripts this month`
+          : `Within quota (usage tracking unavailable)`
       }
     }
   }
