@@ -50,8 +50,8 @@ export function useVideoAnalysis({
     setProgress('Analyzing video content...')
 
     try {
-      // 🔥 步骤1: 调用视频分析 API
-      const analysisData = await analyzeVideo({
+      // 🔥 步骤1: 调用视频分析 API（现在会直接创建项目，避免重复扣配额）
+      const response = await analyzeVideo({
         videoSource: {
           type: 'youtube',
           url: youtubeUrl
@@ -61,47 +61,28 @@ export function useVideoAnalysis({
         aspectRatio
       })
 
-      setProgress('Creating project...')
+      // 🔥 API 现在直接返回创建好的项目
+      const analysisData = response.data || response
+      const project = response.project
 
-      // 🔥 步骤2: 提取脚本内容并创建项目
-      const scriptContent = generateScriptFromAnalysis(analysisData)
+      if (!project) {
+        throw new Error('Project was not created by analyze API')
+      }
 
-      // 🔥 YouTube 模式：默认开启背景音乐，9:16 比例
-      // 🔥 确保 duration 有效：优先使用分析结果，其次使用传入参数，最后使用默认值 30
-      const validDuration = analysisData.duration || duration || 30
-      // 🔥 额外防御：确保 validDuration 是有效数字
-      const safeDuration = typeof validDuration === 'number' && !isNaN(validDuration) && isFinite(validDuration)
-        ? validDuration
-        : 30
-      const finalDuration = Math.max(1, Math.min(120, Math.round(safeDuration)))  // 限制在 1-120 秒
+      setProgress('Saving image style...')
 
-      const project = await createProject({
-        duration: finalDuration,
-        story_style: storyStyle,
-        original_script: scriptContent,
-        aspect_ratio: '9:16',  // 🔥 默认 9:16
-        enable_narration: false,  // 🔥 非旁白模式
-        mute_bgm: false,  // 🔥 开启背景音乐（默认使用预设音乐）
-        image_style_id: imageStyle  // 🔥 新增：保存用户选择的图片风格
-      } as any)
+      // 🔥 步骤2: 更新图片风格（如果用户选择了）
+      if (imageStyle) {
+        await updateProject(project.id, {
+          image_style_id: imageStyle
+        } as any)
+      }
 
-      setProgress('Saving analysis results...')
-
-      // 🔥 步骤3: 直接保存视频分析结果为脚本分析结果（跳过重复分析）
-      // YouTube 模式下，视频分析已经完成了分镜脚本的生成，不需要再次调用 analyzeScript
-      // ✅ PATCH API 会自动把 script_analysis.shots 保存到 project_shots 表
-      console.log('[YouTube Mode] Saving script_analysis to project:', {
+      console.log('[YouTube Mode] Project created and analysis saved:', {
         projectId: project.id,
-        hasAnalysisData: !!analysisData,
-        analysisKeys: analysisData ? Object.keys(analysisData) : null,
         shotsCount: analysisData?.shots?.length || 0,
-        duration: analysisData?.duration
+        duration: project.duration
       })
-
-      await updateProject(project.id, {
-        script_analysis: analysisData,  // 直接使用视频分析结果
-        step_1_status: 'completed'
-      } as any)
 
       console.log('[YouTube Mode] ✅ script_analysis saved successfully')
 

@@ -205,15 +205,58 @@ export const POST = withAuth(async (req, { params, userId }) => {
       analysisTimeMs: analysisTime
     })
 
-    // 7. 返回结果
+    // 7. 🔥 创建项目（避免前端再次调用 createProject 导致重复扣配额）
+    // 从分析结果生成脚本文本
+    const scriptParts = analysis.shots.map((shot: any, index: number) => {
+      const shotNumber = index + 1
+      const description = shot.description || ''
+      const action = shot.character_action || ''
+      return `Shot ${shotNumber}: ${description}. ${action}`
+    })
+    const scriptContent = scriptParts.join('\n\n')
+
+    // 创建项目记录
+    const { data: project, error: projectError } = await supabaseAdmin
+      .from('video_agent_projects')
+      .insert({
+        user_id: userId,
+        duration: actualDuration,
+        story_style: storyStyle,
+        original_script: scriptContent,
+        aspect_ratio: aspectRatio,
+        enable_narration: false,
+        mute_bgm: false,  // YouTube 模式默认开启背景音乐
+        status: 'draft',
+        current_step: 1,
+        script_analysis: analysis  // 保存分析结果
+      })
+      .select()
+      .single()
+
+    if (projectError || !project) {
+      console.error('[API /analyze-video] Failed to create project:', projectError)
+      return NextResponse.json(
+        { success: false, error: 'Video analyzed but failed to create project' },
+        { status: 500 }
+      )
+    }
+
+    console.log('[API /analyze-video] Project created:', {
+      projectId: project.id,
+      duration: project.duration,
+      shotCount: analysis.shots.length
+    })
+
+    // 8. 返回结果（包含项目 ID）
     return NextResponse.json({
       success: true,
       data: analysis,
+      project: project,  // 🔥 返回创建的项目
       meta: {
         analysisTimeMs: analysisTime,
         videoSource: videoSource.type,
-        actualDuration,  // 🔥 返回实际使用的时长
-        userSelectedDuration: duration  // 用户原本选择的时长
+        actualDuration,
+        userSelectedDuration: duration
       }
     })
 
