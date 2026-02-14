@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
+import { checkAndDeductScriptCreation } from '@/lib/video-agent/script-creation-quota'
 
 /**
  * 创建新项目
@@ -80,6 +81,29 @@ export const POST = withAuth(async (request, { params, userId }) => {
         { status: 400 }
       )
     }
+
+    // ✅ 脚本创建配额检查（新增）
+    // 检查月度免费次数配额，超额时扣除3积分
+    const quotaCheck = await checkAndDeductScriptCreation(userId)
+
+    if (!quotaCheck.canAfford) {
+      console.log('[Video Agent] Script creation quota check failed:', quotaCheck)
+      return NextResponse.json(
+        {
+          error: quotaCheck.error || 'Script creation quota exceeded',
+          code: 'INSUFFICIENT_CREDITS',
+          details: quotaCheck.details
+        },
+        { status: 402 }
+      )
+    }
+
+    console.log('[Video Agent] Script creation quota check passed:', {
+      withinQuota: quotaCheck.withinQuota,
+      currentUsage: quotaCheck.currentUsage,
+      monthlyQuota: quotaCheck.monthlyQuota,
+      creditsDeducted: quotaCheck.creditsDeducted
+    })
 
     console.log('[Video Agent] Creating new project', {
       userId,

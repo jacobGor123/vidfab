@@ -25,6 +25,7 @@ import { emitCreditsUpdated } from '@/lib/events/credits-events'
 import { useVideoGenerationAuth } from '@/hooks/use-auth-modal'
 import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { ScriptQuotaDisplay } from './ScriptQuotaDisplay'
 
 interface InputStageProps {
   onStart: (data: {
@@ -216,6 +217,9 @@ export default function InputStage({ onStart }: InputStageProps) {
         value={storyStyle}
         onChange={setStoryStyle}
       />
+
+      {/* Script Quota Display */}
+      <ScriptQuotaDisplay />
 
       {/* Generate Button */}
       <div className="flex justify-center mt-8">

@@ -13,6 +13,7 @@ import { withAuth } from '@/lib/middleware/auth'
 import { analyzeVideoToScript, isValidYouTubeUrl, getYouTubeDuration, convertToStandardYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
 import { deductUserCredits } from '@/lib/simple-credits-check'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
+import { checkAndDeductScriptCreation } from '@/lib/video-agent/script-creation-quota'
 
 export const maxDuration = 300 // 最长 5 分钟（视频分析可能较慢）
 
@@ -88,6 +89,29 @@ export const POST = withAuth(async (req, { params, userId }) => {
         { status: 400 }
       )
     }
+
+    // ✅ 脚本创建配额检查（新增）
+    // 检查月度免费次数配额，超额时扣除3积分
+    const quotaCheck = await checkAndDeductScriptCreation(userId)
+
+    if (!quotaCheck.canAfford) {
+      console.log('[API /analyze-video] Script creation quota check failed:', quotaCheck)
+      return NextResponse.json(
+        {
+          error: quotaCheck.error || 'Script creation quota exceeded',
+          code: 'INSUFFICIENT_CREDITS',
+          details: quotaCheck.details
+        },
+        { status: 402 }
+      )
+    }
+
+    console.log('[API /analyze-video] Script creation quota check passed:', {
+      withinQuota: quotaCheck.withinQuota,
+      currentUsage: quotaCheck.currentUsage,
+      monthlyQuota: quotaCheck.monthlyQuota,
+      creditsDeducted: quotaCheck.creditsDeducted
+    })
 
     // ✅ 积分检查 (YouTube 分析入口 - 只检查余额，不扣除)
     // 实际扣除在人物图生成时进行

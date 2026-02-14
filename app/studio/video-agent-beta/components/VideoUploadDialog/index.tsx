@@ -23,6 +23,7 @@ import { InfoBox } from './components/InfoBox'
 import { useSimpleSubscription } from '@/hooks/use-subscription-simple'
 import { UpgradeDialog } from '@/components/subscription/upgrade-dialog'
 import { emitCreditsUpdated } from '@/lib/events/credits-events'
+import { ScriptQuotaDisplay } from '../ScriptQuotaDisplay'
 
 interface VideoUploadDialogProps {
   isOpen: boolean
@@ -138,6 +139,11 @@ export default function VideoUploadDialog({
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Script Quota Display */}
+          <div className="px-6 pt-2 pb-0">
+            <ScriptQuotaDisplay />
           </div>
 
           {/* Main Content */}

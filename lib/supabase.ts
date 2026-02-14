@@ -220,6 +220,7 @@ export const TABLES = {
   SUBSCRIPTIONS: 'subscriptions',
   PAYMENTS: 'payments',
   BLOG_POSTS: 'blog_posts', // Blog posts table
+  SCRIPT_CREATION_USAGE: 'script_creation_usage', // Monthly script creation quota tracking
 } as const;
 
 // Helper function to handle Supabase errors

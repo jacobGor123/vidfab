@@ -476,6 +476,32 @@ export interface Database {
           max_storage_mb?: number | null
         }
       }
+      script_creation_usage: {
+        Row: {
+          id: string
+          user_id: string
+          month: string
+          count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          month: string
+          count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          month?: string
+          count?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
