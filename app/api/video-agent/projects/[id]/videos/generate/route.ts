@@ -441,15 +441,22 @@ export const POST = withAuth(async (request, { params, userId }) => {
     }
 
     // ✅ 积分检查: 计算所有分镜的总积分
-    // 需要知道使用的模型和分辨率
+    // 从数据库读取每个分镜的 duration 和 resolution
     const modelId = project.model_id || 'vidfab-q1'  // 默认 BytePlus 模型
     const useVeo3 = isVeo3Model(modelId)
-    const resolution = getDefaultResolution(modelId)
+    const defaultResolution = getDefaultResolution(modelId)
 
     const shotsForCredits = shots.map(shot => ({
       duration_seconds: shot.duration_seconds || 5,
-      resolution: resolution
+      resolution: (shot as any).resolution || defaultResolution  // 🔥 从数据库读取用户选择的分辨率
     }))
+
+    console.log('[Video Agent] Credits calculation for batch:', {
+      projectId,
+      shotsCount: shots.length,
+      shotsForCredits,
+      useVeo3
+    })
 
     const creditResult = await checkAndDeductBatchVideos(userId, shotsForCredits, useVeo3)
 

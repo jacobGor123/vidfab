@@ -92,11 +92,47 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // ✅ 积分检查 (单个视频)
+    // ✅ 解析 customPrompt 以获取用户选择的 duration 和 resolution
+    let userDuration = shot.duration_seconds || 5
+    let userResolution = (shot as any).resolution || getDefaultResolution(project.model_id || 'vidfab-q1') as VideoResolution
+
+    if (customPrompt) {
+      try {
+        const parsed = JSON.parse(customPrompt)
+        if (parsed.duration_seconds) {
+          userDuration = parsed.duration_seconds
+        }
+        if (parsed.resolution && ['480p', '720p', '1080p'].includes(parsed.resolution)) {
+          userResolution = parsed.resolution as VideoResolution
+
+          // 🔥 更新数据库中的 resolution 字段（持久化用户选择）
+          await supabaseAdmin
+            .from('project_shots')
+            .update({
+              duration_seconds: userDuration,
+              resolution: userResolution
+            } as any)
+            .eq('id', shot.id)
+        }
+      } catch (e) {
+        // 如果 customPrompt 不是 JSON，忽略错误，使用默认值
+        console.warn('[Video Agent] Failed to parse customPrompt:', e)
+      }
+    }
+
+    // ✅ 积分检查 (单个视频) - 使用用户选择的分辨率
     const modelId = project.model_id || 'vidfab-q1'
     const useVeo3 = isVeo3Model(modelId)
-    const duration = shot.duration_seconds || 5
-    const resolution = getDefaultResolution(modelId) as VideoResolution
+    const duration = userDuration
+    const resolution = userResolution
+
+    console.log('[Video Agent] Credits calculation:', {
+      projectId,
+      shotNumber,
+      duration,
+      resolution,
+      useVeo3
+    })
 
     const creditResult = await checkAndDeductSingleVideo(userId, duration, resolution, useVeo3)
 

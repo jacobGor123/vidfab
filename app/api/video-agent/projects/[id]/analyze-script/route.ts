@@ -9,6 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { analyzeScript, validateAnalysisResult, generateMusicPrompt } from '@/lib/services/video-agent/script-analyzer-google'
 import type { ScriptAnalysisResult } from '@/lib/types/video-agent'
 import type { Database } from '@/lib/database.types'
+import { getDefaultResolution } from '@/lib/video-agent/credits-config'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 
@@ -174,6 +175,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
       return prompt
     }
 
+    // 🔥 获取默认分辨率（基于模型）
+    const defaultResolution = getDefaultResolution(project.model_id || 'vidfab-q1')
+
     // 保存分镜数据到 project_shots 表
     const shotsToInsert = analysis.shots.map(shot => ({
       project_id: projectId,
@@ -183,6 +187,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       camera_angle: shot.camera_angle,
       mood: shot.mood,
       duration_seconds: shot.duration_seconds,
+      resolution: defaultResolution,  // 🔥 设置默认分辨率
       video_prompt: generateVideoPrompt(shot)  // 🔥 自动生成 video_prompt
     })) as any
 
