@@ -560,8 +560,8 @@ export class SubscriptionService {
   private normalizePlanId(planId: string): PlanId {
     const planMapping: Record<string, PlanId> = {
       'basic': 'free',
+      'lite': 'pro', // ✅ 将旧的 lite 套餐映射到 pro
       'enterprise': 'premium',
-      'lite': 'lite',
       'pro': 'pro',
       'premium': 'premium',
       'free': 'free'

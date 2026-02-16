@@ -14,10 +14,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Stripe产品和价格映射
 export const STRIPE_PRICE_IDS = {
-  lite: {
-    monthly: process.env.STRIPE_PRICE_LITE_MONTHLY || 'price_lite_monthly',
-    annual: process.env.STRIPE_PRICE_LITE_ANNUAL || 'price_lite_annual',
-  },
   pro: {
     monthly: process.env.STRIPE_PRICE_PRO_MONTHLY || 'price_pro_monthly',
     annual: process.env.STRIPE_PRICE_PRO_ANNUAL || 'price_pro_annual',

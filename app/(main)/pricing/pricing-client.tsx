@@ -157,7 +157,7 @@ export default function PricingPage() {
     }
   }
 
-  const handleSubscribe = async (planId: 'lite' | 'pro' | 'premium') => {
+  const handleSubscribe = async (planId: 'pro' | 'premium') => {
     if (!session) {
       // Redirect to login if not authenticated
       window.location.href = '/login'
@@ -246,7 +246,7 @@ export default function PricingPage() {
     return (priceInCents / 100).toFixed(2)
   }
 
-  const getAnnualSavings = (planId: 'lite' | 'pro' | 'premium') => {
+  const getAnnualSavings = (planId: 'pro' | 'premium') => {
     const plan = SUBSCRIPTION_PLANS[planId]
     const monthlyTotal = plan.price.monthly * 12
     const savings = monthlyTotal - plan.price.annual
@@ -288,7 +288,7 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {/* Free Plan */}
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden group hover:border-gray-400/50 transition-colors">
               <div className="p-6 border-b border-white/10">
@@ -303,15 +303,23 @@ export default function PricingPage() {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Initial credits 50</span>
+                    <span className="text-xs text-gray-300">Initial 200 credits</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">About 66 images or 20 videos (480p)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">5 free script creations & analyses</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">Export with watermark</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
                     <span className="text-xs text-gray-300">Basic resolution (480p and 720p)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">AI video effects library</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
@@ -341,91 +349,6 @@ export default function PricingPage() {
                     'Current Plan'
                   ) : (
                     'Cancel Subscription'
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Lite Plan */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden group hover:border-blue-500/50 transition-colors">
-              <div className="p-6 border-b border-white/10">
-                <h3 className="text-xl font-bold mb-2">Lite</h3>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-bold">
-                    ${annual ? formatPrice(SUBSCRIPTION_PLANS.lite.price.annual / 12) : formatPrice(SUBSCRIPTION_PLANS.lite.price.monthly)}
-                  </span>
-                  <span className="text-gray-400 ml-2">/ month</span>
-                </div>
-                {annual && (
-                  <div className="mt-1">
-                    <p className="text-xs text-blue-500">
-                      Billed annually (${formatPrice(SUBSCRIPTION_PLANS.lite.price.annual)})
-                    </p>
-                    <Badge variant="secondary" className="text-xs mt-1">
-                      Save ${getAnnualSavings('lite').savings} ({getAnnualSavings('lite').percentage}% off)
-                    </Badge>
-                  </div>
-                )}
-                <p className="text-gray-400 mt-4 text-sm">Essential toolkit for creators who want quality without limits.</p>
-              </div>
-              <div className="p-6">
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">300 credits/month</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Watermark-free</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Advanced AI models (veo3-fast)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Faster generations</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Access to HD resolution (up to 1080P)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">4 concurrent generation</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-blue-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Email support</span>
-                  </li>
-                </ul>
-                <Button
-                  onClick={() => handleSubscribe('lite')}
-                  disabled={subscribing === 'lite' || currentPlan === 'lite' || planLoading}
-                  className={`w-full mt-6 ${
-                    currentPlan === 'lite'
-                      ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                >
-                  {planLoading ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : subscribing === 'lite' ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : currentPlan === 'lite' ? (
-                    <>
-                      Current Plan
-                    </>
-                  ) : (
-                    <>
-                      Get Started
-                    </>
                   )}
                 </Button>
               </div>
@@ -464,23 +387,23 @@ export default function PricingPage() {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">1000 credits/month</span>
+                    <span className="text-xs text-gray-300">1500 credits reset monthly</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Watermark-free</span>
+                    <span className="text-xs text-gray-300">About 500 images or 150 videos (480p)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">20 free script creations & analyses/month</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">Watermark-free exports</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
                     <span className="text-xs text-gray-300">Advanced AI models</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Advanced effects library</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Faster generations</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
@@ -555,23 +478,23 @@ export default function PricingPage() {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">2000 credits/month</span>
+                    <span className="text-xs text-gray-300">3500 credits reset monthly</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Watermark-free</span>
+                    <span className="text-xs text-gray-300">About 1166 images or 350 videos (480p)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">50 free script creations & analyses/month</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">Watermark-free exports</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
                     <span className="text-xs text-gray-300">Advanced AI models</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Advanced effects library</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Faster generations</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />

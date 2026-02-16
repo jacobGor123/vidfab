@@ -18,7 +18,6 @@ import type { PlanId } from '@/lib/subscription/types'
  */
 export const SCRIPT_CREATION_QUOTAS: Record<PlanId, number> = {
   free: 5,
-  lite: 10,
   pro: 20,
   premium: 50
 }

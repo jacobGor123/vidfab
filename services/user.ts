@@ -59,7 +59,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         .eq('email', userData.email.toLowerCase().trim())
         .eq('is_claimed', false);
 
-      let totalCredits = 50; // 默认初始积分
+      let totalCredits = 200; // 默认初始积分
       const pendingCreditIds: string[] = [];
 
       if (pendingCredits && pendingCredits.length > 0) {

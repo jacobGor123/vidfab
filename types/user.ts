@@ -20,7 +20,7 @@ export interface User {
   is_active: boolean;
   // AI Video Platform specific fields
   subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due';
-  subscription_plan?: 'free' | 'lite' | 'pro' | 'premium';
+  subscription_plan?: 'free' | 'pro' | 'premium';
   credits_remaining?: number;
   total_videos_processed?: number;
 }
