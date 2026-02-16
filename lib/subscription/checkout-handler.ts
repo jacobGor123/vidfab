@@ -79,12 +79,14 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
       return;
     }
 
-    // 计算要增加的积分
-    const creditsToAdd = PLAN_CREDITS[planId] || 0;
-    if (creditsToAdd === 0) {
+    // 计算要增加的积分（年付给12倍）
+    const baseCredits = PLAN_CREDITS[planId] || 0;
+    if (baseCredits === 0) {
       console.error('[CHECKOUT] Unknown plan:', planId);
       return;
     }
+
+    const creditsToAdd = billingCycle === 'annual' ? baseCredits * 12 : baseCredits;
 
     // 更新用户表
     const currentCredits = user.credits_remaining || 0;
