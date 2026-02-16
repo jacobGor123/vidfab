@@ -11,7 +11,6 @@ import Link from "next/link"
 import { UserMenu } from "@/components/user-menu"
 import { GetStartedButton } from "@/components/ui/get-started-button"
 import { CreditsDisplaySimple } from "@/components/credits-display-simple"
-// import { isBlackFridayActive } from "@/lib/black-friday/coupons" // 黑五活动已结束
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -26,27 +25,11 @@ interface NavbarProps {
 }
 
 export function Navbar({ scrolled }: NavbarProps) {
-  // 黑五横幅是否显示
-  // const [bannerVisible, setBannerVisible] = useState(false) // 黑五活动已结束
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [subscriptionPlan, setSubscriptionPlan] = useState<string>('free')
   const [isInitialized, setIsInitialized] = useState(false)
   const { data: session, status } = useSession()
   const pathname = usePathname()
-
-  // 检测是否是黑五页面
-  // const isBlackFridayPage = pathname === '/black-friday-sale-2025' // 黑五活动已结束
-
-  // 黑五活动相关逻辑已移除
-  // useEffect(() => {
-  //   const isActive = isBlackFridayActive()
-  //   if (!isActive) {
-  //     setBannerVisible(false)
-  //     return
-  //   }
-  //   const dismissed = localStorage.getItem('bf2025_banner_dismissed')
-  //   setBannerVisible(dismissed !== 'true')
-  // }, [])
 
   // Fetch user subscription status
   useEffect(() => {
@@ -155,6 +138,17 @@ export function Navbar({ scrolled }: NavbarProps) {
                             <div className="space-y-1">
                               <NavigationMenuLink asChild>
                                 <Link
+                                  href="/studio/video-agent-beta"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap flex items-center gap-1.5">
+                                    Story to Video
+                                    <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <NavigationMenuLink asChild>
+                                <Link
                                   href="/text-to-video"
                                   className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                                 >
@@ -183,18 +177,6 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   </div>
                                 </Link>
                               </NavigationMenuLink>
-                              {/* 🔥 Video Agent 入口已隐藏 */}
-                              {/* <NavigationMenuLink asChild>
-                                <Link
-                                  href="/studio/video-agent-beta"
-                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                                >
-                                  <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
-                                    Video Agent
-                                    <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink> */}
                             </div>
                           </div>
 
@@ -342,6 +324,16 @@ export function Navbar({ scrolled }: NavbarProps) {
                   <div className="space-y-2">
                     <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider">AI Video</div>
                     <div className="ml-3 space-y-1">
+                      <Link
+                        href="/studio/video-agent-beta"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          Story to Video
+                          <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
+                        </span>
+                      </Link>
                       <Link
                         href="/text-to-video"
                         className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"

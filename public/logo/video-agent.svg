@@ -1,15 +1,35 @@
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-<!-- Robot head with video play symbol -->
-<path d="M24 4C23.4477 4 23 4.44772 23 5V8C23 8.55228 23.4477 9 24 9C24.5523 9 25 8.55228 25 8V5C25 4.44772 24.5523 4 24 4Z" fill="#E5E5E5"/>
-<rect x="12" y="12" width="24" height="20" rx="3" fill="#E5E5E5"/>
-<circle cx="18" cy="20" r="2" fill="#1A1A1A"/>
-<circle cx="30" cy="20" r="2" fill="#1A1A1A"/>
-<path d="M18 26C18 26 20 28 24 28C28 28 30 26 30 26" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-<!-- Antenna -->
-<circle cx="24" cy="10" r="2" fill="#E5E5E5"/>
-<!-- Video play icon overlay -->
-<path d="M34 34L38 36.5L34 39V34Z" fill="#A855F7"/>
-<rect x="32" y="33" width="8" height="8" rx="1" stroke="#A855F7" stroke-width="1.5" fill="none"/>
-<!-- AI sparkle -->
-<path d="M40 18L41 21L44 22L41 23L40 26L39 23L36 22L39 21L40 18Z" fill="#A855F7"/>
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A855F7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A855F7;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background soft circle -->
+  <circle cx="24" cy="24" r="20" fill="url(#gradient2)"/>
+
+  <!-- Magic wand -->
+  <path d="M14 34L18 30L30 18L34 14L30 18L18 30L14 34Z" stroke="url(#gradient1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Sparkles around wand -->
+  <circle cx="32" cy="16" r="1.5" fill="url(#gradient1)"/>
+  <circle cx="28" cy="12" r="1" fill="url(#gradient1)"/>
+  <circle cx="36" cy="20" r="1" fill="url(#gradient1)"/>
+
+  <!-- Large sparkle -->
+  <path d="M33 15L33.5 16.5L35 17L33.5 17.5L33 19L32.5 17.5L31 17L32.5 16.5L33 15Z" fill="#A855F7"/>
+
+  <!-- Video play button -->
+  <rect x="14" y="14" width="16" height="12" rx="2" fill="url(#gradient1)" opacity="0.9"/>
+  <path d="M20 17.5L25 20L20 22.5V17.5Z" fill="white"/>
+
+  <!-- Small decorative stars -->
+  <path d="M38 32L38.3 33L39 33.3L38.3 33.6L38 34.6L37.7 33.6L37 33.3L37.7 33L38 32Z" fill="#06B6D4" opacity="0.6"/>
+  <path d="M10 18L10.3 19L11 19.3L10.3 19.6L10 20.6L9.7 19.6L9 19.3L9.7 19L10 18Z" fill="#A855F7" opacity="0.6"/>
 </svg>

@@ -9,8 +9,11 @@ import { useVideoPollingV2 } from "@/hooks/use-video-polling-v2"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { useImagePollingV2 } from "@/hooks/use-image-polling-v2"
 import { useImageContext } from "@/lib/contexts/image-context"
-
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile" | null
+import {
+  type ToolType,
+  urlToToolMap,
+  toolToUrlMap
+} from "@/lib/config/studio-tools"
 
 function CreatePageClientInner() {
   const searchParams = useSearchParams()
@@ -126,19 +129,7 @@ function CreatePageClientInner() {
     if (pathname.startsWith('/studio/')) {
       const pathParts = pathname.split('/').filter(Boolean)
       const toolPath = pathParts[1]
-
-      const toolMap: Record<string, ToolType> = {
-        'discover': 'discover',
-        'text-to-video': 'text-to-video',
-        'image-to-video': 'image-to-video',
-        'ai-video-effects': 'video-effects',
-        'text-to-image': 'text-to-image',
-        'image-to-image': 'image-to-image',
-        'my-assets': 'my-assets',
-        'plans': 'my-profile',
-      }
-
-      return toolMap[toolPath] || 'discover'
+      return urlToToolMap[toolPath] || 'discover'
     }
 
     // 否则从 searchParams 获取 (兼容 /create?tool=xxx)
@@ -148,21 +139,9 @@ function CreatePageClientInner() {
   const initialPrompt = searchParams.get("prompt") || ""
 
   const handleToolChange = (tool: ToolType) => {
-    // 映射表：tool ID -> /studio 路径
-    const urlMap: Record<string, string> = {
-      'discover': '/studio/discover',
-      'text-to-video': '/studio/text-to-video',
-      'image-to-video': '/studio/image-to-video',
-      'video-effects': '/studio/ai-video-effects',
-      'text-to-image': '/studio/text-to-image',
-      'image-to-image': '/studio/image-to-image',
-      'my-assets': '/studio/my-assets',
-      'my-profile': '/studio/plans',
-    }
-
-    if (tool && urlMap[tool]) {
+    if (tool && toolToUrlMap[tool]) {
       // 保留原有的 query 参数（如果有的话）
-      const newUrl = urlMap[tool]
+      const newUrl = toolToUrlMap[tool]
       if (searchParams.toString()) {
         router.push(`${newUrl}?${searchParams.toString()}`)
       } else {

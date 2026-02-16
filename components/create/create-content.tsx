@@ -8,8 +8,7 @@ import { ImageToImagePanel } from "./image/image-to-image-panel"
 import { TemplateGallery } from "./template-gallery"
 import { MyAssets } from "./my-assets"
 import { MyProfilePanel } from "./my-profile-panel"
-
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile" | null
+import { type ToolType } from "@/lib/config/studio-tools"
 
 interface CreateContentProps {
   activeTool: ToolType
@@ -22,6 +21,14 @@ export function CreateContent({ activeTool, onToolChange, initialPrompt }: Creat
     switch (activeTool) {
       case "discover":
         return <TemplateGallery />
+      case "story-to-video":
+        // Story-to-Video 有独立的页面 /studio/video-agent-beta
+        // 这里不应该被触发，因为路由已经处理了跳转
+        // 如果被触发，重定向到独立页面
+        if (typeof window !== 'undefined') {
+          window.location.href = '/studio/video-agent-beta'
+        }
+        return null
       case "text-to-video":
         return <TextToVideoPanelEnhanced initialPrompt={initialPrompt} />
       case "image-to-video":

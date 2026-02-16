@@ -10,85 +10,18 @@ import {
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import Image from "next/image"
+import {
+  type ToolType,
+  discoverTool,
+  menuCategories,
+  toolToUrlMap,
+  getToolFromPath
+} from "@/lib/config/studio-tools"
 
 interface CreateSidebarProps {
   isOpen: boolean
   onToggle: () => void
 }
-
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "video-agent" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile"
-
-// Discover 单独菜单项
-const discoverItem = {
-  id: "discover" as ToolType,
-  label: "Discover",
-  iconPath: "/logo/discover.svg"
-}
-
-// 其他分类菜单项
-const menuCategories = [
-  {
-    category: "AI Video",
-    items: [
-      {
-        id: "text-to-video" as ToolType,
-        label: "Text to Video",
-        iconPath: "/logo/text-to-video.svg"
-      },
-      {
-        id: "image-to-video" as ToolType,
-        label: "Image to Video",
-        iconPath: "/logo/image-to-video.svg"
-      },
-      {
-        id: "video-effects" as ToolType,
-        label: "Video Effects",
-        iconPath: "/logo/video-effects.svg"
-      }
-      // 🔥 Video Agent 入口已隐藏
-      // {
-      //   id: "video-agent" as ToolType,
-      //   label: "Video Agent",
-      //   iconPath: "/logo/video-agent.svg"
-      // }
-    ]
-  },
-  {
-    category: "AI Image",
-    items: [
-      {
-        id: "text-to-image" as ToolType,
-        label: "Text to Image",
-        iconPath: "/logo/text-to-image.svg"
-      },
-      {
-        id: "image-to-image" as ToolType,
-        label: "Image to Image",
-        iconPath: "/logo/image-to-image.svg"
-      }
-    ]
-  },
-  {
-    category: "My Works",
-    items: [
-      {
-        id: "my-assets" as ToolType,
-        label: "My Assets",
-        iconPath: "/logo/my-assets.svg"
-      }
-    ]
-  },
-  {
-    category: "Account",
-    items: [
-      {
-        id: "my-profile" as ToolType,
-        label: "Plans & Billing",
-        iconPath: "/logo/plans-&-billing.svg"
-      }
-    ]
-  }
-]
 
 export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const router = useRouter()
@@ -96,40 +29,11 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const pathname = usePathname()
   const isMobile = useIsMobile()
 
-  // 映射表：tool ID -> /studio 路径（统一管理）
-  const urlMap: Record<ToolType, string> = {
-    'discover': '/studio/discover',
-    'text-to-video': '/studio/text-to-video',
-    'image-to-video': '/studio/image-to-video',
-    'video-effects': '/studio/ai-video-effects',
-    'video-agent': '/studio/video-agent-beta',
-    'text-to-image': '/studio/text-to-image',
-    'image-to-image': '/studio/image-to-image',
-    'my-assets': '/studio/my-assets',
-    'my-profile': '/studio/plans',
-  }
-
-  // 根据路径判断当前激活的工具（自动反向匹配）
-  const getActiveToolFromPath = (): ToolType => {
-    // 从路径匹配工具（反向查找）
-    for (const [toolId, url] of Object.entries(urlMap)) {
-      if (pathname.includes(url)) {
-        return toolId as ToolType
-      }
-    }
-
-    // 兼容旧的 /create?tool=xxx 格式
-    const toolParam = searchParams.get("tool") as ToolType
-    if (toolParam) return toolParam
-
-    // 默认为 discover
-    return 'discover'
-  }
-
-  const activeTool = getActiveToolFromPath()
+  // 使用统一配置的路径映射表
+  const activeTool = getToolFromPath(pathname) || (searchParams.get("tool") as ToolType) || 'discover'
 
   const handleToolSelect = (toolId: ToolType) => {
-    const newUrl = urlMap[toolId]
+    const newUrl = toolToUrlMap[toolId]
     // 直接跳转，不保留 query 参数
     router.push(newUrl)
   }
@@ -168,12 +72,12 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
           {/* Discover - 单独菜单项 */}
           <div className="mb-6">
             {(() => {
-              const isActive = activeTool === discoverItem.id
+              const isActive = activeTool === discoverTool.id
 
               return (
                 <button
-                  key={discoverItem.id}
-                  onClick={() => handleToolSelect(discoverItem.id)}
+                  key={discoverTool.id}
+                  onClick={() => handleToolSelect(discoverTool.id)}
                   className={cn(
                     "w-full flex items-center text-left px-4 py-3 text-sm transition-all duration-200",
                     "hover:bg-gray-800",
@@ -186,17 +90,21 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                     "h-5 w-5 flex-shrink-0 relative",
                     isActive ? "opacity-100" : "opacity-60"
                   )}>
-                    <Image
-                      src={discoverItem.iconPath}
-                      alt={discoverItem.label}
-                      width={20}
-                      height={20}
-                      className="object-contain"
-                    />
+                    {discoverTool.icon ? (
+                      <discoverTool.icon className="h-5 w-5" />
+                    ) : (
+                      <Image
+                        src={discoverTool.iconPath!}
+                        alt={discoverTool.label}
+                        width={20}
+                        height={20}
+                        className="object-contain"
+                      />
+                    )}
                   </div>
                   {isOpen && (
                     <div className="ml-3 flex-1 min-w-0">
-                      <div className="font-medium truncate">{discoverItem.label}</div>
+                      <div className="font-medium truncate">{discoverTool.label}</div>
                     </div>
                   )}
                 </button>
@@ -234,17 +142,26 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                         "h-5 w-5 flex-shrink-0 relative",
                         isActive ? "opacity-100" : "opacity-60"
                       )}>
-                        <Image
-                          src={item.iconPath}
-                          alt={item.label}
-                          width={20}
-                          height={20}
-                          className="object-contain"
-                        />
+                        {item.icon ? (
+                          <item.icon className="h-5 w-5" />
+                        ) : (
+                          <Image
+                            src={item.iconPath!}
+                            alt={item.label}
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                          />
+                        )}
                       </div>
                       {isOpen && (
-                        <div className="ml-3 flex-1 min-w-0">
+                        <div className="ml-3 flex-1 min-w-0 flex items-center gap-2">
                           <div className="font-medium truncate">{item.label}</div>
+                          {item.isBeta && (
+                            <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold shrink-0">
+                              BETA
+                            </span>
+                          )}
                         </div>
                       )}
                     </button>

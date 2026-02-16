@@ -24,6 +24,12 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">AI Studio</h3>
               <ul className="space-y-3 text-sm">
                 <li>
+                  <a href="/studio/video-agent-beta" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out flex items-center gap-1.5">
+                    Story to Video
+                    <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
+                  </a>
+                </li>
+                <li>
                   <a href="/text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Text to Video
                   </a>

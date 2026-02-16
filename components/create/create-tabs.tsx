@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Type, ImageIcon, Search, FolderOpen, Sparkles, User, Video, Image, Palette } from "lucide-react"
+import { Type, ImageIcon, Search, FolderOpen, Sparkles, User, Video, Image, Palette, Wand2 } from "lucide-react"
 import {
   trackUseTextToVideo,
   trackUseImageToVideo,
@@ -9,8 +9,7 @@ import {
   trackUseImageToImage,
   trackUseAiEffect
 } from "@/lib/analytics/gtm"
-
-type ToolType = "discover" | "text-to-video" | "image-to-video" | "video-effects" | "text-to-image" | "image-to-image" | "my-assets" | "my-profile" | null
+import { type ToolType } from "@/lib/config/studio-tools"
 
 interface CreateTabsProps {
   activeTool: ToolType
@@ -23,6 +22,13 @@ const tabs = [
     label: "Discover",
     icon: Search,
     shortLabel: "Discover"
+  },
+  {
+    id: "story-to-video" as ToolType,
+    label: "Story to Video",
+    icon: Wand2,
+    shortLabel: "S2V",
+    isBeta: true
   },
   {
     id: "text-to-video" as ToolType,
@@ -106,13 +112,16 @@ export function CreateTabs({ activeTool, onToolChange }: CreateTabsProps) {
               key={tab.id}
               onClick={() => handleToolClick(tab.id)}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center py-3 px-2 text-xs transition-all duration-200",
+                "flex-1 flex flex-col items-center justify-center py-3 px-2 text-xs transition-all duration-200 relative",
                 "hover:bg-gray-800",
                 isActive
                   ? "text-white bg-gradient-to-b from-purple-600/20 to-cyan-500/20 border-b-2 border-purple-600"
                   : "text-gray-400"
               )}
             >
+              {tab.isBeta && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+              )}
               <Icon className={cn(
                 "h-5 w-5 mb-1",
                 isActive ? "text-purple-600" : "text-gray-400"
