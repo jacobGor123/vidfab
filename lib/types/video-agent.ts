@@ -17,6 +17,7 @@ export interface Shot {
   character_action: string      // 角色动作描述
   characters: string[]          // 出现的角色列表
   duration_seconds: number      // 时长（秒）
+  resolution?: string           // 可选：视频分辨率 ('480p' | '720p' | '1080p')
   seed?: number                 // 可选：生成视频时的随机种子
   video_prompt?: string         // 可选：视频生成提示词
 

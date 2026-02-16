@@ -315,6 +315,7 @@ export function StoryboardCardEnhanced({
               defaultPrompt={shot.character_action || ''}
               customPrompt={customVideoPrompt}
               defaultDuration={shot.duration_seconds}
+              defaultResolution={shot.resolution || '720p'}
               aspectRatio={aspectRatio}
               isGenerating={isVideoGenerating}
               disabled={!hasStoryboard}

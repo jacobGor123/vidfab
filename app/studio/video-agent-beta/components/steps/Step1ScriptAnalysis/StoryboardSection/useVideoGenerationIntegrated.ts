@@ -293,7 +293,7 @@ export function useVideoGenerationIntegrated({
             description,
             character_action: action,
             duration_seconds: duration || shot?.duration_seconds || 5,  // 🔥 添加 duration_seconds
-            resolution: resolution || '480p'  // 🔥 添加 resolution，默认 480p
+            resolution: resolution || shot?.resolution || '720p'  // 🔥 使用 shot 的 resolution，默认 720p
         })
 
         // 更新本地状态为 generating
