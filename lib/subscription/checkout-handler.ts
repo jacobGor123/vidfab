@@ -9,9 +9,8 @@ import { getIsoTimestr } from '@/lib/time';
 
 // 简化的套餐积分配置（参考iMideo）
 const PLAN_CREDITS: Record<string, number> = {
-  'lite': 300,      // Lite套餐：300积分
-  'pro': 2000,      // Pro套餐：2000积分
-  'premium': 5000,  // Premium套餐：5000积分
+  'pro': 1500,      // Pro套餐：1500积分/月
+  'premium': 3500,  // Premium套餐：3500积分/月
 };
 
 /**
