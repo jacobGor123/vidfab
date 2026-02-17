@@ -334,7 +334,7 @@ export class VideoQueueManager {
       })
 
       // Download video and upload to Supabase Storage
-      const downloadResult = await VideoStorageManager.downloadAndStore(
+      const downloadResult = await VideoStorageManager.downloadAndStoreByUserVideo(
         jobData.userId,
         jobData.videoId,
         jobData.originalUrl,

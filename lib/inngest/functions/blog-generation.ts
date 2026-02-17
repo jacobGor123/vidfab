@@ -231,7 +231,8 @@ export const generateBlogArticle = inngest.createFunction(
 
           logger.debug('Cache revalidated', { slug: publishResult.slug })
         } catch (cacheError) {
-          logger.warn('Cache revalidation failed', cacheError, {
+          logger.warn('Cache revalidation failed', {
+            error: cacheError,
             slug: publishResult.slug,
           })
           // Don't fail the entire task for cache errors

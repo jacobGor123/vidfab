@@ -13,6 +13,12 @@ type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['R
 type ProjectShot = Database['public']['Tables']['project_shots']['Row']
 type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
 
+interface VideoClip {
+  shot_number: number
+  video_url: string
+  duration: number
+}
+
 /**
  * 开始合成最终视频
  * POST /api/video-agent/projects/[id]/compose

@@ -174,13 +174,16 @@ async function generateBytePlusVideosSequentially(
       continue
     }
 
+    // 提前声明，使 catch 块也能访问
+    let enhancedPrompt = ''
+
     try {
       // ✅ 简化：都使用分镜图作为首帧
       // 如果需要首尾帧链式，需要更复杂的任务队列逻辑
       const firstFrameUrl = storyboard.image_url
 
       // 增强 prompt（description 已包含角色动作）
-      const enhancedPrompt = `Maintain exact character appearance and features from the reference image. ${shot.description}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
+      enhancedPrompt = `Maintain exact character appearance and features from the reference image. ${shot.description}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
       // 🔥 Seedance 时长限制：2-12 秒（官方文档）
       // 参考：https://docs.byteplus.com/en/docs/ModelArk/1587798
@@ -475,7 +478,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
     console.log('[Video Agent] ✅ Credits checked and deducted:', {
       projectId,
       model: modelId,
-      resolution,
+      defaultResolution,
       shotsCount: shots.length,
       creditsDeducted: creditResult.requiredCredits,
       remainingCredits: creditResult.remainingCredits

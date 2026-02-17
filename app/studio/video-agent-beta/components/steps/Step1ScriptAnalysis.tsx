@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { emitCreditsUpdated } from '@/lib/events/credits-events'
+import type { Shot } from '@/lib/types/video-agent'
 
 interface Step1Props {
   project: VideoAgentProject

@@ -7,6 +7,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useVideoContext } from '@/lib/contexts/video-context'
 import { GenerationAnalytics, type GenerationType } from '@/lib/analytics/generation-events'
+import type { VideoJob } from '@/lib/types/video'
 
 // 🎯 生成状态
 export interface VideoGenerationState {
@@ -99,9 +100,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
     setState(prev => ({ ...prev, isGenerating: true }))
 
+    let job: VideoJob | undefined
     try {
       // 创建新任务
-      const job = videoContext.addJob({
+      job = videoContext.addJob({
         requestId: '', // 将在API调用后设置
         userId: session.user.uuid,
         prompt,
@@ -176,7 +178,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
       // 清理失败的 job
-      videoContext.removeJob(job.id)
+      if (job) videoContext.removeJob(job.id)
 
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'text-to-video',
@@ -213,10 +215,11 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     console.log('[DEBUG] Setting isGenerating to true')
     setState(prev => ({ ...prev, isGenerating: true }))
 
+    let job: VideoJob | undefined
     try {
       console.log('[DEBUG] Creating job via videoContext.addJob')
 
-      const job = videoContext.addJob({
+      job = videoContext.addJob({
         requestId: '',
         userId: session.user.uuid,
         prompt: prompt || 'Convert image to video',
@@ -308,7 +311,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
       // 清理失败的 job
-      videoContext.removeJob(job.id)
+      if (job) videoContext.removeJob(job.id)
 
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'image-to-video',
@@ -355,9 +358,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
 
     setState(prev => ({ ...prev, isGenerating: true }))
 
+    let job: VideoJob | undefined
     try {
       // 1. 创建本地任务
-      const job = videoContext.addJob({
+      job = videoContext.addJob({
         requestId: '',
         userId: session.user.uuid,
         prompt: `${effectNameFinal || effectIdFinal} Effect`,
@@ -431,7 +435,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
       // 清理失败的 job
-      videoContext.removeJob(job.id)
+      if (job) videoContext.removeJob(job.id)
 
       GenerationAnalytics.trackGenerationFailed({
         generationType: 'video-effects',

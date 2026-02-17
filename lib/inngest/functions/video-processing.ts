@@ -38,7 +38,7 @@ export const downloadVideo = inngest.createFunction(
         const { VideoStorageManager } = await import('@/lib/storage')
 
         // Download with progress tracking
-        const downloadResult = await VideoStorageManager.downloadAndStore(
+        const downloadResult = await VideoStorageManager.downloadAndStoreByUserVideo(
           userId,
           videoId,
           url,
@@ -69,7 +69,7 @@ export const downloadVideo = inngest.createFunction(
             duration: 0, // Will be extracted if needed
           }
         } catch (error) {
-          logger.warn('Could not get file metadata', error, { videoId })
+          logger.warn('Could not get file metadata', { error, videoId })
           return { fileSize: 0, duration: 0 }
         }
       })
