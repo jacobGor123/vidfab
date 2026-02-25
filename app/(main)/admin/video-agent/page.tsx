@@ -6,6 +6,21 @@
 import { getSupabaseAdminClient } from '@/models/db';
 import ProjectsListClient from '@/components/admin/video-agent/projects-list-client';
 
+type SourceType = 'video_replication' | 'script_creation' | 'unknown';
+
+/** 根据 original_script 内容模式推断任务来源：
+ *  analyze-video 路由自动生成的脚本每段都以 "Shot N:" 开头；
+ *  用户手写脚本则是自由格式。
+ */
+function inferSourceType(originalScript: string | null): SourceType {
+  if (!originalScript?.trim()) return 'unknown';
+  const parts = originalScript.trim().split(/\n\n+/).filter(Boolean);
+  if (parts.length > 0 && parts.every((p) => /^Shot \d+:/.test(p.trim()))) {
+    return 'video_replication';
+  }
+  return 'script_creation';
+}
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -21,6 +36,7 @@ export default async function VideoAgentAdminPage() {
       current_step,
       duration,
       aspect_ratio,
+      original_script,
       script_analysis,
       step_1_status,
       step_2_status,
@@ -55,10 +71,14 @@ export default async function VideoAgentAdminPage() {
     emailMap = new Map((users ?? []).map((u: any) => [u.uuid, u.email]));
   }
 
-  const projectsWithEmail = (projects ?? []).map((p: any) => ({
-    ...p,
-    user_email: emailMap.get(p.user_id) ?? null,
-  }));
+  const projectsWithEmail = (projects ?? []).map((p: any) => {
+    const { original_script, ...rest } = p;
+    return {
+      ...rest,
+      user_email: emailMap.get(p.user_id) ?? null,
+      source_type: inferSourceType(original_script),
+    };
+  });
 
   const total = projectsWithEmail.length;
   const completedCount = projectsWithEmail.filter((p: any) => p.status === 'completed').length;
