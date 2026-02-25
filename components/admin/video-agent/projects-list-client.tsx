@@ -95,9 +95,9 @@ export default function ProjectsListClient({ projects }: Props) {
       </div>
 
       {/* 项目列表 */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
         {/* 表头 */}
-        <div className="grid grid-cols-[1fr_100px_120px_60px_70px_140px_40px] gap-3 px-4 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <div className="grid grid-cols-[1fr_100px_120px_60px_70px_140px_40px] gap-3 px-4 py-3 bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 border-b border-gray-200 font-semibold text-gray-800 text-sm">
           <span>User</span>
           <span>Status</span>
           <span>Step</span>
@@ -125,11 +125,11 @@ export default function ProjectsListClient({ projects }: Props) {
           };
 
           return (
-            <div key={project.id} className="border-b border-gray-100 last:border-b-0">
+            <div key={project.id} className="border-b border-gray-200 last:border-b-0">
               {/* 行 */}
               <div
-                className={`grid grid-cols-[1fr_100px_120px_60px_70px_140px_40px] gap-3 px-4 py-3 items-center text-sm cursor-pointer hover:bg-purple-50 transition-colors ${
-                  isExpanded ? 'bg-purple-50' : ''
+                className={`grid grid-cols-[1fr_100px_120px_60px_70px_140px_40px] gap-3 px-4 py-3 items-center text-sm cursor-pointer hover:bg-purple-50/50 transition-colors ${
+                  isExpanded ? 'bg-purple-50/50' : ''
                 }`}
                 onClick={() => toggleExpand(project.id)}
               >

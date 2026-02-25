@@ -73,7 +73,7 @@ export default async function VideoAgentAdminPage() {
           { label: 'Completed', value: completedCount, color: 'text-green-600' },
           { label: 'Processing', value: processingCount, color: 'text-blue-600' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white border border-gray-200 rounded-lg px-5 py-3">
+          <div key={stat.label} className="bg-white border border-gray-200 rounded-lg shadow-sm px-5 py-3">
             <p className="text-xs text-gray-500">{stat.label}</p>
             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
           </div>
