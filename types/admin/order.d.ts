@@ -6,7 +6,7 @@ export type OrderStatus = 'created' | 'paid' | 'deleted';
 export type OrderInterval = 'one-time' | 'month' | 'year';
 
 export interface Order {
-  id: number;
+  id: string | number;
   order_no: string;
   user_uuid: string | null;
   user_email: string | null;
