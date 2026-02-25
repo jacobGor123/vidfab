@@ -10,6 +10,36 @@ import { getSupabaseAdminClient } from '@/models/db';
 
 export const dynamic = 'force-dynamic';
 
+// ── Local row types ──────────────────────────────────────────────────────────
+
+interface CharacterRow {
+  id: string;
+  character_name: string;
+  source: string;
+  character_reference_images: { image_url: string; image_order: number }[];
+}
+
+interface ShotRow {
+  shot_number: number;
+  time_range: string | null;
+  description: string | null;
+  duration_seconds: number | null;
+}
+
+interface StoryboardRow {
+  shot_number: number;
+  image_url: string | null;
+  status: string;
+}
+
+interface ClipRow {
+  shot_number: number;
+  video_url: string | null;
+  status: string;
+}
+
+// ── Route handler ────────────────────────────────────────────────────────────
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
@@ -19,69 +49,64 @@ export async function GET(
     const supabase = getSupabaseAdminClient();
     const projectId = params.id;
 
-    // 1. 查人物 + 参考图
-    const { data: characters, error: charError } = await supabase
-      .from('project_characters')
-      .select(`
-        id,
-        character_name,
-        source,
-        character_reference_images (
-          image_url,
-          image_order
-        )
-      `)
-      .eq('project_id', projectId)
-      .order('created_at', { ascending: true });
+    // 并行查询四张表（互相无数据依赖）
+    const [
+      { data: characters, error: charError },
+      { data: shots, error: shotsError },
+      { data: storyboards, error: sbError },
+      { data: clips, error: clipError },
+    ] = await Promise.all([
+      supabase
+        .from('project_characters')
+        .select(`id, character_name, source, character_reference_images ( image_url, image_order )`)
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
+
+      supabase
+        .from('project_shots')
+        .select('shot_number, time_range, description, duration_seconds')
+        .eq('project_id', projectId)
+        .order('shot_number', { ascending: true }),
+
+      supabase
+        .from('project_storyboards')
+        .select('shot_number, image_url, status')
+        .eq('project_id', projectId)
+        .eq('is_current', true),
+
+      supabase
+        .from('project_video_clips')
+        .select('shot_number, video_url, status')
+        .eq('project_id', projectId),
+    ]);
 
     if (charError) throw charError;
-
-    // 2. 查 shots
-    const { data: shots, error: shotsError } = await supabase
-      .from('project_shots')
-      .select('shot_number, time_range, description, duration_seconds')
-      .eq('project_id', projectId)
-      .order('shot_number', { ascending: true });
-
     if (shotsError) throw shotsError;
-
-    // 3. 查当前版本分镜图
-    const { data: storyboards, error: sbError } = await supabase
-      .from('project_storyboards')
-      .select('shot_number, image_url, status')
-      .eq('project_id', projectId)
-      .eq('is_current', true);
-
     if (sbError) throw sbError;
-
-    // 4. 查视频片段
-    const { data: clips, error: clipError } = await supabase
-      .from('project_video_clips')
-      .select('shot_number, video_url, status')
-      .eq('project_id', projectId);
-
     if (clipError) throw clipError;
 
-    // 5. 合并 shots + storyboards + clips
-    const sbMap = new Map((storyboards ?? []).map((s: any) => [s.shot_number, s]));
-    const clipMap = new Map((clips ?? []).map((c: any) => [c.shot_number, c]));
+    // 组装响应数据
+    const sbMap = new Map((storyboards as StoryboardRow[] ?? []).map((s) => [s.shot_number, s]));
+    const clipMap = new Map((clips as ClipRow[] ?? []).map((c) => [c.shot_number, c]));
 
-    const shotsWithMedia = (shots ?? []).map((shot: any) => ({
+    const shotsWithMedia = (shots as ShotRow[] ?? []).map((shot) => ({
       ...shot,
       storyboard: sbMap.get(shot.shot_number) ?? null,
       video_clip: clipMap.get(shot.shot_number) ?? null,
     }));
 
-    // 6. 排序参考图
-    const charactersWithSortedImages = (characters ?? []).map((char: any) => ({
-      ...char,
-      reference_images: (char.character_reference_images ?? [])
-        .sort((a: any, b: any) => a.image_order - b.image_order),
-    }));
+    const charactersFormatted = (characters as CharacterRow[] ?? []).map(
+      ({ character_reference_images, ...rest }) => ({
+        ...rest,
+        reference_images: character_reference_images
+          .slice()
+          .sort((a, b) => a.image_order - b.image_order),
+      })
+    );
 
     return NextResponse.json({
       success: true,
-      characters: charactersWithSortedImages,
+      characters: charactersFormatted,
       shots: shotsWithMedia,
     });
   } catch (error: any) {
