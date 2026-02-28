@@ -70,6 +70,16 @@ export function CreatorTestimonialsSection() {
         }}
       />
 
+      {/* 底部渐变过渡：向 CTA section (#000000) 柔和衔接 */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0"
+        style={{
+          height: 200,
+          background: "linear-gradient(to bottom, transparent 0%, #000000 100%)",
+        }}
+      />
+
       {/* 标题 */}
       <div className="container mx-auto px-4 relative z-10 mb-10">
         <h2

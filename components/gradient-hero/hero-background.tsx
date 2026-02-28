@@ -104,7 +104,7 @@ export function HeroBackground() {
       />
 
       {/* 网格纹理：60px 方格，白色 8% */}
-      <div
+      {/* <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: [
@@ -113,7 +113,7 @@ export function HeroBackground() {
           ].join(", "),
           backgroundSize: "60px 60px",
         }}
-      />
+      /> */}
 
       {/* 底部渐变收尾 */}
       <div

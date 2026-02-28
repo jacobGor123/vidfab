@@ -9,7 +9,7 @@ const CARDS = [
   {
     id: "outliner",
     src: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/script-card-outliner.webp",
-    alt: "Outliner feature preview",
+    alt: "Outliner – paste your idea and generate a structured script",
     title: 'The Outliner – "I have an outline"',
     description:
       "Paste your rough ideas or a basic plot. Our AI structures them into high-stakes scripts with a strong hook, tight pacing, and a viral payoff.",
@@ -17,7 +17,7 @@ const CARDS = [
   {
     id: "curator",
     src: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/script-card-curator.webp",
-    alt: "Curator feature preview",
+    alt: "Curator – analyze a YouTube video and generate a script with the same viral flow",
     title: 'The Curator – "I have a reference video"',
     description:
       "Drop a link from YouTube Shorts. VidFab deconstructs the successful rhythm and generates an original script with a proven viral flow in your unique voice.",
@@ -25,7 +25,7 @@ const CARDS = [
   {
     id: "spark",
     src: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/script-card-spark.webp",
-    alt: "Spark feature preview",
+    alt: "Spark – pick from AI-generated episodic concepts and expand into a full script",
     title: 'The Spark – "I need a fresh idea"',
     description:
       "Let VidFab's brainstormer pitch you 5 episodic concepts based on your niche. Pick the best one and expand it into a full script instantly.",
@@ -94,21 +94,16 @@ export function ScriptSection() {
             <div
               key={card.id}
               className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_24px_48px_rgba(0,0,0,0.55)]"
-              style={{ borderRadius: 16 }}
-            >
-            <div
               style={{
-                backgroundColor: CARD_BG,
-                border: `1px solid ${CARD_BORDER}`,
-                borderRadius: 16,
-                overflow: "hidden",
-                minHeight: 420,
                 display: "flex",
                 flexDirection: "column",
+                borderRadius: 16,
+                border: `1px solid ${CARD_BORDER}`,
+                overflow: "hidden",
               }}
             >
-              {/* ① HTML 文案区（真实文字，可索引） */}
-              <div style={{ padding: "27px 21px 0", flexShrink: 0 }}>
+              {/* 文字区：独立背景色，不与图片叠加 */}
+              <div style={{ padding: "27px 21px", backgroundColor: CARD_BG, flexShrink: 0 }}>
                 <h3
                   className="text-white font-semibold mb-3"
                   style={{ fontSize: 20, lineHeight: 1.3 }}
@@ -123,19 +118,18 @@ export function ScriptSection() {
                 </p>
               </div>
 
-              {/* ② UI 截图区：仅展示卡片 PNG 的底部截图部分
-                  通过 object-fit:cover + object-position:bottom 自动裁掉顶部文字区域 */}
-              <div style={{ flex: 1, position: "relative", marginTop: 16, minHeight: 200 }}>
+              {/* 图片区：完整展示，不裁切 */}
+              <div style={{ position: "relative", flexShrink: 0 }}>
                 <Image
                   src={card.src}
                   alt={card.alt}
-                  fill
+                  width={410}
+                  height={470}
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  style={{ objectFit: "cover", objectPosition: "bottom center" }}
+                  style={{ width: "100%", height: "auto", display: "block" }}
                   unoptimized
                 />
               </div>
-            </div>
             </div>
           ))}
         </div>

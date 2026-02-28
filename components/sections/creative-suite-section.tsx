@@ -1,10 +1,12 @@
 import Image from "next/image"
 import Link from "next/link"
 
-// 来自 Figma：卡片背景 #24223E，边框 2px 渐变（紫→暗紫→蓝）
+// 来自 Figma API：
+//   card fill: #24223E  strokeWeight=2  strokeAlign=INSIDE  cornerRadius=16
+//   stroke stops: #6650E0(0%) → #3D3B5E(54.8%) → #4882FF(100%)  direction≈225deg
 const CARD_BG = "#24223E"
 const CARD_BORDER_GRADIENT =
-  "linear-gradient(225deg, #6651E0 0%, #3E3B5E 55%, #4882FF 100%)"
+  "linear-gradient(225deg, #6650E0 0%, #3D3B5E 55%, #4882FF 100%)"
 
 // 顶行 3 张卡片（410×484px）
 const TOP_CARDS = [
@@ -76,17 +78,28 @@ function Card({
   return (
     <div
       className="h-full flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_24px_48px_rgba(0,0,0,0.6)]"
-      style={{ borderRadius: 16 }}
+      style={{
+        position: "relative",
+        borderRadius: 16,
+        backgroundColor: CARD_BG,
+        overflow: "hidden",
+      }}
     >
+      {/* strokeAlign=INSIDE 渐变边框：mask 技术，只在 2px border 区域透出渐变 */}
       <div
-        className="flex flex-col h-full"
+        aria-hidden="true"
         style={{
-          background: `linear-gradient(${CARD_BG}, ${CARD_BG}) padding-box, ${CARD_BORDER_GRADIENT} border-box`,
+          position: "absolute", inset: 0, borderRadius: 16,
           border: "2px solid transparent",
-          borderRadius: 16,
-          overflow: "hidden",
+          background: `${CARD_BORDER_GRADIENT} border-box`,
+          WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
+          WebkitMaskComposite: "destination-out",
+          maskComposite: "exclude",
+          pointerEvents: "none",
+          zIndex: 10,
         }}
-      >
+      />
+
         {/* 顶部产品截图 */}
         <div className="relative flex-shrink-0" style={{ height: imageHeight }}>
           {/* 顶部蓝紫色光晕 */}
@@ -157,7 +170,6 @@ function Card({
             {card.ctaText} →
           </Link>
         </div>
-      </div>
     </div>
   )
 }
