@@ -1,12 +1,7 @@
 "use client"
 
-import type React from "react"
-import { VideoHeroContainer } from "./video-hero/video-hero-container"
+import { GradientHero } from "./gradient-hero"
 
 export function Hero() {
-  return (
-    <VideoHeroContainer
-      className="w-full h-full"
-    />
-  )
+  return <GradientHero />
 }

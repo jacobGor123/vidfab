@@ -8,6 +8,7 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: ["animate-float-slow", "animate-float-medium"],
   theme: {
     extend: {
       fontFamily: {
@@ -111,6 +112,8 @@ const config: Config = {
         shine: "shine 2.5s ease-in-out infinite",
         gradient: "gradient 3s ease infinite",
         "spin-reverse": "spin-reverse 1s linear infinite",
+        "float-slow": "float-slow 6s ease-in-out infinite",
+        "float-medium": "float-medium 4s ease-in-out infinite",
       },
       keyframes: {
         shine: {
@@ -125,6 +128,14 @@ const config: Config = {
         "spin-reverse": {
           "0%": { transform: "rotate(360deg)" },
           "100%": { transform: "rotate(0deg)" },
+        },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-12px)" },
+        },
+        "float-medium": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
         },
       },
     },

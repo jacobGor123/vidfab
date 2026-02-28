@@ -294,3 +294,21 @@
     min-height: 0;
   }
 }
+
+/* Hero 浮动卡片动画 */
+@keyframes hero-float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+@keyframes hero-float-medium {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* Hero 浮动卡片——每张卡片独立 keyframe，rotation 与 translateY 合并，零冲突 */
+@keyframes hfc-left-large   { 0%,100%{transform:rotate(-0.3deg) translateY(0px)}  50%{transform:rotate(-0.3deg) translateY(-12px)} }
+@keyframes hfc-left-medium  { 0%,100%{transform:rotate(0.3deg)  translateY(0px)}  50%{transform:rotate(0.3deg)  translateY(-8px)}  }
+@keyframes hfc-left-small   { 0%,100%{transform:rotate(-0.3deg) translateY(0px)}  50%{transform:rotate(-0.3deg) translateY(-12px)} }
+@keyframes hfc-right-large  { 0%,100%{transform:rotate(-2.9deg) translateY(0px)}  50%{transform:rotate(-2.9deg) translateY(-8px)}  }
+@keyframes hfc-right-medium { 0%,100%{transform:rotate(2.8deg)  translateY(0px)}  50%{transform:rotate(2.8deg)  translateY(-12px)} }
+@keyframes hfc-right-small  { 0%,100%{transform:rotate(-2.8deg) translateY(0px)}  50%{transform:rotate(-2.8deg) translateY(-8px)}  }

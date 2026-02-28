@@ -64,16 +64,20 @@ export function generatePageMetadata({
  * Homepage Metadata
  */
 export const homeMetadata: Metadata = generatePageMetadata({
-  title: 'VidFab - AI Video Platform | Transform Your Videos with AI',
-  description: 'Transform your videos with cutting-edge AI technology. Create, enhance, and convert videos effortlessly with VidFab. Generate videos from text, images, or apply stunning AI effects.',
+  title: 'VidFab: The Professional AI Story-to-Video Workflow for Social Series',
+  description: 'Transform ideas into consistent 60s episodic videos with VidFab. Our AI Story-to-Video workflow handles scripting, storyboarding, and character consistency. Perfect for TikTok, Reels, and YouTube Shorts creators. Try the all-in-one AI production pipeline for free.',
   path: '/',
   keywords: [
-    'AI video generator',
-    'text to video',
-    'image to video',
-    'AI video effects',
-    'video creation platform',
-    'AI video editing',
+    'AI story to video',
+    'episodic video creator',
+    'AI video workflow',
+    'TikTok video generator',
+    'YouTube Shorts AI',
+    'Instagram Reels AI',
+    'character consistency AI',
+    'AI storyboarding',
+    'social series creator',
+    'AI video production pipeline',
   ],
 })
 
