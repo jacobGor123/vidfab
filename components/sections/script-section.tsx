@@ -1,4 +1,3 @@
-import Image from "next/image"
 import Link from "next/link"
 
 // 卡片背景 #0D0930，border rgb(92,95,130) — 均来自 Figma
@@ -13,6 +12,7 @@ const CARDS = [
     title: 'The Outliner – "I have an outline"',
     description:
       "Paste your rough ideas or a basic plot. Our AI structures them into high-stakes scripts with a strong hook, tight pacing, and a viral payoff.",
+    imgPos: "bottom center",
   },
   {
     id: "curator",
@@ -21,6 +21,7 @@ const CARDS = [
     title: 'The Curator – "I have a reference video"',
     description:
       "Drop a link from YouTube Shorts. VidFab deconstructs the successful rhythm and generates an original script with a proven viral flow in your unique voice.",
+    imgPos: "top center",
   },
   {
     id: "spark",
@@ -29,6 +30,7 @@ const CARDS = [
     title: 'The Spark – "I need a fresh idea"',
     description:
       "Let VidFab's brainstormer pitch you 5 episodic concepts based on your niche. Pick the best one and expand it into a full script instantly.",
+    imgPos: "bottom center",
   },
 ]
 
@@ -95,15 +97,22 @@ export function ScriptSection() {
               key={card.id}
               className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_24px_48px_rgba(0,0,0,0.55)]"
               style={{
-                display: "flex",
-                flexDirection: "column",
                 borderRadius: 16,
                 border: `1px solid ${CARD_BORDER}`,
                 overflow: "hidden",
+                minHeight: 530,
+                backgroundImage: `url(${card.src})`,
+                backgroundSize: "cover",
+                backgroundPosition: card.imgPos,
+                backgroundColor: CARD_BG,
               }}
             >
-              {/* 文字区：独立背景色，不与图片叠加 */}
-              <div style={{ padding: "27px 21px", backgroundColor: CARD_BG, flexShrink: 0 }}>
+              {/* 文字区：浮于背景图之上，无背景色 */}
+              <div
+                style={{
+                  padding: "27px 21px",
+                }}
+              >
                 <h3
                   className="text-white font-semibold mb-3"
                   style={{ fontSize: 20, lineHeight: 1.3 }}
@@ -116,19 +125,6 @@ export function ScriptSection() {
                 >
                   {card.description}
                 </p>
-              </div>
-
-              {/* 图片区：完整展示，不裁切 */}
-              <div style={{ position: "relative", flexShrink: 0 }}>
-                <Image
-                  src={card.src}
-                  alt={card.alt}
-                  width={410}
-                  height={470}
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  style={{ width: "100%", height: "auto", display: "block" }}
-                  unoptimized
-                />
               </div>
             </div>
           ))}
