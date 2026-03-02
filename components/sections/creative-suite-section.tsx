@@ -71,7 +71,7 @@ function Card({
   imageHeight,
   imageSizes,
 }: {
-  card: (typeof TOP_CARDS)[number]
+  card: { id: string; image: string; title: string; badge: string; description: string; ctaText: string; ctaLink: string }
   imageHeight: number
   imageSizes: string
 }) {
@@ -85,7 +85,7 @@ function Card({
         overflow: "hidden",
       }}
     >
-      {/* strokeAlign=INSIDE 渐变边框：mask 技术，只在 2px border 区域透出渐变 */}
+      {/* strokeAlign=INSIDE 渐变边框 */}
       <div
         aria-hidden="true"
         style={{
@@ -100,30 +100,41 @@ function Card({
         }}
       />
 
-        {/* 顶部产品截图 */}
-        <div className="relative flex-shrink-0" style={{ height: imageHeight }}>
-          {/* 顶部蓝紫色光晕 */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 pointer-events-none z-10"
-            style={{
-              height: 60,
-              background:
-                "radial-gradient(ellipse 80% 100% at 50% 0%, rgba(64,73,226,0.55) 0%, transparent 100%)",
-            }}
-          />
-          <Image
-            src={card.image}
-            alt={card.title}
-            fill
-            sizes={imageSizes}
-            style={{ objectFit: "cover", objectPosition: "top center" }}
-            unoptimized
-          />
-        </div>
+      {/* 顶部产品截图 */}
+      <div
+        className="relative flex-shrink-0 overflow-hidden"
+      >
+        {/* 顶部蓝紫色光晕 */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 pointer-events-none z-10"
+          style={{
+            height: 60,
+            background:
+              "radial-gradient(ellipse 80% 100% at 50% 0%, rgba(64,73,226,0.55) 0%, transparent 100%)",
+          }}
+        />
+        <Image
+          src={card.image}
+          alt={card.title}
+          width={800}
+          height={imageHeight}
+          sizes={imageSizes}
+          style={{
+            width: "calc(100% - 40px)",
+            height: 'auto',
+            objectFit: "cover",
+            display: "block",
+            marginTop: 20,
+            marginLeft: 20,
+            marginRight: 20,
+          }}
+          unoptimized
+        />
+      </div>
 
-        {/* 内容区 */}
-        <div className="flex flex-col flex-1 p-6">
+      {/* 内容区 */}
+      <div className="flex flex-col flex-1 p-6">
           {/* 标题 + Badge */}
           <div className="flex items-center gap-3 mb-3 flex-wrap">
             <h3

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import Link from "next/link"
 
 // 来自 Figma 设计稿：
@@ -18,7 +17,7 @@ const TESTIMONIALS = [
       '"From 20 hours of editing to 20 minutes of \'VidFabbing\'. The character consistency is a total game-changer for my YouTube Shorts."',
     author: "Alex R.",
     role: "YouTube Creator",
-    photo: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/testimonial-alex.webp",
+    photo: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/testimonial-alex-r.webp",
   },
   {
     id: "sarah",
@@ -26,7 +25,7 @@ const TESTIMONIALS = [
       '"Finally, a tool that understands the rhythm of social media. I\'ve grown 40k followers in two months."',
     author: "Sarah T.",
     role: "Content Strategist",
-    photo: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/testimonial-sarah.webp",
+    photo: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/testimonial-sarah-t.webp",
   },
 ]
 
@@ -105,23 +104,20 @@ export function CreatorTestimonialsSection() {
             minHeight: 234,
           }}
         >
-          {/* 照片：Next.js Image，position:relative 容器 fill 模式 */}
+          {/* 照片：img height=100% width=auto，完整展示不截断 */}
           <div
-            className="hidden md:block relative flex-shrink-0 overflow-hidden"
+            className="hidden md:block flex-shrink-0 overflow-hidden"
             style={{
-              width: "44%",
               alignSelf: "stretch",
               borderTopLeftRadius: 10,
               borderBottomLeftRadius: 10,
+              maxWidth: "55%",
             }}
           >
-            <Image
+            <img
               src={current.photo}
-              alt={current.author}
-              fill
-              sizes="(max-width: 768px) 0px, 44vw"
-              style={{ objectFit: "cover", objectPosition: "center top" }}
-              unoptimized
+              alt={`${current.author}, ${current.role} — VidFab creator`}
+              style={{ height: "100%", width: "auto", display: "block" }}
             />
           </div>
 

@@ -1,36 +1,34 @@
+import Image from "next/image"
 import Link from "next/link"
 
-// 卡片背景 #0D0930，border rgb(92,95,130) — 均来自 Figma
 const CARD_BG = "#0D0930"
 const CARD_BORDER = "rgb(92,95,130)"
+const BASE_URL = "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets"
 
 const CARDS = [
   {
     id: "outliner",
-    src: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/script-card-outliner.webp",
-    alt: "Outliner – paste your idea and generate a structured script",
     title: 'The Outliner – "I have an outline"',
     description:
       "Paste your rough ideas or a basic plot. Our AI structures them into high-stakes scripts with a strong hook, tight pacing, and a viral payoff.",
-    imgPos: "bottom center",
+    img: `${BASE_URL}/script-card-outliner-v2.webp`,
+    alt: "Outliner – AI script generation from rough ideas",
   },
   {
     id: "curator",
-    src: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/script-card-curator.webp",
-    alt: "Curator – analyze a YouTube video and generate a script with the same viral flow",
     title: 'The Curator – "I have a reference video"',
     description:
       "Drop a link from YouTube Shorts. VidFab deconstructs the successful rhythm and generates an original script with a proven viral flow in your unique voice.",
-    imgPos: "top center",
+    img: `${BASE_URL}/script-card-curator-v2.webp`,
+    alt: "Curator – analyze a YouTube video and generate a viral script",
   },
   {
     id: "spark",
-    src: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/script-card-spark.webp",
-    alt: "Spark – pick from AI-generated episodic concepts and expand into a full script",
     title: 'The Spark – "I need a fresh idea"',
     description:
       "Let VidFab's brainstormer pitch you 5 episodic concepts based on your niche. Pick the best one and expand it into a full script instantly.",
-    imgPos: "bottom center",
+    img: `${BASE_URL}/script-card-spark-v2.webp`,
+    alt: "Spark – AI script inspirations and episodic concept generator",
   },
 ]
 
@@ -52,7 +50,7 @@ export function ScriptSection() {
         }}
       />
 
-      {/* 底部渐变遮罩：向下过渡到 WorkspaceSection 的 #000000 */}
+      {/* 底部渐变遮罩 */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0"
@@ -62,7 +60,7 @@ export function ScriptSection() {
         }}
       />
 
-      {/* 顶部柔化遮罩：消除与上方 section 的硬边界 */}
+      {/* 顶部柔化遮罩 */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0"
@@ -97,22 +95,16 @@ export function ScriptSection() {
               key={card.id}
               className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_24px_48px_rgba(0,0,0,0.55)]"
               style={{
+                display: "flex",
+                flexDirection: "column",
                 borderRadius: 16,
                 border: `1px solid ${CARD_BORDER}`,
-                overflow: "hidden",
-                minHeight: 530,
-                backgroundImage: `url(${card.src})`,
-                backgroundSize: "cover",
-                backgroundPosition: card.imgPos,
                 backgroundColor: CARD_BG,
+                overflow: "hidden",
               }}
             >
-              {/* 文字区：浮于背景图之上，无背景色 */}
-              <div
-                style={{
-                  padding: "27px 21px",
-                }}
-              >
+              {/* 文字区 */}
+              <div style={{ padding: "27px 21px" }}>
                 <h3
                   className="text-white font-semibold mb-3"
                   style={{ fontSize: 20, lineHeight: 1.3 }}
@@ -125,6 +117,19 @@ export function ScriptSection() {
                 >
                   {card.description}
                 </p>
+              </div>
+
+              {/* 图片：贴底铺满 */}
+              <div style={{ marginTop: "auto" }}>
+                <Image
+                  src={card.img}
+                  alt={card.alt}
+                  width={410}
+                  height={269}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                  unoptimized
+                />
               </div>
             </div>
           ))}

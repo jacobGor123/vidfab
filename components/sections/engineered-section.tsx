@@ -90,7 +90,7 @@ export function EngineeredSection() {
           {CARDS.map(({ id, Icon, title, description }) => (
             <div
               key={id}
-              className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_24px_48px_rgba(0,0,0,0.55)]"
+              className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_26px_10px_rgba(40,51,170,0.28)]"
               style={{ borderRadius: 16 }}
             >
               <div
@@ -100,7 +100,6 @@ export function EngineeredSection() {
                   borderRadius: 16,
                   padding: "24px 28px",
                   border: "1px solid rgb(92,95,130)",
-                  boxShadow: "0 8px 26px 10px rgba(40,51,170,0.28)",
                 }}
               >
                 {/* 卡片内椭圆光晕（来自 Figma：rgba(52,52,112) 514×103px） */}
