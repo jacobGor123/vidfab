@@ -74,7 +74,7 @@ export function Step4VideoCard({
   const currentFields = editFields || parsedFields || {
     description: shot?.description || getDefaultPrompt(item.shot_number),
     character_action: shot?.character_action || '',
-    duration_seconds: shot?.duration_seconds || 5  // 🔥 新增：默认 5 秒
+    duration_seconds: Math.max(4, shot?.duration_seconds || 5)
   }
 
   const handleRetryClick = async (e: React.MouseEvent) => {
@@ -153,15 +153,15 @@ export function Step4VideoCard({
     type: 'select',
     value: String(currentFields.duration_seconds),
     options: [
-      { value: '2', label: '2s' },
-      { value: '3', label: '3s' },
       { value: '4', label: '4s' },
       { value: '5', label: '5s' },
       { value: '6', label: '6s' },
       { value: '7', label: '7s' },
       { value: '8', label: '8s' },
       { value: '9', label: '9s' },
-      { value: '10', label: '10s' }
+      { value: '10', label: '10s' },
+      { value: '11', label: '11s' },
+      { value: '12', label: '12s' }
     ],
     required: true,
     helpText: 'Video duration for this shot',

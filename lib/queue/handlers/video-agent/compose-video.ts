@@ -2,8 +2,6 @@ import { Job } from 'bullmq'
 import { supabaseAdmin } from '@/lib/supabase'
 import { estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
 import { concatenateVideosWithShotstack } from '@/lib/services/video-agent/processors/shotstack-composer'
-import { generateSRTFromShots } from '@/lib/services/video-agent/subtitle-generator'
-import { generateNarrationBatch } from '@/lib/services/kie-ai/elevenlabs-tts'
 import type { Database } from '@/lib/database.types'
 import type { VideoAgentComposeJobData } from '@/lib/queue/types'
 
@@ -70,54 +68,9 @@ export async function handleVideoAgentCompose(job: Job): Promise<any> {
     videoUrls.map((url, idx) => ({ shot_number: idx + 1, video_url: url, duration: clipDurations[idx] || 5 }))
   )
 
-  await job.updateProgress({ percent: 20, message: 'Preparing narration/subtitles...' })
-
-  let subtitleUrl: string | undefined
-  let narrationAudioClips: Array<{ url: string; start: number; length: number }> = []
-
-  if ((project as any).enable_narration) {
-    try {
-      const narrationTexts = (shots || []).map((s) => String(s.character_action || ''))
-      const narrationResults = await generateNarrationBatch(narrationTexts, {
-        voice: 'Rachel',
-        speed: 1.0,
-      })
-
-      let currentTime = 0
-      for (let i = 0; i < (shots || []).length; i++) {
-        const result = narrationResults[i]
-        if (result?.success && result.audio_url) {
-          narrationAudioClips.push({
-            url: result.audio_url,
-            start: currentTime,
-            length: (shots || [])[i].duration_seconds || 5,
-          })
-        }
-        currentTime += (shots || [])[i].duration_seconds || 5
-      }
-
-      const srtContent = generateSRTFromShots(shots || [])
-      const bucketName = 'video-agent-files'
-      const srtPath = `${projectId}/subtitles.srt`
-
-      const { error: uploadError } = await supabaseAdmin.storage
-        .from(bucketName)
-        .upload(srtPath, srtContent, { contentType: 'text/plain', upsert: true })
-
-      if (!uploadError) {
-        const { data: urlData } = supabaseAdmin.storage.from(bucketName).getPublicUrl(srtPath)
-        subtitleUrl = urlData.publicUrl
-      }
-    } catch {
-      // Narration/subtitle failure should not fail compose.
-    }
-  }
-
-  let backgroundMusicUrl: string | undefined
-  if (!(project as any).enable_narration && !(project as any).mute_bgm) {
-    backgroundMusicUrl =
-      'https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/video-agent-files/preset-music/funny-comedy-cartoon.mp3'
-  }
+  // BGM 已由 Seedance 1.5 Pro generate_audio 原生生成，不再叠加预设音频
+  const backgroundMusicUrl: string | undefined = undefined
+  const subtitleUrl: string | undefined = undefined
 
   await job.updateProgress({ percent: 40, message: 'Submitting Shotstack render...' })
 
@@ -126,7 +79,6 @@ export async function handleVideoAgentCompose(job: Job): Promise<any> {
     clipDurations,
     backgroundMusicUrl,
     subtitleUrl,
-    narrationAudioClips: narrationAudioClips.length > 0 ? (narrationAudioClips as any) : undefined,
   })
 
   await job.updateProgress({ percent: 95, message: 'Saving final video metadata...' })

@@ -21,7 +21,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       story_style: string
       original_script: string
       aspect_ratio?: '16:9' | '9:16'
-      enable_narration?: boolean
       mute_bgm?: boolean
       image_style_id?: string  // 🔥 新增：图片风格 ID
     }
@@ -41,7 +40,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       story_style: storyStyle,
       original_script: originalScript,
       aspect_ratio: aspectRatio = '16:9',
-      enable_narration: enableNarration = false,
       mute_bgm: muteBgm = true,
       image_style_id: imageStyleId  // 🔥 新增：接收图片风格 ID
     } = body
@@ -112,7 +110,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
       storyStyle,
       scriptLength: originalScript.length,
       aspectRatio,
-      enableNarration,
       muteBgm,
       imageStyleId  // 🔥 记录图片风格
     })
@@ -126,7 +123,6 @@ export const POST = withAuth(async (request, { params, userId }) => {
         story_style: storyStyle,
         original_script: originalScript,
         aspect_ratio: aspectRatio,
-        enable_narration: enableNarration,
         mute_bgm: muteBgm,
         image_style_id: imageStyleId,  // 🔥 保存图片风格 ID
         status: 'draft',
@@ -146,13 +142,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
     console.log('[Video Agent] Project created successfully', {
       projectId: data.id,
       aspectRatio: data.aspect_ratio,
-      enableNarration: data.enable_narration,
       muteBgm: data.mute_bgm
     })
 
     return NextResponse.json({
       success: true,
-      data: data  // 返回完整的项目数据，包含 aspect_ratio 和 enable_narration
+      data: data
     })
 
   } catch (error) {

@@ -22,6 +22,14 @@ export interface BytePlusVideoRequest {
   content: BytePlusContent[]
   callback_url?: string
   return_last_frame?: boolean
+  // Seedance 1.5 Pro: body-level params (strict validation)
+  resolution?: string
+  ratio?: string
+  duration?: number
+  seed?: number
+  camera_fixed?: boolean
+  watermark?: boolean
+  generate_audio?: boolean
 }
 
 export interface BytePlusVideoResponse {

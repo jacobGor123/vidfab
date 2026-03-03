@@ -40,56 +40,6 @@ export async function handleVideoAgentSyncVideoStatus(job: Job): Promise<any> {
     const clip = generating[i]
     const now = new Date().toISOString()
 
-    // Veo3
-    if (clip.video_request_id) {
-      const { getVeo3VideoStatus } = await import('@/lib/services/video-agent/veo3-video-generator')
-      const statusResult = await getVeo3VideoStatus(clip.video_request_id)
-
-      if (statusResult.status === 'completed' && statusResult.videoUrl) {
-        await supabaseAdmin
-          .from('project_video_clips')
-          .update({
-            status: 'success',
-            video_url: statusResult.videoUrl,
-            video_url_external: statusResult.videoUrl,
-            storage_status: 'pending',
-            updated_at: now,
-          } as any)
-          .eq('id', clip.id)
-
-        // Enqueue download (idempotent jobId) - never download inside sync.
-        await queue.add(
-          'video_clip_download',
-          {
-            type: 'video_clip_download',
-            jobId: `va:clip:download:${projectId}:${clip.shot_number}`,
-            userId: jobData.userId,
-            videoId: projectId,
-            projectId,
-            shotNumber: clip.shot_number,
-            externalUrl: statusResult.videoUrl,
-            createdAt: now,
-          } as any,
-          {
-            jobId: `va:clip:download:${projectId}:${clip.shot_number}`,
-            priority: 3,
-            attempts: 6,
-            backoff: { type: 'exponential', delay: 10000 },
-            removeOnComplete: 50,
-            removeOnFail: 20,
-          }
-        )
-
-        updated++
-      } else if (statusResult.status === 'failed') {
-        await supabaseAdmin
-          .from('project_video_clips')
-          .update({ status: 'failed', error_message: statusResult.error || 'Video generation failed', updated_at: now } as any)
-          .eq('id', clip.id)
-        updated++
-      }
-    }
-
     // BytePlus
     if (clip.seedance_task_id) {
       const { checkVideoStatus } = await import('@/lib/services/byteplus/video/seedance-api')

@@ -30,7 +30,6 @@ interface ProjectData {
   story_style: string
   original_script: string
   aspect_ratio: '16:9' | '9:16'
-  enable_narration: boolean
   status: string
   current_step: number
   created_at: string
@@ -43,7 +42,6 @@ interface CreateProjectParams {
   story_style: string
   original_script: string
   aspect_ratio?: '16:9' | '9:16'
-  enable_narration?: boolean
 }
 
 interface CharacterPromptParams {
@@ -141,6 +139,7 @@ interface AnalyzeVideoParams {
   duration: number
   storyStyle: string
   aspectRatio?: '16:9' | '9:16'
+  muteBgm?: boolean
 }
 
 interface ScriptInspiration {

@@ -35,14 +35,6 @@ interface ShotstackRenderRequest {
   }
 }
 
-/**
- * 旁白音频 Clip 接口
- */
-export interface NarrationAudioClip {
-  url: string
-  start: number
-  length: number
-}
 
 /**
  * Shotstack 视频元数据
@@ -62,9 +54,8 @@ export async function concatenateVideosWithShotstack(
   options: {
     aspectRatio?: '16:9' | '9:16'
     clipDurations?: number[] // 每个片段的时长（秒）
-    backgroundMusicUrl?: string // BGM URL（非旁白模式）
-    subtitleUrl?: string // SRT 字幕 URL（旁白模式）
-    narrationAudioClips?: NarrationAudioClip[] // 旁白音频片段（旁白模式）
+    backgroundMusicUrl?: string
+    subtitleUrl?: string
   } = {}
 ): Promise<VideoMetadata> {
   const apiKey = process.env.SHOTSTACK_API_KEY
@@ -107,28 +98,8 @@ export async function concatenateVideosWithShotstack(
     ]
   }
 
-  // 🎙️ 添加旁白音频轨道（优先级高于背景音乐）
-  if (options.narrationAudioClips && options.narrationAudioClips.length > 0) {
-    console.log('[Shotstack] 🎙️ 添加旁白音频:', options.narrationAudioClips.length, '个片段')
-
-    const audioClips = options.narrationAudioClips.map(clip => ({
-      asset: {
-        type: 'audio' as any,
-        src: clip.url,
-        volume: 1.0 // 旁白音量 100%
-      },
-      start: clip.start,
-      length: clip.length
-    }))
-
-    timeline.tracks.push({
-      clips: audioClips as any
-    })
-
-    console.log('[Shotstack] ✅ 旁白音频轨道已添加')
-  }
-  // 🎵 添加背景音乐（仅在非旁白模式）
-  else if (options.backgroundMusicUrl) {
+  // 🎵 添加背景音乐
+  if (options.backgroundMusicUrl) {
     console.log('[Shotstack] 🎵 添加背景音乐:', options.backgroundMusicUrl)
     timeline.soundtrack = {
       src: options.backgroundMusicUrl,

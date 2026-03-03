@@ -1,47 +1,32 @@
 import { VideoGenerationRequest, VideoStatusResponse } from '@/lib/types/video'
 import { BytePlusContent, BytePlusVideoRequest, BytePlusVideoResponse, BytePlusVideoTaskStatus } from './types'
 
-// 使用标准 Pro 模型（Pro-Fast 可能未开通访问权限）
-const DEFAULT_VIDEO_MODEL = 'seedance-1-0-pro-250528'
+const DEFAULT_VIDEO_MODEL = 'seedance-1-5-pro-251215'
 
-/**
- * 将现有 VideoGenerationRequest 拼装为 BytePlus 的文本命令 prompt
- */
-export function buildPromptWithCommands(request: VideoGenerationRequest): string {
-  let prompt = request.prompt
+// Seedance 1.5 Pro 仅支持 5s 或 10s，对齐到最近的合法值
+const VALID_DURATIONS = [5, 10]
 
-  prompt += ` --resolution ${request.resolution}`
-  prompt += ` --duration ${request.duration}`
-  prompt += ` --ratio ${request.aspectRatio}`
-
-  if (request.cameraFixed !== undefined) {
-    prompt += ` --camerafixed ${request.cameraFixed}`
-  }
-
-  if (request.seed !== undefined && request.seed !== -1) {
-    prompt += ` --seed ${request.seed}`
-  }
-
-  // 添加水印支持（默认 false）
-  if (request.watermark !== undefined) {
-    prompt += ` --watermark ${request.watermark}`
-  }
-
-  return prompt
+function snapToValidDuration(duration: number | undefined): number | undefined {
+  if (duration === undefined) return undefined
+  return VALID_DURATIONS.reduce((prev, cur) =>
+    Math.abs(cur - duration) < Math.abs(prev - duration) ? cur : prev
+  )
 }
 
 /**
  * 将内部请求转换为 BytePlus 请求
+ * Seedance 1.5 Pro: 使用 body-level 参数（严格校验），generate_audio 默认 true 需显式关闭
  */
 export function convertToBytePlusRequest(
   request: VideoGenerationRequest,
-  options?: { callbackUrl?: string; returnLastFrame?: boolean }
+  options?: { callbackUrl?: string; returnLastFrame?: boolean; generateAudio?: boolean }
 ): BytePlusVideoRequest {
   const content: BytePlusContent[] = []
 
+  // 纯文本 prompt，不附加 --command 参数
   content.push({
     type: 'text',
-    text: buildPromptWithCommands(request),
+    text: request.prompt,
   })
 
   if (request.image) {
@@ -54,12 +39,30 @@ export function convertToBytePlusRequest(
     })
   }
 
-  return {
+  const byteplusRequest: BytePlusVideoRequest = {
     model: DEFAULT_VIDEO_MODEL,
     content,
     callback_url: options?.callbackUrl,
     return_last_frame: options?.returnLastFrame ?? false,
+    // 视频规格参数（body-level，严格校验）
+    resolution: request.resolution,
+    ratio: request.aspectRatio,
+    duration: snapToValidDuration(request.duration),
+    watermark: request.watermark ?? false,
+    generate_audio: options?.generateAudio ?? false,
   }
+
+  // 仅在有效时传递 seed（-1 表示随机，不传）
+  if (request.seed !== undefined && request.seed !== -1) {
+    byteplusRequest.seed = request.seed
+  }
+
+  // 仅在明确指定时传递 camera_fixed
+  if (request.cameraFixed !== undefined) {
+    byteplusRequest.camera_fixed = request.cameraFixed
+  }
+
+  return byteplusRequest
 }
 
 /**

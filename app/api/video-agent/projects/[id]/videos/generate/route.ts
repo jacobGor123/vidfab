@@ -9,12 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { submitVideoGeneration } from '@/lib/services/byteplus/video/seedance-api'
 import { VideoGenerationRequest } from '@/lib/types/video'
 import type { Shot, Storyboard } from '@/lib/types/video-agent'
-import {
-  generateVeo3Video,
-  getVideoGenerationImages
-} from '@/lib/services/video-agent/veo3-video-generator'
 import type { Database } from '@/lib/database.types'
-import pLimit from 'p-limit'
 import { checkAndDeductBatchVideos } from '@/lib/video-agent/credits-check'
 import { isVeo3Model, getDefaultResolution } from '@/lib/video-agent/credits-config'
 
@@ -22,135 +17,15 @@ type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['R
 type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
 
 /**
- * ✅ 优化: 移除了阻塞轮询函数
- * 现在只提交任务，不等待完成
- * 由前端轮询 /videos/status API 来获取实时状态
- */
-
-/**
- * ✅ 优化后的视频生成函数
- *
- * 关键改进：
- * 1. 旁白模式：并发生成（3个并发），速度提升 6 倍
- * 2. 非旁白模式：保持顺序（首尾帧链式），但移除阻塞轮询
- * 3. 只提交任务，不等待完成，由前端轮询状态 API
- */
-async function generateVideosAsync(
-  projectId: string,
-  storyboards: Storyboard[],
-  shots: Shot[],
-  userId: string,
-  enableNarration: boolean = false,
-  aspectRatio: '16:9' | '9:16' = '16:9'
-) {
-  if (enableNarration) {
-    // ✅ 旁白模式（Veo3.1）：并发生成
-    // 每个视频独立生成，不需要首尾帧链式，可以并发
-    await generateVeo3VideosInParallel(projectId, storyboards, shots, aspectRatio)
-  } else {
-    // ✅ 非旁白模式（BytePlus）：顺序生成（首尾帧链式）
-    // 需要上一个视频的末尾帧，必须顺序，但不阻塞轮询
-    await generateBytePlusVideosSequentially(projectId, storyboards, shots, aspectRatio)
-  }
-}
-
-/**
- * ✅ Veo3.1 旁白模式：并发生成
- * 并发数限制为 3，避免触发速率限制
- */
-async function generateVeo3VideosInParallel(
-  projectId: string,
-  storyboards: Storyboard[],
-  shots: Shot[],
-  aspectRatio: '16:9' | '9:16'
-) {
-  const limit = pLimit(3)  // 并发数限制为 3
-
-  const tasks = storyboards.map((storyboard, index) =>
-    limit(async () => {
-      const shot = shots.find(s => s.shot_number === storyboard.shot_number)
-
-      if (!shot) {
-        await supabaseAdmin
-          .from('project_video_clips')
-          .update({
-            status: 'failed',
-            error_message: 'Shot not found in script analysis',
-            updated_at: new Date().toISOString()
-          } as any)
-          .eq('project_id', projectId)
-          .eq('shot_number', storyboard.shot_number)
-          .returns<any>()
-        return
-      }
-
-      try {
-        // 获取下一个分镜图（用于流畅过渡）
-        const nextStoryboard = storyboards.find(sb => sb.shot_number === shot.shot_number + 1)
-
-        const images = getVideoGenerationImages(
-          { imageUrl: storyboard.image_url },
-          nextStoryboard ? { imageUrl: nextStoryboard.image_url } : undefined
-        )
-
-        if (!images) {
-          throw new Error('No reference image available for Veo3.1 generation')
-        }
-
-        // 增强 prompt：场景描述（已包含角色动作）+ 禁止字幕
-        const enhancedPrompt = `${shot.description}. No text, no subtitles, no captions, no words on screen.`
-
-        const { requestId } = await generateVeo3Video({
-          prompt: enhancedPrompt,
-          image: images.image,
-          aspectRatio: aspectRatio,
-          duration: shot.duration_seconds,
-          lastImage: images.lastImage
-        })
-
-        // ✅ 只保存 request_id，不等待完成
-        await supabaseAdmin
-          .from('project_video_clips')
-          .update({
-            video_request_id: requestId,
-            video_status: 'generating',
-            status: 'generating',
-            updated_at: new Date().toISOString()
-          } as any)
-          .eq('project_id', projectId)
-          .eq('shot_number', shot.shot_number)
-          .returns<any>()
-      } catch (error) {
-        console.error(`[Video Agent] ❌ Failed to submit Veo3 task for shot ${shot.shot_number}:`, error)
-
-        await supabaseAdmin
-          .from('project_video_clips')
-          .update({
-            status: 'failed',
-            error_message: error instanceof Error ? error.message : 'Failed to submit video generation task',
-            updated_at: new Date().toISOString()
-          } as any)
-          .eq('project_id', projectId)
-          .eq('shot_number', shot.shot_number)
-          .returns<any>()
-      }
-    })
-  )
-
-  // 等待所有任务提交完成（不等待视频生成完成）
-  await Promise.allSettled(tasks)
-}
-
-/**
- * ✅ BytePlus 非旁白模式：顺序生成（首尾帧链式）
- * 需要上一个视频的末尾帧，必须顺序执行
- * 但不阻塞轮询，由 /videos/status API 负责查询完成状态和获取 last_frame_url
+ * ✅ BytePlus Seedance：顺序生成（首帧链式）
+ * 不阻塞轮询，由 /videos/status API 负责查询完成状态和获取 last_frame_url
  */
 async function generateBytePlusVideosSequentially(
   projectId: string,
   storyboards: Storyboard[],
   shots: Shot[],
-  aspectRatio: '16:9' | '9:16'
+  aspectRatio: '16:9' | '9:16',
+  generateAudio: boolean = false
 ) {
   // ⚠️ 注意：这里只提交第一个视频
   // 后续视频需要等第一个完成后，由 /videos/status API 或单独的后台任务触发
@@ -185,17 +60,16 @@ async function generateBytePlusVideosSequentially(
       // 增强 prompt（description 已包含角色动作）
       enhancedPrompt = `Maintain exact character appearance and features from the reference image. ${shot.description}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
-      // 🔥 Seedance 时长限制：2-12 秒（官方文档）
-      // 参考：https://docs.byteplus.com/en/docs/ModelArk/1587798
-      const minDuration = 2
+      // Seedance 1.5 Pro 时长限制：4-12 秒
+      const minDuration = 4
       const maxDuration = 12
       let clampedDuration = shot.duration_seconds
 
       if (clampedDuration < minDuration) {
-        console.warn(`[Video Agent] Shot ${shot.shot_number} duration too short: ${shot.duration_seconds}s → ${minDuration}s (Seedance min: ${minDuration}s)`)
+        console.warn(`[Video Agent] Shot ${shot.shot_number} duration too short: ${shot.duration_seconds}s → ${minDuration}s`)
         clampedDuration = minDuration
       } else if (clampedDuration > maxDuration) {
-        console.warn(`[Video Agent] Shot ${shot.shot_number} duration too long: ${shot.duration_seconds}s → ${maxDuration}s (Seedance max: ${maxDuration}s)`)
+        console.warn(`[Video Agent] Shot ${shot.shot_number} duration too long: ${shot.duration_seconds}s → ${maxDuration}s`)
         clampedDuration = maxDuration
       }
 
@@ -213,7 +87,8 @@ async function generateBytePlusVideosSequentially(
 
       // 提交任务
       const result = await submitVideoGeneration(videoRequest, {
-        returnLastFrame: true
+        returnLastFrame: true,
+        generateAudio
       })
 
       // ✅ 保存 task_id
@@ -368,7 +243,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
               description: shot.description,
               camera_angle: shot.camera_angle,
               mood: shot.mood,
-              duration_seconds: Math.max(2, Math.round(shot.duration_seconds))  // 🔥 最小2秒
+              duration_seconds: Math.max(4, Math.round(shot.duration_seconds))  // 🔥 最小4秒（Seedance 1.5 Pro 下限）
             }))
 
             const { error: insertError } = await supabaseAdmin
@@ -461,7 +336,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       useVeo3
     })
 
-    const creditResult = await checkAndDeductBatchVideos(userId, shotsForCredits, useVeo3)
+    const generateAudio = !project.mute_bgm
+    const creditResult = await checkAndDeductBatchVideos(userId, shotsForCredits, useVeo3, generateAudio)
 
     if (!creditResult.canAfford) {
       return NextResponse.json(
@@ -592,13 +468,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     // 立即返回，后台异步生成
     Promise.resolve().then(async () => {
-      await generateVideosAsync(
+      await generateBytePlusVideosSequentially(
         projectId,
         storyboards as Storyboard[],
         shots as Shot[],
-        userId,
-        project.enable_narration || false,
-        project.aspect_ratio || '16:9'
+        project.aspect_ratio || '16:9',
+        generateAudio
       )
     })
 

@@ -11,7 +11,7 @@ const client = new BytePlusClient()
  */
 export async function submitVideoGeneration(
   request: VideoGenerationRequest,
-  options?: { callbackUrl?: string; returnLastFrame?: boolean }
+  options?: { callbackUrl?: string; returnLastFrame?: boolean; generateAudio?: boolean }
 ): Promise<VideoGenerationResponse> {
   const byteplusRequest: BytePlusVideoRequest = convertToBytePlusRequest(request, options)
 

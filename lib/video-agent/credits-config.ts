@@ -38,37 +38,45 @@ export const VEO3_VIDEO_GENERATION_BASE_RATES = {
 
 export type VideoResolution = '480p' | '720p' | '1080p'
 
+// 开启原生音频时积分倍率（Seedance 1.5 Pro generate_audio: true）
+export const AUDIO_CREDITS_MULTIPLIER = 3
+
 /**
  * 计算单个视频片段积分
  * @param duration 视频时长(秒)
  * @param resolution 分辨率
  * @param useVeo3 是否使用 Veo3 模型
+ * @param generateAudio 是否开启原生音频（3 倍积分）
  * @returns 所需积分数
  */
 export function calculateVideoClipCredits(
   duration: number,
   resolution: VideoResolution,
-  useVeo3: boolean = false
+  useVeo3: boolean = false,
+  generateAudio: boolean = false
 ): number {
   const rates = useVeo3 ? VEO3_VIDEO_GENERATION_BASE_RATES : VIDEO_GENERATION_BASE_RATES
-  const baseRate = rates[resolution] || rates['720p'] // 默认720p
-  return Math.ceil(baseRate * duration)
+  const baseRate = rates[resolution] || rates['720p']
+  const base = Math.ceil(baseRate * duration)
+  return generateAudio ? base * AUDIO_CREDITS_MULTIPLIER : base
 }
 
 /**
  * 计算批量视频总积分
  * @param shots 分镜列表,包含时长和分辨率
  * @param useVeo3 是否使用 Veo3 模型
+ * @param generateAudio 是否开启原生音频（3 倍积分）
  * @returns 总积分数
  */
 export function calculateBatchVideoCredits(
   shots: Array<{ duration_seconds?: number; resolution?: string }>,
-  useVeo3: boolean = false
+  useVeo3: boolean = false,
+  generateAudio: boolean = false
 ): number {
   return shots.reduce((total, shot) => {
     const duration = shot.duration_seconds || 5
     const res = (shot.resolution || '720p') as VideoResolution
-    return total + calculateVideoClipCredits(duration, res, useVeo3)
+    return total + calculateVideoClipCredits(duration, res, useVeo3, generateAudio)
   }, 0)
 }
 

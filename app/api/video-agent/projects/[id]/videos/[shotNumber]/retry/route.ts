@@ -8,10 +8,6 @@ import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { submitVideoGeneration } from '@/lib/services/byteplus/video/seedance-api'
 import { VideoGenerationRequest } from '@/lib/types/video'
-import {
-  generateVeo3Video,
-  getVideoGenerationImages
-} from '@/lib/services/video-agent/veo3-video-generator'
 import type { Database } from '@/lib/database.types'
 import { checkAndDeductSingleVideo } from '@/lib/video-agent/credits-check'
 import { isVeo3Model, getDefaultResolution, type VideoResolution } from '@/lib/video-agent/credits-config'
@@ -55,14 +51,10 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    console.log('[Video Agent] 🔄 Retrying video generation', {
-      projectId,
-      shotNumber,
-      enableNarration: project.enable_narration
-    })
+    console.log('[Video Agent] 🔄 Retrying video generation', { projectId, shotNumber })
 
-    // 获取对应的 shot 和 storyboard 数据
-    const { data: shot } = await supabaseAdmin
+    // 获取对应的 shot，若缺失则尝试从 script_analysis 恢复
+    let { data: shot } = await supabaseAdmin
       .from('project_shots')
       .select('*')
       .eq('project_id', projectId)
@@ -70,10 +62,41 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .single<ProjectShot>()
 
     if (!shot) {
-      return NextResponse.json(
-        { error: 'Shot not found', code: 'SHOT_NOT_FOUND' },
-        { status: 404 }
-      )
+      const analysis = project.script_analysis as any
+      const analysisShot = analysis?.shots?.find((s: any) => s.shot_number === shotNumber)
+
+      if (analysisShot) {
+        console.warn('[Video Agent] ⚠️ Shot missing, recovering from script_analysis', { projectId, shotNumber })
+        await supabaseAdmin
+          .from('project_shots')
+          .upsert({
+            project_id: projectId,
+            shot_number: analysisShot.shot_number,
+            time_range: analysisShot.time_range,
+            description: analysisShot.description,
+            camera_angle: analysisShot.camera_angle,
+            character_action: analysisShot.character_action,
+            mood: analysisShot.mood,
+            duration_seconds: Math.max(2, Math.round(analysisShot.duration_seconds))
+          } as any, { onConflict: 'project_id,shot_number' })
+
+        const { data: recoveredShot } = await supabaseAdmin
+          .from('project_shots')
+          .select('*')
+          .eq('project_id', projectId)
+          .eq('shot_number', shotNumber)
+          .single<ProjectShot>()
+
+        shot = recoveredShot
+      }
+
+      if (!shot) {
+        console.error('[Video Agent] ❌ Shot not found in project_shots or script_analysis', { projectId, shotNumber })
+        return NextResponse.json(
+          { error: 'Shot not found', code: 'SHOT_NOT_FOUND' },
+          { status: 404 }
+        )
+      }
     }
 
     // 🔥 查询当前版本的分镜图（添加 is_current=true 过滤）
@@ -86,6 +109,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       .single<ProjectStoryboard>()
 
     if (!storyboard) {
+      console.error('[Video Agent] ❌ Storyboard not found (is_current=true)', { projectId, shotNumber })
       return NextResponse.json(
         { error: 'Storyboard not found', code: 'STORYBOARD_NOT_FOUND' },
         { status: 404 }
@@ -134,7 +158,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       useVeo3
     })
 
-    const creditResult = await checkAndDeductSingleVideo(userId, duration, resolution, useVeo3)
+    const generateAudio = !project.mute_bgm
+    const creditResult = await checkAndDeductSingleVideo(userId, duration, resolution, useVeo3, generateAudio)
 
     if (!creditResult.canAfford) {
       return NextResponse.json(
@@ -185,93 +210,86 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 根据是否启用旁白选择不同的生成方式
-    if (project.enable_narration) {
-      // 🎙️ Veo3.1 旁白模式：独立生成
-      console.log(`[Video Agent] 🔄 Using Veo3.1 (narration mode) for shot ${shotNumber}`)
+    // 🎬 BytePlus Seedance: 使用分镜图生成
+    // 🔥 重新生成时使用新的随机 seed，确保生成不同的视频
+    const newSeed = Math.floor(Math.random() * 1000000)
 
-      // 🔥 获取下一个分镜图（用于流畅过渡，只查询当前版本）
-      const { data: nextStoryboard } = await supabaseAdmin
-        .from('project_storyboards')
-        .select('*')
-        .eq('project_id', projectId)
-        .eq('shot_number', shotNumber + 1)
-        .eq('is_current', true)
-        .single<ProjectStoryboard>()
+    // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
+    let finalPrompt: string
+    let description: string
+    let characterAction: string
+    let customDuration: number | undefined
+    let customResolution: string | undefined
 
-      const images = getVideoGenerationImages(
-        { imageUrl: storyboard.image_url },
-        nextStoryboard ? { imageUrl: nextStoryboard.image_url } : undefined
-      )
+    if (customPrompt && customPrompt.trim()) {
+      try {
+        // 尝试解析为 JSON 字段
+        const parsedFields = JSON.parse(customPrompt)
 
-      if (!images) {
-        throw new Error('No reference image available for Veo3.1 generation')
-      }
+        if (parsedFields && typeof parsedFields === 'object') {
+          // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds + resolution
+          description = parsedFields.description || shot.description
+          characterAction = parsedFields.character_action || shot.character_action
+          customDuration = parsedFields.duration_seconds ? parseInt(parsedFields.duration_seconds, 10) : undefined
+          customResolution = parsedFields.resolution || undefined
 
-      // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
-      // ✅ Unified prompt model: description (shot framing) + character_action (what happens).
-      // The UI now edits character_action separately and sends both fields in JSON mode.
-      let finalPrompt: string
-      let customDuration: number | undefined
-      let customResolution: string | undefined
-
-      if (customPrompt && customPrompt.trim()) {
-        try {
-          // 尝试解析为 JSON 字段
-          const parsedFields = JSON.parse(customPrompt)
-
-          if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds + resolution
-            const description = parsedFields.description || shot.description
-            const characterAction = parsedFields.character_action || shot.character_action
-            customDuration = parsedFields.duration_seconds ? parseInt(parsedFields.duration_seconds, 10) : undefined
-            customResolution = parsedFields.resolution || undefined
-
-            finalPrompt = `${description}. ${characterAction}`.trim()
-            console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
-              description: description.substring(0, 50) + '...',
-              characterAction: String(characterAction || '').substring(0, 50) + '...',
-              customDuration: customDuration || shot.duration_seconds,
-              customResolution: customResolution || '480p'
-            })
-          } else {
-            // JSON 解析成功但不是对象，作为纯文本处理
-            finalPrompt = customPrompt.trim()
-            console.log(`[Video Agent] 🔄 Using custom description (fallback) for shot ${shotNumber}`)
-          }
-        } catch {
-          // 🔥 纯文本模式（向后兼容）：将整个 customPrompt 作为 description
-          finalPrompt = customPrompt.trim()
-          console.log(`[Video Agent] 🔄 Using custom description (text mode) for shot ${shotNumber}`)
+          console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
+            description: description.substring(0, 50) + '...',
+            characterAction: characterAction.substring(0, 50) + '...',
+            customDuration: customDuration || shot.duration_seconds,
+            customResolution: customResolution || '480p'
+          })
+        } else {
+          // JSON 解析成功但不是对象，作为纯文本处理
+          description = customPrompt.trim()
+          characterAction = shot.character_action
+          console.log(`[Video Agent] 🔄 Using custom description (fallback) for shot ${shotNumber}`)
         }
-      } else {
-        // 默认：description + character_action
-        finalPrompt = `${shot.description}. ${shot.character_action}`.trim()
+      } catch {
+        // 🔥 纯文本模式（向后兼容）：将整个 customPrompt 作为 description
+        description = customPrompt.trim()
+        characterAction = shot.character_action
+        console.log(`[Video Agent] 🔄 Using custom description (text mode) for shot ${shotNumber}`)
       }
+    } else {
+      // 使用默认值
+      description = shot.description
+      characterAction = shot.character_action
+    }
 
-      // 🔥 强制添加禁止字幕指令
-      if (!finalPrompt.includes('No text') && !finalPrompt.includes('no subtitles')) {
-        finalPrompt += '. No text, no subtitles, no captions, no words on screen.'
-      }
+    // 构建完整 prompt（包含角色一致性约束和禁止字幕指令）
+    finalPrompt = `Maintain exact character appearance and features from the reference image. ${description}. ${characterAction}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
 
-      // 🔥 使用自定义时长（如果有），否则使用原始时长
-      const finalDuration = customDuration || shot.duration_seconds
+    // 🔥 使用自定义时长（如果有），否则使用原始时长
+    const finalDuration = customDuration || shot.duration_seconds
+    // 🔥 使用自定义分辨率（如果有），否则与积分计算保持一致（使用 userResolution）
+    const finalResolution = customResolution || userResolution
 
-      const { requestId } = await generateVeo3Video({
-        prompt: finalPrompt,
-        image: images.image,
-        aspectRatio: project.aspect_ratio || '16:9',
-        duration: finalDuration,  // 🔥 使用自定义时长
-        lastImage: images.lastImage
+    const videoRequest: VideoGenerationRequest = {
+      image: storyboard.image_url,
+      prompt: finalPrompt,
+      model: 'vidfab-q1',
+      duration: finalDuration,  // 🔥 使用自定义时长
+      resolution: finalResolution,
+      aspectRatio: project.aspect_ratio || '16:9',
+      cameraFixed: true,
+      watermark: false,
+      seed: newSeed  // 🔥 使用新的随机 seed
+    }
+
+    console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced (with character consistency)'} prompt for shot ${shotNumber}:`, finalPrompt.substring(0, 150) + '...')
+    console.log(`[Video Agent] 🔄 Using new random seed: ${newSeed} (old: ${shot.seed})`)
+
+    try {
+      const result = await submitVideoGeneration(videoRequest, {
+        returnLastFrame: true,
+        generateAudio
       })
 
-      console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced'} prompt for shot ${shotNumber}:`, finalPrompt)
-
-      const { error: veo3UpdateError } = await supabaseAdmin
+      const { error: byteplusUpdateError } = await supabaseAdmin
         .from('project_video_clips')
         .update({
-          video_request_id: requestId,
-          video_status: 'generating',
+          seedance_task_id: result.data.id,
           status: 'generating',
           error_message: null,
           updated_at: new Date().toISOString()
@@ -280,142 +298,46 @@ export const POST = withAuth(async (request, { params, userId }) => {
         .eq('shot_number', shotNumber)
         .returns<any>()
 
-      if (veo3UpdateError) {
-        console.error(`[Video Agent] ❌ Failed to update Veo3 task ID for shot ${shotNumber}:`, veo3UpdateError)
-        throw new Error(`Failed to save Veo3 task ID: ${veo3UpdateError.message}`)
+      if (byteplusUpdateError) {
+        console.error(`[Video Agent] ❌ Failed to update BytePlus task ID for shot ${shotNumber}:`, byteplusUpdateError)
+        throw new Error(`Failed to save BytePlus task ID: ${byteplusUpdateError.message}`)
       }
 
-      console.log(`[Video Agent] 🔄 Veo3.1 task ${requestId} submitted for shot ${shotNumber}`)
+      console.log(`[Video Agent] 🔄 BytePlus task ${result.data.id} submitted for shot ${shotNumber}`)
+    } catch (submitError: any) {
+      // 🔥 检查是否为敏感内容错误
+      if (submitError?.code === 'InputTextSensitiveContentDetected') {
+        const errorMsg = `Sensitive content detected in prompt. Please modify the description or character action to avoid words like "screaming", "violence", "angry", etc. Current prompt: "${finalPrompt.substring(0, 200)}..."`
 
-    } else {
-      // 🎬 BytePlus Seedance: 使用分镜图生成
-      // 🔥 重新生成时使用新的随机 seed，确保生成不同的视频
-      const newSeed = Math.floor(Math.random() * 1000000)
+        console.error(`[Video Agent] Sensitive content detected for shot ${shotNumber}`)
 
-      // 🔥 智能解析 customPrompt：支持 JSON 字段和纯文本两种格式
-      let finalPrompt: string
-      let description: string
-      let characterAction: string
-      let customDuration: number | undefined
-      let customResolution: string | undefined
-
-      if (customPrompt && customPrompt.trim()) {
-        try {
-          // 尝试解析为 JSON 字段
-          const parsedFields = JSON.parse(customPrompt)
-
-          if (parsedFields && typeof parsedFields === 'object') {
-            // 🔥 JSON 字段模式：提取 description + character_action + duration_seconds + resolution
-            description = parsedFields.description || shot.description
-            characterAction = parsedFields.character_action || shot.character_action
-            customDuration = parsedFields.duration_seconds ? parseInt(parsedFields.duration_seconds, 10) : undefined
-            customResolution = parsedFields.resolution || undefined
-
-            console.log(`[Video Agent] 🔄 Using custom fields (JSON mode) for shot ${shotNumber}:`, {
-              description: description.substring(0, 50) + '...',
-              characterAction: characterAction.substring(0, 50) + '...',
-              customDuration: customDuration || shot.duration_seconds,
-              customResolution: customResolution || '480p'
-            })
-          } else {
-            // JSON 解析成功但不是对象，作为纯文本处理
-            description = customPrompt.trim()
-            characterAction = shot.character_action
-            console.log(`[Video Agent] 🔄 Using custom description (fallback) for shot ${shotNumber}`)
-          }
-        } catch {
-          // 🔥 纯文本模式（向后兼容）：将整个 customPrompt 作为 description
-          description = customPrompt.trim()
-          characterAction = shot.character_action
-          console.log(`[Video Agent] 🔄 Using custom description (text mode) for shot ${shotNumber}`)
-        }
-      } else {
-        // 使用默认值
-        description = shot.description
-        characterAction = shot.character_action
-      }
-
-      // 构建完整 prompt（包含角色一致性约束和禁止字幕指令）
-      finalPrompt = `Maintain exact character appearance and features from the reference image. ${description}. ${characterAction}. Keep all character visual details consistent with the reference. No text, no subtitles, no captions, no words on screen.`
-
-      // 🔥 使用自定义时长（如果有），否则使用原始时长
-      const finalDuration = customDuration || shot.duration_seconds
-      // 🔥 使用自定义分辨率（如果有），否则使用默认 480p
-      const finalResolution = customResolution || '480p'
-
-      const videoRequest: VideoGenerationRequest = {
-        image: storyboard.image_url,
-        prompt: finalPrompt,
-        model: 'vidfab-q1',
-        duration: finalDuration,  // 🔥 使用自定义时长
-        resolution: finalResolution,  // 🔥 使用自定义分辨率（默认 480p）
-        aspectRatio: project.aspect_ratio || '16:9',
-        cameraFixed: true,
-        watermark: false,
-        seed: newSeed  // 🔥 使用新的随机 seed
-      }
-
-      console.log(`[Video Agent] 🔄 ${customPrompt ? 'Custom' : 'Enhanced (with character consistency)'} prompt for shot ${shotNumber}:`, finalPrompt.substring(0, 150) + '...')
-      console.log(`[Video Agent] 🔄 Using new random seed: ${newSeed} (old: ${shot.seed})`)
-
-      try {
-        const result = await submitVideoGeneration(videoRequest, {
-          returnLastFrame: true
-        })
-
-        const { error: byteplusUpdateError } = await supabaseAdmin
+        // 标记为失败，让用户修改 prompt
+        const { error: updateError } = await supabaseAdmin
           .from('project_video_clips')
           .update({
-            seedance_task_id: result.data.id,
-            status: 'generating',
-            error_message: null,
+            status: 'failed',
+            error_message: errorMsg,
             updated_at: new Date().toISOString()
           } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shotNumber)
-          .returns<any>()
 
-        if (byteplusUpdateError) {
-          console.error(`[Video Agent] ❌ Failed to update BytePlus task ID for shot ${shotNumber}:`, byteplusUpdateError)
-          throw new Error(`Failed to save BytePlus task ID: ${byteplusUpdateError.message}`)
+        if (updateError) {
+          console.error(`[Video Agent] Failed to update status:`, updateError)
         }
 
-        console.log(`[Video Agent] 🔄 BytePlus task ${result.data.id} submitted for shot ${shotNumber}`)
-      } catch (submitError: any) {
-        // 🔥 检查是否为敏感内容错误
-        if (submitError?.code === 'InputTextSensitiveContentDetected') {
-          const errorMsg = `Sensitive content detected in prompt. Please modify the description or character action to avoid words like "screaming", "violence", "angry", etc. Current prompt: "${finalPrompt.substring(0, 200)}..."`
-
-          console.error(`[Video Agent] Sensitive content detected for shot ${shotNumber}`)
-
-          // 标记为失败，让用户修改 prompt
-          const { error: updateError } = await supabaseAdmin
-            .from('project_video_clips')
-            .update({
-              status: 'failed',
-              error_message: errorMsg,
-              updated_at: new Date().toISOString()
-            } as any)
-            .eq('project_id', projectId)
-            .eq('shot_number', shotNumber)
-
-          if (updateError) {
-            console.error(`[Video Agent] Failed to update status:`, updateError)
-          }
-
-          return NextResponse.json(
-            {
-              error: 'Sensitive content detected',
-              message: errorMsg,
-              code: 'SENSITIVE_CONTENT'
-            },
-            { status: 400 }
-          )
-        }
-
-        // 其他错误直接抛出
-        throw submitError
+        return NextResponse.json(
+          {
+            error: 'Sensitive content detected',
+            message: errorMsg,
+            code: 'SENSITIVE_CONTENT'
+          },
+          { status: 400 }
+        )
       }
+
+      // 其他错误直接抛出
+      throw submitError
     }
 
     return NextResponse.json({

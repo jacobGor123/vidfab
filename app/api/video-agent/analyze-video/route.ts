@@ -41,7 +41,7 @@ export const POST = withAuth(async (req, { params, userId }) => {
   try {
     // 1. 解析请求体
     const body = await req.json()
-    const { videoSource, duration, storyStyle, aspectRatio = '16:9', imageStyle } = body
+    const { videoSource, duration, storyStyle, aspectRatio = '16:9', imageStyle, muteBgm = false } = body
 
     console.log('[API /analyze-video] Received request:', {
       userId,
@@ -224,8 +224,7 @@ export const POST = withAuth(async (req, { params, userId }) => {
         story_style: storyStyle,
         original_script: scriptContent,
         aspect_ratio: aspectRatio,
-        enable_narration: false,
-        mute_bgm: false,  // YouTube 模式默认开启背景音乐
+        mute_bgm: muteBgm,
         image_style_id: imageStyle || null,  // 🔥 直接设置图片风格
         status: 'draft',
         current_step: 1,

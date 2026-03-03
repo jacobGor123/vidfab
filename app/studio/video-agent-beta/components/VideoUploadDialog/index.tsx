@@ -10,7 +10,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Youtube, Upload, Loader2 } from 'lucide-react'
+import { Youtube, Upload, Loader2, Volume2, VolumeX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { showError } from '@/lib/utils/toast'
 import { useVideoGenerationAuth } from '@/hooks/use-auth-modal'
@@ -47,12 +47,14 @@ export default function VideoUploadDialog({
   const [inputType, setInputType] = useState<'youtube' | 'local'>('youtube')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [imageStyle, setImageStyle] = useState<ImageStyle>('realistic')
+  const [muteBgm, setMuteBgm] = useState(false)  // 复刻模式默认开启 BGM
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   const { isAnalyzing, progress, analyzeYouTubeVideo } = useVideoAnalysis({
     duration,
     storyStyle,
     aspectRatio,
+    muteBgm,
     onComplete: (project) => {
       // 重置状态并关闭
       setYoutubeUrl('')
@@ -191,6 +193,51 @@ export default function VideoUploadDialog({
                   onChange={setImageStyle}
                   disabled={isAnalyzing}
                 />
+
+                {/* BGM 开关 */}
+                <button
+                  type="button"
+                  onClick={() => setMuteBgm(v => !v)}
+                  disabled={isAnalyzing}
+                  className={cn(
+                    "w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all",
+                    muteBgm
+                      ? "bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-600"
+                      : "bg-blue-600/15 border-blue-500/40 text-white hover:border-blue-400/60"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    {muteBgm
+                      ? <VolumeX className="w-4 h-4 text-slate-400" />
+                      : <Volume2 className="w-4 h-4 text-blue-400" />
+                    }
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Background Music</div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        {muteBgm ? 'Muted — no audio generated' : 'Enabled — Seedance native audio (3× credits)'}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{
+                    width: 36, height: 20,
+                    borderRadius: 999,
+                    backgroundColor: muteBgm ? '#334155' : '#3b82f6',
+                    position: 'relative',
+                    flexShrink: 0,
+                    transition: 'background-color 0.2s'
+                  }}>
+                    <span style={{
+                      position: 'absolute',
+                      top: 2, left: 2,
+                      width: 16, height: 16,
+                      borderRadius: '50%',
+                      backgroundColor: 'white',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                      transition: 'transform 0.2s',
+                      transform: muteBgm ? 'translateX(0)' : 'translateX(16px)'
+                    }} />
+                  </div>
+                </button>
               </div>
             )}
 

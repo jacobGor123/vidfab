@@ -35,7 +35,7 @@ export function VideoCardCompact({
     videoClip,
     defaultPrompt,
     customPrompt,
-    defaultDuration = 5,  // 🔥 新增：默认 5 秒
+    defaultDuration = 5,
     defaultResolution = '480p',  // 🔥 新增：默认 480p
     aspectRatio,
     isGenerating,
@@ -43,7 +43,7 @@ export function VideoCardCompact({
     onGenerate,
     onUpdatePrompt
 }: VideoCardCompactProps) {
-    const [duration, setDuration] = useState(defaultDuration)  // 🔥 新增：时长状态
+    const [duration, setDuration] = useState(Math.max(4, defaultDuration))
     const [resolution, setResolution] = useState(defaultResolution)  // 🔥 新增：分辨率状态
 
     // 使用自定义 prompt 或默认 prompt
@@ -80,8 +80,6 @@ export function VideoCardCompact({
                                 disabled={isCurrentlyGenerating}
                                 className="w-full text-sm p-2 bg-slate-900/50 border border-slate-700/50 focus:border-blue-500/50 rounded-lg focus:outline-none transition-colors text-white"
                             >
-                                <option value={2}>2s</option>
-                                <option value={3}>3s</option>
                                 <option value={4}>4s</option>
                                 <option value={5}>5s</option>
                                 <option value={6}>6s</option>
@@ -89,6 +87,8 @@ export function VideoCardCompact({
                                 <option value={8}>8s</option>
                                 <option value={9}>9s</option>
                                 <option value={10}>10s</option>
+                                <option value={11}>11s</option>
+                                <option value={12}>12s</option>
                             </select>
                         </div>
 

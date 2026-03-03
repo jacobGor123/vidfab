@@ -153,7 +153,6 @@ export const PATCH = withAuth(async (request, { params, userId }) => {
       'story_style',
       'duration',
       'aspect_ratio',
-      'enable_narration',
       'step_1_status'  // 🔥 YouTube 模式需要直接设置步骤状态
     ]
 

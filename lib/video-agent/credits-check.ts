@@ -132,9 +132,10 @@ export async function checkAndDeductSingleVideo(
   userUuid: string,
   duration: number,
   resolution: VideoResolution,
-  useVeo3: boolean = false
+  useVeo3: boolean = false,
+  generateAudio: boolean = false
 ): Promise<CreditCheckResult> {
-  const requiredCredits = calculateVideoClipCredits(duration, resolution, useVeo3)
+  const requiredCredits = calculateVideoClipCredits(duration, resolution, useVeo3, generateAudio)
   return checkAndDeductCredits(userUuid, requiredCredits, 'video_single')
 }
 
@@ -143,13 +144,15 @@ export async function checkAndDeductSingleVideo(
  * @param userUuid 用户UUID
  * @param shots 分镜列表
  * @param useVeo3 是否使用 Veo3 模型
+ * @param generateAudio 是否开启原生音频（3 倍积分）
  * @returns 检查和扣除结果
  */
 export async function checkAndDeductBatchVideos(
   userUuid: string,
   shots: Array<{ duration_seconds?: number; resolution?: string }>,
-  useVeo3: boolean = false
+  useVeo3: boolean = false,
+  generateAudio: boolean = false
 ): Promise<CreditCheckResult> {
-  const requiredCredits = calculateBatchVideoCredits(shots, useVeo3)
+  const requiredCredits = calculateBatchVideoCredits(shots, useVeo3, generateAudio)
   return checkAndDeductCredits(userUuid, requiredCredits, 'video_batch')
 }

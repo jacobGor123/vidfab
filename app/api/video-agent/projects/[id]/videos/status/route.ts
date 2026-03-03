@@ -7,7 +7,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { checkVideoStatus as getBytePlusVideoStatus } from '@/lib/services/byteplus/video/seedance-api'
-import { getVeo3VideoStatus } from '@/lib/services/video-agent/veo3-video-generator'
 import type { Database } from '@/lib/database.types'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
@@ -77,7 +76,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
       })
     }
 
-    // 🔥 关键修复：主动查询BytePlus/Veo3获取generating状态的视频
+    // 🔥 关键修复：主动查询BytePlus获取generating状态的视频
     const generatingClips = videoClips.filter(clip => clip.status === 'generating')
 
     if (generatingClips.length > 0) {
@@ -98,9 +97,8 @@ export const GET = withAuth(async (request, { params, userId }) => {
           try {
             let result: any = null
 
-            // 根据task_id类型判断使用哪个API
+            // BytePlus Seedance
             if (clip.seedance_task_id) {
-              // BytePlus Seedance（带超时）
               const byteplusResponse = await withTimeout(
                 getBytePlusVideoStatus(clip.seedance_task_id),
                 EXTERNAL_API_TIMEOUT_MS
@@ -113,12 +111,6 @@ export const GET = withAuth(async (request, { params, userId }) => {
                 lastFrameUrl: byteplusResponse.data.lastFrameUrl || null,
                 error: byteplusResponse.data.error
               }
-            } else if (clip.video_request_id) {
-              // Google Veo3（带超时）
-              result = await withTimeout(
-                getVeo3VideoStatus(clip.video_request_id),
-                EXTERNAL_API_TIMEOUT_MS
-              )
             } else {
               return
             }

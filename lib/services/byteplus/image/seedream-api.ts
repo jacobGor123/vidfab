@@ -1,6 +1,5 @@
 /**
- * BytePlus Seedream 4.5 Image API
- * 升级说明: 支持角色一致性 (6-10张参考图)
+ * BytePlus Seedream 5.0 Image API
  */
 
 import { BytePlusClient } from '../core/client'
@@ -23,18 +22,11 @@ const client = new BytePlusClient({
   enableRetry: true
 })
 
-// 使用 Seedream 4.5 模型 (支持角色一致性)
-const DEFAULT_IMAGE_MODEL = 'seedream-4-5-251128'
+const DEFAULT_IMAGE_MODEL = 'seedream-5-0-260128'
 
 /**
  * 提交图片生成任务
  * 注意: BytePlus Image API 是同步返回的，直接返回图片 URL
- *
- * Seedream 4.5 新特性:
- * - 支持多张参考图（至少 10 张以上），用于角色一致性
- * - 参考图通过 request.images 传递
- * - Video Agent 业务规则：每个角色 1 张参考图，多个角色的分镜会传递多张
- * - 例如：Prince + Dragon 的分镜会传递 2 张参考图
  */
 export async function submitImageGeneration(
   request: ImageGenerationRequest
@@ -54,7 +46,6 @@ export async function submitImageGeneration(
   }
 
   // Image-to-Image 或 参考图 (用于角色一致性)
-  // Seedream 4.5: 支持多张参考图（至少 10 张以上）
   if (request.images && request.images.length > 0) {
     byteplusRequest.image = request.images.length === 1
       ? request.images[0]

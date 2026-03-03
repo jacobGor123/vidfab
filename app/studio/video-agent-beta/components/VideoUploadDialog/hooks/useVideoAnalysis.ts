@@ -14,6 +14,7 @@ interface UseVideoAnalysisProps {
   duration: number
   storyStyle: string
   aspectRatio: '16:9' | '9:16'
+  muteBgm: boolean
   onComplete: (project: any) => void
 }
 
@@ -21,6 +22,7 @@ export function useVideoAnalysis({
   duration,
   storyStyle,
   aspectRatio,
+  muteBgm,
   onComplete
 }: UseVideoAnalysisProps) {
   const { analyzeVideo, createProject, updateProject, getProject } = useVideoAgentAPI()
@@ -58,8 +60,9 @@ export function useVideoAnalysis({
         },
         duration,  // YouTube 模式下会被实际时长覆盖
         storyStyle,
-        aspectRatio,
-        imageStyle  // 🔥 直接传递图片风格，API 创建项目时设置
+        aspectRatio: '9:16',  // 复刻视频模式强制竖屏
+        imageStyle,  // 🔥 直接传递图片风格，API 创建项目时设置
+        muteBgm
       }) as any
 
       // 🔥 API 现在返回 { analysis, project, meta }
