@@ -3,14 +3,13 @@ import { BytePlusContent, BytePlusVideoRequest, BytePlusVideoResponse, BytePlusV
 
 const DEFAULT_VIDEO_MODEL = 'seedance-1-5-pro-251215'
 
-// Seedance 1.5 Pro 仅支持 5s 或 10s，对齐到最近的合法值
-const VALID_DURATIONS = [5, 10]
+// Seedance 1.5 Pro 支持 4-12 秒任意整数
+const MIN_DURATION = 4
+const MAX_DURATION = 12
 
-function snapToValidDuration(duration: number | undefined): number | undefined {
+function clampDuration(duration: number | undefined): number | undefined {
   if (duration === undefined) return undefined
-  return VALID_DURATIONS.reduce((prev, cur) =>
-    Math.abs(cur - duration) < Math.abs(prev - duration) ? cur : prev
-  )
+  return Math.min(MAX_DURATION, Math.max(MIN_DURATION, Math.round(duration)))
 }
 
 /**
@@ -47,7 +46,7 @@ export function convertToBytePlusRequest(
     // 视频规格参数（body-level，严格校验）
     resolution: request.resolution,
     ratio: request.aspectRatio,
-    duration: snapToValidDuration(request.duration),
+    duration: clampDuration(request.duration),
     watermark: request.watermark ?? false,
     generate_audio: options?.generateAudio ?? false,
   }
