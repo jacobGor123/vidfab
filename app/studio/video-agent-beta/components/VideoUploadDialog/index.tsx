@@ -47,7 +47,7 @@ export default function VideoUploadDialog({
   const [inputType, setInputType] = useState<'youtube' | 'local'>('youtube')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [imageStyle, setImageStyle] = useState<ImageStyle>('realistic')
-  const [muteBgm, setMuteBgm] = useState(false)  // 复刻模式默认开启 BGM
+  const [muteBgm, setMuteBgm] = useState(true)  // 复刻模式默认关闭 BGM（用户可手动开启，开启后 3× 积分）
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   const { isAnalyzing, progress, analyzeYouTubeVideo } = useVideoAnalysis({
