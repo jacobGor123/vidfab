@@ -141,6 +141,15 @@ export function StoryboardSection({
     void refreshStoryboards()
   }, [storyboardsSyncKey, refreshStoryboards, project.storyboards])
 
+  // 视频生成完成后刷新分镜图状态（获取 CDN URL 替换过期的外部 URL）
+  const prevIsVideoGeneratingRef = useRef(false)
+  useEffect(() => {
+    if (prevIsVideoGeneratingRef.current && !isVideoGenerating) {
+      void refreshStoryboards()
+    }
+    prevIsVideoGeneratingRef.current = isVideoGenerating
+  }, [isVideoGenerating, refreshStoryboards])
+
   // 追踪状态变化
   const lastNotifiedStatusRef = useRef<string | null>(null)
   const lastVideoCanProceedRef = useRef<boolean | null>(null)
