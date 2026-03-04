@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SessionProvider } from "@/components/auth/session-provider"
+import { GtmAuthTracker } from "@/components/auth/gtm-auth-tracker"
 import { VideoProvider } from "@/lib/contexts/video-context"
 import { ImageProvider } from "@/lib/contexts/image-context"
 import { WebVitals } from "@/components/web-vitals"
@@ -187,6 +188,7 @@ export default function RootLayout({
         <WebVitals />
         {/* <BlackFridayBanner /> */}
         <SessionProvider>
+          <GtmAuthTracker />
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <VideoProvider>
               <ImageProvider>

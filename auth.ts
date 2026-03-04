@@ -27,6 +27,8 @@ declare module "next-auth" {
       nickname: string
       avatar_url?: string
       created_at: string
+      isNewUser?: boolean
+      signinProvider?: string
     } & DefaultSession["user"]
   }
 
@@ -47,5 +49,7 @@ declare module "next-auth/jwt" {
       avatar_url?: string
       created_at: string
     }
+    isNewUser?: boolean
+    signinProvider?: string
   }
 }

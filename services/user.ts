@@ -10,7 +10,7 @@ import { getUuid, getUserUuidFromEmail } from '@/lib/hash';
  * Save or update a user in the database
  * ✅ 修复：区分新用户和已存在用户，避免登录时覆盖积分和订阅信息
  */
-export async function saveUser(userData: CreateUserData & { uuid?: string }): Promise<User> {
+export async function saveUser(userData: CreateUserData & { uuid?: string }): Promise<{ user: User; isNewUser: boolean }> {
   try {
     const now = getIsoTimestr();
     const userUuid = userData.uuid || getUserUuidFromEmail(userData.email);
@@ -158,23 +158,26 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         // 成功获取现有用户,返回
         console.log(`✅ Successfully resolved constraint conflict for email: ${userData.email}`);
         return {
-          uuid: existingData.uuid,
-          email: existingData.email,
-          nickname: existingData.nickname,
-          avatar_url: existingData.avatar_url,
-          signin_type: existingData.signin_type,
-          signin_provider: existingData.signin_provider,
-          signin_openid: existingData.signin_openid,
-          created_at: existingData.created_at,
-          updated_at: existingData.updated_at,
-          signin_ip: existingData.signin_ip,
-          email_verified: existingData.email_verified,
-          last_login: existingData.last_login,
-          is_active: existingData.is_active,
-          subscription_status: existingData.subscription_status,
-          subscription_plan: existingData.subscription_plan,
-          credits_remaining: existingData.credits_remaining,
-          total_videos_processed: existingData.total_videos_processed,
+          user: {
+            uuid: existingData.uuid,
+            email: existingData.email,
+            nickname: existingData.nickname,
+            avatar_url: existingData.avatar_url,
+            signin_type: existingData.signin_type,
+            signin_provider: existingData.signin_provider,
+            signin_openid: existingData.signin_openid,
+            created_at: existingData.created_at,
+            updated_at: existingData.updated_at,
+            signin_ip: existingData.signin_ip,
+            email_verified: existingData.email_verified,
+            last_login: existingData.last_login,
+            is_active: existingData.is_active,
+            subscription_status: existingData.subscription_status,
+            subscription_plan: existingData.subscription_plan,
+            credits_remaining: existingData.credits_remaining,
+            total_videos_processed: existingData.total_videos_processed,
+          },
+          isNewUser: false, // 约束冲突说明用户已存在
         };
       }
 
@@ -206,23 +209,26 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     }
 
     return {
-      uuid: data.uuid,
-      email: data.email,
-      nickname: data.nickname,
-      avatar_url: data.avatar_url,
-      signin_type: data.signin_type,
-      signin_provider: data.signin_provider,
-      signin_openid: data.signin_openid,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      signin_ip: data.signin_ip,
-      email_verified: data.email_verified,
-      last_login: data.last_login,
-      is_active: data.is_active,
-      subscription_status: data.subscription_status,
-      subscription_plan: data.subscription_plan,
-      credits_remaining: data.credits_remaining,
-      total_videos_processed: data.total_videos_processed,
+      user: {
+        uuid: data.uuid,
+        email: data.email,
+        nickname: data.nickname,
+        avatar_url: data.avatar_url,
+        signin_type: data.signin_type,
+        signin_provider: data.signin_provider,
+        signin_openid: data.signin_openid,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        signin_ip: data.signin_ip,
+        email_verified: data.email_verified,
+        last_login: data.last_login,
+        is_active: data.is_active,
+        subscription_status: data.subscription_status,
+        subscription_plan: data.subscription_plan,
+        credits_remaining: data.credits_remaining,
+        total_videos_processed: data.total_videos_processed,
+      },
+      isNewUser: !existingUser,
     };
   } catch (error: any) {
     console.error('Error in saveUser:', error);

@@ -237,7 +237,9 @@ export const authConfig: NextAuthConfig = {
       if (token && token.user) {
         session.user = {
           ...session.user,
-          ...token.user
+          ...token.user,
+          isNewUser: token.isNewUser,
+          signinProvider: token.signinProvider,
         };
       }
       return session;
@@ -262,7 +264,7 @@ export const authConfig: NextAuthConfig = {
           };
 
           try {
-            const savedUser = await saveUser(userData);
+            const { user: savedUser, isNewUser } = await saveUser(userData);
 
             // Update last login
             await updateLastLogin(savedUser.uuid, await getClientIp());
@@ -274,6 +276,12 @@ export const authConfig: NextAuthConfig = {
               avatar_url: savedUser.avatar_url,
               created_at: savedUser.created_at,
             };
+
+            // 新用户标记，用于前端 GTM sign_up 事件（仅首次登录时存在）
+            if (isNewUser) {
+              token.isNewUser = true;
+              token.signinProvider = account.provider;
+            }
           } catch (saveError) {
             console.error("Failed to save user:", saveError);
             // Fallback to basic token data with deterministic UUID
@@ -323,7 +331,7 @@ export const authConfig: NextAuthConfig = {
                   signin_ip: await getClientIp(),
                 };
 
-                const newUser = await saveUser(userData);
+                const { user: newUser } = await saveUser(userData);
                 token.user.uuid = newUser.uuid; // 使用数据库生成的UUID
                 console.log(`✅ 用户重新创建成功: ${newUser.uuid}`);
               }

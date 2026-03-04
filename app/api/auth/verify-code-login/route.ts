@@ -8,6 +8,7 @@ import { redisVerificationCodeManager } from '@/lib/redis-verification-codes';
 import { generateRandomString } from '@/lib/hash';
 import { getClientIp } from '@/lib/ip';
 import { checkRedisHealth } from '@/lib/redis-upstash';
+import { getUserByEmail } from '@/services/user';
 
 const verifyCodeSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -84,7 +85,11 @@ export async function POST(request: NextRequest) {
     // This token tells NextAuth that the email has been verified
     const verifiedToken = `verified-${generateRandomString(32)}-${email.toLowerCase().trim()}-${Date.now()}`;
 
-    console.log(`✅ Email verification successful for ${email}`);
+    // 判断是新用户还是已有用户，用于前端 GTM sign_up 事件
+    const existingUser = await getUserByEmail(email.toLowerCase().trim());
+    const isNewUser = !existingUser;
+
+    console.log(`✅ Email verification successful for ${email}, isNewUser: ${isNewUser}`);
 
     // Success response
     return NextResponse.json({
@@ -92,7 +97,8 @@ export async function POST(request: NextRequest) {
       message: 'Email verified successfully',
       verified_token: verifiedToken,
       email: email.toLowerCase().trim(),
-      verified_at: new Date().toISOString()
+      verified_at: new Date().toISOString(),
+      isNewUser,
     });
 
   } catch (error: any) {

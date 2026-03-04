@@ -19,27 +19,32 @@ function SubscriptionSuccessPageInner() {
   const sessionId = searchParams.get('session_id')
 
   useEffect(() => {
-    const fetchSubscriptionStatus = async () => {
-      if (!session) return
+    if (!session) return
 
+    let attempts = 0
+    const MAX_ATTEMPTS = 5
+    const INTERVAL_MS = 3000
+
+    const tryFetch = async () => {
+      attempts++
       try {
         const response = await fetch('/api/subscription/status')
         const data = await response.json()
 
-        if (data.success) {
+        if (data.success && data.subscription?.plan_id) {
           setSubscriptionDetails(data)
+          setLoading(false)
 
           // 🔥 GTM 购买转化事件跟踪
-          const planId = data.subscription?.plan_id
-          const billingCycle = data.subscription?.billing_cycle || 'monthly'
+          const planId = data.subscription.plan_id
+          const billingCycle = data.subscription.billing_cycle || 'monthly'
 
-          if (planId && ['lite', 'pro', 'premium'].includes(planId)) {
+          if (['lite', 'pro', 'premium'].includes(planId)) {
             const plan = SUBSCRIPTION_PLANS[planId as 'lite' | 'pro' | 'premium']
             const value = billingCycle === 'annual'
               ? plan.price.annual / 100
               : plan.price.monthly / 100
 
-            // 触发 GA4 purchase 事件
             trackPurchase(
               planId,
               billingCycle as 'monthly' | 'annual',
@@ -47,17 +52,24 @@ function SubscriptionSuccessPageInner() {
               sessionId || `sub_${Date.now()}`
             )
           }
+          return // 成功，停止轮询
+        }
+
+        // 订阅数据还未就绪，继续重试
+        if (attempts < MAX_ATTEMPTS) {
+          setTimeout(tryFetch, INTERVAL_MS)
+        } else {
+          console.warn('订阅状态未能在预期时间内就绪')
+          setLoading(false)
         }
       } catch (error) {
         console.error('Error fetching subscription status:', error)
-      } finally {
         setLoading(false)
       }
     }
 
-    // 延迟获取状态，确保webhook已处理
-    const timer = setTimeout(fetchSubscriptionStatus, 3000)
-
+    // session 就绪后立即开始，3秒后第一次fetch（等待webhook处理）
+    const timer = setTimeout(tryFetch, INTERVAL_MS)
     return () => clearTimeout(timer)
   }, [session, sessionId])
 
