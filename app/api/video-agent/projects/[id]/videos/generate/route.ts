@@ -25,7 +25,8 @@ async function generateBytePlusVideosSequentially(
   storyboards: Storyboard[],
   shots: Shot[],
   aspectRatio: '16:9' | '9:16',
-  generateAudio: boolean = false
+  generateAudio: boolean = false,
+  defaultResolution: string = '720p'
 ) {
   // ⚠️ 注意：这里只提交第一个视频
   // 后续视频需要等第一个完成后，由 /videos/status API 或单独的后台任务触发
@@ -73,12 +74,14 @@ async function generateBytePlusVideosSequentially(
         clampedDuration = maxDuration
       }
 
+      const shotResolution = (shot as any).resolution || defaultResolution
+
       const videoRequest: VideoGenerationRequest = {
         image: firstFrameUrl,
         prompt: enhancedPrompt,
         model: 'vidfab-q1',
-        duration: clampedDuration,  // 🔥 使用截断后的时长
-        resolution: '720p',
+        duration: clampedDuration,
+        resolution: shotResolution,
         aspectRatio: aspectRatio,
         cameraFixed: true,
         watermark: false,
@@ -473,7 +476,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
         storyboards as Storyboard[],
         shots as Shot[],
         project.aspect_ratio || '16:9',
-        generateAudio
+        generateAudio,
+        defaultResolution
       )
     })
 
