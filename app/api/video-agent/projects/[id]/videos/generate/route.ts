@@ -267,6 +267,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
         if (analysis.shots && Array.isArray(analysis.shots) && analysis.shots.length > 0) {
           try {
+            const fallbackResolution = getDefaultResolution(project.model_id || 'vidfab-q1')
             const shotsToInsert = analysis.shots.map((shot: any) => ({
               project_id: projectId,
               shot_number: shot.shot_number,
@@ -274,7 +275,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
               description: shot.description,
               camera_angle: shot.camera_angle,
               mood: shot.mood,
-              duration_seconds: Math.max(4, Math.round(shot.duration_seconds))  // 🔥 最小4秒（Seedance 1.5 Pro 下限）
+              duration_seconds: Math.max(4, Math.round(shot.duration_seconds)),
+              resolution: shot.resolution || fallbackResolution
             }))
 
             const { error: insertError } = await supabaseAdmin

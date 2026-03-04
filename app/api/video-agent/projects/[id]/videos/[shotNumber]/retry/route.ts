@@ -77,7 +77,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
             camera_angle: analysisShot.camera_angle,
             character_action: analysisShot.character_action,
             mood: analysisShot.mood,
-            duration_seconds: Math.max(2, Math.round(analysisShot.duration_seconds))
+            duration_seconds: Math.max(4, Math.round(analysisShot.duration_seconds)),
+            resolution: analysisShot.resolution || getDefaultResolution(project.model_id || 'vidfab-q1')
           } as any, { onConflict: 'project_id,shot_number' })
 
         const { data: recoveredShot } = await supabaseAdmin
