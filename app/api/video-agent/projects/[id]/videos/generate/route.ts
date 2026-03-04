@@ -351,49 +351,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // ✅ 积分检查: 计算所有分镜的总积分
-    // 从数据库读取每个分镜的 duration 和 resolution
-    const modelId = project.model_id || 'vidfab-q1'  // 默认 BytePlus 模型
-    const useVeo3 = isVeo3Model(modelId)
-    const defaultResolution = getDefaultResolution(modelId)
-
-    const shotsForCredits = shots.map(shot => ({
-      duration_seconds: shot.duration_seconds || 5,
-      resolution: (shot as any).resolution || defaultResolution  // 🔥 从数据库读取用户选择的分辨率
-    }))
-
-    console.log('[Video Agent] Credits calculation for batch:', {
-      projectId,
-      shotsCount: shots.length,
-      shotsForCredits,
-      useVeo3
-    })
-
-    const generateAudio = !project.mute_bgm
-    const creditResult = await checkAndDeductBatchVideos(userId, shotsForCredits, useVeo3, generateAudio)
-
-    if (!creditResult.canAfford) {
-      return NextResponse.json(
-        {
-          error: creditResult.error || 'Insufficient credits',
-          code: 'INSUFFICIENT_CREDITS',
-          requiredCredits: creditResult.requiredCredits,
-          userCredits: creditResult.userCredits
-        },
-        { status: 402 }
-      )
-    }
-
-    console.log('[Video Agent] ✅ Credits checked and deducted:', {
-      projectId,
-      model: modelId,
-      defaultResolution,
-      shotsCount: shots.length,
-      creditsDeducted: creditResult.requiredCredits,
-      remainingCredits: creditResult.remainingCredits
-    })
-
-    // 🔥 幂等性检查：检查是否已经有视频生成记录
+    // 🔥 幂等性检查（在扣积分前）：检查是否已经有视频生成记录，避免重复扣费
     const { data: existingClips } = await supabaseAdmin
       .from('project_video_clips')
       .select('*')
@@ -434,7 +392,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
         })
 
         if (hasRealTasks && !hasStuckTasks) {
-          // 有真实任务在运行，且未超时
+          // 有真实任务在运行，且未超时 → 直接返回，不重复扣费
           return NextResponse.json({
             success: true,
             data: {
@@ -444,7 +402,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
             }
           })
         } else {
-          // 任务提交失败或卡住，重置这些记录
+          // 任务提交失败或卡住，重置这些记录，继续走扣费+提交流程
           console.warn('[Video Agent] ⚠️ Resetting stuck/failed video generation tasks', {
             projectId,
             stuckCount: generatingClips.length,
@@ -465,6 +423,48 @@ export const POST = withAuth(async (request, { params, userId }) => {
         }
       }
     }
+
+    // ✅ 积分检查: 计算所有分镜的总积分
+    // 从数据库读取每个分镜的 duration 和 resolution
+    const modelId = project.model_id || 'vidfab-q1'  // 默认 BytePlus 模型
+    const useVeo3 = isVeo3Model(modelId)
+    const defaultResolution = getDefaultResolution(modelId)
+
+    const shotsForCredits = shots.map(shot => ({
+      duration_seconds: Math.min(12, Math.max(4, shot.duration_seconds || 5)),  // 🔥 与实际执行保持一致，避免多扣积分
+      resolution: (shot as any).resolution || defaultResolution  // 🔥 从数据库读取用户选择的分辨率
+    }))
+
+    console.log('[Video Agent] Credits calculation for batch:', {
+      projectId,
+      shotsCount: shots.length,
+      shotsForCredits,
+      useVeo3
+    })
+
+    const generateAudio = !project.mute_bgm
+    const creditResult = await checkAndDeductBatchVideos(userId, shotsForCredits, useVeo3, generateAudio)
+
+    if (!creditResult.canAfford) {
+      return NextResponse.json(
+        {
+          error: creditResult.error || 'Insufficient credits',
+          code: 'INSUFFICIENT_CREDITS',
+          requiredCredits: creditResult.requiredCredits,
+          userCredits: creditResult.userCredits
+        },
+        { status: 402 }
+      )
+    }
+
+    console.log('[Video Agent] ✅ Credits checked and deducted:', {
+      projectId,
+      model: modelId,
+      defaultResolution,
+      shotsCount: shots.length,
+      creditsDeducted: creditResult.requiredCredits,
+      remainingCredits: creditResult.remainingCredits
+    })
 
     // 更新项目状态为 processing
     await supabaseAdmin

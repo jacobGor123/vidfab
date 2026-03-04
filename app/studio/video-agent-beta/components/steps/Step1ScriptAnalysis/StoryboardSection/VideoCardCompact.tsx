@@ -36,7 +36,7 @@ export function VideoCardCompact({
     defaultPrompt,
     customPrompt,
     defaultDuration = 5,
-    defaultResolution = '480p',  // 🔥 新增：默认 480p
+    defaultResolution = '720p',  // 🔥 与后端 getDefaultResolution('vidfab-q1') 保持一致
     aspectRatio,
     isGenerating,
     disabled = false,
