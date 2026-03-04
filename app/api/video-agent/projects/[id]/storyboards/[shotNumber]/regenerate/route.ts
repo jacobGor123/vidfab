@@ -471,12 +471,14 @@ export const POST = withAuth(async (request, { params, userId }) => {
         }
 
         // 🔥 标记关联视频为 outdated（因为 prompt 已经变化）
+        // 覆盖 success / generating / failed 三种状态，确保 generating 状态的旧任务
+        // 不会在下次轮询中误显示为"生成中"
         await supabaseAdmin
           .from('project_video_clips')
           .update({ status: 'outdated' } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shotNumber)
-          .eq('status', 'success')
+          .neq('status', 'outdated')
 
       } catch (error: any) {
         console.error('[Video Agent] Field extraction failed:', error)

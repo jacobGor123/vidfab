@@ -446,19 +446,22 @@ export function useVideoAgentAPI() {
   const regenerateStoryboard = useCallback(async (
     projectId: string,
     params: RegenerateStoryboardParams
-  ): Promise<void> => {
+  ): Promise<{ storyboard: any; imageUrl: string } | null> => {
     const url = `/api/video-agent/projects/${projectId}/storyboards/${params.shotNumber}/regenerate`
 
-    return callAPI(url, {
+    const result = await callAPI(url, {
       method: 'POST',
       body: JSON.stringify({
         image_style: params.imageStyle,
         customPrompt: params.customPrompt,
-        selectedCharacterNames: params.selectedCharacterNames,  // 🔥 传递选中的人物
+        selectedCharacterNames: params.selectedCharacterNames,
         selectedCharacterIds: params.selectedCharacterIds,
-        fieldsUpdate: params.fieldsUpdate  // 🔥 传递字段更新
+        fieldsUpdate: params.fieldsUpdate
       }),
-    })
+    }) as any
+
+    // 返回新生成的 storyboard 数据，供调用方直接更新状态，避免冗余 GET
+    return result?.data ? { storyboard: result.data.storyboard, imageUrl: result.data.imageUrl } : null
   }, [callAPI])
 
   // ==================== Video APIs ====================

@@ -458,35 +458,38 @@ export default function Step1ScriptAnalysis({ project, onNext, onUpdate }: Step1
         onUpdate({ script_analysis: nextAnalysis })
       }
 
-      // 调用重新生成 API（修正参数结构）
-      await regenerateStoryboard(project.id, {
+      // 调用重新生成 API，直接返回新 storyboard 记录（避免冗余 GET）
+      const regenResult = await regenerateStoryboard(project.id, {
         shotNumber: shotNumber,
         customPrompt: prompt,
         selectedCharacterNames: characterNames,
-        // Prefer ids to avoid name-matching pitfalls and stale reference mismatches.
         selectedCharacterIds: characterIds,
-        // 🔥 同步 prompt 相关字段：后端会提取字段并写回 script_analysis；这里先保证 UI 立刻跟随。
         fieldsUpdate: {
           description: prompt,
-          // Do not overwrite video_prompt; avoid drifting copies of the same text.
         } as any
       })
 
       // ✅ 立即触发积分更新事件，实时刷新右上角显示
       emitCreditsUpdated('video-agent-storyboard-regenerated-step1')
 
-      // 重新获取项目数据以更新 storyboards
-      const response = await fetch(`/api/video-agent/projects/${project.id}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch updated project data')
+      // 用 API 直接返回的新 storyboard 更新状态，不再额外 GET 整个项目
+      if (regenResult?.storyboard) {
+        const newStoryboard = {
+          ...regenResult.storyboard,
+          // 优先使用 CDN URL，降级到 external URL，再降级到 image_url
+          image_url: regenResult.storyboard.cdn_url
+            || regenResult.storyboard.image_url_external
+            || regenResult.storyboard.image_url
+        }
+        onUpdate({
+          storyboards: [
+            newStoryboard,
+            ...(project.storyboards || []).filter(
+              (sb: any) => sb.shot_number !== shotNumber
+            )
+          ]
+        })
       }
-
-      const { data: updatedProject } = await response.json()
-
-      // 更新本地状态 - 🔥 创建新数组引用，确保触发重新渲染
-      onUpdate({
-        storyboards: [...(updatedProject.storyboards || [])]
-      })
     } catch (error: any) {
       console.error('[Step1] Regenerate storyboard failed:', error)
       throw error
