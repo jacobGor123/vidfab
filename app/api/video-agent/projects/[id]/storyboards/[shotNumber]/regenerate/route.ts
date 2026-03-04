@@ -13,6 +13,7 @@ import { extractFieldsFromPrompt } from '@/lib/services/video-agent/prompt-field
 import type { Shot, CharacterConfig, ImageStyle, ScriptAnalysisResult } from '@/lib/types/video-agent'
 import type { Database } from '@/lib/database.types'
 import { checkAndDeductStoryboardGeneration } from '@/lib/video-agent/credits-check'
+import { refundUserCredits } from '@/lib/simple-credits-check'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectCharacter = Database['public']['Tables']['project_characters']['Row']
@@ -28,6 +29,9 @@ type CharacterWithReferences = Pick<ProjectCharacter, 'id' | 'character_name'> &
  * POST /api/video-agent/projects/[id]/storyboards/[shotNumber]/regenerate
  */
 export const POST = withAuth(async (request, { params, userId }) => {
+  // 用于在 catch 块中判断积分是否已扣除（方便退款）
+  let deductedCredits = 0
+
   try {
     const projectId = params.id
     const shotNumber = parseInt(params.shotNumber, 10)
@@ -142,6 +146,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
         { status: 402 }
       )
     }
+    // 记录已扣除积分数，用于失败时退款
+    deductedCredits = creditResult.requiredCredits
 
     // 获取人物配置
     const { data: charactersData } = await supabaseAdmin
@@ -342,7 +348,17 @@ export const POST = withAuth(async (request, { params, userId }) => {
         newStoryboard = newRecord
       }
     } else {
-      // 生成失败，仅更新当前版本的状态
+      // 生成失败：退还积分 + 更新当前版本状态
+      if (deductedCredits > 0) {
+        const refundResult = await refundUserCredits(userId, deductedCredits)
+        if (refundResult.success) {
+          console.log(`[Video Agent] Refunded ${deductedCredits} credits due to generation failure (status: ${result.status})`)
+          deductedCredits = 0  // 已退款，防止 catch 块重复退款
+        } else {
+          console.error('[Video Agent] Failed to refund credits after generation failure:', refundResult.error)
+        }
+      }
+
       const now = new Date().toISOString()
       const { error: updateError } = await supabaseAdmin
         .from('project_storyboards')
@@ -568,6 +584,17 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
   } catch (error) {
     console.error('[Video Agent] Storyboard regeneration error:', error)
+
+    // 如果积分已扣除但生成因异常中断，退还积分
+    if (deductedCredits > 0) {
+      const refundResult = await refundUserCredits(userId, deductedCredits)
+      if (refundResult.success) {
+        console.log(`[Video Agent] Refunded ${deductedCredits} credits due to unexpected error`)
+      } else {
+        console.error('[Video Agent] Failed to refund credits after unexpected error:', refundResult.error)
+      }
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to regenerate storyboard',

@@ -142,6 +142,49 @@ export async function deductUserCredits(
 }
 
 /**
+ * 退款积分（生成失败时退回）
+ * @param userUuid 用户UUID
+ * @param creditsToRefund 要退还的积分
+ * @returns 是否退款成功
+ */
+export async function refundUserCredits(
+  userUuid: string,
+  creditsToRefund: number
+): Promise<{ success: boolean; newBalance?: number; error?: string }> {
+  try {
+    const { data: user, error: fetchError } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('credits_remaining')
+      .eq('uuid', userUuid)
+      .single()
+
+    if (fetchError) {
+      console.error('❌ Failed to fetch user credits for refund:', fetchError)
+      return { success: false, error: 'Failed to fetch user credits' }
+    }
+
+    const currentCredits = user?.credits_remaining || 0
+    const newBalance = currentCredits + creditsToRefund
+
+    const { error: updateError } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .update({ credits_remaining: newBalance })
+      .eq('uuid', userUuid)
+
+    if (updateError) {
+      console.error('❌ Failed to refund user credits:', updateError)
+      return { success: false, error: 'Failed to refund credits' }
+    }
+
+    console.log(`✅ Refunded ${creditsToRefund} credits to user ${userUuid}. New balance: ${newBalance}`)
+    return { success: true, newBalance }
+  } catch (error) {
+    console.error('❌ Credits refund error:', error)
+    return { success: false, error: 'Credits refund failed' }
+  }
+}
+
+/**
  * 图片生成积分检查（服务器端）
  * @param userUuid 用户UUID
  * @returns 积分检查结果
