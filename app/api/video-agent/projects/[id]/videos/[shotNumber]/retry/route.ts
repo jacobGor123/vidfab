@@ -10,6 +10,7 @@ import { submitVideoGeneration } from '@/lib/services/byteplus/video/seedance-ap
 import { VideoGenerationRequest } from '@/lib/types/video'
 import type { Database } from '@/lib/database.types'
 import { checkAndDeductSingleVideo } from '@/lib/video-agent/credits-check'
+import { refundUserCredits } from '@/lib/simple-credits-check'
 import { isVeo3Model, getDefaultResolution, type VideoResolution } from '@/lib/video-agent/credits-config'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
@@ -21,6 +22,8 @@ type ProjectStoryboard = Database['public']['Tables']['project_storyboards']['Ro
  * POST /api/video-agent/projects/[id]/videos/[shotNumber]/retry
  */
 export const POST = withAuth(async (request, { params, userId }) => {
+  let deductedCredits = 0  // 追踪已扣积分，用于错误时退款
+
   try {
     const projectId = params.id
     const shotNumber = parseInt(params.shotNumber, 10)
@@ -173,6 +176,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    deductedCredits = creditResult.requiredCredits  // 记录已扣积分，后续出错可退款
+
     console.log('[Video Agent] ✅ Credits checked and deducted for retry:', {
       projectId,
       shotNumber,
@@ -204,6 +209,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
     if (upsertError) {
       console.error('[Video Agent] Failed to upsert video clip:', upsertError)
+      await refundUserCredits(userId, deductedCredits)
       return NextResponse.json(
         { error: 'Failed to initialize video clip', code: 'UPSERT_FAILED' },
         { status: 500 }
@@ -326,6 +332,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
           console.error(`[Video Agent] Failed to update status:`, updateError)
         }
 
+        // 敏感内容无法生成，退还积分
+        await refundUserCredits(userId, deductedCredits)
+
         return NextResponse.json(
           {
             error: 'Sensitive content detected',
@@ -351,6 +360,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
 
   } catch (error) {
     console.error('[Video Agent] Retry video generation error:', error)
+
+    // 发生未预期错误，退还已扣积分
+    if (deductedCredits > 0) {
+      await refundUserCredits(userId, deductedCredits).catch(refundErr =>
+        console.error('[Video Agent] Failed to refund credits after error:', refundErr)
+      )
+    }
 
     return NextResponse.json(
       {
