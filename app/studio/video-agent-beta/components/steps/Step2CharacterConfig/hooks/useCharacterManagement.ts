@@ -108,18 +108,31 @@ export function useCharacterManagement({
       // 🎨 自动分析图片，生成描述
       const generatedPrompt = await analyzeCharacterImage(characterName, url)
 
-      // 🔥 Update local state immediately for snappy UX.
-      // Then persist to DB so storyboard regenerate always sees the latest reference image.
-      const nextStates = {
-        ...characterStates,
-        [characterName]: {
-          ...characterStates[characterName],
-          imageUrl: url,
-          mode: 'upload' as const,
-          prompt: generatedPrompt || characterStates[characterName]?.prompt,
-          isGenerating: false,
-          error: undefined
+      // 🔥 参考「重新生成」逻辑：用新描述组合新角色名，保持数据一致性
+      let newCharacterName = characterName
+      if (generatedPrompt && generatedPrompt.trim()) {
+        const shortName = characterName.split('(')[0].trim()
+        let description = generatedPrompt.trim()
+        const maxLen = 400 - shortName.length - 3  // 3 = " ()"
+        if (description.length > maxLen) {
+          description = description.substring(0, maxLen - 3) + '...'
         }
+        newCharacterName = `${shortName} (${description})`
+      }
+
+      // 构建新状态（名称可能变化，需要更换 key）
+      const nextStates = { ...characterStates }
+      if (newCharacterName !== characterName) {
+        delete nextStates[characterName]
+      }
+      nextStates[newCharacterName] = {
+        ...characterStates[characterName],
+        name: newCharacterName,
+        imageUrl: url,
+        mode: 'upload' as const,
+        prompt: generatedPrompt || characterStates[characterName]?.prompt,
+        isGenerating: false,
+        error: undefined
       }
 
       setCharacterStates(nextStates)
@@ -130,8 +143,33 @@ export function useCharacterManagement({
         await updateCharacters(project.id, { characters: charactersData })
         console.log('[Character Management] ✅ Uploaded character image persisted to DB:', {
           characterName,
+          newCharacterName,
           imageUrl: url
         })
+
+        // 🔥 名称有变化时，同步分镜描述和前端 script_analysis（与重新生成逻辑保持一致）
+        if (newCharacterName !== characterName) {
+          try {
+            await replaceCharacterInShots(project.id, {
+              fromName: characterName,
+              toName: newCharacterName,
+              scope: 'mentioned'
+            })
+
+            // 重新加载项目数据，更新前端 script_analysis
+            const response = await fetch(`/api/video-agent/projects/${project.id}`, {
+              credentials: 'include'
+            })
+            if (response.ok) {
+              const data = await response.json()
+              if (data.success && data.data?.script_analysis) {
+                onUpdate({ script_analysis: data.data.script_analysis })
+              }
+            }
+          } catch (syncErr: any) {
+            console.warn('[Character Management] ⚠️ Failed to sync shots after upload:', syncErr)
+          }
+        }
       } catch (persistErr: any) {
         console.error('[Character Management] ❌ Failed to persist uploaded image to DB:', persistErr)
         // Do not block the user; show a soft error.
