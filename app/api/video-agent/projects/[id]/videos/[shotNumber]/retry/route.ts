@@ -128,16 +128,15 @@ export const POST = withAuth(async (request, { params, userId }) => {
         }
         if (parsed.resolution && ['480p', '720p', '1080p'].includes(parsed.resolution)) {
           userResolution = parsed.resolution as VideoResolution
-
-          // 🔥 更新数据库中的 resolution 字段（持久化用户选择）
-          await supabaseAdmin
-            .from('project_shots')
-            .update({
-              duration_seconds: userDuration,
-              resolution: userResolution
-            } as any)
-            .eq('id', shot.id)
         }
+        // 持久化用户选择（duration 和 resolution 独立，不互相依赖）
+        await supabaseAdmin
+          .from('project_shots')
+          .update({
+            duration_seconds: userDuration,
+            resolution: userResolution
+          } as any)
+          .eq('id', shot.id)
       } catch (e) {
         // 如果 customPrompt 不是 JSON，忽略错误，使用默认值
         console.warn('[Video Agent] Failed to parse customPrompt:', e)

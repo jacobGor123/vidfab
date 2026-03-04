@@ -11,7 +11,8 @@ import { VideoGenerationRequest } from '@/lib/types/video'
 import type { Shot, Storyboard } from '@/lib/types/video-agent'
 import type { Database } from '@/lib/database.types'
 import { checkAndDeductBatchVideos } from '@/lib/video-agent/credits-check'
-import { isVeo3Model, getDefaultResolution } from '@/lib/video-agent/credits-config'
+import { isVeo3Model, getDefaultResolution, calculateVideoClipCredits, type VideoResolution } from '@/lib/video-agent/credits-config'
+import { refundUserCredits } from '@/lib/simple-credits-check'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
 type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
@@ -26,7 +27,9 @@ async function generateBytePlusVideosSequentially(
   shots: Shot[],
   aspectRatio: '16:9' | '9:16',
   generateAudio: boolean = false,
-  defaultResolution: string = '720p'
+  defaultResolution: string = '720p',
+  userId?: string,
+  creditPerShot?: Record<number, number>
 ) {
   // ⚠️ 注意：这里只提交第一个视频
   // 后续视频需要等第一个完成后，由 /videos/status API 或单独的后台任务触发
@@ -47,6 +50,15 @@ async function generateBytePlusVideosSequentially(
         .eq('project_id', projectId)
         .eq('shot_number', storyboard.shot_number)
         .returns<any>()
+
+      // 退款：该 shot 未能提交，退还其积分
+      if (userId && creditPerShot) {
+        const credits = creditPerShot[storyboard.shot_number] || 0
+        if (credits > 0) {
+          await refundUserCredits(userId, credits)
+          console.log(`[Video Agent] Refunded ${credits} credits for missing shot ${storyboard.shot_number}`)
+        }
+      }
       continue
     }
 
@@ -130,7 +142,7 @@ async function generateBytePlusVideosSequentially(
         console.error(`[Video Agent] Failed to update shot ${shot.shot_number} status:`, updateError)
       }
 
-      // 非旁白模式：一个失败后，后续都标记为失败
+      // 一个失败后，后续都标记为失败
       const remainingCount = storyboards.length - i - 1
       if (remainingCount > 0) {
         console.warn(`[Video Agent] ⚠️ 链式生成中断，剩余 ${remainingCount} 个片段将标记为失败`)
@@ -146,6 +158,22 @@ async function generateBytePlusVideosSequentially(
             .eq('project_id', projectId)
             .eq('shot_number', storyboards[j].shot_number)
             .returns<any>()
+        }
+      }
+
+      // 退款：当前失败 shot + 所有未提交的 remaining shots
+      if (userId && creditPerShot) {
+        let creditsToRefund = 0
+        for (let j = i; j < storyboards.length; j++) {
+          creditsToRefund += creditPerShot[storyboards[j].shot_number] || 0
+        }
+        if (creditsToRefund > 0) {
+          const refundResult = await refundUserCredits(userId, creditsToRefund)
+          if (refundResult.success) {
+            console.log(`[Video Agent] ✅ Refunded ${creditsToRefund} credits for chain-interrupted batch (shot ${shot.shot_number} onward)`)
+          } else {
+            console.error(`[Video Agent] ❌ Failed to refund ${creditsToRefund} credits:`, refundResult.error)
+          }
         }
       }
 
@@ -469,6 +497,14 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
+    // 构建 shot 级别积分映射，供失败时退款使用
+    const creditPerShot: Record<number, number> = {}
+    shots.forEach(shot => {
+      const duration = Math.min(12, Math.max(4, shot.duration_seconds || 5))
+      const res = ((shot as any).resolution || defaultResolution) as VideoResolution
+      creditPerShot[shot.shot_number] = calculateVideoClipCredits(duration, res, useVeo3, generateAudio)
+    })
+
     // 立即返回，后台异步生成
     Promise.resolve().then(async () => {
       await generateBytePlusVideosSequentially(
@@ -477,7 +513,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
         shots as Shot[],
         project.aspect_ratio || '16:9',
         generateAudio,
-        defaultResolution
+        defaultResolution,
+        userId,
+        creditPerShot
       )
     })
 
