@@ -19,7 +19,8 @@ export interface BaseVideoGenerationRequest {
 export interface VideoGenerationRequest extends BaseVideoGenerationRequest {
   image?: string  // Base64编码的图片或图片URL，用于image-to-video
   imageStrength?: number  // 图片影响强度 0.1-1.0，默认0.8
-  generateAudio?: boolean  // 🔥 是否生成音频（仅 veo3 模型支持）
+  generateAudio?: boolean  // 是否生成音频（仅 veo3 模型支持）
+  size?: string  // 合并尺寸参数，如 "1280*720"（Sora 2 使用）
 }
 
 // 生成类型枚举
@@ -27,9 +28,19 @@ export type VideoGenerationType = "text-to-video" | "image-to-video" | "video-ef
 
 // Duration mapping from UI strings to API numbers
 export const DURATION_MAP: Record<string, number> = {
+  "3s": 3,
+  "4s": 4,
   "5s": 5,
-  "8s": 8,  // 为 Vidfab Pro 添加8秒选项
-  "10s": 10
+  "6s": 6,
+  "7s": 7,
+  "8s": 8,
+  "9s": 9,
+  "10s": 10,
+  "11s": 11,
+  "12s": 12,
+  "13s": 13,
+  "14s": 14,
+  "15s": 15,
 } as const
 
 // 辅助函数：判断生成类型
@@ -127,6 +138,11 @@ export const MODEL_API_MAP: Record<string, string> = {
   // Vidfab Pro (veo3) models - Image-to-Video
   "vidfab-pro-i2v-720p": "veo3-fast-i2v",
   "vidfab-pro-i2v-1080p": "veo3-fast-i2v",
+  // Sora 2 models
+  "sora-2-t2v": "sora-2-t2v",
+  "sora-2-i2v": "sora-2-i2v",
+  // Kling 3.0 models
+  "kling-3-t2v": "kwaivgi/kling-v3.0-std/text-to-video",
   // Video Effects models - 独立端点，不需要映射
   "video-effects": "video-effects-api"
 }
@@ -139,9 +155,19 @@ export function getModelKey(model: string, resolution: string, generationType?: 
     return "video-effects"
   }
 
+  // Sora 2 不依赖 resolution，直接返回固定 key
+  if (model === "sora-2") {
+    return generationType === "image-to-video" ? "sora-2-i2v" : "sora-2-t2v"
+  }
+
+  // Kling 3.0 不依赖 resolution
+  if (model === "kling-3") {
+    return "kling-3-t2v"
+  }
+
   const modelMap: Record<string, string> = {
     "vidfab-q1": "vidfab-q1",
-    "vidfab-pro": "vidfab-pro"  // 添加 Vidfab Pro 映射
+    "vidfab-pro": "vidfab-pro"
   }
 
   const mappedModel = modelMap[model] || model

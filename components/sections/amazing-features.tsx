@@ -8,6 +8,7 @@ interface FeatureItem {
   title: string
   description: string
   highlighted?: boolean
+  emoji?: string  // 当提供 emoji 时，优先显示 emoji 而非 Lucide 图标
 }
 
 interface AmazingFeaturesProps {
@@ -73,7 +74,9 @@ export function AmazingFeatures({
                 <div className={cn(
                   feature.highlighted ? "text-brand-purple-DEFAULT" : "text-brand-pink-DEFAULT"
                 )}>
-                  {getFeatureIcon(feature.number)}
+                  {feature.emoji
+                    ? <span className="text-2xl">{feature.emoji}</span>
+                    : getFeatureIcon(feature.number)}
                 </div>
               </div>
 

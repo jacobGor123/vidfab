@@ -106,15 +106,20 @@ export async function POST(request: NextRequest) {
     // 映射前端模型名称到积分计算名称
     const modelForCredits = originalModel === 'vidfab-q1' ? 'vidfab-q1' :
                            originalModel === 'vidfab-pro' ? 'vidfab-pro' :
+                           originalModel === 'sora-2' ? 'sora-2' :
+                           originalModel === 'kling-3' ? 'kling-3' :
                            originalModel === 'video-effects' ? 'video-effects' :
                            'vidfab-q1'
 
-    // 检查用户积分
+    // 检查用户积分（veo3 / kling-3 需区分 audio）
+    const generateAudio = body.generateAudio === true
+    const needsAudioCredit = modelForCredits === 'vidfab-pro' || modelForCredits === 'kling-3'
     const creditsCheck = await checkUserCredits(
       session.user.uuid,
       modelForCredits as any,
       resolution,
-      duration
+      duration,
+      needsAudioCredit ? generateAudio : undefined
     )
 
     if (!creditsCheck.success) {
@@ -163,9 +168,11 @@ export async function POST(request: NextRequest) {
     // vidfab-pro (veo3) → 使用 Wavespeed
     // vidfab-q1 (seedance) → 使用 BytePlus
     const isVeo3Model = body.model === 'vidfab-pro'
-    const useBytePlus = !isVeo3Model && (USE_BYTEPLUS || process.env.NODE_ENV === 'development')
+    const isSoraModel = body.model === 'sora-2'
+    const isKling3Model = body.model === 'kling-3'
+    const useBytePlus = !isVeo3Model && !isSoraModel && !isKling3Model && (USE_BYTEPLUS || process.env.NODE_ENV === 'development')
 
-    console.log(`🔧 API 提供商选择: ${isVeo3Model ? 'Wavespeed (veo3-fast)' : useBytePlus ? 'BytePlus (seedance)' : 'Wavespeed (seedance)'} (模型: ${body.model})`)
+    console.log(`🔧 API 提供商选择: ${isVeo3Model ? 'Wavespeed (veo3-fast)' : isSoraModel ? 'Wavespeed (sora-2)' : isKling3Model ? 'Wavespeed (kling-3)' : useBytePlus ? 'BytePlus (seedance)' : 'Wavespeed (seedance)'} (模型: ${body.model})`)
 
     // 🔥 根据用户订阅状态设置水印（付费用户关闭，免费用户开启）
     const { data: userData } = await supabaseAdmin

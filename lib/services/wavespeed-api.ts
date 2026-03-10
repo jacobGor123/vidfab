@@ -200,13 +200,60 @@ async function submitGeneralVideoGeneration(
     throw new WavespeedAPIError(`Unsupported model configuration: ${modelKey}`)
   }
 
-  // 检查是否是 veo3 模型
+  // 检查模型类型
   const isVeo3Model = apiModel.includes('veo3')
+  const isSoraModel = apiModel.includes('sora-2')
+  const isKling3Model = apiModel.includes('kling-v3.0')
 
   let apiRequest: any
   let endpoint: string
 
-  if (generationType === "video-effects") {
+  if (isKling3Model) {
+    const kling3Duration = DURATION_MAP[`${request.duration}s`] || request.duration
+    if (generationType === "image-to-video") {
+      // i2v：带 image，不传 aspect_ratio（由图片决定）
+      apiRequest = {
+        prompt: request.prompt,
+        image: request.image,
+        duration: kling3Duration,
+        cfg_scale: 0.5,
+        sound: request.generateAudio === true,
+      }
+      endpoint = "/kwaivgi/kling-v3.0-std/image-to-video"
+    } else {
+      // t2v：带 aspect_ratio，无 image
+      apiRequest = {
+        prompt: request.prompt,
+        aspect_ratio: request.aspectRatio || "16:9",
+        duration: kling3Duration,
+        cfg_scale: 0.5,
+        sound: request.generateAudio === true,
+      }
+      endpoint = "/kwaivgi/kling-v3.0-std/text-to-video"
+    }
+    console.log(`🎬 Kling 3.0 请求:`, { endpoint, ...apiRequest })
+
+  } else if (isSoraModel) {
+    // Sora 2 API 参数格式
+    if (generationType === "image-to-video") {
+      apiRequest = {
+        prompt: request.prompt,
+        duration: DURATION_MAP[`${request.duration}s`] || request.duration,
+        image: request.image,
+      }
+      endpoint = "/openai/sora-2/image-to-video"
+    } else {
+      apiRequest = {
+        prompt: request.prompt,
+        duration: DURATION_MAP[`${request.duration}s`] || request.duration,
+        size: request.size || "1280*720",
+      }
+      endpoint = "/openai/sora-2/text-to-video"
+    }
+
+    console.log(`🎬 Sora 2 请求:`, { endpoint, ...apiRequest })
+
+  } else if (generationType === "video-effects") {
     // 🔥 视频特效使用独立的 video-effects API
     // 每个特效都有独立的端点：POST /api/v3/video-effects/{effectId}
     apiRequest = {
@@ -261,7 +308,7 @@ async function submitGeneralVideoGeneration(
   }
 
   // 确定提供商名称
-  const providerName = generationType === "video-effects" ? 'pixverse' : (isVeo3Model ? 'veo3' : 'bytedance')
+  const providerName = generationType === "video-effects" ? 'pixverse' : isKling3Model ? 'kling' : isSoraModel ? 'sora' : (isVeo3Model ? 'veo3' : 'bytedance')
 
   console.log(`🚀 Submitting ${generationType} request to ${providerName} (${apiModel}):`, {
     endpoint,
@@ -331,14 +378,19 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
     errors.push("Invalid resolution")
   }
 
-  if (![5, 8, 10].includes(request.duration)) {
+  // kling-3 支持 5–15s 任意整数，其他模型走固定白名单
+  const isKling3Validation = request.model === "kling-3"
+  const validDuration = isKling3Validation
+    ? (Number.isInteger(request.duration) && request.duration >= 5 && request.duration <= 15)
+    : [4, 5, 6, 8, 10, 12].includes(request.duration)
+  if (!validDuration) {
     errors.push("Invalid duration")
   }
 
   // Vidfab Pro 特殊验证
   if (request.model === "vidfab-pro") {
-    if (request.duration !== 8) {
-      errors.push("Vidfab Pro only supports 8 seconds duration")
+    if (![4, 6, 8].includes(request.duration)) {
+      errors.push("Vidfab Pro only supports 4, 6, or 8 seconds duration")
     }
     if (!["720p", "1080p"].includes(request.resolution)) {
       errors.push("Vidfab Pro only supports 720p and 1080p resolution")
@@ -393,10 +445,12 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
     }
   }
 
-  // 验证模型配置
-  const modelKey = getModelKey(request.model, request.resolution, generationType)
-  if (!MODEL_API_MAP[modelKey]) {
-    errors.push(`Unsupported model configuration: ${modelKey}`)
+  // Sora 2 / Kling 3.0 跳过 resolution/aspectRatio 验证
+  if (request.model !== "sora-2" && request.model !== "kling-3") {
+    const modelKey = getModelKey(request.model, request.resolution, generationType)
+    if (!MODEL_API_MAP[modelKey]) {
+      errors.push(`Unsupported model configuration: ${modelKey}`)
+    }
   }
 
   return errors

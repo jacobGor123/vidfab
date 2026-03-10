@@ -57,6 +57,28 @@ export function Footer() {
               </ul>
             </div>
 
+            {/* AI Tools 菜单 */}
+            <div className="min-w-[140px]">
+              <h3 className="text-white font-semibold mb-6 text-base">AI Tools</h3>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <a href="/tools/veo3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                    Veo 3
+                  </a>
+                </li>
+                <li>
+                  <a href="/tools/sora2" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                    Sora 2
+                  </a>
+                </li>
+                <li>
+                  <a href="/tools/kling3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                    Kling 3.0
+                  </a>
+                </li>
+              </ul>
+            </div>
+
             {/* Company 菜单 */}
             <div className="min-w-[140px]">
               <h3 className="text-white font-semibold mb-6 text-base">Company</h3>

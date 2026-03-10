@@ -88,14 +88,26 @@ export const CREDITS_CONSUMPTION = {
     '1080p-5s': 40,
     '1080p-10s': 80
   },
-  // Veo3高级模型
+  // Veo3高级模型 (no-audio / with-audio)
   'veo3-fast': {
-    '720p-5s': 70,
-    '720p-8s': 100,
-    '720p-10s': 130,
-    '1080p-5s': 90,
-    '1080p-8s': 130,
-    '1080p-10s': 170
+    '720p-4s': 40,
+    '720p-6s': 60,
+    '720p-8s': 80,
+    '1080p-4s': 70,
+    '1080p-6s': 90,
+    '1080p-8s': 110,
+    '720p-4s-audio': 60,
+    '720p-6s-audio': 80,
+    '720p-8s-audio': 100,
+    '1080p-4s-audio': 90,
+    '1080p-6s-audio': 110,
+    '1080p-8s-audio': 130,
+  },
+  // Sora 2 模型（积分只与时长相关）
+  'sora-2': {
+    '4s': 40,
+    '8s': 80,
+    '12s': 120,
   },
   // 视频特效
   'video-effects': {
@@ -140,6 +152,8 @@ const MODEL_NAME_MAPPING: Record<string, string> = {
   'vidfab-q1': 'seedance-v1-pro-t2v',
   'vidfab-pro': 'veo3-fast',
   'veo3-fast-t2v': 'veo3-fast',
+  'sora-2': 'sora-2',
+  'kling-3': 'kling-3',
   'default': 'seedance-v1-pro-t2v',
 
   // Image-to-Video 映射
@@ -163,7 +177,8 @@ const MODEL_NAME_MAPPING: Record<string, string> = {
 export function calculateCreditsRequired(
   model: string,
   resolution: string,
-  duration: string | number
+  duration: string | number,
+  audio?: boolean
 ): number {
   // 映射模型名称
   const mappedModel = MODEL_NAME_MAPPING[model] || model;
@@ -188,17 +203,33 @@ export function calculateCreditsRequired(
   }
 
   if (mappedModel === 'veo3-fast') {
-    const key = `${resolution}-${durationStr}` as keyof typeof CREDITS_CONSUMPTION['veo3-fast'];
+    const audioSuffix = audio ? '-audio' : ''
+    const key = `${resolution}-${durationStr}${audioSuffix}` as keyof typeof CREDITS_CONSUMPTION['veo3-fast'];
     const credits = CREDITS_CONSUMPTION['veo3-fast'][key];
 
     if (!credits) {
-      // 提供默认值
-      if (resolution === '720p' && durationStr === '5s') return 70;
-      if (resolution === '1080p' && durationStr === '5s') return 90;
-      return 70; // 默认值
+      const d = parseInt(durationStr)
+      if (audio) {
+        if (resolution === '720p') return d <= 4 ? 60 : d <= 6 ? 80 : 100
+        if (resolution === '1080p') return d <= 4 ? 90 : d <= 6 ? 110 : 130
+      } else {
+        if (resolution === '720p') return d <= 4 ? 40 : d <= 6 ? 60 : 80
+        if (resolution === '1080p') return d <= 4 ? 70 : d <= 6 ? 90 : 110
+      }
+      return 40;
     }
 
     return credits;
+  }
+
+  if (mappedModel === 'sora-2') {
+    const key = durationStr as keyof typeof CREDITS_CONSUMPTION['sora-2']
+    return CREDITS_CONSUMPTION['sora-2'][key] ?? 40
+  }
+
+  if (mappedModel === 'kling-3') {
+    const d = parseInt(durationStr)
+    return audio ? d * 15 : d * 10
   }
 
   if (mappedModel === 'video-effects') {

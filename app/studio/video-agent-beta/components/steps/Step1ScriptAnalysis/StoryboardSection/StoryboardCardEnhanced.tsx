@@ -124,10 +124,13 @@ export function StoryboardCardEnhanced({
   onGenerateVideo,
   onUpdateVideoPrompt
 }: StoryboardCardEnhancedProps) {
-  // 检查分镜图是否已生成（用于禁用视频生成）
-  const hasStoryboard = storyboard?.status === 'success' && storyboard?.image_url
-  const isStoryboardOutdated = storyboard?.status === 'outdated'
   const resolvedStoryboardSrc = resolveStoryboardSrc(storyboard)
+  // 检查分镜图是否已生成（用于禁用视频生成）
+  // 🔥 修复：使用 resolvedStoryboardSrc 判断，而非单独的 image_url
+  // 因为 resolveStoryboardSrc 已处理 cdn_url / image_url / image_url_external 三层回退
+  // 若只判断 image_url，当图片通过 cdn_url 显示时，按钮仍会错误显示 "Generate"
+  const hasStoryboard = storyboard?.status === 'success' && !!resolvedStoryboardSrc
+  const isStoryboardOutdated = storyboard?.status === 'outdated'
   const isGenerating = storyboard?.status === 'generating' || isStoryboardGenerating
 
   return (

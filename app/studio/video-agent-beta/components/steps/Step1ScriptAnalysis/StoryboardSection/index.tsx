@@ -16,7 +16,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw, Check, Film, Plus, Wand2, Video } from 'lucide-react'
-import { VideoAgentProject, ScriptAnalysis } from '@/lib/stores/video-agent'
+import { VideoAgentProject, ScriptAnalysis, Storyboard } from '@/lib/stores/video-agent'
 import { useStoryboardAutoGeneration } from './useStoryboardAutoGeneration'
 import { useVideoGenerationIntegrated } from './useVideoGenerationIntegrated'
 import { StoryboardCardEnhanced } from './StoryboardCardEnhanced'
@@ -171,11 +171,21 @@ export function StoryboardSection({
   }, [videoCanProceed, onVideoStatusChange])
 
   // 检查分镜图状态
+  // 🔥 修复：使用三层 URL 回退判断（与 resolveStoryboardSrc 逻辑一致）
+  // 避免 cdn_url 已设置但 image_url 为 null 时，误认为未生成
+  const hasStoryboardImage = (sb: Storyboard | undefined) =>
+    !!(sb?.cdn_url || sb?.image_url || sb?.image_url_external)
+
   const hasUngeneratedStoryboards = Array.isArray(analysis?.shots) && analysis.shots.some(
-    shot => !storyboards[shot.shot_number]?.image_url
+    shot => !hasStoryboardImage(storyboards[shot.shot_number])
   )
+  // 允许部分失败的 shot（status === 'failed'）不阻塞整体完成判断
+  // 用户可以对失败的 shot 单独重试，不影响已成功的 shot 继续生成视频
   const allStoryboardsGenerated = Array.isArray(analysis?.shots) && analysis.shots.every(
-    shot => storyboards[shot.shot_number]?.image_url
+    shot => {
+      const sb = storyboards[shot.shot_number]
+      return hasStoryboardImage(sb) || sb?.status === 'failed'
+    }
   )
 
   // 检查视频状态

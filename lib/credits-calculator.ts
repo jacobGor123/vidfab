@@ -3,7 +3,7 @@
  * 使用当前项目的真实积分配置，与pricing-config.ts保持一致
  */
 
-export type VideoModel = "vidfab-q1" | "vidfab-pro" | "video-effects" | "seedance-v1-pro-t2v" | "veo3-fast"
+export type VideoModel = "vidfab-q1" | "vidfab-pro" | "video-effects" | "seedance-v1-pro-t2v" | "veo3-fast" | "sora-2" | "kling-3"
 
 // 积分消耗配置 - 与 pricing-config.ts 保持一致
 const CREDITS_CONSUMPTION = {
@@ -17,13 +17,27 @@ const CREDITS_CONSUMPTION = {
     '1080p-10s': 80
   },
   // Veo3高级模型 (对应前端的vidfab-pro)
+  // no-audio
   'veo3-fast': {
-    '720p-5s': 70,
-    '720p-8s': 100,
-    '720p-10s': 130,
-    '1080p-5s': 90,
-    '1080p-8s': 130,
-    '1080p-10s': 170
+    '720p-4s': 40,
+    '720p-6s': 60,
+    '720p-8s': 80,
+    '1080p-4s': 70,
+    '1080p-6s': 90,
+    '1080p-8s': 110,
+    // with-audio
+    '720p-4s-audio': 60,
+    '720p-6s-audio': 80,
+    '720p-8s-audio': 100,
+    '1080p-4s-audio': 90,
+    '1080p-6s-audio': 110,
+    '1080p-8s-audio': 130,
+  },
+  // Sora 2（积分只与时长相关）
+  'sora-2': {
+    '4s': 40,
+    '8s': 80,
+    '12s': 120,
   },
   // 视频特效
   'video-effects': {
@@ -41,7 +55,8 @@ const CREDITS_CONSUMPTION = {
 export function calculateRequiredCredits(
   model: VideoModel,
   resolution: string,
-  duration: string
+  duration: string,
+  audio?: boolean
 ): number {
   const durationNum = parseInt(duration) || 5
   const durationStr = `${durationNum}s`
@@ -53,23 +68,32 @@ export function calculateRequiredCredits(
     mappedModel = "seedance-v1-pro-t2v"
   } else if (model === "vidfab-pro" || model === "veo3-fast") {
     mappedModel = "veo3-fast"
+  } else if (model === "sora-2") {
+    mappedModel = "sora-2"
+  } else if (model === "kling-3") {
+    // Kling 3.0: duration * 10（无声），duration * 15（有声）
+    return audio ? durationNum * 15 : durationNum * 10
   } else if (model === "video-effects") {
     mappedModel = "video-effects"
   } else {
-    // 默认使用seedance模型
     mappedModel = "seedance-v1-pro-t2v"
   }
 
   // 查找积分消耗配置
   const modelConfig = CREDITS_CONSUMPTION[mappedModel]
 
+  if (mappedModel === "sora-2") {
+    const key = durationStr as keyof typeof CREDITS_CONSUMPTION['sora-2']
+    return CREDITS_CONSUMPTION['sora-2'][key] ?? 40
+  }
+
   if (mappedModel === "video-effects") {
-    // 视频特效固定5秒，消耗30积分
     return modelConfig['5s'] || 30
   }
 
-  // 构建查找键
-  const lookupKey = `${resolution}-${durationStr}` as keyof typeof modelConfig
+  // 构建查找键（veo3-fast 区分 audio）
+  const audioSuffix = (mappedModel === "veo3-fast" && audio) ? "-audio" : ""
+  const lookupKey = `${resolution}-${durationStr}${audioSuffix}` as keyof typeof modelConfig
   const credits = modelConfig[lookupKey]
 
   if (credits) {
@@ -81,13 +105,18 @@ export function calculateRequiredCredits(
     if (resolution === "480p") return durationNum === 5 ? 10 : 20
     if (resolution === "720p") return durationNum === 5 ? 20 : 40
     if (resolution === "1080p") return durationNum === 5 ? 40 : 80
-    return 10 // 最基础默认值
+    return 10
   }
 
   if (mappedModel === "veo3-fast") {
-    if (resolution === "720p") return durationNum <= 5 ? 70 : (durationNum <= 8 ? 100 : 130)
-    if (resolution === "1080p") return durationNum <= 5 ? 90 : (durationNum <= 8 ? 130 : 170)
-    return 70 // 默认值
+    if (audio) {
+      if (resolution === "720p") return durationNum <= 4 ? 60 : (durationNum <= 6 ? 80 : 100)
+      if (resolution === "1080p") return durationNum <= 4 ? 90 : (durationNum <= 6 ? 110 : 130)
+    } else {
+      if (resolution === "720p") return durationNum <= 4 ? 40 : (durationNum <= 6 ? 60 : 80)
+      if (resolution === "1080p") return durationNum <= 4 ? 70 : (durationNum <= 6 ? 90 : 110)
+    }
+    return 40
   }
 
   return 10 // 最终默认值

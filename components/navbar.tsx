@@ -214,6 +214,47 @@ export function Navbar({ scrolled }: NavbarProps) {
                   </NavigationMenuList>
                 </NavigationMenu>
 
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
+                        AI Tools
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <div className="w-56 gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/tools/veo3"
+                              className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">Veo 3</div>
+                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">Google DeepMind</p>
+                            </Link>
+                          </NavigationMenuLink>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/tools/sora2"
+                              className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">Sora 2</div>
+                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">OpenAI</p>
+                            </Link>
+                          </NavigationMenuLink>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href="/tools/kling3"
+                              className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                            >
+                              <div className="text-sm font-medium leading-none text-white">Kling 3.0</div>
+                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">Kuaishou</p>
+                            </Link>
+                          </NavigationMenuLink>
+                        </div>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+
                 <Link
                   href="/pricing"
                   className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
@@ -380,6 +421,34 @@ export function Navbar({ scrolled }: NavbarProps) {
                         Image to Image
                       </Link>
                     </div>
+                  </div>
+                </div>
+
+                {/* AI Tools Section */}
+                <div className="space-y-2 border border-white/10 rounded-lg p-3">
+                  <div className="text-base font-heading text-white font-medium">AI Tools</div>
+                  <div className="ml-3 space-y-1">
+                    <Link
+                      href="/tools/veo3"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Veo 3 <span className="text-xs text-gray-500 ml-1">Google DeepMind</span>
+                    </Link>
+                    <Link
+                      href="/tools/sora2"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sora 2 <span className="text-xs text-gray-500 ml-1">OpenAI</span>
+                    </Link>
+                    <Link
+                      href="/tools/kling3"
+                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Kling 3.0 <span className="text-xs text-gray-500 ml-1">Kuaishou</span>
+                    </Link>
                   </div>
                 </div>
 

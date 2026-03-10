@@ -60,7 +60,7 @@ async function generateStoryboardsAsync(
       try {
         const result = await generateSingleStoryboard(shot, characters, style, aspectRatio)
 
-        // 立即更新数据库（包含实际使用的人物 IDs）
+        // 立即更新数据库（仅更新当前版本，不影响历史记录）
         await supabaseAdmin
           .from('project_storyboards')
           .update({
@@ -74,6 +74,7 @@ async function generateStoryboardsAsync(
           } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
+          .eq('is_current', true)  // 🔥 只更新当前版本，历史版本保持不变
           .returns<any>()
 
         if (result.status === 'success') {
@@ -87,7 +88,7 @@ async function generateStoryboardsAsync(
         failedCount++
         console.error('[Video Agent] ❌ Failed to generate storyboard:', error)
 
-        // 更新为失败状态
+        // 更新为失败状态（仅更新当前版本）
         await supabaseAdmin
           .from('project_storyboards')
           .update({
@@ -97,6 +98,7 @@ async function generateStoryboardsAsync(
           } as any)
           .eq('project_id', projectId)
           .eq('shot_number', shot.shot_number)
+          .eq('is_current', true)  // 🔥 只更新当前版本，历史版本保持不变
           .returns<any>()
 
         return null
@@ -262,27 +264,57 @@ export const POST = withAuth(async (request, { params, userId }) => {
       console.log('[Video Agent] Found existing completed storyboards, will regenerate')
     }
 
-    // 🔥 没有记录或记录都是 failed 状态，创建新的 generating 记录
+    // 🔥 计算每个 shot 的下一个版本号，并将已有的 is_current=true 记录标记为历史
+    const maxVersionPerShot: Record<number, number> = {}
+    for (const sb of existingStoryboards || []) {
+      const ver = ((sb as any).version as number | null) || 1
+      const shotNum = sb.shot_number
+      maxVersionPerShot[shotNum] = Math.max(maxVersionPerShot[shotNum] || 0, ver)
+    }
+
+    // 将所有当前版本标记为历史，保留历史记录
+    // 先记录当前 is_current=true 的记录 ID，供 INSERT 失败时回滚
+    let currentVersionIds: string[] = []
+    if (hasExistingStoryboards) {
+      const { data: currentRecords } = await supabaseAdmin
+        .from('project_storyboards')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('is_current', true)
+        .returns<{ id: string }[]>()
+      currentVersionIds = (currentRecords || []).map(r => r.id)
+
+      await supabaseAdmin
+        .from('project_storyboards')
+        .update({ is_current: false, updated_at: new Date().toISOString() } as any)
+        .eq('project_id', projectId)
+        .eq('is_current', true)
+    }
+
+    // 为每个 shot 创建新的 generating 记录（下一个版本号）
     const initialStoryboards = shots.map(shot => ({
       project_id: projectId,
       shot_number: shot.shot_number,
       status: 'generating',
       generation_attempts: 1,
-      version: 1,          // 🔥 新增：初始版本号
-      is_current: true     // 🔥 新增：标记为当前版本
+      version: (maxVersionPerShot[shot.shot_number] || 0) + 1,
+      is_current: true
     }))
 
     const { data: insertedStoryboards, error: insertError } = await supabaseAdmin
       .from('project_storyboards')
-      .upsert(initialStoryboards as any, {
-        onConflict: 'project_id,shot_number,version',  // 🔥 修复：使用新的唯一约束
-        ignoreDuplicates: false
-      })
+      .insert(initialStoryboards as any)
       .select()
 
     if (insertError) {
       console.error('[Video Agent] ❌ Failed to create storyboard records:', insertError)
-      // 🔥 修复：插入失败应该立即返回错误，不能继续生成
+      // 回滚：恢复被标记为历史的记录
+      if (currentVersionIds.length > 0) {
+        await supabaseAdmin
+          .from('project_storyboards')
+          .update({ is_current: true, updated_at: new Date().toISOString() } as any)
+          .in('id', currentVersionIds)
+      }
       return NextResponse.json({
         success: false,
         error: 'Failed to initialize storyboard records',

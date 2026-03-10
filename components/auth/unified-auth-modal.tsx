@@ -79,6 +79,15 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
   const [resendCooldown, setResendCooldown] = useState(0)
   const router = useRouter()
 
+  // 记录打开登录框时的当前页面，登录成功后回跳
+  // 如果当前就是 auth 相关页面，跳默认页防止循环
+  const AUTH_PATHS = ["/login", "/signup", "/register", "/auth"]
+  const currentPath = typeof window !== "undefined"
+    ? window.location.pathname + window.location.search
+    : ""
+  const isAuthPage = AUTH_PATHS.some((p) => currentPath.startsWith(p))
+  const callbackUrl = isAuthPage || !currentPath ? "/studio/discover" : currentPath
+
   // Handle verification code input change - save to localStorage
   function handleCodeChange(inputCode: string) {
     const existingSession = getVerificationSession();
@@ -135,7 +144,8 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
   })
 
   const handleAuthSuccess = () => {
-    router.push("/studio/discover")
+    // 用 window.location.href 确保可靠跳转（router.push 在当前页时不会真正 reload，modal 卡住）
+    window.location.href = callbackUrl
   }
 
   const handleAuthError = (error: any) => {
@@ -226,7 +236,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
       const signInResult = await signIn("verification-code", {
         email: email.trim().toLowerCase(),
         token: verifyData.verified_token,
-        callbackUrl: "/create",
+        callbackUrl,
         redirect: false,
       })
 
@@ -346,7 +356,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
               <GoogleLoginButton
                 onSuccess={handleAuthSuccess}
                 onError={handleAuthError}
-                callbackUrl="/create"
+                callbackUrl={callbackUrl}
                 className="w-full font-heading py-3 text-base bg-white/5 border-white/20 text-white hover:bg-blue-500/10 hover:border-blue-400/30 transition-all duration-300"
               />
 

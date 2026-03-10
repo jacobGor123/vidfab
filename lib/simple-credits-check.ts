@@ -30,11 +30,12 @@ export async function checkUserCredits(
   userUuid: string,
   model: VideoModel,
   resolution: string,
-  duration: string
+  duration: string,
+  audio?: boolean
 ): Promise<SimpleCreditCheckResult> {
   try {
     // 计算所需积分
-    const requiredCredits = calculateRequiredCredits(model, resolution, duration)
+    const requiredCredits = calculateRequiredCredits(model, resolution, duration, audio)
 
     // 查询用户当前积分
     const { data: user, error } = await supabaseAdmin
@@ -72,7 +73,7 @@ export async function checkUserCredits(
       success: false,
       canAfford: false,
       userCredits: 0,
-      requiredCredits: calculateRequiredCredits(model, resolution, duration),
+      requiredCredits: calculateRequiredCredits(model, resolution, duration, audio),
       remainingCredits: 0,
       error: 'Credits check failed'
     }

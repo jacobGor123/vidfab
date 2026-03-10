@@ -288,65 +288,66 @@ export const POST = withAuth(async (request, { params, userId }) => {
     let newVersionId: string | null = null
 
     if (result.status === 'success' && result.image_url) {
-      const { data: returnedVersionId, error: saveError } = await supabaseAdmin
-        .rpc('save_storyboard_with_history', {
-          p_project_id: projectId,
-          p_shot_number: shotNumber,
-          p_image_url: result.image_url,
-          p_image_storage_path: null,
-          p_seedream_task_id: null,
-          p_image_url_external: result.image_url,  // 🔥 外部 URL（来自 seedream）
-          p_storage_status: 'pending'  // 🔥 标记为待下载，resolveStoryboardSrc 会使用代理 URL
-        })
+      // 直接用 TypeScript 管理版本，不依赖可能签名不一致的 RPC 函数
+      // Step 1: 获取当前最大版本号
+      const { data: maxVersionData } = await supabaseAdmin
+        .from('project_storyboards')
+        .select('version')
+        .eq('project_id', projectId)
+        .eq('shot_number', shotNumber)
+        .order('version', { ascending: false } as any)
+        .limit(1)
+        .maybeSingle() as { data: { version: number } | null; error: any }
 
-      newVersionId = returnedVersionId
+      const nextVersion = (maxVersionData?.version || 0) + 1
 
-      if (saveError) {
-        console.error('[Video Agent] Failed to save storyboard history:', saveError)
-        // 降级处理：如果保存历史失败，仍然更新当前记录
-        const now = new Date().toISOString()
-        const { data: updated } = await supabaseAdmin
-          .from('project_storyboards')
-          .update({
-            image_url: result.image_url,
-            image_url_external: result.image_url,
-            status: result.status,
-            storage_status: 'pending',
-            used_character_ids: result.used_character_ids || [],  // 🔥 保存实际使用的人物 IDs
-            updated_at: now
-          } as any)
-          .eq('project_id', projectId)
-          .eq('shot_number', shotNumber)
-          .eq('is_current', true)
-          .select()
-          .single()
+      // Step 2: 将当前版本标记为历史（保留记录）
+      await supabaseAdmin
+        .from('project_storyboards')
+        .update({ is_current: false, updated_at: new Date().toISOString() } as any)
+        .eq('project_id', projectId)
+        .eq('shot_number', shotNumber)
+        .eq('is_current', true)
 
-        newStoryboard = updated
-        newVersionId = updated?.id
-      } else {
-        console.log('[Video Agent] Storyboard saved as new history version:', {
-          projectId,
-          shotNumber,
-          newVersionId
-        })
+      // Step 3: 插入新版本记录
+      const { data: newRecord, error: insertError } = await (supabaseAdmin
+        .from('project_storyboards')
+        .insert({
+          project_id: projectId,
+          shot_number: shotNumber,
+          version: nextVersion,
+          is_current: true,
+          status: 'success',
+          image_url: result.image_url,
+          image_url_external: result.image_url,
+          storage_status: 'pending',
+          generation_attempts: 1,
+          used_character_ids: result.used_character_ids || [],
+        } as any)
+        .select()
+        .single() as Promise<{ data: any; error: any }>)
 
-        // 🔥 RPC 函数不支持 used_character_ids，需要单独更新
+      if (insertError) {
+        console.error('[Video Agent] Failed to insert new storyboard version:', insertError)
+        // 回滚：恢复旧版本的 is_current=true（取版本号最大的那条）
         await supabaseAdmin
           .from('project_storyboards')
-          .update({
-            used_character_ids: result.used_character_ids || []
-          } as any)
-          .eq('id', newVersionId)
-
-        // 查询新创建的记录
-        const { data: newRecord } = await supabaseAdmin
-          .from('project_storyboards')
-          .select('*')
-          .eq('id', newVersionId)
-          .single()
-
-        newStoryboard = newRecord
+          .update({ is_current: true, updated_at: new Date().toISOString() } as any)
+          .eq('project_id', projectId)
+          .eq('shot_number', shotNumber)
+          .eq('version', nextVersion - 1)
+        throw new Error(`Failed to save new storyboard version: ${insertError.message}`)
       }
+
+      newStoryboard = newRecord
+      newVersionId = newRecord?.id
+
+      console.log('[Video Agent] Storyboard saved as new history version:', {
+        projectId,
+        shotNumber,
+        nextVersion,
+        newVersionId
+      })
     } else {
       // 生成失败：退还积分 + 更新当前版本状态
       if (deductedCredits > 0) {

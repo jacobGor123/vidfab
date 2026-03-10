@@ -10,6 +10,16 @@ const config: Config = {
   ],
   safelist: ["animate-float-slow", "animate-float-medium"],
   theme: {
+    container: {
+      // 所有断点的 container max-width 统一封顶在 1280px
+      screens: {
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1280px",
+      },
+    },
     extend: {
       fontFamily: {
         sans: ["var(--font-open-sans)", "sans-serif"],
@@ -114,8 +124,14 @@ const config: Config = {
         "spin-reverse": "spin-reverse 1s linear infinite",
         "float-slow": "float-slow 6s ease-in-out infinite",
         "float-medium": "float-medium 4s ease-in-out infinite",
+        "upload-progress": "upload-progress 1.2s ease-in-out infinite",
       },
       keyframes: {
+        "upload-progress": {
+          "0%": { transform: "translateX(-100%)" },
+          "50%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
         shine: {
           "0%": { transform: "translateX(-100%)" },
           "50%": { transform: "translateX(100%)" },
