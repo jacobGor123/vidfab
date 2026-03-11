@@ -218,7 +218,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                   <NavigationMenuList>
                     <NavigationMenuItem>
                       <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                        AI Tools
+                        Latest Models
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
                         <div className="w-56 gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
@@ -424,9 +424,9 @@ export function Navbar({ scrolled }: NavbarProps) {
                   </div>
                 </div>
 
-                {/* AI Tools Section */}
+                {/* Latest Models Section */}
                 <div className="space-y-2 border border-white/10 rounded-lg p-3">
-                  <div className="text-base font-heading text-white font-medium">AI Tools</div>
+                  <div className="text-base font-heading text-white font-medium">Latest Models</div>
                   <div className="ml-3 space-y-1">
                     <Link
                       href="/tools/veo3"

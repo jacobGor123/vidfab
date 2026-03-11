@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useState, useRef, MouseEvent, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
 
 interface CommunityVideo {
   url: string
@@ -17,6 +20,8 @@ interface CommunityCTAProps {
   description: string
   ctaText: string
   ctaLink?: string // 自定义 CTA 链接，默认 /studio/discover
+  /** 传入则启用「auth → 滚动到操作区」模式，值为目标 section 的 id */
+  playgroundId?: string
   getInspiredText: string
   videos?: CommunityVideo[]
   className?: string
@@ -128,11 +133,32 @@ export function CommunityCTA({
   description,
   ctaText,
   ctaLink = "/studio/discover",
+  playgroundId,
   getInspiredText,
   videos = defaultVideos,
   className,
   showVideos = true
 }: CommunityCTAProps) {
+  const { status } = useSession()
+  const isAuthenticated = status === "authenticated"
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+
+  const handleCtaClick = () => {
+    if (!playgroundId) return
+    if (isAuthenticated) {
+      const el = document.getElementById(playgroundId)
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+    } else {
+      setIsAuthOpen(true)
+    }
+  }
+
+  // 计算登录成功后的 callbackUrl（带 hash，浏览器会自动滚动到 anchor）
+  const authCallbackUrl =
+    typeof window !== "undefined" && playgroundId
+      ? `${window.location.pathname}#${playgroundId}`
+      : undefined
+
   // 移动端检测
   const [isMobile, setIsMobile] = useState(false)
 
@@ -185,16 +211,27 @@ export function CommunityCTA({
             </p>
           )}
           <div className="flex flex-wrap justify-center gap-4 mt-4">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white hover:opacity-90 transition-opacity"
-              asChild
-            >
-              <Link href={ctaLink}>
+            {playgroundId ? (
+              <Button
+                size="lg"
+                onClick={handleCtaClick}
+                className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white hover:opacity-90 transition-opacity"
+              >
                 {ctaText}
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-brand-purple-DEFAULT to-brand-pink-DEFAULT text-white hover:opacity-90 transition-opacity"
+                asChild
+              >
+                <Link href={ctaLink}>
+                  {ctaText}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -244,6 +281,16 @@ export function CommunityCTA({
       {/* Background Decoration */}
       <div className="absolute -top-20 -right-20 w-96 h-96 bg-brand-purple-DEFAULT/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-brand-pink-DEFAULT/10 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Auth modal（playgroundId 模式下未登录时弹出） */}
+      {playgroundId && (
+        <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
+          <DialogContent className="p-0 max-w-md">
+            <DialogTitle className="sr-only">Sign in to VidFab</DialogTitle>
+            <UnifiedAuthModal className="min-h-0 p-0" callbackUrl={authCallbackUrl} />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* CSS Animations */}
       <style jsx>{`

@@ -30,7 +30,7 @@ export function FeaturesOptionB({ title, features, className }: FeaturesOptionBP
           {title}
         </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-16 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-16 mx-auto">
           {[left, right].map((col, colIdx) => (
             <div key={colIdx}>
               {col.map((feature, i) => {
@@ -39,7 +39,7 @@ export function FeaturesOptionB({ title, features, className }: FeaturesOptionBP
                 return (
                   <div
                     key={i}
-                    className="group py-8 border-t border-white/[0.08] hover:border-white/[0.15] transition-colors duration-300 cursor-default"
+                    className="py-8 border-t border-white/[0.08] cursor-default"
                   >
                     <div className="flex items-start gap-6">
                       {/* Large gradient number */}
@@ -48,7 +48,7 @@ export function FeaturesOptionB({ title, features, className }: FeaturesOptionBP
                         style={{
                           fontSize: "2.5rem",
                           letterSpacing: "-0.04em",
-                          background: "linear-gradient(135deg, rgba(139,92,246,0.55) 0%, rgba(236,72,153,0.4) 100%)",
+                          background: "linear-gradient(135deg, rgba(139,92,246,0.9) 0%, rgba(236,72,153,0.75) 100%)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                         }}
@@ -57,10 +57,10 @@ export function FeaturesOptionB({ title, features, className }: FeaturesOptionBP
                       </span>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-heading font-bold text-white mb-2 group-hover:text-gray-100 transition-colors">
+                        <h3 className="text-base font-heading font-bold text-white mb-2">
                           {feature.title}
                         </h3>
-                        <p className="text-sm text-gray-500 leading-relaxed group-hover:text-gray-400 transition-colors duration-300">
+                        <p className="text-sm text-gray-400 leading-relaxed">
                           {feature.description}
                         </p>
                       </div>

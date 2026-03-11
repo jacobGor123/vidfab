@@ -56,7 +56,7 @@ export default function Sora2Client() {
         subtitle=""
         description={sora2Config.ctaDescription}
         ctaText={sora2Config.ctaButtonText}
-        ctaLink="/studio/text-to-video"
+        playgroundId="sora2-playground"
         getInspiredText=""
         showVideos={false}
       />

@@ -111,6 +111,24 @@ export const veo3Config: ToolPageConfig = {
       resolution: "720p",
       audio: true,
     },
+    demoVideos: [
+      {
+        videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-cinematic-nature.mp4",
+        posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-cinematic-nature.jpg",
+      },
+      {
+        videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-indie-drama.mp4",
+        posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-indie-drama.jpg",
+      },
+      {
+        videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-scifi-action.mp4",
+        posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-scifi-action.jpg",
+      },
+      {
+        videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-fantasy-owl.mp4",
+        posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-fantasy-owl.jpg",
+      },
+    ],
   },
 
   builderTitle: "The Veo 3 Playground",
@@ -163,29 +181,29 @@ export const veo3Config: ToolPageConfig = {
       category: "Cinematic B-Roll / Nature Documentary",
       prompt:
         "A hyper-realistic cinematic tracking shot following a single, glowing golden autumn leaf as it falls gracefully. The camera smoothly glides down with the leaf, passing through a sunbeam. The leaf finally lands softly on the rippling surface of a fast-moving stream, causing hyper-detailed water splashes and reflections.",
-      videoUrl: "https://static.vidfab.ai/discover-new/discover-new-01.mp4",
-      posterUrl: "",
+      videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-cinematic-nature.mp4",
+      posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-cinematic-nature.jpg",
     },
     {
       category: "Indie Short Film / Drama",
       prompt:
         "A medium close-up of a tired detective. He sighs heavily, rubbing his eyes, then slowly picks up a photograph. As he looks at it, his expression transitions smoothly from sheer exhaustion to sudden, wide-eyed realization.",
-      videoUrl: "https://static.vidfab.ai/discover-new/discover-new-02.mp4",
-      posterUrl: "",
+      videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-indie-drama.mp4",
+      posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-indie-drama.jpg",
     },
     {
       category: "Sci-Fi Trailer / Action Sequence",
       prompt:
         "A dynamic FPV drone shot. The camera starts high, looking down, then rapidly dives down, weaving between towering advertisements. It sharply banks left, closely following a futuristic motorcycle speeding away.",
-      videoUrl: "https://static.vidfab.ai/discover-new/discover-new-10.mp4",
-      posterUrl: "",
+      videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-scifi-action.mp4",
+      posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-scifi-action.jpg",
     },
     {
       category: "Fantasy Lore / Product Concept",
       prompt:
         "A macro shot of a mechanical brass owl. The owl turns its head, its gears visibly turning and catching the sunlight. Suddenly, it playfully pecks at a floating glowing ember. The ember reacts to the peck, shattering into tiny sparks that briefly illuminate the dark leather.",
-      videoUrl: "https://static.vidfab.ai/discover-new/discover-new-03.mp4",
-      posterUrl: "",
+      videoUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-fantasy-owl.mp4",
+      posterUrl: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/veo3/veo3-fantasy-owl.jpg",
     },
   ],
 
@@ -317,8 +335,8 @@ export const sora2Config: ToolPageConfig = {
     },
   ],
 
-  promptShowcaseTitle: "See how Sora 2 understands every word. What you write is exactly what it directs.",
-  promptShowcaseSubtitle: "",
+  promptShowcaseTitle: "See how Sora 2 understands every word.",
+  promptShowcaseSubtitle: "What you write is exactly what it directs.",
   prompts: [
     {
       category: "Indie Short Film / Drama",

@@ -50,7 +50,7 @@ export function ToolBuilder({ config, className }: ToolBuilderProps) {
         )}
 
         {/* Builder panel */}
-        <div className="max-w-5xl mx-auto rounded-2xl border border-brand-gray-700 bg-brand-gray-900/80 backdrop-blur-md overflow-hidden shadow-2xl">
+        <div className="mx-auto rounded-2xl border border-brand-gray-700 bg-brand-gray-900/80 backdrop-blur-md overflow-hidden shadow-2xl">
           <div className="flex flex-col lg:flex-row">
             {/* Left: Form */}
             <div className="w-full lg:w-[380px] lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-brand-gray-700 p-6">

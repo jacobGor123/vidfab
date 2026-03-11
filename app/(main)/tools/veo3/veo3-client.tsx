@@ -63,7 +63,7 @@ export default function Veo3Client() {
         subtitle=""
         description={veo3Config.ctaDescription}
         ctaText={veo3Config.ctaButtonText}
-        ctaLink="/studio/text-to-video"
+        playgroundId="veo3-playground"
         getInspiredText=""
         showVideos={false}
       />

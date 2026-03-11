@@ -24,16 +24,18 @@ export function CreatorTypes({ title, types, className }: CreatorTypesProps) {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mx-auto">
           {types.map((type, i) => (
             <div
               key={i}
               className="rounded-2xl border border-brand-gray-700 bg-brand-gray-900/60 p-7 hover:border-brand-purple-DEFAULT/30 hover:bg-brand-gray-800/60 transition-all duration-300"
             >
-              <div className="mb-5 p-3 rounded-full w-fit bg-gradient-to-br from-brand-purple-DEFAULT/15 to-brand-pink-DEFAULT/15 text-brand-purple-DEFAULT">
-                {ICONS[i]}
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-shrink-0 p-3 rounded-full bg-gradient-to-br from-brand-purple-DEFAULT/15 to-brand-pink-DEFAULT/15 text-brand-purple-DEFAULT">
+                  {ICONS[i]}
+                </div>
+                <h3 className="text-xl font-heading font-semibold text-white">{type.title}</h3>
               </div>
-              <h3 className="text-xl font-heading font-semibold text-white mb-3">{type.title}</h3>
               <p className="text-gray-400 text-sm leading-relaxed">{type.description}</p>
             </div>
           ))}

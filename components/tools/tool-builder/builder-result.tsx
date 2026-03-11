@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Loader2, Download, ExternalLink, ChevronRight } from "lucide-react"
-import Link from "next/link"
+import { useSession } from "next-auth/react"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { UnifiedAuthModal } from "@/components/auth/unified-auth-modal"
+import { useRouter } from "next/navigation"
 import type { VideoJob } from "@/lib/types/video"
 import type { UserVideo } from "@/lib/supabase"
 
@@ -104,7 +107,7 @@ function JobInProgress({ job }: { job: VideoJob }) {
 
 // ─── Completed result ─────────────────────────────────────────────────────────
 
-function JobCompleted({ resultUrl, prompt }: { resultUrl: string; prompt: string }) {
+function JobCompleted({ resultUrl, prompt, onGoToAssets }: { resultUrl: string; prompt: string; onGoToAssets: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isDownloading, setIsDownloading] = useState(false)
 
@@ -157,13 +160,14 @@ function JobCompleted({ resultUrl, prompt }: { resultUrl: string; prompt: string
           {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           {isDownloading ? "Downloading..." : "Download"}
         </button>
-        <Link
-          href="/studio/my-assets"
+        <button
+          type="button"
+          onClick={onGoToAssets}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border border-brand-gray-700 text-sm text-gray-300 hover:border-brand-purple-DEFAULT/50 hover:text-white transition-colors"
         >
           <ExternalLink className="w-4 h-4" />
           My Assets
-        </Link>
+        </button>
       </div>
     </div>
   )
@@ -214,10 +218,12 @@ function HistoryCarousel({
   videos,
   activeId,
   onSelect,
+  onGoToAssets,
 }: {
   videos: UserVideo[]
   activeId: string | null
   onSelect: (video: UserVideo) => void
+  onGoToAssets: () => void
 }) {
   const validVideos = videos.filter(
     (v) => !!(v.original_url || (v as any).videoUrl)
@@ -228,12 +234,13 @@ function HistoryCarousel({
     <div className="space-y-2 w-full min-w-0">
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-500 uppercase tracking-wider">Recent Generations</p>
-        <Link
-          href="/studio/my-assets"
+        <button
+          type="button"
+          onClick={onGoToAssets}
           className="flex items-center gap-1 text-xs text-brand-purple-DEFAULT hover:text-brand-pink-DEFAULT transition-colors"
         >
           View all <ChevronRight className="w-3 h-3" />
-        </Link>
+        </button>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-brand-gray-700">
         {validVideos.slice(0, 20).map((video) => (
@@ -260,6 +267,18 @@ interface BuilderResultProps {
 
 export function BuilderResult({ currentJob, completedVideos, onLoadHistory, demoVideos }: BuilderResultProps) {
   const [selectedVideo, setSelectedVideo] = useState<UserVideo | null>(null)
+  const { status } = useSession()
+  const isAuthenticated = status === "authenticated"
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const router = useRouter()
+
+  const handleGoToAssets = () => {
+    if (isAuthenticated) {
+      router.push("/studio/my-assets")
+    } else {
+      setIsAuthOpen(true)
+    }
+  }
 
   useEffect(() => {
     onLoadHistory()
@@ -290,13 +309,13 @@ export function BuilderResult({ currentJob, completedVideos, onLoadHistory, demo
         {showDemo && <DemoPlaceholder videos={demoVideos ?? DEFAULT_DEMO_VIDEOS} />}
 
         {!showJob && !isFailed && displayVideo && (
-          <JobCompleted resultUrl={displayVideo.original_url || (displayVideo as any).videoUrl} prompt={displayVideo.prompt} />
+          <JobCompleted resultUrl={displayVideo.original_url || (displayVideo as any).videoUrl} prompt={displayVideo.prompt} onGoToAssets={handleGoToAssets} />
         )}
 
         {showJob && !isCompleted && <JobInProgress job={currentJob} />}
 
         {isCompleted && (
-          <JobCompleted resultUrl={currentJob.resultUrl!} prompt={currentJob.prompt} />
+          <JobCompleted resultUrl={currentJob.resultUrl!} prompt={currentJob.prompt} onGoToAssets={handleGoToAssets} />
         )}
 
         {isFailed && (
@@ -312,7 +331,16 @@ export function BuilderResult({ currentJob, completedVideos, onLoadHistory, demo
         videos={completedVideos}
         activeId={selectedVideo?.id ?? (displayVideo?.id ?? null)}
         onSelect={setSelectedVideo}
+        onGoToAssets={handleGoToAssets}
       />
+
+      {/* Auth modal */}
+      <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
+        <DialogContent className="p-0 max-w-md">
+          <DialogTitle className="sr-only">Sign in to VidFab</DialogTitle>
+          <UnifiedAuthModal className="min-h-0 p-0" />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

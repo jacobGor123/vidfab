@@ -71,7 +71,12 @@ const clearVerificationSession = () => {
  * Unified Authentication Modal Component
  * Provides a single modal for both Google and email verification login
  */
-export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+interface UnifiedAuthModalProps extends React.ComponentPropsWithoutRef<"div"> {
+  /** 覆盖默认 callbackUrl（登录成功后跳转目标） */
+  callbackUrl?: string
+}
+
+export function UnifiedAuthModal({ className, callbackUrl: callbackUrlProp, ...props }: UnifiedAuthModalProps) {
   const [authStep, setAuthStep] = useState<"options" | "email" | "code" | "verifying">("options")
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -86,7 +91,7 @@ export function UnifiedAuthModal({ className, ...props }: React.ComponentPropsWi
     ? window.location.pathname + window.location.search
     : ""
   const isAuthPage = AUTH_PATHS.some((p) => currentPath.startsWith(p))
-  const callbackUrl = isAuthPage || !currentPath ? "/studio/discover" : currentPath
+  const callbackUrl = callbackUrlProp ?? (isAuthPage || !currentPath ? "/studio/discover" : currentPath)
 
   // Handle verification code input change - save to localStorage
   function handleCodeChange(inputCode: string) {

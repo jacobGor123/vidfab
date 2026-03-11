@@ -107,7 +107,7 @@ function ParamPill({
             className={cn(
               "px-3 py-1 text-sm rounded-full border transition-all duration-200",
               value === opt
-                ? "border-brand-purple-DEFAULT bg-brand-purple-DEFAULT/20 text-white"
+                ? "border-white/60 bg-brand-purple-DEFAULT text-white shadow-[0_0_10px_rgba(139,92,246,0.4)]"
                 : "border-brand-gray-700 text-gray-400 hover:border-brand-gray-500 hover:text-white"
             )}
           >
@@ -272,8 +272,8 @@ export function BuilderForm({
         />
       )}
 
-      {/* Resolution — non-sora models */}
-      {(!config.sizes || config.sizes.length === 0) && (
+      {/* Resolution — non-sora models，无选项时整块隐藏 */}
+      {(!config.sizes || config.sizes.length === 0) && config.resolutions && config.resolutions.length > 0 && (
         <ParamPill
           label="Resolution"
           options={config.resolutions}
@@ -316,7 +316,7 @@ export function BuilderForm({
         ) : (
           <>
             <Sparkles className="w-4 h-4 mr-2" />
-            Generate Video · {credits} credits
+            Generate Video ({credits} credits)
           </>
         )}
       </Button>

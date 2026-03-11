@@ -99,7 +99,7 @@ export function PromptShowcase({ title, subtitle, prompts, className }: PromptSh
           <p className="text-gray-400 text-lg max-w-xl mx-auto">{subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mx-auto">
           {prompts.map((example, i) => (
             <PromptCard key={i} example={example} />
           ))}

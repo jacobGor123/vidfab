@@ -56,7 +56,7 @@ export default function Kling3Client() {
         subtitle=""
         description={kling3Config.ctaDescription}
         ctaText={kling3Config.ctaButtonText}
-        ctaLink="/studio/text-to-video"
+        playgroundId="kling3-playground"
         getInspiredText=""
         showVideos={false}
       />
