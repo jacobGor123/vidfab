@@ -272,7 +272,7 @@ export function useStoryboardGeneration({
     } catch (err: any) {
       dismissLoading()
       setError(err.message)
-      showError(err.message)
+      showError(err.message || 'Failed to regenerate storyboard')
 
       // 失败时恢复为 failed 状态
       setStoryboards((prev) =>

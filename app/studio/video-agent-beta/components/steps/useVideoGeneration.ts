@@ -251,7 +251,7 @@ export function useVideoGeneration({
     } catch (err: any) {
       dismissLoading()
       setError(err.message)
-      showError(err.message)
+      showError(err.message || 'Failed to regenerate video')
 
       // 失败时恢复为 failed 状态
       setVideoClips((prev) =>
