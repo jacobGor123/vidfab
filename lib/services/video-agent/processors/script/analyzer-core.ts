@@ -29,7 +29,7 @@ export async function analyzeScript(
   duration: number,
   storyStyle: string
 ): Promise<ScriptAnalysisResult> {
-  console.log('[Script Analyzer Core] Starting analysis with Gemini 2.0 Flash', {
+  console.log('[Script Analyzer Core] Starting analysis with gemini-3-flash-preview', {
     scriptLength: script.length,
     duration,
     storyStyle
@@ -37,7 +37,7 @@ export async function analyzeScript(
 
   const prompt = buildScriptAnalysisPrompt(script, duration, storyStyle)
 
-  // 最多重试 3 次（遇到 429 时）
+  // 最多重试 3 次（遇到 429 限流或响应截断时）
   let retries = 0
   const maxRetries = 3
 
@@ -49,7 +49,7 @@ export async function analyzeScript(
         generationConfig: {
           temperature: 0.2,  // 适中的创造性，避免重复
           topP: 0.9,
-          maxOutputTokens: 8192,
+          maxOutputTokens: 65536,
         }
       })
 
@@ -86,16 +86,25 @@ export async function analyzeScript(
         throw new Error('No shots generated in analysis result')
       }
 
+      // 🔥 截断检测：对比 shots 实际数量与 shot_count 元数据
+      // 若 AI 返回的 JSON 被截断，jsonrepair 会补全括号，导致 shots 数组不完整
+      // 但 shot_count 是 AI 在 JSON 开头写的，通常是准确的
+      if (analysis.shot_count && analysis.shots.length < analysis.shot_count * 0.5) {
+        throw new Error(
+          `Truncated response detected: shot_count=${analysis.shot_count} but only ${analysis.shots.length} shots parsed. Retrying...`
+        )
+      }
+
       // 🔥 验证镜头数量：至少应该有 3 个镜头（即使是 15 秒视频）
       const expectedShotCount = SHOT_COUNT_MAP[duration] || Math.ceil(duration / UNIFIED_SEGMENT_DURATION)
       if (analysis.shots.length < Math.min(3, expectedShotCount)) {
         console.warn('[Script Analyzer Core] ⚠️  Shot count too low!', {
           expected: expectedShotCount,
           actual: analysis.shots.length,
+          shotCountMeta: analysis.shot_count,
           duration,
           scriptLength: script.length
         })
-        console.warn('[Script Analyzer Core] ⚠️  This may indicate a problem with the script or Gemini response')
       }
 
       // 🔥 统一分镜时长
@@ -154,12 +163,12 @@ export async function analyzeScript(
 
     } catch (error: any) {
       const isRateLimit = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')
+      const isTruncated = error.message?.includes('Truncated response detected')
 
-      // 检查是否是 429 限流错误
-      if (isRateLimit) {
-        const waitTime = 10
+      if (isRateLimit || isTruncated) {
+        const waitTime = isRateLimit ? 10 : 2
 
-        console.warn(`[Script Analyzer Core] Rate limited. Retry ${retries + 1}/${maxRetries} after ${waitTime}s`, {
+        console.warn(`[Script Analyzer Core] ${isTruncated ? 'Truncated response' : 'Rate limited'}. Retry ${retries + 1}/${maxRetries} after ${waitTime}s`, {
           retries,
           waitTime,
           error: error.message
@@ -167,12 +176,15 @@ export async function analyzeScript(
 
         if (retries < maxRetries) {
           retries++
-          console.log(`[Script Analyzer Core] Waiting ${waitTime}s before retry...`)
           await sleep(waitTime * 1000)
-          continue // 重试
+          continue
         } else {
           console.error('[Script Analyzer Core] Max retries reached')
-          throw new Error(`Rate limit exceeded. Please wait a moment and try again. (Retried ${maxRetries} times)`)
+          throw new Error(
+            isRateLimit
+              ? `Rate limit exceeded. Please wait a moment and try again. (Retried ${maxRetries} times)`
+              : `Response truncated after ${maxRetries} retries. Script may be too long.`
+          )
         }
       }
 

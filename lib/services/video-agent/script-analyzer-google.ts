@@ -1,6 +1,6 @@
 /**
  * Video Agent - 脚本分析服务（使用 Google Generative AI 官方 SDK）
- * 使用 Gemini 2.0 Flash 分析用户脚本并生成结构化分镜数据
+ * 使用 gemini-3-flash-preview 分析用户脚本并生成结构化分镜数据
  *
  * 🔥 v4.0 更新：
  * - 重构为模块化架构，拆分为多个职责单一的文件

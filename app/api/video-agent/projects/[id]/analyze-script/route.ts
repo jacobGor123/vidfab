@@ -1,6 +1,6 @@
 /**
  * Video Agent - 脚本分析 API
- * 使用 Gemini 2.0 Flash 分析用户脚本
+ * 使用 gemini-3-flash-preview 分析用户脚本
  */
 
 import { NextRequest, NextResponse } from 'next/server'
