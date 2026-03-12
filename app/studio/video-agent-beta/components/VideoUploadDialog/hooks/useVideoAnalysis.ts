@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
-import { showError, showSuccess } from '@/lib/utils/toast'
+import { showSuccess } from '@/lib/utils/toast'
 import type { ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
 
 interface UseVideoAnalysisProps {
@@ -146,7 +146,6 @@ export function useVideoAnalysis({
 
     } catch (error: any) {
       console.error('Video analysis error:', error)
-      showError(error.message || 'Failed to analyze video')
       setIsAnalyzing(false)
       setProgress('')
       throw error
