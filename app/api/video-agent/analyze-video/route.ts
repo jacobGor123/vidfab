@@ -147,12 +147,12 @@ export const POST = withAuth(async (req, { params, userId }) => {
         // 将实际时长四舍五入到最接近的整数
         actualDuration = Math.round(actualDuration)
 
-        // 🔥 检查时长限制：YouTube 视频最大支持 120 秒（2 分钟）
-        if (actualDuration > 120) {
+        // 🔥 检查时长限制：YouTube 视频最大支持 60 秒（1 分钟）
+        if (actualDuration > 60) {
           return NextResponse.json(
             {
               success: false,
-              error: `Video is too long (${actualDuration}s). Maximum supported duration is 120 seconds (2 minutes). Please use a shorter video.`,
+              error: `Video is too long (${actualDuration}s). Maximum supported duration is 60 seconds (1 minute). Please use a shorter video.`,
               code: 'VIDEO_TOO_LONG',
               actualDuration
             },
@@ -161,8 +161,15 @@ export const POST = withAuth(async (req, { params, userId }) => {
         }
 
       } catch (error: any) {
-        console.warn('[API /analyze-video] Failed to get YouTube duration, using user selection:', error.message)
-        // 如果获取失败，继续使用用户选择的时长
+        console.error('[API /analyze-video] Failed to get YouTube video duration:', error.message)
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Unable to verify video duration. Please check the video URL and try again.',
+            code: 'DURATION_CHECK_FAILED'
+          },
+          { status: 400 }
+        )
       }
     }
 
