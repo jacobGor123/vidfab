@@ -5,6 +5,8 @@ import { supabaseAdmin, TABLES, handleSupabaseError, type DatabaseUser } from '@
 import { User, CreateUserData, UpdateUserData, UserProfile } from '@/types/user';
 import { getIsoTimestr } from '@/lib/time';
 import { getUuid, getUserUuidFromEmail } from '@/lib/hash';
+import { normalizeEmail, isDuplicateNormalizedEmail } from '@/lib/fraud/email-normalizer'
+import { getAntifraudIp, checkIpCreditLimit, recordIpGrant } from '@/lib/fraud/ip-checker'
 
 /**
  * Save or update a user in the database
@@ -52,6 +54,22 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       // ✅ 新用户：使用默认值
       console.log(`✨ 创建新用户: ${userUuid}`);
 
+      // 🛡️ 防欺诈检查 Layer 1 + Layer 2
+      const normalizedMail = normalizeEmail(userData.email)
+      const [isEmailDup, clientIp] = await Promise.all([
+        isDuplicateNormalizedEmail(normalizedMail),
+        getAntifraudIp(),
+      ])
+      const isIpLimited = await checkIpCreditLimit(clientIp)
+
+      const isFraud = isEmailDup || isIpLimited
+      if (isFraud) {
+        console.warn(
+          `[fraud] 新用户积分被限制: ${userData.email}`,
+          { isEmailDup, isIpLimited, ip: clientIp }
+        )
+      }
+
       // 🎁 检查是否有待领取的积分
       const { data: pendingCredits } = await supabaseAdmin
         .from('pending_credits')
@@ -87,10 +105,15 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         // Set default AI Video platform values for new users
         subscription_status: 'active',
         subscription_plan: 'free',
-        credits_remaining: totalCredits, // 🎁 包含pending积分
+        credits_remaining: isFraud ? 0 : totalCredits, // 🛡️ 强制覆盖，pending_credits 加成无法绕过
         total_videos_processed: 0,
         storage_used_mb: 0,
         max_storage_mb: 1024, // 1GB default
+        normalized_email: normalizedMail,
+        is_credit_limited: isFraud,
+        fraud_reason: isFraud
+          ? (isEmailDup ? 'email_duplicate' : 'ip_limit')
+          : null,
       };
 
       // 🎁 用户创建成功后，标记 pending_credits 为已领取
@@ -98,6 +121,9 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         // 🔧 使用独立变量存储，避免污染 userToSave 对象
         pendingCreditIdsToProcess = pendingCreditIds;
       }
+
+      // 🛡️ 记录 IP 积分发放情况，复用上面已计算的 clientIp 和 isFraud
+      await recordIpGrant(clientIp, userUuid, userData.email, !isFraud)
     }
 
     // 使用upsert操作

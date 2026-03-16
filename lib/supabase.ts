@@ -81,8 +81,9 @@ export interface DatabaseUser {
   storage_used_mb?: number;
   max_storage_mb?: number;
   // Fraud detection fields
+  normalized_email?: string | null;
   is_credit_limited?: boolean;
-  fraud_reason?: string;
+  fraud_reason?: string | null;
 }
 
 export interface DatabaseVerificationCode {
