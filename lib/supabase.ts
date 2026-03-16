@@ -80,6 +80,9 @@ export interface DatabaseUser {
   total_videos_processed?: number;
   storage_used_mb?: number;
   max_storage_mb?: number;
+  // Fraud detection fields
+  is_credit_limited?: boolean;
+  fraud_reason?: string;
 }
 
 export interface DatabaseVerificationCode {

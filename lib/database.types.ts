@@ -430,6 +430,8 @@ export interface Database {
           total_videos_processed: number | null
           storage_used_mb: number | null
           max_storage_mb: number | null
+          is_credit_limited: boolean | null
+          fraud_reason: string | null
         }
         Insert: {
           uuid?: string
@@ -452,6 +454,8 @@ export interface Database {
           total_videos_processed?: number | null
           storage_used_mb?: number | null
           max_storage_mb?: number | null
+          is_credit_limited?: boolean | null
+          fraud_reason?: string | null
         }
         Update: {
           uuid?: string
@@ -474,6 +478,31 @@ export interface Database {
           total_videos_processed?: number | null
           storage_used_mb?: number | null
           max_storage_mb?: number | null
+          is_credit_limited?: boolean | null
+          fraud_reason?: string | null
+        }
+      }
+      device_fingerprints: {
+        Row: {
+          id: string
+          fingerprint: string
+          user_uuid: string
+          ip_address: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          fingerprint: string
+          user_uuid: string
+          ip_address?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          fingerprint?: string
+          user_uuid?: string
+          ip_address?: string | null
+          created_at?: string
         }
       }
       script_creation_usage: {
