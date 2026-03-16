@@ -35,12 +35,13 @@ export async function checkAndRecordDevice(
     .from('device_fingerprints')
     .select('user_uuid')
     .eq('fingerprint', fingerprintHash)
+    .neq('user_uuid', userUuid)  // 显式排除当前用户（防守性编程）
     .limit(10)
 
   let isFraud = false
 
   if (sameDevice && sameDevice.length > 0) {
-    const historicUuids = sameDevice.map(r => r.user_uuid)
+    const historicUuids = Array.from(new Set(sameDevice.map(r => r.user_uuid)))
 
     // 检查历史账号中是否有付费账号（付费用户不触发追缴）
     const { data: paidUsers } = await supabaseAdmin
@@ -79,7 +80,7 @@ export async function checkAndRecordDevice(
       .from('users')
       .select('credits_remaining')
       .eq('uuid', userUuid)
-      .single()
+      .maybeSingle()
 
     const consumed = currentUser
       ? 200 - (currentUser.credits_remaining ?? 200)
