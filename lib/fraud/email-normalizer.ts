@@ -6,7 +6,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 // 支持去除 +alias 的邮件域名
 const ALIAS_DOMAINS = new Set([
-  'gmail.com',
+  'gmail.com', 'googlemail.com', // googlemail.com 是 Gmail 的旧域名（德国等地区使用）
   'yandex.com', 'yandex.ru',
   'outlook.com', 'hotmail.com', 'live.com',
   'icloud.com', 'me.com', 'mac.com',
@@ -30,8 +30,8 @@ export function normalizeEmail(email: string): string {
     if (plusIdx !== -1) local = local.slice(0, plusIdx)
   }
 
-  // Gmail：去除本地部分所有点号
-  if (domain === 'gmail.com') {
+  // Gmail（含旧域名 googlemail.com）：去除本地部分所有点号
+  if (domain === 'gmail.com' || domain === 'googlemail.com') {
     local = local.replace(/\./g, '')
   }
 

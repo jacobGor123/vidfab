@@ -26,6 +26,8 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
 
     let userToSave: Partial<DatabaseUser>;
     let pendingCreditIdsToProcess: string[] = []; // 🔧 用独立变量存储
+    // 🛡️ 防欺诈：IP 记录参数（upsert 成功后写入，避免非原子性问题）
+    let ipGrantArgs: { ip: string; granted: boolean } | null = null;
 
     if (existingUser) {
       // ✅ 已存在用户：只更新登录相关字段，不覆盖积分和订阅
@@ -123,8 +125,8 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         pendingCreditIdsToProcess = pendingCreditIds;
       }
 
-      // 🛡️ 记录 IP 积分发放情况，复用上面已计算的 clientIp 和 isFraud
-      await recordIpGrant(clientIp, userUuid, userData.email, !isFraud)
+      // 🛡️ 暂存 IP 记录参数，等 upsert 成功后再写入（避免 upsert 失败导致 IP 配额被错误消耗）
+      ipGrantArgs = { ip: clientIp, granted: !isFraud }
     }
 
     // 使用upsert操作
@@ -214,6 +216,11 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
 
     if (!data) {
       throw new Error('No user data returned from database');
+    }
+
+    // 🛡️ upsert 成功后记录 IP 积分发放情况（新用户才有 ipGrantArgs）
+    if (ipGrantArgs) {
+      await recordIpGrant(ipGrantArgs.ip, data.uuid, userData.email, ipGrantArgs.granted)
     }
 
     // 🎁 标记 pending_credits 为已领取

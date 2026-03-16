@@ -7,7 +7,7 @@
 import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 
-const STORAGE_KEY = 'vf_device_check_done'
+const STORAGE_KEY_PREFIX = 'vf_device_check_done'
 
 export function DeviceFingerprintTracker() {
   const { data: session, status } = useSession()
@@ -15,7 +15,9 @@ export function DeviceFingerprintTracker() {
   useEffect(() => {
     if (status !== 'authenticated' || !session?.user?.uuid) return
     if (typeof window === 'undefined') return
-    if (localStorage.getItem(STORAGE_KEY)) return // 已完成，跳过
+
+    const storageKey = `${STORAGE_KEY_PREFIX}_${session.user.uuid}`
+    if (localStorage.getItem(storageKey)) return // 已完成，跳过
 
     let cancelled = false
 
@@ -37,7 +39,7 @@ export function DeviceFingerprintTracker() {
         })
 
         if (!cancelled) {
-          localStorage.setItem(STORAGE_KEY, '1')
+          localStorage.setItem(storageKey, '1')
         }
       } catch (err) {
         // 静默失败，不影响用户体验
