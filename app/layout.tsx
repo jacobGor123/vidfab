@@ -22,6 +22,12 @@ const ProgressBar = dynamic(
   { ssr: false }
 )
 
+// 防欺诈：设备指纹追踪器（客户端，登录后异步触发）
+const DeviceFingerprintTracker = dynamic(
+  () => import('@/components/auth/device-fingerprint-tracker').then(m => ({ default: m.DeviceFingerprintTracker })),
+  { ssr: false }
+)
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'),
 
@@ -189,6 +195,7 @@ export default function RootLayout({
         {/* <BlackFridayBanner /> */}
         <SessionProvider>
           <GtmAuthTracker />
+          <DeviceFingerprintTracker />
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <VideoProvider>
               <ImageProvider>

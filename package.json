@@ -18,6 +18,7 @@
     "@anthropic-ai/sdk": "^0.71.0",
     "@aws-sdk/client-s3": "^3.921.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@google/genai": "^1.33.0",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.9.1",
