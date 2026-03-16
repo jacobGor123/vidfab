@@ -24,6 +24,7 @@ import { useUnifiedPolling, type PollingStatusResponse } from "./use-unified-pol
 import { createPollingError, type PollingError } from "@/lib/polling/polling-errors"
 import { GenerationAnalytics, type GenerationType } from "@/lib/analytics/generation-events"
 import { emitCreditsUpdated } from "@/lib/events/credits-events"
+import { emitAssetStored } from "@/lib/events/asset-events"
 
 /**
  * 视频任务数据
@@ -272,6 +273,8 @@ export function useVideoPollingV2(
     } catch (error) {
       // Ignore error
     }
+    // 视频已成功入库（saveWithRetry 成功才触发此回调），无论上方是否抛出都通知刷新
+    emitAssetStored('video')
   }, [videoContext])
 
   const handleProgress = useCallback((requestId: string, progress: number) => {

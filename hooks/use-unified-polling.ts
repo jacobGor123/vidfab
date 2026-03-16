@@ -359,8 +359,9 @@ export function useUnifiedPolling<TJobData = any>(
       if (response.status === 'completed' && response.outputs && response.outputs.length > 0) {
         const output = response.outputs[0]
 
-        // 保存 job 引用（stopPolling 会删除）
-        const currentJob = pollingJobsRef.current.get(requestId)
+        // 直接使用传入的 job 参数，避免从 pollingJobsRef 读取可能 stale 的值
+        // pollingJobsRef 通过 useEffect 异步更新，在极端情况下可能滞后
+        const currentJob = job
 
         // 立即触发完成回调
         callbacksRef.current.onCompleted?.(requestId, output)

@@ -19,6 +19,7 @@ import { IMAGE_POLLING_CONFIG, type PollingConfig } from "@/lib/polling/polling-
 import { useUnifiedPolling, type PollingStatusResponse } from "./use-unified-polling"
 import { GenerationAnalytics, type GenerationType } from "@/lib/analytics/generation-events"
 import { emitCreditsUpdated } from "@/lib/events/credits-events"
+import { emitAssetStored } from "@/lib/events/asset-events"
 
 /**
  * 图片任务数据
@@ -251,6 +252,7 @@ export function useImagePollingV2(
    */
   const handleStored = useCallback((requestId: string, imageId: string) => {
     onStored?.(requestId, imageId)
+    emitAssetStored('image')
   }, [onStored])
 
   // 使用统一轮询引擎
