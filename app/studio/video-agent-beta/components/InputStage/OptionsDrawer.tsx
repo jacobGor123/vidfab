@@ -1,8 +1,6 @@
 'use client'
 
-import { X } from 'lucide-react'
-import Image from 'next/image'
-import { Volume2, VolumeX } from 'lucide-react'
+import { X, Volume2, VolumeX } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -29,7 +27,6 @@ interface OptionsDrawerProps {
   muteBgm: boolean
   onMuteBgmChange: (value: boolean) => void
   onAIInspiration: () => void
-  onAnalyzeVideo: () => void
   isGeneratingInspiration: boolean
 }
 
@@ -43,7 +40,6 @@ export default function OptionsDrawer({
   muteBgm,
   onMuteBgmChange,
   onAIInspiration,
-  onAnalyzeVideo,
   isGeneratingInspiration
 }: OptionsDrawerProps) {
   if (!isOpen) return null
@@ -179,23 +175,6 @@ export default function OptionsDrawer({
               )}
             </button>
 
-            <button
-              onClick={onAnalyzeVideo}
-              className={cn(
-                "w-full h-12 flex items-center justify-center gap-3 rounded-xl",
-                "border border-[#CFCBFF]/50 text-[#CFCBFF]",
-                "font-medium transition-all",
-                "hover:bg-[#CFCBFF]/10 hover:shadow-[0_0_12px_rgba(207,203,255,0.4)]"
-              )}
-            >
-              <Image
-                src="/logo/analyze-video-icon.svg"
-                alt="Analyze"
-                width={20}
-                height={20}
-              />
-              <span>Analyze Video</span>
-            </button>
           </div>
         </div>
       </div>

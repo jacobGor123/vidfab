@@ -379,7 +379,7 @@ export function ImageToImagePanel() {
 
       {/* Login modal */}
       <Dialog open={authModal.isAuthModalOpen} onOpenChange={() => authModal.hideAuthModal()}>
-        <DialogContent className="p-0 max-w-md">
+        <DialogContent className="p-0 max-w-[800px] bg-[#0e1018] border-white/10 overflow-hidden rounded-[20px]">
           <DialogTitle className="sr-only">user login</DialogTitle>
           <UnifiedAuthModal className="min-h-0 p-0" />
         </DialogContent>

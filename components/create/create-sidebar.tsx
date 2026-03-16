@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useSession } from "next-auth/react"
 import Image from "next/image"
 import {
   type ToolType,
@@ -17,6 +18,9 @@ import {
   toolToUrlMap,
   getToolFromPath
 } from "@/lib/config/studio-tools"
+
+// 需要登录才显示的工具 ID
+const AUTH_REQUIRED_TOOLS = new Set<ToolType>(['my-assets', 'my-profile'])
 
 interface CreateSidebarProps {
   isOpen: boolean
@@ -28,6 +32,8 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const isMobile = useIsMobile()
+  const { status } = useSession()
+  const isLoggedIn = status === 'authenticated'
 
   // 使用统一配置的路径映射表
   const activeTool = getToolFromPath(pathname) || (searchParams.get("tool") as ToolType) || 'discover'
@@ -113,7 +119,13 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
           </div>
 
           {/* 其他分类菜单项 */}
-          {menuCategories.map((category) => (
+          {menuCategories.map((category) => {
+            const visibleItems = category.items.filter(
+              item => isLoggedIn || !AUTH_REQUIRED_TOOLS.has(item.id)
+            )
+            if (visibleItems.length === 0) return null
+
+            return (
             <div key={category.category} className="mb-8">
               {isOpen && (
                 <div className="px-4 mb-3">
@@ -123,7 +135,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                 </div>
               )}
               <div className="space-y-1">
-                {category.items.map((item) => {
+                {visibleItems.map((item) => {
                   const isActive = activeTool === item.id
 
                   return (
@@ -169,7 +181,8 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                 })}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Footer */}

@@ -62,7 +62,7 @@ export default withAuth(
     // 保持浏览器 URL 为 /studio/{tool}，GA4 可以正确追踪路径
     if (nextUrl.pathname.startsWith('/studio/')) {
       // 特殊页面：这些路径有真实的 page.tsx 文件，不需要 rewrite
-      const specialPaths = ['/studio/video-agent-beta']
+      const specialPaths = ['/studio/video-agent-beta', '/studio/plans']
       if (specialPaths.some(path => nextUrl.pathname.startsWith(path))) {
         return NextResponse.next()
       }

@@ -10,7 +10,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="flex min-h-svh w-full items-center justify-center bg-brand-gray-900 p-4 md:p-10">
-      <div className="w-full max-w-md">{children}</div>
+      <div className="w-full max-w-[800px]">{children}</div>
     </div>
   )
 }

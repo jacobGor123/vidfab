@@ -5,14 +5,12 @@ import { useSession } from "next-auth/react"
 import { SpaceBackground } from "@/components/space-background"
 import { LoadingState } from "@/components/loading-state"
 import { SkeletonLoader } from "@/components/skeleton-loader"
-import { Check, User, Crown, Building, Zap } from "lucide-react"
+import { Check, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { SUBSCRIPTION_PLANS, getAnnualDiscount } from "@/lib/subscription/pricing-config"
+import { SUBSCRIPTION_PLANS } from "@/lib/subscription/pricing-config"
 import toast from "react-hot-toast"
 import { trackBeginCheckout, trackBillingToggle, trackCancelSubscription, trackViewPricingPage } from "@/lib/analytics/gtm"
+import { PlanCard } from "@/components/subscription/plan-card"
 
 export default function PricingPage() {
   const [loading, setLoading] = useState(true)
@@ -222,7 +220,7 @@ export default function PricingPage() {
     return (
       <div className="relative min-h-screen overflow-hidden bg-black text-white">
         <SpaceBackground />
-        <div className="container mx-auto px-4 pt-32 pb-20">
+        <div className="mx-auto w-full px-5 sm:px-10 md:px-14 lg:px-8 pt-32 pb-20" style={{ maxWidth: 1280 }}>
           <div className="max-w-4xl mx-auto">
             <SkeletonLoader type="title" className="mb-6" />
             <SkeletonLoader type="text" count={2} className="mb-12" />
@@ -246,343 +244,217 @@ export default function PricingPage() {
     return (priceInCents / 100).toFixed(2)
   }
 
-  const getAnnualSavings = (planId: 'pro' | 'premium') => {
-    const plan = SUBSCRIPTION_PLANS[planId]
-    const monthlyTotal = plan.price.monthly * 12
-    const savings = monthlyTotal - plan.price.annual
-    const percentage = Math.round((savings / monthlyTotal) * 100)
-    return { savings: savings / 100, percentage }
-  }
+  const FREE_FEATURES = ['Initial 200 credits', 'About 66 images or 20 videos (480p)', '5 free script creations & analyses', 'Export with watermark', 'Basic resolution (480p and 720p)', '24-hour retention for creations']
+  const PRO_FEATURES = ['1500 credits reset monthly', 'About 500 images or 150 videos (480p)', '20 free script creations & analyses/month', 'Watermark-free exports', 'Advanced AI models', 'Access to HD resolution (up to 1080P)', '4 concurrent generation', 'Priority support', 'Cancel anytime']
+  const PREMIUM_FEATURES = ['3500 credits reset monthly', 'About 1166 images or 350 videos (480p)', '50 free script creations & analyses/month', 'Watermark-free exports', 'Advanced AI models', 'Access to HD resolution (up to 1080P)', '4 concurrent generation', 'Dedicated support', 'Cancel anytime']
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <SpaceBackground />
 
       <main>
-        <div className="container mx-auto px-4 pt-32 pb-20">
-          <div className="max-w-5xl mx-auto text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
+        <div className="mx-auto w-full px-5 sm:px-10 md:px-14 lg:px-8 pt-24 md:pt-32 pb-16 md:pb-20" style={{ maxWidth: 1280 }}>
+          <div className="max-w-5xl mx-auto text-center mb-10 md:mb-16">
+            <h1
+              className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)' }}
+            >
               Simple, Transparent Pricing
             </h1>
-            <p className="text-lg text-gray-300 mb-8">
+            <p className="text-lg text-white mb-8">
               Choose the plan that's right for you and start creating amazing AI videos.
             </p>
 
-            <div className="flex items-center justify-center mb-12">
-              <Label htmlFor="billing-toggle" className={annual ? "text-gray-400" : "text-white"}>
-                Monthly
-              </Label>
-              <Switch
-                id="billing-toggle"
-                checked={annual}
-                onCheckedChange={(checked) => {
-                  setAnnual(checked);
-                  // 🔥 GTM 计费周期切换事件跟踪
-                  trackBillingToggle(checked ? 'annual' : 'monthly');
-                }}
-                className="mx-4"
-              />
-              <Label htmlFor="billing-toggle" className={!annual ? "text-gray-400" : "text-white"}>
-                Annual <span className="text-xs text-pink-500">(Save up to 20%)</span>
-              </Label>
+            {/* Monthly / Annual toggle — Figma pill style */}
+            <div className="flex items-center justify-center mb-8 md:mb-12">
+              <div
+                className="flex items-center rounded-full"
+                style={{ border: '1px solid #555555', padding: '4px 5px', gap: '4px' }}
+              >
+                <button
+                  onClick={() => { setAnnual(false); trackBillingToggle('monthly') }}
+                  className="px-6 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
+                  style={!annual
+                    ? { background: '#555555', color: '#ffffff' }
+                    : { color: 'rgba(255,255,255,0.5)' }}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => { setAnnual(true); trackBillingToggle('annual') }}
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
+                  style={annual
+                    ? { background: '#555555', color: '#ffffff' }
+                    : { color: 'rgba(255,255,255,0.5)' }}
+                >
+                  Annual
+                  <span
+                    className="text-xs font-medium px-2 py-0.5 rounded-full"
+                    style={{ background: '#470085', color: '#CD94FF' }}
+                  >
+                    Save up to 20%
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 max-w-5xl mx-auto items-stretch">
+
             {/* Free Plan */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden group hover:border-gray-400/50 transition-colors">
-              <div className="p-6 border-b border-white/10">
-                <h3 className="text-xl font-bold mb-2">Free</h3>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-bold">$0</span>
-                  <span className="text-gray-400 ml-2">/ forever</span>
+            <div className="relative p-[1px] rounded-[20px]" style={{ background: 'linear-gradient(to bottom, #af60ec, #592055)' }}>
+              <div className="rounded-[20px] overflow-hidden flex flex-col h-full" style={{ background: '#1a1539' }}>
+                <div className="px-5 md:px-6 pt-5 md:pt-6 pb-4 md:pb-5">
+                  <h3 className="text-xl font-bold text-white mb-3">Free</h3>
+                  <div className="flex items-baseline gap-2 mb-3">
+                    <span className="text-4xl font-bold text-white">$0</span>
+                    <span className="text-[#dddddd] text-sm">/ forever</span>
+                  </div>
+                  <p className="text-[#dddddd] text-sm leading-relaxed">Get started with AI video creation — simple and risk-free.</p>
                 </div>
-                <p className="text-gray-400 mt-4 text-sm">Get started with AI video creation — simple and risk-free.</p>
-              </div>
-              <div className="p-6">
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Initial 200 credits</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">About 66 images or 20 videos (480p)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">5 free script creations & analyses</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Export with watermark</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Basic resolution (480p and 720p)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-gray-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">24-hour retention for creations</span>
-                  </li>
-                </ul>
-                <Button
-                  onClick={currentPlan === 'free' ? undefined : handleCancelSubscription}
-                  disabled={planLoading || cancelling || currentPlan === 'free'}
-                  className={`w-full mt-6 ${
-                    currentPlan === 'free'
-                      ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                      : 'bg-red-600 hover:bg-red-700 text-white'
-                  }`}
-                >
-                  {planLoading ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : cancelling ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Cancelling...
-                    </>
-                  ) : currentPlan === 'free' ? (
-                    'Current Plan'
-                  ) : (
-                    'Cancel Subscription'
-                  )}
-                </Button>
+                <div className="h-px bg-[#2f2b49] mx-5 md:mx-6" />
+                <div className="px-5 md:px-6 py-4 md:py-5 flex-1">
+                  <ul className="space-y-3">
+                    {FREE_FEATURES.map(f => (
+                      <li key={f} className="flex items-start gap-2.5">
+                        <Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#30ff8e' }} />
+                        <span className="text-sm text-white">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="px-5 md:px-6 pb-5 md:pb-6">
+                  <Button
+                    onClick={currentPlan === 'free' ? undefined : handleCancelSubscription}
+                    disabled={planLoading || cancelling || currentPlan === 'free'}
+                    className="w-full h-11 rounded-lg text-sm font-medium !text-white/60 cursor-not-allowed"
+                    style={{ background: '#2b2555' }}
+                  >
+                    {planLoading ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Loading...</> : cancelling ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Cancelling...</> : currentPlan === 'free' ? 'Current Plan' : 'Get Started'}
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/30 rounded-xl overflow-hidden relative group hover:border-purple-500/70 transition-colors transform scale-105 z-10">
-              <div className="absolute top-0 right-0 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-                MOST POPULAR
-              </div>
-              <div className="p-6 border-b border-white/10">
-                <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-                  Pro
-                </h3>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-bold">
-                    ${annual ? formatPrice(SUBSCRIPTION_PLANS.pro.price.annual / 12) : formatPrice(SUBSCRIPTION_PLANS.pro.price.monthly)}
-                  </span>
-                  <span className="text-gray-400 ml-2">/ month</span>
-                </div>
-                {annual && (
-                  <div className="mt-1">
-                    <p className="text-xs text-purple-500">
-                      Billed annually (${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual)})
-                    </p>
-                    <Badge variant="secondary" className="text-xs mt-1">
-                      Save ${getAnnualSavings('pro').savings} ({getAnnualSavings('pro').percentage}% off)
-                    </Badge>
-                  </div>
-                )}
-                <p className="text-gray-400 mt-4 text-sm">
-                  Advanced video production suite for professionals and studios.
-                </p>
-              </div>
-              <div className="p-6">
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">1500 credits reset monthly</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">About 500 images or 150 videos (480p)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">20 free script creations & analyses/month</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Watermark-free exports</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Advanced AI models</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Access to HD resolution (up to 1080P)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">4 concurrent generation</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-purple-500 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Priority support</span>
-                  </li>
-                </ul>
+            <PlanCard
+              borderGradient="linear-gradient(to bottom, #4e66ff, #53b7e8)"
+              bgGradient="linear-gradient(180deg, #3f298c 0%, #140b48 100%)"
+              badge="MOST POPULAR"
+              headerImage="/images/pricing-pro-header.png"
+              headerMinHeight={172}
+              featureSpacing="space-y-3"
+              featureGap="gap-2.5"
+              header={
+                <>
+                  <h3 className="text-xl font-bold text-white mb-3">Pro Plan</h3>
+                  {annual ? (
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-4xl font-bold" style={{ color: '#4cc3ff' }}>${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual / 12)}</span>
+                      <span className="text-sm text-white/80">/ month</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-4xl font-bold" style={{ color: '#4cc3ff' }}>$9.90</span>
+                        <span className="text-sm text-white/80">first month</span>
+                      </div>
+                      <p className="text-sm font-semibold text-white mb-3">Then ${formatPrice(SUBSCRIPTION_PLANS.pro.price.monthly)}/month</p>
+                    </>
+                  )}
+                  {annual && <p className="text-sm text-[#dddddd] mb-3">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual)})</p>}
+                  <p className="text-sm text-[#dddddd]">Advanced video production suite for professionals and studios.</p>
+                </>
+              }
+              features={PRO_FEATURES}
+              dividerColor="#422d90"
+              button={
                 <Button
                   onClick={() => handleSubscribe('pro')}
                   disabled={subscribing === 'pro' || currentPlan === 'pro' || planLoading}
-                  className={`w-full mt-6 ${
-                    currentPlan === 'pro'
-                      ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90'
-                  }`}
+                  className={`w-full h-11 rounded-lg text-sm font-medium !text-white ${currentPlan === 'pro' ? '!bg-white/10 !text-white/40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                  style={currentPlan !== 'pro' ? { background: 'linear-gradient(90deg, #e037ff 0%, #3e6aff 100%)' } : undefined}
                 >
-                  {planLoading ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : subscribing === 'pro' ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : currentPlan === 'pro' ? (
-                    <>
-                      Current Plan
-                    </>
-                  ) : (
-                    <>
-                      Get Started
-                    </>
-                  )}
+                  {planLoading ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Loading...</> : subscribing === 'pro' ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Processing...</> : currentPlan === 'pro' ? 'Current Plan' : 'Get Started'}
                 </Button>
-              </div>
-            </div>
+              }
+            />
 
             {/* Premium Plan */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden group hover:border-cyan-400/50 transition-colors">
-              <div className="p-6 border-b border-white/10">
-                <h3 className="text-xl font-bold mb-2">Premium</h3>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-bold">
-                    ${annual ? formatPrice(SUBSCRIPTION_PLANS.premium.price.annual / 12) : formatPrice(SUBSCRIPTION_PLANS.premium.price.monthly)}
-                  </span>
-                  <span className="text-gray-400 ml-2">/ month</span>
-                </div>
-                {annual && (
-                  <div className="mt-1">
-                    <p className="text-xs text-cyan-400">
-                      Billed annually (${formatPrice(SUBSCRIPTION_PLANS.premium.price.annual)})
-                    </p>
-                    <Badge variant="secondary" className="text-xs mt-1">
-                      Save ${getAnnualSavings('premium').savings} ({getAnnualSavings('premium').percentage}% off)
-                    </Badge>
+            <PlanCard
+              borderGradient="linear-gradient(to bottom, #ff64f4, #6560ec)"
+              bgGradient="linear-gradient(180deg, #430e84 0%, #2e0b48 100%)"
+              headerImage="/images/pricing-premium-header.png"
+              headerMinHeight={151}
+              featureSpacing="space-y-3"
+              featureGap="gap-2.5"
+              header={
+                <>
+                  <h3 className="text-xl font-bold text-white mb-3">Premium</h3>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-4xl font-bold text-white">${annual ? formatPrice(SUBSCRIPTION_PLANS.premium.price.annual / 12) : formatPrice(SUBSCRIPTION_PLANS.premium.price.monthly)}</span>
+                    <span className="text-sm text-white/80">/ month</span>
                   </div>
-                )}
-                <p className="text-gray-400 mt-4 text-sm">
-                  For organizations that need the most powerful video creation capabilities.
-                </p>
-              </div>
-              <div className="p-6">
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">3500 credits reset monthly</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">About 1166 images or 350 videos (480p)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">50 free script creations & analyses/month</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Watermark-free exports</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Advanced AI models</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Access to HD resolution (up to 1080P)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">4 concurrent generation</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-4 w-4 text-cyan-400 mr-2 shrink-0 mt-0.5" />
-                    <span className="text-xs text-gray-300">Dedicated support</span>
-                  </li>
-                </ul>
+                  {annual && <p className="text-sm text-[#dddddd] mb-3">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.premium.price.annual)})</p>}
+                  <p className="text-sm text-[#dddddd]">For organizations that need the most powerful video creation capabilities.</p>
+                </>
+              }
+              features={PREMIUM_FEATURES}
+              dividerColor="#4b2d90"
+              button={
                 <Button
                   onClick={() => handleSubscribe('premium')}
                   disabled={subscribing === 'premium' || currentPlan === 'premium' || planLoading}
-                  className={`w-full mt-6 ${
-                    currentPlan === 'premium'
-                      ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                      : 'bg-cyan-600 hover:bg-cyan-700 text-white'
-                  }`}
+                  className={`w-full h-11 rounded-lg text-sm font-medium !text-white ${currentPlan === 'premium' ? '!bg-white/10 !text-white/40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                  style={currentPlan !== 'premium' ? { background: '#814cff' } : undefined}
                 >
-                  {planLoading ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : subscribing === 'premium' ? (
-                    <>
-                      <Zap className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : currentPlan === 'premium' ? (
-                    <>
-                      Current Plan
-                    </>
-                  ) : (
-                    <>
-                      Get Started
-                    </>
-                  )}
+                  {planLoading ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Loading...</> : subscribing === 'premium' ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Processing...</> : currentPlan === 'premium' ? 'Current Plan' : 'Get Started'}
                 </Button>
-              </div>
-            </div>
+              }
+            />
           </div>
 
-          <div className="max-w-3xl mx-auto mt-20 text-center">
+          <div className="max-w-3xl mx-auto mt-12 md:mt-20 text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
               Frequently Asked Questions
             </h2>
 
-            <div className="mt-8 space-y-6 text-left">
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-2">Can I change plans later?</h3>
-                <p className="text-gray-400">
+            <div className="mt-6 md:mt-8 space-y-4 md:space-y-6 text-left">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
+                <h3 className="text-base md:text-lg font-bold mb-2">Can I change plans later?</h3>
+                <p className="text-gray-400 text-sm md:text-base">
                   Yes, you can upgrade or downgrade your plan at any time. When upgrading, credits are added to your account immediately.
                 </p>
               </div>
 
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-2">What occurs if I exceed my allocated monthly credits?</h3>
-                <p className="text-gray-400 mb-4">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
+                <h3 className="text-base md:text-lg font-bold mb-2">What occurs if I exceed my allocated monthly credits?</h3>
+                <p className="text-gray-400 text-sm md:text-base mb-3 md:mb-4">
                   If you use up all your monthly credits:
                 </p>
-                <ul className="list-disc list-inside text-gray-400 space-y-2">
+                <ul className="list-disc list-inside text-gray-400 text-sm md:text-base space-y-2">
                   <li>You'll be prompted to upgrade to a higher plan.</li>
                   <li>Video generation will be unavailable until your credits are renewed or your plan is upgraded.</li>
                 </ul>
               </div>
 
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-2">How do credits work?</h3>
-                <p className="text-gray-400 mb-3">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
+                <h3 className="text-base md:text-lg font-bold mb-2">How do credits work?</h3>
+                <p className="text-gray-400 text-sm md:text-base mb-3">
                   Credits are used up based on the AI model and video settings you select. For example:
                 </p>
-                <ul className="list-disc list-inside text-gray-400 space-y-2 mb-3">
+                <ul className="list-disc list-inside text-gray-400 text-sm md:text-base space-y-2 mb-3">
                   <li>A 480p 5-second video costs 10 credits.</li>
                   <li>A 1080p 10-second video costs 80 credits.</li>
                 </ul>
-                <p className="text-gray-400">
+                <p className="text-gray-400 text-sm md:text-base">
                   Higher resolution or longer videos use more credits. Different AI models may also have varying credit requirements.
                 </p>
               </div>
 
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-2">Which payment methods are available?</h3>
-                <p className="text-gray-400">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
+                <h3 className="text-base md:text-lg font-bold mb-2">Which payment methods are available?</h3>
+                <p className="text-gray-400 text-sm md:text-base">
                   We accept all major credit cards through Stripe. Annual plans also provide additional savings compared to monthly billing.
                 </p>
               </div>

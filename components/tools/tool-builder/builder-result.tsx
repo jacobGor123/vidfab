@@ -336,7 +336,7 @@ export function BuilderResult({ currentJob, completedVideos, onLoadHistory, demo
 
       {/* Auth modal */}
       <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
-        <DialogContent className="p-0 max-w-md">
+        <DialogContent className="p-0 max-w-[800px] bg-[#0e1018] border-white/10 overflow-hidden rounded-[20px]">
           <DialogTitle className="sr-only">Sign in to VidFab</DialogTitle>
           <UnifiedAuthModal className="min-h-0 p-0" />
         </DialogContent>

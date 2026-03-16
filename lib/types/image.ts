@@ -114,6 +114,14 @@ export const IMAGE_MODEL_CONFIG = {
   }
 } as const
 
+// Provider 映射：哪些模型走 BytePlus，哪些走 Wavespeed
+const BYTEPLUS_MODELS = new Set(["seedream-v4"])
+
+// 辅助函数：判断模型对应的 provider
+export function getImageProvider(model: string): "byteplus" | "wavespeed" {
+  return BYTEPLUS_MODELS.has(model) ? "byteplus" : "wavespeed"
+}
+
 // 辅助函数：判断生成类型
 export function getImageGenerationType(request: ImageGenerationRequest): ImageGenerationType {
   return request.images && request.images.length > 0 ? "image-to-image" : "text-to-image"

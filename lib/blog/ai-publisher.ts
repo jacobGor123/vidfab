@@ -32,6 +32,7 @@ export async function publishAIArticle(
     scheduledAt?: string
     authorEmail: string
     existingPostId?: string  // 如果提供,则更新已有文章而不是新建
+    skipBottomCTA?: boolean  // 文章内容已有结尾 CTA 时，跳过自动追加
   }
 ): Promise<PublishResult> {
   try {
@@ -189,17 +190,21 @@ export async function publishAIArticle(
       }
     }
 
-    // 3. 在文章底部添加 CTA
-    console.log('\n  → 在文章底部添加 CTA...')
-    const ctaHtml = `
+    // 3. 在文章底部添加 CTA（文章内容已有结尾 CTA 时跳过）
+    if (options.skipBottomCTA) {
+      console.log('\n  → 文章已含结尾 CTA，跳过自动追加')
+    } else {
+      console.log('\n  → 在文章底部添加 CTA...')
+      const ctaHtml = `
 <div class="cta-box">
   <h3>🎁 Try Text-to-Video for Free</h3>
   <p>Create your first AI video from text in minutes – no credit card required!</p>
   <a href="/text-to-video" class="cta-button">Start Creating Free →</a>
 </div>
 `
-    finalContent = finalContent + ctaHtml
-    console.log('  ✓ CTA 已添加到文章底部')
+      finalContent = finalContent + ctaHtml
+      console.log('  ✓ CTA 已添加到文章底部')
+    }
 
     // 4. 查询作者 UUID
     console.log('  → 查询作者信息...')
