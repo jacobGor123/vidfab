@@ -112,7 +112,8 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         normalized_email: normalizedMail,
         is_credit_limited: isFraud,
         fraud_reason: isFraud
-          ? (isEmailDup ? 'email_duplicate' : 'ip_limit')
+          ? (isEmailDup && isIpLimited ? 'email_duplicate_and_ip_limit'
+            : isEmailDup ? 'email_duplicate' : 'ip_limit')
           : null,
       };
 
