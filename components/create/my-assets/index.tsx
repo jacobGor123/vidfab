@@ -47,11 +47,11 @@ function groupByDate(assets: UnifiedAsset[]): DateGroups {
   }
 }
 
-// Story videos are identified by model name containing 'story'
+// Story videos are identified by model = 'video-agent' (saved via save-to-assets API)
 function isStoryVideo(asset: UnifiedAsset): boolean {
   if (asset.type !== 'video') return false
   const video = asset.rawData as UserVideo
-  return !!video.settings?.model?.toLowerCase().includes('story')
+  return video.settings?.model === 'video-agent'
 }
 
 export function MyAssets() {
