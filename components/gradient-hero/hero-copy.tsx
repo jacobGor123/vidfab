@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 
 // Sparkle icon — 直接从 Figma 导出的原始 SVG path（node 347:8027）
 const SparkleIcon = () => (

@@ -7,7 +7,7 @@ import { SpaceBackground } from "@/components/space-background"
 import { Check, Zap, Crown, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { trackPurchase } from "@/lib/analytics/gtm"
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription/pricing-config"
 

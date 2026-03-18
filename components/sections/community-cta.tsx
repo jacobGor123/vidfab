@@ -3,7 +3,7 @@
 import { ArrowRight, Volume2, VolumeX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { useState, useRef, MouseEvent, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"

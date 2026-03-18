@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Sparkles, Settings, Target, DollarSign, Globe, CheckCircle, ArrowRight } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 
 interface ReasonItem {
   icon: React.ReactNode

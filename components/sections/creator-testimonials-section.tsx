@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 
 // 来自 Figma 设计稿：
 // 卡片 bg: #161640，左侧紫色竖条边框 #5C46DA

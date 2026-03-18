@@ -1,5 +1,5 @@
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 
 const CARD_BG = "#0D0930"
 const CARD_BORDER = "rgb(92,95,130)"

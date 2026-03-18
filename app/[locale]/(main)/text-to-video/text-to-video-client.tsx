@@ -12,7 +12,7 @@ import { TEXT_TO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.c
 import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
 import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
 import { useVideoCarousel } from "@/components/video-hero/hooks/use-video-carousel"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { FileText, MousePointerClick, Sparkles, Download } from "lucide-react"
 
 // 动态导入 CommunityCTA - 非首屏内容延迟加载

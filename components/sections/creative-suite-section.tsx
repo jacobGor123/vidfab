@@ -1,5 +1,5 @@
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 
 // 来自 Figma API：
 //   card fill: #24223E  strokeWeight=2  strokeAlign=INSIDE  cornerRadius=16

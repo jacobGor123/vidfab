@@ -2,7 +2,7 @@
 
 import { LazyVideo } from "@/components/common/lazy-video"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 

@@ -12,7 +12,7 @@ import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-det
 import { useNetworkAware } from "@/components/video-hero/hooks/use-network-aware"
 import { AI_VIDEO_EFFECTS_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { usePageTranslation } from "@/lib/i18n"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { Layers, Upload, Sparkles, Download } from "lucide-react"
 
 // 动态导入 CommunityCTA
