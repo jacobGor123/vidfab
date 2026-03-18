@@ -11,6 +11,7 @@ import { Link } from "@/i18n/routing"
 import { UserMenu } from "@/components/user-menu"
 import { GetStartedButton } from "@/components/ui/get-started-button"
 import { CreditsDisplaySimple } from "@/components/credits-display-simple"
+import { LocaleSwitcher } from "@/components/common/locale-switcher"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -303,6 +304,7 @@ export function Navbar({ scrolled }: NavbarProps) {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
+            <LocaleSwitcher />
             {/* 为加载状态提供稳定的布局，避免重叠 */}
             {status === "loading" ? (
               // 加载时显示占位符，保持布局稳定
@@ -491,6 +493,9 @@ export function Navbar({ scrolled }: NavbarProps) {
               </>
             )}
             <div className="pt-4 flex flex-col space-y-4">
+              <div className="flex justify-start">
+                <LocaleSwitcher />
+              </div>
               {/* 移动端也需要稳定的加载布局 */}
               {status === "loading" ? (
                 <div className="flex flex-col space-y-4 opacity-50">
