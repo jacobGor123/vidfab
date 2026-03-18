@@ -191,7 +191,7 @@ export function calculateCreditsRequired(
     const rate = rateMap[resolution] ?? 4
     const durationNum = parseInt(durationStr)
     const base = Math.ceil(rate * durationNum)
-    return audio ? base * 3 : base
+    return audio ? base * 2 : base
   }
 
   if (mappedModel === 'veo3-fast') {

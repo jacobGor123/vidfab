@@ -38,15 +38,15 @@ export const VEO3_VIDEO_GENERATION_BASE_RATES = {
 
 export type VideoResolution = '480p' | '720p' | '1080p'
 
-// 开启原生音频时积分倍率（Seedance 1.5 Pro generate_audio: true）
-export const AUDIO_CREDITS_MULTIPLIER = 3
+// 开启原生音频时积分倍率（Seedance 1.5 Pro generate_audio: true，2 倍）
+export const AUDIO_CREDITS_MULTIPLIER = 2
 
 /**
  * 计算单个视频片段积分
  * @param duration 视频时长(秒)
  * @param resolution 分辨率
  * @param useVeo3 是否使用 Veo3 模型
- * @param generateAudio 是否开启原生音频（3 倍积分）
+ * @param generateAudio 是否开启原生音频（2 倍积分）
  * @returns 所需积分数
  */
 export function calculateVideoClipCredits(
@@ -65,7 +65,7 @@ export function calculateVideoClipCredits(
  * 计算批量视频总积分
  * @param shots 分镜列表,包含时长和分辨率
  * @param useVeo3 是否使用 Veo3 模型
- * @param generateAudio 是否开启原生音频（3 倍积分）
+ * @param generateAudio 是否开启原生音频（2 倍积分）
  * @returns 总积分数
  */
 export function calculateBatchVideoCredits(

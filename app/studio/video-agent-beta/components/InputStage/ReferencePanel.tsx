@@ -160,7 +160,7 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
           <div className="text-left">
             <div className="text-sm font-medium">Background Music</div>
             <div className="text-xs text-slate-500 mt-0.5">
-              {muteBgm ? 'Muted — no audio generated' : 'Enabled — Seedance native audio (3× credits)'}
+              {muteBgm ? 'Muted — no audio generated' : 'Enabled — Seedance native audio (2× credits)'}
             </div>
           </div>
         </div>

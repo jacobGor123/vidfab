@@ -552,7 +552,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                     <div className="flex items-center justify-between pt-1">
                       <div className="space-y-0.5">
                         <Label className="text-gray-300">Generate Audio</Label>
-                        <p className="text-xs text-gray-500">AI-generated background audio · 3× credits</p>
+                        <p className="text-xs text-gray-500">AI-generated background audio · 2× credits</p>
                       </div>
                       <button
                         type="button"

@@ -70,7 +70,7 @@ export function calculateRequiredCredits(
     const rateMap: Record<string, number> = { '480p': 2, '720p': 4, '1080p': 8 }
     const rate = rateMap[resolution] ?? 4
     const base = Math.ceil(rate * durationNum)
-    return audio ? base * 3 : base
+    return audio ? base * 2 : base
   } else if (model === "vidfab-pro" || model === "veo3-fast") {
     mappedModel = "veo3-fast"
   } else if (model === "sora-2") {
