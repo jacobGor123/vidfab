@@ -91,6 +91,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       resolution?: string
       aspectRatio?: string
       style?: string
+      generateAudio?: boolean
     } = {},
     options?: GenerationOptions
   ): Promise<string> => {
@@ -137,7 +138,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
           aspectRatio: settings.aspectRatio || '16:9',
-          style: settings.style || 'realistic'
+          style: settings.style || 'realistic',
+          generateAudio: settings.generateAudio ?? false
         })
       })
 
@@ -202,6 +204,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
       duration?: number
       resolution?: string
       aspectRatio?: string
+      generateAudio?: boolean
     } = {},
     options?: GenerationOptions
   ): Promise<string> => {
@@ -257,7 +260,8 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
           model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
-          aspectRatio: settings.aspectRatio || '16:9'
+          aspectRatio: settings.aspectRatio || '16:9',
+          generateAudio: settings.generateAudio ?? false
         })
       })
 

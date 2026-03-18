@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIcon, Zap, Lock } from "lucide-react"
+import { Loader2, Play, Sparkles, AlertTriangle, CheckCircle, Upload, X, ImageIcon, Zap, Lock, Volume2 } from "lucide-react"
 
 // Hooks and services
 import { useVideoGeneration } from "@/hooks/use-video-generation"
@@ -55,6 +55,7 @@ export function ImageToVideoPanelEnhanced() {
     style: "realistic"
   })
 
+  const [generateAudio, setGenerateAudio] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [showLimitDialog, setShowLimitDialog] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
@@ -413,9 +414,10 @@ export function ImageToVideoPanelEnhanced() {
 
     if (session?.user?.uuid) {
       try {
+        const audioForCheck = params.model === 'vidfab-q1' ? generateAudio : false
         const [modelAccess, budgetInfo] = await Promise.all([
           canAccessModel(params.model, params.resolution),
-          checkCreditsAvailability(params.model, params.resolution, params.duration)
+          checkCreditsAvailability(params.model, params.resolution, params.duration, audioForCheck)
         ])
 
         if (!modelAccess.can_access) {
@@ -462,13 +464,14 @@ export function ImageToVideoPanelEnhanced() {
       // Use auth hook to ensure user is logged in
       const isAuthenticated = await authModal.requireAuth(async () => {
         await videoGeneration.generateImageToVideo(
-          imageUrl, // 图片URL
-          params.prompt.trim(), // 提示词
+          imageUrl,
+          params.prompt.trim(),
           {
             model: params.model,
             duration: DURATION_MAP[params.duration] || 5,
             resolution: params.resolution,
-            aspectRatio: params.aspectRatio
+            aspectRatio: params.aspectRatio,
+            generateAudio: params.model === 'vidfab-q1' ? generateAudio : false
           }
         )
       })
@@ -528,7 +531,8 @@ export function ImageToVideoPanelEnhanced() {
   const getCreditsRequired = () => {
     const modelForCredits = params.model === 'vidfab-q1' ? 'seedance-v1-pro-t2v' :
                            params.model === 'vidfab-pro' ? 'veo3-fast' : params.model
-    return calculateCreditsRequired(modelForCredits, params.resolution, params.duration)
+    const audioForCredits = params.model === 'vidfab-q1' ? generateAudio : false
+    return calculateCreditsRequired(modelForCredits, params.resolution, params.duration, audioForCredits)
   }
 
 
@@ -713,8 +717,13 @@ export function ImageToVideoPanelEnhanced() {
                             <SelectItem value="8s">8 seconds</SelectItem>
                           ) : (
                             <>
+                              <SelectItem value="4s">4 seconds</SelectItem>
                               <SelectItem value="5s">5 seconds</SelectItem>
+                              <SelectItem value="6s">6 seconds</SelectItem>
+                              <SelectItem value="7s">7 seconds</SelectItem>
+                              <SelectItem value="8s">8 seconds</SelectItem>
                               <SelectItem value="10s">10 seconds</SelectItem>
+                              <SelectItem value="12s">12 seconds</SelectItem>
                             </>
                           )}
                         </SelectContent>
@@ -781,6 +790,28 @@ export function ImageToVideoPanelEnhanced() {
                       </p>
                     )}
                   </div>
+
+                  {/* Audio toggle - vidfab-q1 only */}
+                  {params.model === "vidfab-q1" && (
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="space-y-0.5">
+                        <Label className="text-gray-300">Generate Audio</Label>
+                        <p className="text-xs text-gray-500">AI-generated background audio · 3× credits</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGenerateAudio(prev => !prev)}
+                        disabled={videoGeneration.isGenerating}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+                          generateAudio ? 'bg-purple-600' : 'bg-gray-700'
+                        }`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          generateAudio ? 'translate-x-6' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

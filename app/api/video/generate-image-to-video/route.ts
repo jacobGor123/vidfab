@@ -99,12 +99,14 @@ export async function POST(request: NextRequest) {
                            originalModel === 'video-effects' ? 'video-effects' :
                            'vidfab-q1'
 
-    // 检查用户积分
+    // 检查用户积分（seedance 1.5 Pro 需区分 audio）
+    const generateAudio = body.generateAudio === true
     const creditsCheck = await checkUserCredits(
       session.user.uuid,
       modelForCredits as any,
       resolution,
-      duration
+      duration,
+      generateAudio
     )
 
     if (!creditsCheck.success) {
@@ -173,7 +175,7 @@ export async function POST(request: NextRequest) {
     let result
     try {
       if (useBytePlus) {
-        result = await submitBytePlusVideoGeneration(body)
+        result = await submitBytePlusVideoGeneration(body, { generateAudio })
       } else {
         // 🔥 vidfab-pro 或明确指定使用 Wavespeed
         result = await submitImageToVideoGeneration(body)

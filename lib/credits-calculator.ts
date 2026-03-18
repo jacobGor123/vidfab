@@ -65,7 +65,12 @@ export function calculateRequiredCredits(
   let mappedModel: keyof typeof CREDITS_CONSUMPTION
 
   if (model === "vidfab-q1" || model === "seedance-v1-pro-t2v") {
-    mappedModel = "seedance-v1-pro-t2v"
+    // Seedance 1.5 Pro: 按时长线性计算（与 video agent credits-config 一致）
+    // 480p: 2积分/s, 720p: 4积分/s, 1080p: 8积分/s
+    const rateMap: Record<string, number> = { '480p': 2, '720p': 4, '1080p': 8 }
+    const rate = rateMap[resolution] ?? 4
+    const base = Math.ceil(rate * durationNum)
+    return audio ? base * 3 : base
   } else if (model === "vidfab-pro" || model === "veo3-fast") {
     mappedModel = "veo3-fast"
   } else if (model === "sora-2") {
@@ -98,14 +103,6 @@ export function calculateRequiredCredits(
 
   if (credits) {
     return credits
-  }
-
-  // 如果没有找到确切匹配，提供合理默认值
-  if (mappedModel === "seedance-v1-pro-t2v") {
-    if (resolution === "480p") return durationNum === 5 ? 10 : 20
-    if (resolution === "720p") return durationNum === 5 ? 20 : 40
-    if (resolution === "1080p") return durationNum === 5 ? 40 : 80
-    return 10
   }
 
   if (mappedModel === "veo3-fast") {

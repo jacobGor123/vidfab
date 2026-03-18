@@ -185,18 +185,13 @@ export function calculateCreditsRequired(
 
   // 根据映射后的模型名称计算积分
   if (mappedModel === 'seedance-v1-pro-t2v') {
-    const key = `${resolution}-${durationStr}` as keyof typeof CREDITS_CONSUMPTION['seedance-v1-pro-t2v'];
-    const credits = CREDITS_CONSUMPTION['seedance-v1-pro-t2v'][key];
-
-    if (!credits) {
-      // 提供默认值以防止0积分问题
-      if (resolution === '480p' && durationStr === '5s') return 10;
-      if (resolution === '720p' && durationStr === '5s') return 20;
-      if (resolution === '1080p' && durationStr === '5s') return 40;
-      return 10; // 最基础的默认值
-    }
-
-    return credits;
+    // Seedance 1.5 Pro: 按时长线性计算（与 video agent credits-config 一致）
+    // 480p: 2积分/s, 720p: 4积分/s, 1080p: 8积分/s
+    const rateMap: Record<string, number> = { '480p': 2, '720p': 4, '1080p': 8 }
+    const rate = rateMap[resolution] ?? 4
+    const durationNum = parseInt(durationStr)
+    const base = Math.ceil(rate * durationNum)
+    return audio ? base * 3 : base
   }
 
   if (mappedModel === 'veo3-fast') {

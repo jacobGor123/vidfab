@@ -46,7 +46,7 @@ interface UseSimpleSubscriptionReturn {
   isPro: boolean
 
   // 简化的检查方法
-  checkCreditsAvailability: (model: VideoModel, resolution: string, duration: string) => Promise<SimpleCreditsBudgetInfo>
+  checkCreditsAvailability: (model: VideoModel, resolution: string, duration: string, audio?: boolean) => Promise<SimpleCreditsBudgetInfo>
   canAccessModel: (model: VideoModel, resolution?: string) => Promise<SimpleModelAccessCheck>
   hasEnoughCreditsForVideo: (model: VideoModel, resolution: string, duration: string) => boolean
 
@@ -97,7 +97,8 @@ export function useSimpleSubscription(): UseSimpleSubscriptionReturn {
   const checkCreditsAvailability = useCallback(async (
     model: VideoModel,
     resolution: string,
-    duration: string
+    duration: string,
+    audio?: boolean
   ): Promise<SimpleCreditsBudgetInfo> => {
     if (!creditsInfo) {
       return {
@@ -111,9 +112,9 @@ export function useSimpleSubscription(): UseSimpleSubscriptionReturn {
 
     try {
       // 🔥 本地计算所需积分（高性能，无API调用）
-      const requiredCredits = calculateRequiredCredits(model, resolution, duration)
+      const requiredCredits = calculateRequiredCredits(model, resolution, duration, audio)
       const currentBalance = creditsInfo.credits
-      const canAfford = hasEnoughCredits(currentBalance, model, resolution, duration)
+      const canAfford = currentBalance >= requiredCredits
 
       // 计算警告级别
       let warningLevel: 'none' | 'low' | 'critical' = 'none'
