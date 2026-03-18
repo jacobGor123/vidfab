@@ -89,13 +89,13 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
       {/* YouTube Video URL */}
       <div className="space-y-2">
         <label className="block text-base font-medium text-white">
-          YouTube Video URL
+          YouTube Shorts Video URL (&lt;1 min)
         </label>
         <input
           type="url"
           value={youtubeUrl}
           onChange={(e) => setYoutubeUrl(e.target.value)}
-          placeholder="https://www.youtube.com/watch?V=..."
+          placeholder="Paste a non-dialogue video link, and AI will analyze the plot to generate a similar story script"
           disabled={isAnalyzing}
           className={cn(
             "w-full h-11 px-4 rounded-md text-sm text-white outline-none transition-all",

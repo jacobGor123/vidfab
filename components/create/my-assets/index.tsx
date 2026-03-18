@@ -23,6 +23,7 @@ import { ImageCard } from "./image-card"
 import { VideoCard } from "./video-card"
 import { StorageBar } from "./storage-bar"
 import { AssetDetailModal } from "./asset-detail-modal"
+import { AssetFilterBar, type TypeFilter, type SortOrder } from "./asset-filter-bar"
 
 const LOAD_LIMIT = 100
 
@@ -64,6 +65,8 @@ export function MyAssets() {
     open: boolean; id: string | null; type: 'image' | 'video' | null
   }>({ open: false, id: null, type: null })
   const [detailAsset, setDetailAsset] = useState<UnifiedAsset | null>(null)
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
 
   const loadAssets = useCallback(async () => {
     if (sessionStatus === 'loading') return
@@ -169,7 +172,24 @@ export function MyAssets() {
     }
   }
 
-  const groups = groupByDate(assets)
+  // 筛选 + 排序
+  const filteredAssets = assets
+    .filter(a => {
+      if (typeFilter === 'all') return true
+      if (typeFilter === 'story') return isStoryVideo(a)
+      if (typeFilter === 'video') return a.type === 'video' && !isStoryVideo(a)
+      if (typeFilter === 'image') return a.type === 'image'
+      return true
+    })
+    .sort((a, b) => {
+      const diff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      return sortOrder === 'newest' ? diff : -diff
+    })
+
+  const videoCount = assets.filter(a => a.type === 'video').length
+  const imageCount = assets.filter(a => a.type === 'image').length
+
+  const groups = groupByDate(filteredAssets)
   const DATE_SECTIONS: { key: keyof DateGroups; label: string }[] = [
     { key: 'today', label: 'Today' },
     { key: 'thisWeek', label: 'This Week' },
@@ -189,6 +209,17 @@ export function MyAssets() {
 
   return (
     <div className="flex flex-col h-full">
+      {/* 筛选/排序栏 */}
+      <AssetFilterBar
+        total={assets.length}
+        videoCount={videoCount}
+        imageCount={imageCount}
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+        sortOrder={sortOrder}
+        onSortOrderChange={setSortOrder}
+      />
+
       <div className="flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6">
         {assets.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24">

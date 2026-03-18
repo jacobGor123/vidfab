@@ -47,7 +47,7 @@ export default function InputStage({ onStart }: InputStageProps) {
   const [storyStyle, setStoryStyle] = useState('auto')
   const [script, setScript] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9')
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('9:16')
   const [muteBgm, setMuteBgm] = useState(true)
   const [isGeneratingInspiration, setIsGeneratingInspiration] = useState(false)
   const [showInspirationDialog, setShowInspirationDialog] = useState(false)
@@ -110,14 +110,14 @@ export default function InputStage({ onStart }: InputStageProps) {
             onClick={() => setMode('myself')}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-[10px]",
-              "text-sm font-medium transition-all duration-200",
+              "text-base font-medium transition-all duration-200",
               mode === 'myself' ? "text-white" : "text-white/50 hover:text-white/70"
             )}
             style={mode === 'myself' ? {
               background: 'linear-gradient(90deg, #4B2EA1 0%, #4625BC 100%)'
             } : undefined}
           >
-            <Image src="/icons/tab-myself.svg" alt="" width={20} height={20} className="flex-shrink-0" />
+            <Image src="/icons/tab-myself.svg" alt="" width={24} height={24} className="flex-shrink-0" />
             <span>Create by myself</span>
           </button>
 
@@ -126,14 +126,14 @@ export default function InputStage({ onStart }: InputStageProps) {
             onClick={() => setMode('reference')}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-[10px]",
-              "text-sm font-medium transition-all duration-200",
+              "text-base font-medium transition-all duration-200",
               mode === 'reference' ? "text-white" : "text-white/50 hover:text-white/70"
             )}
             style={mode === 'reference' ? {
               background: 'linear-gradient(90deg, #4B2EA1 0%, #4625BC 100%)'
             } : undefined}
           >
-            <Image src="/icons/tab-reference.svg" alt="" width={20} height={20} className="flex-shrink-0" />
+            <Image src="/icons/tab-reference.svg" alt="" width={24} height={24} className="flex-shrink-0" />
             <span>Create by reference</span>
           </button>
         </div>
@@ -157,10 +157,11 @@ export default function InputStage({ onStart }: InputStageProps) {
       {/* Myself 模式：脚本输入卡片（工具栏内嵌 Story Style + Generate Video） */}
       {mode === 'myself' && (
         <Card
-          className="relative overflow-hidden rounded-2xl bg-gradient-card transition-all duration-300"
+          className="overflow-hidden rounded-2xl bg-gradient-card transition-all duration-300"
           style={{ border: '1px solid #23263A' }}
         >
-          <div className="relative p-6 md:p-8 pb-0 md:pb-0">
+          {/* Textarea 区域 */}
+          <div className="relative px-6 md:px-8 pt-6 md:pt-8">
             {/* 字符计数 — 移动端右上角 */}
             <div className="absolute top-4 right-4 text-xs text-white/30 font-mono px-3 py-1 bg-black/20 rounded-lg backdrop-blur-sm md:hidden z-10">
               {script.length} chars
@@ -172,10 +173,8 @@ export default function InputStage({ onStart }: InputStageProps) {
               placeholder="Start writing your story here..."
               className={cn(
                 "w-full resize-none leading-relaxed text-white font-medium",
-                "text-lg p-0 md:text-2xl",
+                "text-lg p-0",
                 "placeholder:text-white/20",
-                // 底部留给工具栏 + 字符计数
-                "pb-10 md:pb-8",
                 "selection:bg-purple-500/30",
                 "focus-visible:ring-0 focus:ring-0 focus:outline-none border-0 focus:border-0",
                 "bg-transparent"
@@ -184,11 +183,13 @@ export default function InputStage({ onStart }: InputStageProps) {
               spellCheck={false}
               autoFocus
             />
+          </div>
 
-            {/* 字符计数 — 桌面端，textarea 右下角 */}
-            <div className="hidden md:block absolute bottom-14 right-8 text-xs text-white/30 font-mono pointer-events-none">
+          {/* 字符计数 — 桌面端独立行，位于 textarea 与工具栏之间 */}
+          <div className="hidden md:flex justify-end px-8 py-2">
+            <span className="text-xs text-white/30 font-mono">
               {script.length} chars
-            </div>
+            </span>
           </div>
 
           {/* 工具栏（含 Story Style 下拉 + Generate Video 按钮） */}

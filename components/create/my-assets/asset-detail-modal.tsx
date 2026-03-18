@@ -108,7 +108,7 @@ export function AssetDetailModal({
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent
         showClose={false}
-        className="!p-0 border-0 overflow-hidden w-full md:w-[95vw] !max-w-full md:!max-w-[1100px] h-[90svh] md:h-[700px]"
+        className="!p-0 border border-white/15 overflow-hidden w-full md:w-[95vw] !max-w-full md:!max-w-[1100px] h-[90svh] md:h-[700px]"
         style={{
           background: T.mediaBg,
           padding: 0,

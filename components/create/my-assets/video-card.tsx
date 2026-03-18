@@ -94,7 +94,6 @@ export function VideoCard({
       <div className="absolute top-2 left-2 z-10 pointer-events-none">
         <div
           className="w-[22px] h-[22px] flex items-center justify-center rounded-[4px] overflow-hidden"
-          style={{ background: 'rgba(6,6,6,0.5)' }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

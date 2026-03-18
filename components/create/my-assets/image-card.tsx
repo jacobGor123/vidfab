@@ -64,7 +64,6 @@ export function ImageCard({
       <div className="absolute top-2 left-2 z-10 pointer-events-none">
         <div
           className="w-[22px] h-[22px] flex items-center justify-center rounded-[4px] overflow-hidden"
-          style={{ background: 'rgba(6,6,6,0.5)' }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -79,7 +78,7 @@ export function ImageCard({
 
       {/* Action buttons — right side vertical stack, appear on hover */}
       <div
-        className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 z-10 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200"
+        className="absolute top-2 right-2 flex flex-col gap-1.5 z-10 opacity-0 group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 transition-all duration-200"
         onClick={e => e.stopPropagation()}
       >
         {ACTION_BUTTONS.map(({ key, icon, label }) => (

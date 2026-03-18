@@ -89,13 +89,14 @@ export default function VideoToolbar({
         {/* Aspect Ratio */}
         <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
           <SelectTrigger className={cn(toolBtnClass, "w-auto px-3")}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 flex-shrink-0">
-              <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
-              <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" strokeWidth="2"/>
+            {/* Filled aspect ratio icon — outer frame minus inner cutout + vertical divider */}
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 flex-shrink-0">
+              <path fillRule="evenodd" clipRule="evenodd" d="M2 3C2 2.44772 2.44772 2 3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3ZM3.4 3.4V12.6H12.6V3.4H3.4Z" fill="currentColor"/>
+              <rect x="5.7" y="3.4" width="1.3" height="9.2" fill="currentColor"/>
             </svg>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className={selectContentClass}>
+          <SelectContent side="top" className={selectContentClass}>
             <SelectItem value="16:9" className={selectItemClass}>16:9</SelectItem>
             <SelectItem value="9:16" className={selectItemClass}>9:16</SelectItem>
           </SelectContent>
@@ -104,13 +105,14 @@ export default function VideoToolbar({
         {/* Duration */}
         <Select value={duration.toString()} onValueChange={(v) => onDurationChange(parseInt(v))}>
           <SelectTrigger className={cn(toolBtnClass, "w-auto px-3")}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 flex-shrink-0">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-              <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            {/* Filled clock icon — Figma design (604:128) */}
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 flex-shrink-0">
+              <path d="M8 0C3.58865 0 0 3.58865 0 8C0 12.4113 3.58865 16 8 16C12.4113 16 16 12.4113 16 8C16 3.58865 12.4113 0 8 0ZM8 14.6666C4.32399 14.6666 1.33332 11.676 1.33332 8C1.33332 4.32399 4.32399 1.33332 8 1.33332C11.676 1.33332 14.6666 4.32399 14.6666 8C14.6666 11.676 11.676 14.6666 8 14.6666Z" fill="currentColor"/>
+              <path d="M11.099 9.9607L8.33364 8.36137V4.00006C8.33364 3.63206 8.03497 3.33339 7.66698 3.33339C7.29898 3.33339 7.00031 3.63206 7.00031 4.00006V8.6667C7.00031 8.91404 7.30764 9.12137 7.50763 9.23603C7.56297 9.31936 7.71497 9.39469 7.80763 9.44803L10.5576 11.1147C10.8763 11.2987 11.2216 11.1893 11.4056 10.8707C11.5896 10.552 11.4183 10.1447 11.099 9.9607Z" fill="currentColor"/>
             </svg>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className={selectContentClass}>
+          <SelectContent side="top" className={selectContentClass}>
             {DURATIONS.map(d => (
               <SelectItem key={d.value} value={d.value.toString()} className={selectItemClass}>
                 {d.label}
@@ -168,7 +170,7 @@ export default function VideoToolbar({
         onClick={onSubmit}
         disabled={isLoading || !hasScript}
         className={cn(
-          "ml-auto flex items-center gap-1.5 px-4 h-9 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 flex-shrink-0",
+          "ml-auto flex items-center gap-1.5 px-4 h-9 rounded-full text-base font-bold whitespace-nowrap transition-all duration-300 flex-shrink-0",
           isLoading || !hasScript
             ? "bg-gradient-disabled cursor-not-allowed text-white/40"
             : "bg-gradient-primary text-white shadow-glow-primary"
@@ -186,7 +188,7 @@ export default function VideoToolbar({
 }
 
 const toolBtnClass = cn(
-  "flex items-center gap-1.5 h-8 rounded-lg text-xs font-medium transition-all",
+  "flex items-center gap-1.5 h-8 rounded-lg text-base font-medium transition-all",
   "bg-slate-800/50 border border-slate-700/50 text-[#AAA9B4]",
   "hover:bg-slate-700/50 hover:border-blue-400/50 hover:text-white",
   "focus:ring-0 focus:ring-offset-0"
