@@ -290,15 +290,9 @@ export function BuilderResult({ currentJob, completedVideos, onLoadHistory, demo
   const latestVideo = validHistory[0] ?? null
 
   const showJob = currentJob && currentJob.status !== "failed"
-  const isCompleted = currentJob?.status === "completed" && currentJob.resultUrl
   const isFailed = currentJob?.status === "failed"
 
-  // 任务完成时重置手动选中
-  useEffect(() => {
-    if (isCompleted) setSelectedVideo(null)
-  }, [isCompleted])
-
-  // 展示优先级：进行中任务 > 刚完成任务 > 手动选中历史 > 最新历史 > Demo
+  // 展示优先级：进行中任务 > 手动选中历史 > 最新历史 > Demo
   const displayVideo = selectedVideo ?? (!showJob && !isFailed ? latestVideo : null)
   const showDemo = !showJob && !isFailed && !displayVideo
 
@@ -312,11 +306,7 @@ export function BuilderResult({ currentJob, completedVideos, onLoadHistory, demo
           <JobCompleted resultUrl={displayVideo.original_url || (displayVideo as any).videoUrl} prompt={displayVideo.prompt} onGoToAssets={handleGoToAssets} />
         )}
 
-        {showJob && !isCompleted && <JobInProgress job={currentJob} />}
-
-        {isCompleted && (
-          <JobCompleted resultUrl={currentJob.resultUrl!} prompt={currentJob.prompt} onGoToAssets={handleGoToAssets} />
-        )}
+        {showJob && <JobInProgress job={currentJob} />}
 
         {isFailed && (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-10">
