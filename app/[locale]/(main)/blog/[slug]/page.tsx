@@ -5,6 +5,7 @@
 
 import '../blog.css';
 import { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -37,16 +38,15 @@ import {
 export const revalidate = 3600;
 
 interface BlogPostPageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
-  const post = await getBlogPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     return {
@@ -64,13 +64,13 @@ export async function generateMetadata({
     description: metaDescription,
     keywords: keywords,
     alternates: {
-      canonical: `/blog/${params.slug}`,
+      canonical: `/blog/${slug}`,
     },
     openGraph: {
       title: metaTitle,
       description: metaDescription,
       type: 'article',
-      url: `/blog/${params.slug}`,
+      url: `/blog/${slug}`,
       siteName: 'VidFab AI',
       publishedTime: post.published_at || undefined,
       modifiedTime: post.updated_at || post.published_at || undefined,
@@ -96,7 +96,9 @@ export async function generateMetadata({
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = await getBlogPostBySlug(params.slug);
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();

@@ -5,6 +5,7 @@
 
 import './blog.css';
 import { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 import { getBlogPosts } from '@/models/blog';
 import { BlogCard } from '@/components/blog/blog-card';
 import { BookOpen } from 'lucide-react';
@@ -66,12 +67,15 @@ export const revalidate = 300;
 const POSTS_PER_PAGE = 20;
 
 interface BlogPageProps {
+  params: Promise<{ locale: string }>;
   searchParams: {
     page?: string;
   };
 }
 
-export default async function BlogPage({ searchParams }: BlogPageProps) {
+export default async function BlogPage({ params, searchParams }: BlogPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   // 获取当前页码（从 URL 参数）
   const currentPage = Number(searchParams.page) || 1;
   const offset = (currentPage - 1) * POSTS_PER_PAGE;
