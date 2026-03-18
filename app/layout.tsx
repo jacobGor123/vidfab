@@ -15,6 +15,7 @@ import { StructuredData } from "@/components/seo/structured-data"
 import { getOrganizationSchema, getWebSiteSchema, getSoftwareApplicationSchema } from "@/lib/seo/structured-data"
 import dynamic from 'next/dynamic'
 import "./globals.css"
+import { headers } from 'next/headers';
 
 // 动态导入客户端 ProgressBar 包装组件，禁用 SSR
 const ProgressBar = dynamic(
@@ -121,13 +122,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const headersList = await headers();
+  const locale = headersList.get('x-next-intl-locale') ?? 'en';
+  const lang = locale === 'zh' ? 'zh-Hans' : locale;
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <head>
         {/* Google Tag Manager */}
         <script
