@@ -60,6 +60,7 @@ export class SubscriptionService {
 
       // 验证优惠券码（如果提供）
       let promotionCodeId: string | undefined;
+      let couponId: string | undefined;
       let couponInfo: {
         code: string;
         discountAmount?: number;
@@ -80,6 +81,18 @@ export class SubscriptionService {
           discountAmount: couponValidation.discountAmount,
           discountPercent: couponValidation.discountPercent,
         };
+      }
+
+      // 首月优惠：Pro 月付 + 用户未使用优惠码 + 首次订阅 → 自动附加系统 coupon
+      if (plan_id === 'pro' && billing_cycle === 'monthly' && !coupon_code) {
+        const firstMonthCouponId = process.env.STRIPE_PRO_FIRST_MONTH_COUPON_ID;
+        if (firstMonthCouponId) {
+          const isFirst = await this.isFirstTimeSubscriber(userUuid);
+          if (isFirst) {
+            couponId = firstMonthCouponId;
+            console.log(`🎁 首次订阅用户 ${userUuid}，自动附加首月优惠 coupon: ${couponId}`);
+          }
+        }
       }
 
       // 获取用户信息
@@ -148,7 +161,8 @@ export class SubscriptionService {
         cancelUrl: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
         userUuid,
         planId: plan_id,
-        promotionCodeId, // 传递优惠券 Promotion Code ID
+        promotionCodeId, // 用户输入的 Promotion Code ID
+        couponId,        // 系统自动附加的首月优惠 Coupon ID
       });
 
       // 更新订单记录
@@ -654,6 +668,24 @@ export class SubscriptionService {
         error: error.message || 'Failed to cancel subscription',
       };
     }
+  }
+
+  /**
+   * 判断用户是否首次订阅（从未有过 completed 的订单）
+   */
+  private async isFirstTimeSubscriber(userUuid: string): Promise<boolean> {
+    const { count, error } = await supabaseAdmin
+      .from('subscription_orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_uuid', userUuid)
+      .eq('status', 'completed');
+
+    if (error) {
+      console.error('[subscription] isFirstTimeSubscriber 查询失败:', error);
+      return false; // 查询失败时保守处理，不附加优惠
+    }
+
+    return (count ?? 0) === 0;
   }
 
   /**

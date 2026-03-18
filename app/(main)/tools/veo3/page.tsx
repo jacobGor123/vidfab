@@ -4,7 +4,7 @@ import Veo3Client from "./veo3-client"
 export const metadata: Metadata = {
   title: "Veo 3 AI Video Generator — Google Veo 3 Online",
   description:
-    "Generate cinematic AI videos directly with Google's Veo 3 model. No waitlist. Native audio, physics-accurate motion, and hyper-precise prompt understanding. Get 200 free credits.",
+    "Generate cinematic AI videos directly with Google's Veo 3 model. No waitlist. Native audio, physics-accurate motion, and hyper-precise prompt understanding. Get 100 free credits.",
   keywords: [
     "Veo 3",
     "Google Veo 3",

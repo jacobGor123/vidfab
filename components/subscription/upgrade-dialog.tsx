@@ -23,29 +23,6 @@ interface UpgradeDialogProps {
   context?: string
 }
 
-const PRO_FEATURES = [
-  '1500 credits reset monthly',
-  'About 500 images or 150 videos (480p)',
-  '20 free script creations & analyses/month',
-  'Watermark-free exports',
-  'Advanced AI models',
-  'Access to HD resolution (up to 1080P)',
-  '4 concurrent generation',
-  'Priority support',
-  'Cancel anytime',
-]
-
-const PREMIUM_FEATURES = [
-  '3500 credits reset monthly',
-  'About 1166 images or 350 videos (480p)',
-  '50 free script creations & analyses/month',
-  'Watermark-free exports',
-  'Advanced AI models',
-  'Access to HD resolution (up to 1080P)',
-  '4 concurrent generation',
-  'Dedicated support',
-  'Cancel anytime',
-]
 
 export function UpgradeDialog({
   open,
@@ -87,7 +64,7 @@ export function UpgradeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-3xl max-h-[90vh] overflow-y-auto border-white/10 !p-4 sm:!p-6"
+      <DialogContent className="w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-white/15 !p-4 sm:!p-6"
         style={{ background: '#0c0a1a' }}
       >
         {/* Header */}
@@ -147,20 +124,26 @@ export function UpgradeDialog({
             header={
               <>
                 <h3 className="text-lg font-bold text-white mb-2">Pro Plan</h3>
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-3xl font-bold" style={{ color: '#4cc3ff' }}>
-                    {proPriceDisplay}
-                  </span>
-                  <span className="text-sm text-white/80">/ month</span>
-                </div>
-                {billingCycle === 'annual' && (
-                  <p className="text-xs text-[#dddddd]">
-                    Billed annually (${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual)})
-                  </p>
+                {billingCycle === 'annual' ? (
+                  <>
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-3xl font-bold" style={{ color: '#4cc3ff' }}>{proPriceDisplay}</span>
+                      <span className="text-sm text-white/80">/ month</span>
+                    </div>
+                    <p className="text-xs text-[#dddddd]">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual)})</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-3xl font-bold" style={{ color: '#4cc3ff' }}>$9.90</span>
+                      <span className="text-sm text-white/80">first month</span>
+                    </div>
+                    <p className="text-xs font-semibold text-white">Then ${formatPrice(SUBSCRIPTION_PLANS.pro.price.monthly)}/month</p>
+                  </>
                 )}
               </>
             }
-            features={PRO_FEATURES}
+            features={SUBSCRIPTION_PLANS.pro.features}
             dividerColor="#422d90"
             button={
               <Button
@@ -192,13 +175,11 @@ export function UpgradeDialog({
                   <span className="text-sm text-white/80">/ month</span>
                 </div>
                 {billingCycle === 'annual' && (
-                  <p className="text-xs text-[#dddddd]">
-                    Billed annually (${formatPrice(SUBSCRIPTION_PLANS.premium.price.annual)})
-                  </p>
+                  <p className="text-xs text-[#dddddd]">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.premium.price.annual)})</p>
                 )}
               </>
             }
-            features={PREMIUM_FEATURES}
+            features={SUBSCRIPTION_PLANS.premium.features}
             dividerColor="#4b2d90"
             button={
               <Button

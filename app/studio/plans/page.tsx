@@ -58,7 +58,7 @@ export default function PlansPage() {
   }
 
   const currentPlanConfig = subscription ? SUBSCRIPTION_PLANS[subscription.plan_id] : SUBSCRIPTION_PLANS.free
-  const planCredits = currentPlanConfig?.credits ?? 200
+  const planCredits = currentPlanConfig?.credits ?? 0
   const creditsPercent = planCredits > 0 ? Math.min((creditsRemaining / planCredits) * 100, 100) : 0
   const creditsPercentDisplay = planCredits > 0 ? ((creditsRemaining / planCredits) * 100).toFixed(1) : '0'
   const nextBillingDate = subscription?.period_end

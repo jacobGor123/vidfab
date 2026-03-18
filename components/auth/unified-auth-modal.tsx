@@ -163,7 +163,7 @@ export function UnifiedAuthModal({ className, callbackUrl: callbackUrlProp, ...p
             <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 mb-2">
               <GiftIcon />
               <p className="text-base font-semibold text-center" style={{ color: "#f9d84e" }}>
-                Sign up now to get a limited-time bonus of 200 credits.
+                Sign up now to get a limited-time bonus of 100 credits.
               </p>
             </div>
 
@@ -173,7 +173,7 @@ export function UnifiedAuthModal({ className, callbackUrl: callbackUrlProp, ...p
             </p>
 
             {/* Buttons */}
-            <div className="w-full space-y-3">
+            <div className="w-full space-y-6">
               <GoogleLoginButton
                 onSuccess={handleAuthSuccess}
                 onError={(e) => setError(e.message || "Authentication failed")}
@@ -305,9 +305,9 @@ function GiftIcon() {
 
 function EmailIcon() {
   return (
-    <svg width="22" height="18" viewBox="0 0 22 18" fill="none" className="flex-shrink-0">
-      <rect x="1" y="1" width="20" height="16" rx="2" stroke="white" strokeWidth="1.5"/>
-      <path d="M1 5l10 7 10-7" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+    <svg viewBox="0 0 22 22" fill="none" className="flex-shrink-0 w-[22px] h-[22px]">
+      <path d="M21.7351 15.4028V6.45563L17.067 11.1251L21.7351 15.4014M13.8564 14.3344C13.4795 14.7134 13.0312 15.0139 12.5375 15.2185C12.0437 15.4231 11.5143 15.5278 10.9799 15.5265C9.89361 15.5265 8.87061 15.103 8.10198 14.3344L5.59811 11.8291L0.224609 16.7544V17.5794C0.224609 18.6588 1.10186 19.536 2.17986 19.536H19.7799C20.8579 19.536 21.7351 18.6588 21.7351 17.5808V16.7283L16.374 11.8168L13.8577 14.333" fill="white"/>
+      <path d="M19.8197 2.75H2.21973C1.14311 2.75 0.267234 3.62725 0.267234 4.70525V5.11363L8.83486 13.684C9.41923 14.267 10.1961 14.5887 11.0211 14.5887C11.8475 14.5887 12.6244 14.267 13.2074 13.684L21.7764 5.11363V4.70525C21.7764 3.62725 20.8964 2.75 19.8197 2.75ZM0.224609 6.45562V15.4275L4.90511 11.1375L0.224609 6.45562Z" fill="white"/>
     </svg>
   )
 }

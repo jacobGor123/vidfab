@@ -7,17 +7,16 @@ export const SUBSCRIPTION_PLANS = {
   free: {
     id: 'free',
     name: 'Free',
-    credits: 200,
+    credits: 100,
     price: { monthly: 0, annual: 0 },
+    description: 'Get started with AI video creation — simple and risk-free.',
     features: [
-      'Get started with AI video creation — simple and risk-free',
-      'Initial 200 credits',
+      'Initial 100 credits',
+      'About 33 images or 10 videos (480p)',
       '5 free script creations & analyses',
-      'Basic AI video generation (480p/720p)',
-      'Video effects library',
       'Export with watermark',
-      'Community support',
-      'Videos deleted after 24 hours'
+      'Basic resolution (480p and 720p)',
+      '24-hour retention for creations',
     ],
     limits: {
       models: ['seedance-v1-pro-t2v-480p', 'seedance-v1-pro-t2v-720p', 'video-effects'],
@@ -31,18 +30,17 @@ export const SUBSCRIPTION_PLANS = {
     name: 'Pro',
     credits: 1500,
     price: { monthly: 2999, annual: 28999 }, // $29.99/月，$289.99/年 ($24.17/月)
+    description: 'Advanced video production suite for professionals and studios.',
     features: [
-      'Advanced video production suite for professionals and studios',
       '1500 credits reset monthly',
       'About 500 images or 150 videos (480p)',
       '20 free script creations & analyses/month',
       'Watermark-free exports',
       'Advanced AI models',
-      'Advanced effects library',
-      'Faster generations',
       'Access to HD resolution (up to 1080P)',
       '4 concurrent generation',
-      'Priority support'
+      'Priority support',
+      'Cancel anytime',
     ],
     limits: {
       models: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast'],
@@ -56,18 +54,17 @@ export const SUBSCRIPTION_PLANS = {
     name: 'Premium',
     credits: 3500,
     price: { monthly: 5999, annual: 65988 }, // $59.99/月，$659.88/年 ($54.99/月)
+    description: 'For organizations that need the most powerful video creation capabilities.',
     features: [
-      'For organizations that need the most powerful video creation capabilities',
       '3500 credits reset monthly',
       'About 1166 images or 350 videos (480p)',
       '50 free script creations & analyses/month',
       'Watermark-free exports',
       'Advanced AI models',
-      'Advanced effects library',
-      'Faster generations',
       'Access to HD resolution (up to 1080P)',
       '4 concurrent generation',
-      'Dedicated support'
+      'Dedicated support',
+      'Cancel anytime',
     ],
     limits: {
       models: ['seedance-v1-pro-t2v', 'video-effects', 'veo3-fast'],

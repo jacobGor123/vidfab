@@ -15,48 +15,46 @@ export function StorageBar() {
   const limitDisplay = `${maxMB.toFixed(0)} MB`
 
   return (
-    // Outer wrapper: full-width, acts as a background separator
-    <div className="flex-shrink-0 flex justify-center px-3 py-3 md:px-6 md:py-4" style={{ background: '#0b081f' }}>
+    <div className="flex-shrink-0 px-3 py-3 md:px-6 md:py-4">
       {/* Inner card — matches Figma Frame 46: 700×76, bg #181921, r=8 */}
       <div
-        className="relative w-full overflow-hidden"
+        className="relative w-full"
         style={{
           background: '#181921',
           borderRadius: 8,
           padding: '16px 20px 14px 20px',
-          maxWidth: 900,
         }}
       >
         {/* Decorative purple glow ellipse (Figma Ellipse 8, opacity 0.7) */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            top: '-80px',
-            left: '-100px',
-            width: 400,
-            height: 200,
-            background: 'radial-gradient(ellipse, rgba(128,111,223,0.70) 0%, transparent 70%)',
-            filter: 'blur(30px)',
-          }}
-        />
-
         {/* Row 1: text info */}
         <div className="relative flex items-center flex-wrap gap-x-1 gap-y-0.5 mb-3 text-sm md:text-base font-medium" style={{ color: '#8e8ea2' }}>
           <span>Storage Used：</span>
           <span className="text-white font-semibold">{currentDisplay}</span>
           <span>&nbsp;/ {limitDisplay} {planLabel}</span>
-          {/* Info icon — Figma Frame [14×14] */}
-          <svg
-            className="ml-1 flex-shrink-0"
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-          >
-            <circle cx="7" cy="7" r="6.5" stroke="#8e8ea2" strokeWidth="1" />
-            <path d="M7 6.5V10" stroke="#8e8ea2" strokeWidth="1.2" strokeLinecap="round" />
-            <circle cx="7" cy="4.5" r="0.7" fill="#8e8ea2" />
-          </svg>
+          {/* Info icon — with tooltip on hover */}
+          <div className="relative ml-1 flex-shrink-0 group/tip cursor-default">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="6.5" stroke="#8e8ea2" strokeWidth="1" />
+              <path d="M7 6.5V10" stroke="#8e8ea2" strokeWidth="1.2" strokeLinecap="round" />
+              <circle cx="7" cy="4.5" r="0.7" fill="#8e8ea2" />
+            </svg>
+            {/* Tooltip */}
+            <div
+              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max pointer-events-none opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50"
+            >
+              <div
+                className="rounded-xl p-4 text-sm"
+                style={{ background: '#1a1d2e', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <p className="font-semibold text-white mb-2">Storage Rules:</p>
+                <ul className="space-y-1.5" style={{ color: '#9090a8' }}>
+                  <li className="flex gap-2 whitespace-nowrap"><span>•</span><span>All Users: 1GB Maximum Storage Limit</span></li>
+                  <li className="flex gap-2 whitespace-nowrap"><span>•</span><span>Pro Users: Videos Stored Permanently During Subscription</span></li>
+                  <li className="flex gap-2 whitespace-nowrap"><span>•</span><span>When Storage Exceeds 1GB: Oldest Videos Deleted Automatically</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Row 2: progress bar + percentage */}

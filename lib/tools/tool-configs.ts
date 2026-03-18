@@ -253,7 +253,7 @@ export const veo3Config: ToolPageConfig = {
     {
       question: "What are the credit costs?",
       answer:
-        "Credits vary by duration and resolution. 720p videos cost 70–100 credits (4s–8s), while 1080p videos cost 90–130 credits. New accounts receive 200 free credits to get started.",
+        "Credits vary by duration and resolution. 720p videos cost 70–100 credits (4s–8s), while 1080p videos cost 90–130 credits. New accounts receive 100 free credits to get started.",
     },
     {
       question: "How long does generation take?",
@@ -263,7 +263,7 @@ export const veo3Config: ToolPageConfig = {
   ],
 
   ctaTitle: "Ready to direct your first Veo 3 masterpiece?",
-  ctaDescription: "Get 200 free credits to experience the Veo 3 model today.",
+  ctaDescription: "Get 100 free credits to experience the Veo 3 model today.",
   ctaButtonText: "Start Your Story for Free",
 }
 
@@ -406,7 +406,7 @@ export const sora2Config: ToolPageConfig = {
   ],
 
   ctaTitle: "Ready to direct your first Sora 2 masterpiece?",
-  ctaDescription: "Get 200 free credits to test the Sora 2 model today.",
+  ctaDescription: "Get 100 free credits to test the Sora 2 model today.",
   ctaButtonText: "Start Your Story for Free",
 }
 
@@ -570,6 +570,6 @@ export const kling3Config: ToolPageConfig = {
   ],
 
   ctaTitle: "Ready to Direct Your First Kling 3.0 Story?",
-  ctaDescription: "Get 200 free credits to test the Kling 3.0 model today.",
+  ctaDescription: "Get 100 free credits to test the Kling 3.0 model today.",
   ctaButtonText: "Start Your Story for Free",
 }

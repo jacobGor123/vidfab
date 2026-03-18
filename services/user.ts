@@ -79,7 +79,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         .eq('email', userData.email.toLowerCase().trim())
         .eq('is_claimed', false);
 
-      let totalCredits = 200; // 默认初始积分
+      let totalCredits = 100; // 默认初始积分
       const pendingCreditIds: string[] = [];
 
       if (pendingCredits && pendingCredits.length > 0) {
@@ -462,7 +462,7 @@ export async function getUserProfile(uuid: string): Promise<UserProfile | null> 
     // 🔥 安全地读取订阅字段
     let subscription_plan = data.subscription_plan || 'free'; // 🔥 修复：默认为free套餐
     const subscription_status = data.subscription_status || 'active';
-    const credits_remaining = data.credits_remaining || 50;
+    const credits_remaining = data.credits_remaining ?? 0;
 
     // 🔥 将旧套餐类型映射到新类型（确保兼容性）
     if (subscription_plan === 'basic') {

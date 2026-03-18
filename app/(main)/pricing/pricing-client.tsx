@@ -244,9 +244,9 @@ export default function PricingPage() {
     return (priceInCents / 100).toFixed(2)
   }
 
-  const FREE_FEATURES = ['Initial 200 credits', 'About 66 images or 20 videos (480p)', '5 free script creations & analyses', 'Export with watermark', 'Basic resolution (480p and 720p)', '24-hour retention for creations']
-  const PRO_FEATURES = ['1500 credits reset monthly', 'About 500 images or 150 videos (480p)', '20 free script creations & analyses/month', 'Watermark-free exports', 'Advanced AI models', 'Access to HD resolution (up to 1080P)', '4 concurrent generation', 'Priority support', 'Cancel anytime']
-  const PREMIUM_FEATURES = ['3500 credits reset monthly', 'About 1166 images or 350 videos (480p)', '50 free script creations & analyses/month', 'Watermark-free exports', 'Advanced AI models', 'Access to HD resolution (up to 1080P)', '4 concurrent generation', 'Dedicated support', 'Cancel anytime']
+  const FREE_FEATURES = SUBSCRIPTION_PLANS.free.features
+  const PRO_FEATURES = SUBSCRIPTION_PLANS.pro.features
+  const PREMIUM_FEATURES = SUBSCRIPTION_PLANS.premium.features
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -310,7 +310,7 @@ export default function PricingPage() {
                     <span className="text-4xl font-bold text-white">$0</span>
                     <span className="text-[#dddddd] text-sm">/ forever</span>
                   </div>
-                  <p className="text-[#dddddd] text-sm leading-relaxed">Get started with AI video creation — simple and risk-free.</p>
+                  <p className="text-[#dddddd] text-sm leading-relaxed">{SUBSCRIPTION_PLANS.free.description}</p>
                 </div>
                 <div className="h-px bg-[#2f2b49] mx-5 md:mx-6" />
                 <div className="px-5 md:px-6 py-4 md:py-5 flex-1">
@@ -363,7 +363,7 @@ export default function PricingPage() {
                     </>
                   )}
                   {annual && <p className="text-sm text-[#dddddd] mb-3">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual)})</p>}
-                  <p className="text-sm text-[#dddddd]">Advanced video production suite for professionals and studios.</p>
+                  <p className="text-sm text-[#dddddd]">{SUBSCRIPTION_PLANS.pro.description}</p>
                 </>
               }
               features={PRO_FEATURES}
@@ -396,7 +396,7 @@ export default function PricingPage() {
                     <span className="text-sm text-white/80">/ month</span>
                   </div>
                   {annual && <p className="text-sm text-[#dddddd] mb-3">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.premium.price.annual)})</p>}
-                  <p className="text-sm text-[#dddddd]">For organizations that need the most powerful video creation capabilities.</p>
+                  <p className="text-sm text-[#dddddd]">{SUBSCRIPTION_PLANS.premium.description}</p>
                 </>
               }
               features={PREMIUM_FEATURES}

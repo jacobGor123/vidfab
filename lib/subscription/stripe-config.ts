@@ -114,6 +114,7 @@ export async function createCheckoutSession({
   userUuid,
   planId,
   promotionCodeId,
+  couponId,
 }: {
   customerId: string;
   planName: string;
@@ -124,7 +125,8 @@ export async function createCheckoutSession({
   cancelUrl: string;
   userUuid: string;
   planId: PlanId;
-  promotionCodeId?: string; // 可选的优惠券 Promotion Code ID
+  promotionCodeId?: string; // 用户输入的优惠券 Promotion Code ID
+  couponId?: string;        // 系统自动附加的 Coupon ID（如首月优惠）
 }): Promise<Stripe.Checkout.Session> {
   // 构建 session 配置
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
@@ -167,11 +169,12 @@ export async function createCheckoutSession({
     },
   };
 
-  // 如果有优惠券码，自动应用；否则显示输入框让用户手动输入
+  // 折扣优先级：用户输入的 promotion code > 系统自动附加的 coupon > 显示输入框
+  // 注意：discounts 与 allow_promotion_codes 互斥
   if (promotionCodeId) {
-    sessionConfig.discounts = [{
-      promotion_code: promotionCodeId,
-    }];
+    sessionConfig.discounts = [{ promotion_code: promotionCodeId }];
+  } else if (couponId) {
+    sessionConfig.discounts = [{ coupon: couponId }];
   } else {
     sessionConfig.allow_promotion_codes = true;
   }
