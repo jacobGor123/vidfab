@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Kling3Client from "./kling3-client"
+import { setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: "Kling 3.0 AI Video Generator — AI Video That Thinks in Scenes",
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic"
 
-export default function Kling3Page() {
+export default async function Kling3Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   return <Kling3Client />
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Veo3Client from "./veo3-client"
+import { setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: "Veo 3 AI Video Generator — Google Veo 3 Online",
@@ -25,6 +26,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function Veo3Page() {
+export default async function Veo3Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   return <Veo3Client />
 }

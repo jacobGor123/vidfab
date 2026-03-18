@@ -3,13 +3,16 @@ import PricingPageClient from './pricing-client'
 import { pricingMetadata } from '@/lib/seo/metadata'
 import { StructuredData } from '@/components/seo/structured-data'
 import { getFAQSchema, getProductSchema } from '@/lib/seo/structured-data'
+import { setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = pricingMetadata
 
 // 🔥 强制动态渲染，避免预渲染时 usePathname 错误
 export const dynamic = 'force-dynamic'
 
-export default function PricingPage() {
+export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   // FAQ structured data for pricing page
   const pricingFAQs = [
     {

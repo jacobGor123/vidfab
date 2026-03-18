@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Sora2Client from "./sora2-client"
+import { setRequestLocale } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: "Sora 2 AI Video Generator — OpenAI Sora 2 Online",
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic"
 
-export default function Sora2Page() {
+export default async function Sora2Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   return <Sora2Client />
 }

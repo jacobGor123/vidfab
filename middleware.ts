@@ -4,7 +4,6 @@
  *
  * Logic:
  * - Static assets and API routes: skip all middleware
- * - Admin routes: skip locale detection (always English, no redirect)
  * - Studio routes: rewrite to /create?tool=xxx (before locale detection)
  * - All other routes: run next-intl locale detection/redirect
  * - Auth pages (/login, /signup): redirect to studio if already logged in
@@ -61,12 +60,7 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 3. Admin routes: skip locale detection (always English, no Accept-Language redirect)
-  if (pathname.includes('/admin')) {
-    return NextResponse.next();
-  }
-
-  // 4. Studio rewrite (runs before intl, preserves browser URL for GA4 tracking)
+  // 3. Studio rewrite (runs before intl, preserves browser URL for GA4 tracking)
   if (pathname.startsWith('/studio/')) {
     // Special pages with real page.tsx files - no rewrite needed
     const specialPaths = ['/studio/video-agent-beta', '/studio/plans'];
@@ -98,7 +92,7 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.rewrite(rewriteUrl);
   }
 
-  // 5. Run next-intl middleware (locale detection + redirect)
+  // 4. Run next-intl middleware (locale detection + redirect)
   const intlResponse = intlMiddleware(req);
 
   // Determine detected locale for injecting into header
@@ -113,7 +107,7 @@ export default async function middleware(req: NextRequest) {
   // Inject locale into response header for root layout to read
   response.headers.set('x-next-intl-locale', detectedLocale);
 
-  // 6. Auth and protected route logic (after locale detection)
+  // 5. Auth and protected route logic (after locale detection)
   const stripped = getStrippedPath(pathname);
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
