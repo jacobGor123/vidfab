@@ -8,7 +8,7 @@ import { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import {
   getBlogPostBySlug,
   getBlogPosts,
