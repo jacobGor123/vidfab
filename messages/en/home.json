@@ -4,8 +4,9 @@
     "description": "Transform your videos with cutting-edge AI technology. Create, enhance, and convert videos effortlessly with VidFab."
   },
   "hero": {
-    "title": "Create Stunning AI Videos",
-    "subtitle": "Transform text and images into professional videos in seconds"
+    "title": "VidFab AI Video Generator",
+    "subtitle": "Make Video Creation Easier",
+    "searchPlaceholder": "Describe the video you want to create..."
   },
   "features": {
     "title": "Powerful AI Video Features",

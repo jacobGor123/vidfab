@@ -6,7 +6,6 @@ import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
 import { LoadingState } from "@/components/loading-state"
-import { usePageTranslation } from "@/lib/i18n"
 import { TEXT_TO_IMAGE_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { HeroContent } from "@/components/video-hero/hero-content"
 import { Type, MousePointerClick, Sparkles, Download } from "lucide-react"
@@ -21,7 +20,6 @@ const CommunityCTA = dynamic(
 )
 
 function TextToImageHero() {
-  const { translations } = usePageTranslation('text-to-image')
   const currentItem = TEXT_TO_IMAGE_ITEMS[0]
 
   return (
@@ -40,7 +38,7 @@ function TextToImageHero() {
       <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center py-20 md:py-0">
         <div className="max-w-6xl mx-auto w-full">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-extrabold mb-8 sm:mb-12 text-gradient-brand leading-tight">
-            {translations?.hero?.title || "From Prompt to Picture: Create Images With Just Text"}
+            {"From Prompt to Picture: Create Images With Just Text"}
           </h1>
 
           {/* Typewriter Input + CTA Button from HeroContent */}
@@ -59,8 +57,6 @@ function TextToImageHero() {
 }
 
 export default function TextToImageClient() {
-  const { translations } = usePageTranslation('text-to-image')
-
   // How It Works steps
   const steps: Step[] = [
     {
@@ -179,8 +175,8 @@ export default function TextToImageClient() {
 
             {/* FAQ Section */}
             <FAQSection
-              title={translations?.faq?.title || "FAQ"}
-              faqs={translations?.faq?.items || faqs}
+              title="FAQ"
+              faqs={faqs}
             />
 
             {/* Community CTA Section */}

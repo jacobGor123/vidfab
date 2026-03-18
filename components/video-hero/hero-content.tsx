@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Sparkles, BookOpen, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useTranslation } from "@/lib/i18n"
+import { useTranslations } from "next-intl"
 import type { VideoHeroItem } from './types/video-hero.types'
 
 interface HeroContentProps {
@@ -109,7 +109,7 @@ export const HeroContent: React.FC<HeroContentProps> = ({
   const [query, setQuery] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
-  const { translations } = useTranslation('en')
+  const t = useTranslations('home')
 
   const typingTexts = currentItem?.typingTexts || ["Create amazing videos with AI..."]
 
@@ -159,11 +159,11 @@ export const HeroContent: React.FC<HeroContentProps> = ({
         {showTitle && (
           <>
             <h1 className="text-5xl md:text-7xl font-heading font-extrabold mb-8 text-gradient-brand leading-tight">
-              {translations?.homepage?.hero?.title || "VidFab AI Video Generator"}
+              {t('hero.title')}
             </h1>
 
             <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-              {translations?.homepage?.hero?.subtitle || "Make Video Creation Easier"}
+              {t('hero.subtitle')}
             </p>
           </>
         )}

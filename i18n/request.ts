@@ -5,7 +5,7 @@
 import { getRequestConfig } from 'next-intl/server';
 import { defaultLocale, isValidLocale, type Locale } from './locale';
 
-const NAMESPACES = ['common', 'home', 'pricing', 'about', 'contact', 'tools', 'video-tools'];
+const NAMESPACES = ['common', 'home', 'pricing', 'about', 'contact', 'tools', 'video-tools', 'text-to-video', 'image-to-video', 'ai-video-effects'];
 
 async function loadMessages(locale: Locale) {
   const entries = await Promise.all(

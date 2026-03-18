@@ -6,7 +6,7 @@ import { HowItWorks, type Step } from "@/components/sections/how-it-works"
 import { FAQSection } from "@/components/sections/faq-section"
 import { AmazingFeatures } from "@/components/sections/amazing-features"
 import { LoadingState } from "@/components/loading-state"
-import { usePageTranslation } from "@/lib/i18n"
+import { useTranslations } from "next-intl"
 import { VideoBackground } from "@/components/video-hero/video-background"
 import { TEXT_TO_VIDEO_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { useMobileDetection } from "@/components/video-hero/hooks/use-mobile-detection"
@@ -25,7 +25,7 @@ const CommunityCTA = dynamic(
 )
 
 function TextToVideoHero() {
-  const { translations } = usePageTranslation('text-to-video')
+  const t = useTranslations('text-to-video')
   const { isDesktop } = useMobileDetection()
   const { shouldShowVideoBackground, isSlowConnection } = useNetworkAware()
 
@@ -69,7 +69,7 @@ function TextToVideoHero() {
       <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center py-20 md:py-0">
         <div className="max-w-6xl mx-auto w-full">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-extrabold mb-8 sm:mb-12 text-gradient-brand leading-tight">
-            {translations?.hero?.title || "From Script to Screen: Create Videos With Just Text"}
+            {t('hero.title')}
           </h1>
 
           <div className="flex flex-wrap justify-center gap-4">
@@ -77,7 +77,7 @@ function TextToVideoHero() {
               href="/studio/text-to-video"
               className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-brand-purple to-brand-pink rounded-full hover:opacity-90 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
             >
-              {translations?.hero?.cta || "Generate Your First Video for Free"}
+              {t('hero.cta')}
               <svg
                 className="ml-2 w-5 h-5"
                 fill="none"
@@ -100,10 +100,10 @@ function TextToVideoHero() {
 }
 
 export default function TextToVideoPage() {
-  const { translations } = usePageTranslation('text-to-video')
+  const t = useTranslations('text-to-video')
 
   // Build steps from translations
-  const steps: Step[] = translations?.howItWorks?.steps?.map((step: any, index: number) => ({
+  const steps: Step[] = (t.raw('howItWorks.steps') as any[])?.map((step: any, index: number) => ({
     id: `step-${index + 1}`,
     number: step.number,
     title: step.title,
@@ -166,8 +166,8 @@ export default function TextToVideoPage() {
 
             {/* FAQ Section */}
             <FAQSection
-              title={translations?.faq?.title || "FAQ"}
-              faqs={translations?.faq?.items || []}
+              title={t('faq.title')}
+              faqs={t.raw('faq.items') as any[]}
             />
 
             {/* Community CTA Section */}
