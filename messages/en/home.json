@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "title": "VidFab - AI Video Platform | Transform Your Videos with AI",
+    "description": "Transform your videos with cutting-edge AI technology. Create, enhance, and convert videos effortlessly with VidFab."
+  },
+  "hero": {
+    "title": "Create Stunning AI Videos",
+    "subtitle": "Transform text and images into professional videos in seconds"
+  },
+  "features": {
+    "title": "Powerful AI Video Features",
+    "description": "Everything you need to create, enhance, and transform your videos with AI.",
+    "aiGeneration": {
+      "title": "AI Video Generation",
+      "description": "Create stunning videos from text prompts using advanced AI models."
+    },
+    "videoEnhancement": {
+      "title": "Video Enhancement",
+      "description": "Improve video quality, resolution, and visual appeal automatically."
+    },
+    "formatConversion": {
+      "title": "Format Conversion",
+      "description": "Convert between any video formats with optimized settings."
+    },
+    "batchProcessing": {
+      "title": "Batch Processing",
+      "description": "Process multiple videos simultaneously to save time."
+    },
+    "customModels": {
+      "title": "Custom Models",
+      "description": "Train custom AI models for your specific video creation needs."
+    },
+    "apiAccess": {
+      "title": "API Access",
+      "description": "Integrate VidFab's capabilities directly into your applications."
+    }
+  }
+}

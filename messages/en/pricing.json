@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "title": "Pricing - VidFab | Simple AI Video Plans",
+    "description": "Simple, transparent pricing for AI video generation. Choose the plan that fits your needs."
+  },
+  "title": "Simple, Transparent Pricing",
+  "description": "Choose the plan that's right for you and start creating amazing AI videos.",
+  "monthly": "Monthly",
+  "annually": "Annual",
+  "save20Percent": "Save 20%",
+  "mostPopular": "Most Popular",
+  "getStarted": "Get Started",
+  "contactSales": "Contact Sales",
+  "basic": {
+    "name": "Basic",
+    "description": "Perfect for individuals just getting started with AI video creation.",
+    "features": [
+      "10 video generations per month",
+      "Basic AI video capabilities",
+      "Standard processing speed",
+      "720p video output",
+      "Email support"
+    ]
+  },
+  "pro": {
+    "name": "Pro",
+    "description": "Ideal for content creators who need comprehensive video capabilities.",
+    "features": [
+      "50 video generations per month",
+      "Advanced AI video capabilities",
+      "Priority processing",
+      "1080p video output",
+      "Advanced editing tools",
+      "Priority support"
+    ]
+  },
+  "enterprise": {
+    "name": "Enterprise",
+    "description": "For organizations that need the most powerful video capabilities.",
+    "features": [
+      "Unlimited video generations",
+      "Enterprise-grade AI video",
+      "Custom model training",
+      "4K video output",
+      "API access",
+      "Dedicated support manager"
+    ]
+  }
+}

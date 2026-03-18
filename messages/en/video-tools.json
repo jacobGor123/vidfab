@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "AI Video Generator - VidFab",
+    "description": "Generate videos from text and images with AI."
+  },
+  "textToVideo": {
+    "prompt": "Enter your prompt",
+    "generate": "Generate Video"
+  },
+  "imageToVideo": {
+    "prompt": "Describe your video",
+    "generate": "Animate Image"
+  },
+  "video": {
+    "generate": "Generate",
+    "enhance": "Enhance",
+    "convert": "Convert",
+    "processing": "Processing...",
+    "completed": "Completed",
+    "failed": "Failed",
+    "pending": "Pending",
+    "uploadVideo": "Upload Video",
+    "selectVideo": "Select a video file",
+    "dragAndDrop": "Drag and drop your video here",
+    "maxFileSize": "Max file size: {size}",
+    "supportedFormats": "Supported formats: {formats}",
+    "startProcessing": "Start Processing",
+    "downloadVideo": "Download Video",
+    "shareVideo": "Share Video",
+    "deleteVideo": "Delete Video"
+  },
+  "dashboard": {
+    "welcome": "Welcome to your dashboard",
+    "quickActions": "Quick Actions",
+    "recentVideos": "Recent Videos",
+    "usage": "Usage",
+    "credits": "Credits",
+    "creditsRemaining": "{count} credits remaining",
+    "storageUsed": "Storage: {used} / {total}",
+    "generateVideo": "Generate Video",
+    "enhanceVideo": "Enhance Video",
+    "convertVideo": "Convert Video",
+    "viewHistory": "View History"
+  }
+}
