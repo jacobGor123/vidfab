@@ -9,7 +9,7 @@ import { MetadataRoute } from 'next'
 import { getBlogPosts } from '@/models/blog'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
   const currentDate = new Date()
 
   // Static pages with their metadata

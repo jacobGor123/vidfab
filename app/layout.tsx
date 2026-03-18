@@ -30,7 +30,7 @@ const DeviceFingerprintTracker = dynamic(
 )
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'),
 
   title: {
     default: 'VidFab - AI Video Platform | Transform Your Videos with AI',

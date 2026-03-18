@@ -14,9 +14,14 @@ async function loadMessages(locale: Locale) {
         const mod = await import(`../messages/${locale}/${ns}.json`);
         return [ns, mod.default] as const;
       } catch {
-        // Fallback to English if translation missing for this locale
-        const mod = await import(`../messages/en/${ns}.json`);
-        return [ns, mod.default] as const;
+        try {
+          const mod = await import(`../messages/en/${ns}.json`);
+          return [ns, mod.default] as const;
+        } catch {
+          // Return empty object if even English fallback fails
+          console.warn(`[i18n] Missing translation namespace: ${ns}`);
+          return [ns, {}] as const;
+        }
       }
     })
   );
