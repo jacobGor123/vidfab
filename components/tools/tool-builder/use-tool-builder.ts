@@ -112,21 +112,12 @@ export function useToolBuilder(config: BuilderConfig) {
     setState((prev) => ({ ...prev, [key]: value }))
   }, [])
 
-  // 从全局 activeJobs 中取最近的对应模型任务，不依赖局部 state
+  // 精确用 currentJobId 查找，避免多个同模型并发任务时互相覆盖
   const currentJob: VideoJob | null = (() => {
-    const proJobs = videoContext.activeJobs.filter(
-      (j) => j.settings?.model === config.textToVideoModel
-    )
-    if (proJobs.length > 0) {
-      return proJobs.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )[0]
-    }
-    // 如果有本地记录的 currentJobId，也去 failedJobs 里找
-    if (state.currentJobId) {
-      return videoContext.failedJobs?.find((j) => j.id === state.currentJobId) ?? null
-    }
-    return null
+    if (!state.currentJobId) return null
+    const activeJob = videoContext.activeJobs.find((j) => j.id === state.currentJobId)
+    if (activeJob) return activeJob
+    return videoContext.failedJobs?.find((j) => j.id === state.currentJobId) ?? null
   })()
 
   const submit = useCallback(async () => {
