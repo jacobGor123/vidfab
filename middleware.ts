@@ -1,165 +1,145 @@
 /**
  * Middleware for VidFab AI Video Platform
- * Handles authentication - NextAuth 4.x compatible
+ * Handles i18n locale detection (next-intl) + authentication (getToken)
  *
- * 逻辑说明：
- * - 默认所有页面都是公开的（营销页面、落地页等）
- * - 只有明确列在 protectedRoutes 中的页面需要登录
- * - 这样新增落地页时无需修改中间件配置
+ * Logic:
+ * - Static assets and API routes: skip all middleware
+ * - Admin routes: skip locale detection (always English, no redirect)
+ * - Studio routes: rewrite to /create?tool=xxx (before locale detection)
+ * - All other routes: run next-intl locale detection/redirect
+ * - Auth pages (/login, /signup): redirect to studio if already logged in
+ * - Protected routes: redirect to login if not authenticated
  */
-import { withAuth } from "next-auth/middleware"
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import createMiddleware from 'next-intl/middleware';
+import { getToken } from 'next-auth/jwt';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { routing } from './i18n/routing';
 
-// Auth routes that should redirect if already logged in
-const authRoutes = ['/login', '/signup']
+const intlMiddleware = createMiddleware(routing);
 
-// Protected routes that require authentication (需要登录才能访问的页面)
-const protectedRoutes = [
-  '/profile',
-  '/settings',
-  '/video',
-  '/subscription',
-  // Note: /studio is NOT in this list - it's a public route accessible to all users
-  // Note: /admin is NOT in this list - it's protected by admin layout's isCurrentUserAdmin() check
-  // This ensures admin auth uses the same method as /debug-admin for consistency
-]
+// Auth routes - redirect to studio if already logged in
+const AUTH_ROUTES = ['/login', '/signup'];
 
-function isAuthPath(pathname: string): boolean {
-  return authRoutes.some(route =>
-    pathname === route || pathname.startsWith(route + '/')
-  )
+// Protected routes (matched after stripping locale prefix)
+const PROTECTED_ROUTES = ['/profile', '/settings', '/video', '/subscription'];
+
+function getStrippedPath(pathname: string): string {
+  // Strip non-default locale prefixes: /zh/foo → /foo, /ja/foo → /foo
+  const nonDefaultLocales = routing.locales.filter(l => l !== routing.defaultLocale);
+  const pattern = new RegExp(`^\\/(${nonDefaultLocales.join('|')})(\/|$)`);
+  return pathname.replace(pattern, '/');
 }
 
-function isProtectedPath(pathname: string): boolean {
-  return protectedRoutes.some(route =>
-    pathname.startsWith(route)
-  )
+function isAuthPath(stripped: string): boolean {
+  return AUTH_ROUTES.some(r => stripped === r || stripped.startsWith(r + '/'));
+}
+
+function isProtectedPath(stripped: string): boolean {
+  return PROTECTED_ROUTES.some(r => stripped.startsWith(r));
 }
 
 function isStaticAsset(pathname: string): boolean {
   return (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/_vercel') ||
-    pathname.includes('.') // files like favicon.ico, images, etc.
-  )
+    pathname.includes('.')
+  );
 }
 
-export default withAuth(
-  function middleware(req) {
-    const { nextUrl } = req
-    const isLoggedIn = !!req.nextauth?.token
+export default async function middleware(req: NextRequest) {
+  const { nextUrl } = req;
+  const pathname = nextUrl.pathname;
 
-    // 1. Skip middleware for API routes and static assets
-    if (
-      nextUrl.pathname.startsWith('/api/') ||
-      isStaticAsset(nextUrl.pathname)
-    ) {
-      return NextResponse.next()
-    }
-
-    // 2. URL Rewrite: /studio/{tool} -> /create?tool={tool}
-    // 保持浏览器 URL 为 /studio/{tool}，GA4 可以正确追踪路径
-    if (nextUrl.pathname.startsWith('/studio/')) {
-      // 特殊页面：这些路径有真实的 page.tsx 文件，不需要 rewrite
-      const specialPaths = ['/studio/video-agent-beta', '/studio/plans']
-      if (specialPaths.some(path => nextUrl.pathname.startsWith(path))) {
-        return NextResponse.next()
-      }
-
-      // 工具名映射表：URL 路径 -> query 参数值
-      const toolMap: Record<string, string> = {
-        'discover': 'discover',
-        'text-to-video': 'text-to-video',
-        'image-to-video': 'image-to-video',
-        'ai-video-effects': 'video-effects',
-        'text-to-image': 'text-to-image',
-        'image-to-image': 'image-to-image',
-        'my-assets': 'my-assets',
-        'plans': 'my-profile',
-      }
-
-      // 提取工具名: /studio/text-to-video -> text-to-video
-      const pathParts = nextUrl.pathname.split('/').filter(Boolean)
-      const toolPath = pathParts[1] // studio 后面的部分
-      const tool = toolMap[toolPath] || 'discover'
-
-      // 构建 rewrite URL: /create?tool={tool}
-      const rewriteUrl = new URL('/create', nextUrl.origin)
-      rewriteUrl.searchParams.set('tool', tool)
-
-      // 保留原有的 query 参数（如 prompt, model 等）
-      nextUrl.searchParams.forEach((value, key) => {
-        rewriteUrl.searchParams.set(key, value)
-      })
-
-      // 使用 rewrite 而不是 redirect
-      // rewrite: 浏览器 URL 保持 /studio/{tool}，但渲染 /create 的内容
-      return NextResponse.rewrite(rewriteUrl)
-    }
-
-    // 3. Auth pages (login, signup) - redirect if already logged in
-    if (isAuthPath(nextUrl.pathname)) {
-      if (isLoggedIn) {
-        // Already logged in, redirect to studio discover page
-        return NextResponse.redirect(new URL('/studio/discover', nextUrl.origin))
-      }
-      return NextResponse.next()
-    }
-
-    // 4. Protected routes - require authentication
-    if (isProtectedPath(nextUrl.pathname)) {
-      if (!isLoggedIn) {
-        // Not logged in, redirect to login with callback
-        let callbackUrl = nextUrl.pathname
-        if (nextUrl.search) {
-          callbackUrl += nextUrl.search
-        }
-
-        const loginUrl = new URL('/login', nextUrl.origin)
-        loginUrl.searchParams.set('callbackUrl', encodeURIComponent(callbackUrl))
-        return NextResponse.redirect(loginUrl)
-      }
-      return NextResponse.next()
-    }
-
-    // 5. Default: All other routes are public (marketing pages, landing pages, etc.)
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const pathname = req.nextUrl.pathname
-
-        // Skip authorization for static assets
-        if (isStaticAsset(pathname)) {
-          return true
-        }
-
-        // Protected routes require authentication
-        if (isProtectedPath(pathname)) {
-          return !!token
-        }
-
-        // All other routes are public by default
-        return true
-      }
-    },
-    pages: {
-      signIn: '/login',
-    },
+  // 1. Skip for static assets
+  if (isStaticAsset(pathname)) {
+    return NextResponse.next();
   }
-)
+
+  // 2. Skip for API routes
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  // 3. Admin routes: skip locale detection (always English, no Accept-Language redirect)
+  if (pathname.includes('/admin')) {
+    return NextResponse.next();
+  }
+
+  // 4. Studio rewrite (runs before intl, preserves browser URL for GA4 tracking)
+  if (pathname.startsWith('/studio/')) {
+    // Special pages with real page.tsx files - no rewrite needed
+    const specialPaths = ['/studio/video-agent-beta', '/studio/plans'];
+    if (specialPaths.some(p => pathname.startsWith(p))) {
+      return NextResponse.next();
+    }
+
+    // Tool path → query param mapping
+    const toolMap: Record<string, string> = {
+      discover: 'discover',
+      'text-to-video': 'text-to-video',
+      'image-to-video': 'image-to-video',
+      'ai-video-effects': 'video-effects',
+      'text-to-image': 'text-to-image',
+      'image-to-image': 'image-to-image',
+      'my-assets': 'my-assets',
+      plans: 'my-profile',
+    };
+
+    const pathParts = pathname.split('/').filter(Boolean);
+    const toolPath = pathParts[1];
+    const tool = toolMap[toolPath] || 'discover';
+
+    const rewriteUrl = new URL('/create', nextUrl.origin);
+    rewriteUrl.searchParams.set('tool', tool);
+    // Preserve existing query params (prompt, model, etc.)
+    nextUrl.searchParams.forEach((value, key) => rewriteUrl.searchParams.set(key, value));
+
+    return NextResponse.rewrite(rewriteUrl);
+  }
+
+  // 5. Run next-intl middleware (locale detection + redirect)
+  const intlResponse = intlMiddleware(req);
+
+  // Determine detected locale for injecting into header
+  const detectedLocale =
+    intlResponse?.cookies.get('NEXT_LOCALE')?.value ||
+    req.cookies.get('NEXT_LOCALE')?.value ||
+    routing.defaultLocale;
+
+  // Use intl response or create fresh one
+  const response = intlResponse || NextResponse.next();
+
+  // Inject locale into response header for root layout to read
+  response.headers.set('x-next-intl-locale', detectedLocale);
+
+  // 6. Auth and protected route logic (after locale detection)
+  const stripped = getStrippedPath(pathname);
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  // Auth pages: redirect to studio if already logged in
+  if (isAuthPath(stripped)) {
+    if (token) {
+      return NextResponse.redirect(new URL('/studio/discover', nextUrl.origin));
+    }
+    return response;
+  }
+
+  // Protected routes: redirect to login if not authenticated
+  if (isProtectedPath(stripped)) {
+    if (!token) {
+      const localePrefix = detectedLocale === routing.defaultLocale ? '' : `/${detectedLocale}`;
+      const loginUrl = new URL(`${localePrefix}/login`, nextUrl.origin);
+      loginUrl.searchParams.set('callbackUrl', encodeURIComponent(pathname + (nextUrl.search || '')));
+      return NextResponse.redirect(loginUrl);
+    }
+    return response;
+  }
+
+  return response;
+}
 
 export const config = {
-  // Match all routes except API routes and static assets
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - API routes (handled separately)
-     * - Static assets
-     * - Next.js internals
-     */
-    '/((?!api|_next|_vercel|.*\\..*).*)'
-  ]
-}
+  // Include studio/* so rewrite logic runs; studio routes exit early before intl
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)', '/'],
+};
