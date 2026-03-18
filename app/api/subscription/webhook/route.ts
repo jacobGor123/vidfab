@@ -97,6 +97,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription): Pro
     await updateUser(userUuid, {
       subscription_stripe_id: subscription.id,
       subscription_status: subscription.status === 'active' ? 'active' : subscription.status,
+      subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
     });
 
   } catch (error: any) {
@@ -110,12 +111,18 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription): Pro
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
   try {
-    // 检查是否设置为期末取消
-    if (subscription.cancel_at_period_end) {
-      return;
+    // 每次续费/更新都同步最新的 period_end
+    if (subscription.status === 'active' && subscription.current_period_end) {
+      const { updateUser } = await import('@/services/user');
+      const userUuid = subscription.metadata?.user_uuid;
+      if (userUuid) {
+        await updateUser(userUuid, {
+          subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        });
+      }
     }
 
-    // 检查订阅状态变化
+    // 检查是否取消
     if (subscription.status === 'canceled') {
       await handleSubscriptionCanceled(subscription.id);
     }

@@ -244,8 +244,9 @@ export class SubscriptionService {
           subscription_plan: planId,
           subscription_status: 'active',
           subscription_stripe_id: stripeSubscriptionId,
-          credits_remaining: newCreditsBalance, // ✅ 使用累加后的积分
-          credits_monthly_total: newCreditsBalance, // ✅ 设置本月开始时的总积分
+          credits_remaining: newCreditsBalance,
+          credits_monthly_total: newCreditsBalance,
+          subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', userUuid);
@@ -463,7 +464,7 @@ export class SubscriptionService {
       // ✅ 简化1: 直接获取用户完整信息（参考iMideo设计）
       const { data: user, error } = await supabaseAdmin
         .from(TABLES.USERS)
-        .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_total')
+        .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_total, subscription_period_end')
         .eq('uuid', userUuid)
         .single();
 
@@ -514,7 +515,7 @@ export class SubscriptionService {
         credits_total: planConfig.credits,
         credits_monthly_total: user.credits_monthly_total, // 本月可用总积分
         period_start: user.created_at,
-        period_end: user.updated_at,
+        period_end: user.subscription_period_end || user.updated_at,
         stripe_subscription_id: user.subscription_stripe_id,
         auto_renew: autoRenew,
         created_at: user.created_at,
