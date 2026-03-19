@@ -20,12 +20,14 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
+import { useTranslations } from 'next-intl'
 
 interface NavbarProps {
   scrolled: boolean
 }
 
 export function Navbar({ scrolled }: NavbarProps) {
+  const t = useTranslations('common')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [subscriptionPlan, setSubscriptionPlan] = useState<string>('free')
   const [isInitialized, setIsInitialized] = useState(false)
@@ -86,7 +88,7 @@ export function Navbar({ scrolled }: NavbarProps) {
   )
 
   // 根据登录和订阅状态确定按钮文案
-  const buttonText = (session?.user || isSubscribed) ? 'My Studio' : 'Start for free'
+  const buttonText = (session?.user || isSubscribed) ? t('nav.myStudio') : t('nav.startForFree')
 
   return (
     <header
@@ -120,14 +122,14 @@ export function Navbar({ scrolled }: NavbarProps) {
                   href="/"
                   className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
                 >
-                  Home
+                  {t('nav.home')}
                 </Link>
 
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
                       <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                        AI Studio
+                        {t('nav.aiStudio')}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
                         <div className="grid grid-cols-2 gap-6 p-4 w-[420px] bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
@@ -143,7 +145,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                                 >
                                   <div className="text-sm font-medium leading-none text-white whitespace-nowrap flex items-center gap-1.5">
-                                    Story to Video
+                                    {t('nav.storyToVideo')}
                                     <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
                                   </div>
                                 </Link>
@@ -154,7 +156,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                                 >
                                   <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
-                                    Text to Video
+                                    {t('nav.textToVideo')}
                                   </div>
                                 </Link>
                               </NavigationMenuLink>
@@ -164,7 +166,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                                 >
                                   <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
-                                    Image to Video
+                                    {t('nav.imageToVideo')}
                                   </div>
                                 </Link>
                               </NavigationMenuLink>
@@ -174,7 +176,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                                 >
                                   <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
-                                    AI Video Effects
+                                    {t('nav.aiVideoEffects')}
                                   </div>
                                 </Link>
                               </NavigationMenuLink>
@@ -193,7 +195,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                                 >
                                   <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
-                                    Text to Image
+                                    {t('nav.textToImage')}
                                   </div>
                                 </Link>
                               </NavigationMenuLink>
@@ -203,7 +205,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                                   className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                                 >
                                   <div className="text-sm font-medium leading-none text-white whitespace-nowrap">
-                                    Image to Image
+                                    {t('nav.imageToImage')}
                                   </div>
                                 </Link>
                               </NavigationMenuLink>
@@ -219,7 +221,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                   <NavigationMenuList>
                     <NavigationMenuItem>
                       <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                        Latest Models
+                        {t('nav.latestModels')}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
                         <div className="w-56 gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
@@ -228,7 +230,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               href="/tools/veo3"
                               className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
-                              <div className="text-sm font-medium leading-none text-white">Veo 3</div>
+                              <div className="text-sm font-medium leading-none text-white">{t('nav.veo3')}</div>
                               <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">Google DeepMind</p>
                             </Link>
                           </NavigationMenuLink>
@@ -237,7 +239,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               href="/tools/sora2"
                               className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
-                              <div className="text-sm font-medium leading-none text-white">Sora 2</div>
+                              <div className="text-sm font-medium leading-none text-white">{t('nav.sora2')}</div>
                               <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">OpenAI</p>
                             </Link>
                           </NavigationMenuLink>
@@ -246,7 +248,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               href="/tools/kling3"
                               className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
-                              <div className="text-sm font-medium leading-none text-white">Kling 3.0</div>
+                              <div className="text-sm font-medium leading-none text-white">{t('nav.kling3')}</div>
                               <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">Kuaishou</p>
                             </Link>
                           </NavigationMenuLink>
@@ -260,21 +262,21 @@ export function Navbar({ scrolled }: NavbarProps) {
                   href="/pricing"
                   className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
                 >
-                  Pricing
+                  {t('nav.pricing')}
                 </Link>
 
                 <Link
                   href="/blog"
                   className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
                 >
-                  Blog
+                  {t('nav.blog')}
                 </Link>
 
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
                       <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                        Support
+                        {t('nav.support')}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
                         <div className="grid w-[120px] gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
@@ -328,7 +330,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                 >
                   <Link href="/login">
                     <LogIn className="h-4 w-4 mr-2 group-hover:text-brand-purple-DEFAULT transition-colors duration-300" />
-                    Sign In
+                    {t('nav.login')}
                   </Link>
                 </Button>
               </>
@@ -356,12 +358,12 @@ export function Navbar({ scrolled }: NavbarProps) {
                   className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Home
+                  {t('nav.home')}
                 </Link>
 
                 {/* AI Studio Section */}
                 <div className="space-y-3 border border-white/10 rounded-lg p-3">
-                  <div className="text-base font-heading text-white font-medium">AI Studio</div>
+                  <div className="text-base font-heading text-white font-medium">{t('nav.aiStudio')}</div>
 
                   {/* AI Video */}
                   <div className="space-y-2">
@@ -373,7 +375,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <span className="flex items-center gap-1.5">
-                          Story to Video
+                          {t('nav.storyToVideo')}
                           <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
                         </span>
                       </Link>
@@ -382,21 +384,21 @@ export function Navbar({ scrolled }: NavbarProps) {
                         className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Text to Video
+                        {t('nav.textToVideo')}
                       </Link>
                       <Link
                         href="/image-to-video"
                         className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Image to Video
+                        {t('nav.imageToVideo')}
                       </Link>
                       <Link
                         href="/ai-video-effects"
                         className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        AI Video Effects
+                        {t('nav.aiVideoEffects')}
                       </Link>
                     </div>
                   </div>
@@ -413,14 +415,14 @@ export function Navbar({ scrolled }: NavbarProps) {
                         className="block py-2 text-sm text-gray-200 hover:text-brand-pink-DEFAULT transition-colors duration-300"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Text to Image
+                        {t('nav.textToImage')}
                       </Link>
                       <Link
                         href="/image-to-image"
                         className="block py-2 text-sm text-gray-200 hover:text-brand-pink-DEFAULT transition-colors duration-300"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Image to Image
+                        {t('nav.imageToImage')}
                       </Link>
                     </div>
                   </div>
@@ -428,28 +430,28 @@ export function Navbar({ scrolled }: NavbarProps) {
 
                 {/* Latest Models Section */}
                 <div className="space-y-2 border border-white/10 rounded-lg p-3">
-                  <div className="text-base font-heading text-white font-medium">Latest Models</div>
+                  <div className="text-base font-heading text-white font-medium">{t('nav.latestModels')}</div>
                   <div className="ml-3 space-y-1">
                     <Link
                       href="/tools/veo3"
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Veo 3 <span className="text-xs text-gray-500 ml-1">Google DeepMind</span>
+                      {t('nav.veo3')} <span className="text-xs text-gray-500 ml-1">Google DeepMind</span>
                     </Link>
                     <Link
                       href="/tools/sora2"
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Sora 2 <span className="text-xs text-gray-500 ml-1">OpenAI</span>
+                      {t('nav.sora2')} <span className="text-xs text-gray-500 ml-1">OpenAI</span>
                     </Link>
                     <Link
                       href="/tools/kling3"
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Kling 3.0 <span className="text-xs text-gray-500 ml-1">Kuaishou</span>
+                      {t('nav.kling3')} <span className="text-xs text-gray-500 ml-1">Kuaishou</span>
                     </Link>
                   </div>
                 </div>
@@ -459,7 +461,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                   className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Pricing
+                  {t('nav.pricing')}
                 </Link>
 
                 <Link
@@ -467,12 +469,12 @@ export function Navbar({ scrolled }: NavbarProps) {
                   className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Blog
+                  {t('nav.blog')}
                 </Link>
 
                 {/* Support Section */}
                 <div className="space-y-2">
-                  <div className="py-2 text-base font-heading text-white font-medium">Support</div>
+                  <div className="py-2 text-base font-heading text-white font-medium">{t('nav.support')}</div>
                   <div className="ml-4 space-y-2">
                     <Link
                       href="/about"
@@ -524,7 +526,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                     className="text-gray-200 justify-start group font-heading hover:text-brand-purple-DEFAULT transition-colors duration-300"
                     asChild
                   >
-                    <Link href="/login">Sign In</Link>
+                    <Link href="/login">{t('nav.login')}</Link>
                   </Button>
                 </>
               )}
