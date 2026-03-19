@@ -1,5 +1,3 @@
-"use client"
-
 import { Suspense } from "react"
 import { Hero } from "@/components/hero"
 import { ScriptSection } from "@/components/sections/script-section"
@@ -10,7 +8,7 @@ import { CreatorTestimonialsSection } from "@/components/sections/creator-testim
 import { CTASection } from "@/components/sections/cta-section"
 import { PaymentSuccessHandler } from "@/components/payment-success-handler"
 
-export default function HomeClient() {
+export default async function HomeClient() {
   return (
     <div className="relative min-h-screen overflow-hidden text-white" style={{ backgroundColor: "#0A0A12" }}>
       <Suspense fallback={null}>

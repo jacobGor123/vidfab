@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { Link } from "@/i18n/routing"
+import { getTranslations } from "next-intl/server"
 
 // 来自 Figma API：
 //   card fill: #24223E  strokeWeight=2  strokeAlign=INSIDE  cornerRadius=16
@@ -8,70 +9,42 @@ const CARD_BG = "#24223E"
 const CARD_BORDER_GRADIENT =
   "linear-gradient(225deg, #6650E0 0%, #3D3B5E 55%, #4882FF 100%)"
 
-// 顶行 3 张卡片（410×484px）
-const TOP_CARDS = [
+const CARD_META = [
   {
     id: "text-to-video",
     image: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/creative-suite-text-to-video.webp",
-    title: "Text to Video",
-    badge: "Prompt to Motion",
-    description:
-      "The industry-leading engine for generating high-fidelity cinematic clips from simple text descriptions.",
-    ctaText: "Try Text-to-Video",
     ctaLink: "/studio/text-to-video",
   },
   {
     id: "image-to-video",
     image: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/creative-suite-image-to-video.webp",
-    title: "Image to Video",
-    badge: "Animate Your Art",
-    description:
-      "Bring your character designs and concept stills to life with professional, fluid motion.",
-    ctaText: "Try Image-to-Video",
     ctaLink: "/studio/image-to-video",
   },
   {
     id: "text-to-image",
     image: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/creative-suite-text-to-image.webp",
-    title: "Text to Image",
-    badge: "Concept Creation",
-    description:
-      "Generate consistent characters, stunning backgrounds, and unique assets from scratch in seconds.",
-    ctaText: "Try Text-to-Image",
     ctaLink: "/studio/text-to-image",
   },
-]
-
-// 底行 2 张卡片（622×500px，更宽）
-const BOTTOM_CARDS = [
   {
     id: "image-to-image",
     image: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/creative-suite-image-to-image.webp",
-    title: "Image to Image",
-    badge: "Style Transformation",
-    description:
-      "Reimagine your assets, swap visual styles, or transform rough sketches into polished masterpieces.",
-    ctaText: "Try Image-to-Image",
     ctaLink: "/studio/image-to-image",
   },
   {
     id: "video-effects",
     image: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/creative-suite-video-effects.webp",
-    title: "AI Video Effects",
-    badge: "One-Click Magic",
-    description:
-      "Elevate your footage with trending AI visual effects. Apply cinematic filters and surreal transformations in a single click.",
-    ctaText: "Try AI Video Effects",
     ctaLink: "/studio/ai-video-effects",
   },
 ]
 
 function Card({
-  card,
+  meta,
+  tool,
   imageHeight,
   imageSizes,
 }: {
-  card: { id: string; image: string; title: string; badge: string; description: string; ctaText: string; ctaLink: string }
+  meta: { id: string; image: string; ctaLink: string }
+  tool: { title: string; badge: string; description: string; cta: string }
   imageHeight: number
   imageSizes: string
 }) {
@@ -115,8 +88,8 @@ function Card({
           }}
         />
         <Image
-          src={card.image}
-          alt={card.title}
+          src={meta.image}
+          alt={tool.title}
           width={800}
           height={imageHeight}
           sizes={imageSizes}
@@ -141,7 +114,7 @@ function Card({
               className="text-white font-semibold"
               style={{ fontSize: 18, lineHeight: 1.3 }}
             >
-              {card.title}
+              {tool.title}
             </h3>
             <span
               className="text-white font-normal"
@@ -153,7 +126,7 @@ function Card({
                 whiteSpace: "nowrap",
               }}
             >
-              {card.badge}
+              {tool.badge}
             </span>
           </div>
 
@@ -162,12 +135,12 @@ function Card({
             className="font-normal flex-1"
             style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(235,238,252,0.8)" }}
           >
-            {card.description}
+            {tool.description}
           </p>
 
           {/* CTA 按钮 */}
           <Link
-            href={card.ctaLink}
+            href={meta.ctaLink}
             className="inline-flex items-center self-start mt-4 text-white font-medium transition-opacity hover:opacity-85"
             style={{
               fontSize: 14,
@@ -178,14 +151,24 @@ function Card({
               boxShadow: "0 4px 20px rgba(115,108,255,0.35)",
             }}
           >
-            {card.ctaText} →
+            {tool.cta}
           </Link>
         </div>
     </div>
   )
 }
 
-export function CreativeSuiteSection() {
+export async function CreativeSuiteSection() {
+  const t = await getTranslations('home')
+  const tools = t.raw('creativeSuite.tools') as Array<{
+    title: string; badge: string; description: string; cta: string
+  }>
+
+  const topCards = CARD_META.slice(0, 3)
+  const bottomCards = CARD_META.slice(3)
+  const topTools = tools.slice(0, 3)
+  const bottomTools = tools.slice(3)
+
   return (
     <section
       className="relative overflow-hidden"
@@ -224,20 +207,20 @@ export function CreativeSuiteSection() {
           className="font-bold text-center text-white mb-16 mx-auto text-[24px] sm:text-[32px] lg:text-[40px]"
           style={{ lineHeight: 1.3, maxWidth: 720 }}
         >
-          The Creative Suite
+          {t('creativeSuite.title')}
         </h2>
 
         {/* 顶行：3 张等宽卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 items-stretch">
-          {TOP_CARDS.map((card) => (
-            <Card key={card.id} card={card} imageHeight={220} imageSizes="(max-width: 768px) 100vw, 33vw" />
+          {topCards.map((meta, i) => (
+            <Card key={meta.id} meta={meta} tool={topTools[i]} imageHeight={220} imageSizes="(max-width: 768px) 100vw, 33vw" />
           ))}
         </div>
 
         {/* 底行：2 张等宽卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-          {BOTTOM_CARDS.map((card) => (
-            <Card key={card.id} card={card} imageHeight={260} imageSizes="(max-width: 768px) 100vw, 50vw" />
+          {bottomCards.map((meta, i) => (
+            <Card key={meta.id} meta={meta} tool={bottomTools[i]} imageHeight={260} imageSizes="(max-width: 768px) 100vw, 50vw" />
           ))}
         </div>
       </div>

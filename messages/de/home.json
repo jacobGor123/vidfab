@@ -1,39 +1,138 @@
 {
   "meta": {
-    "title": "VidFab – KI-Videogenerator | Videos erstellen mit künstlicher Intelligenz",
-    "description": "Erstellen und optimieren Sie Videos mit modernster KI-Technologie. Text zu Video, Bild zu Video und KI-Videoeffekte – alles auf einer Plattform."
+    "title": "VidFab - KI-Videoproduktion Plattform | Professionelle AI-Videogenerierung",
+    "description": "Verwandeln Sie Ihre Skripte mit VidFabs vollautomatisierter KI-Pipeline in Episodenvideos mit hoher Zuschauerbindung – von der Idee über das Storyboard bis zum fertigen Rendering."
   },
   "hero": {
-    "title": "VidFab KI-Videogenerator",
-    "subtitle": "Videoproduktion leicht gemacht",
-    "searchPlaceholder": "Beschreiben Sie das Video, das Sie erstellen möchten..."
+    "line1": "VidFab",
+    "line2": "The Professional AI",
+    "line3_1": "Story-to-Video",
+    "line3_2": "Workflow",
+    "subtitle": "Hören Sie auf, manuell zu bearbeiten, und beginnen Sie zu skalieren. Verwandeln Sie Ihre Skripte in 60-Sekunden-Episodenvideos mit hoher Zuschauerbindung – mit einer vollautomatisierten Pipeline von",
+    "subtitleBold": "Idee über Storyboard bis zum fertigen Rendering.",
+    "cta": "Meine erste Serie kostenlos starten",
+    "trust": "Keine Kreditkarte erforderlich. Schließen Sie sich 10.000+ digitalen Creatorn an."
   },
-  "features": {
-    "title": "Leistungsstarke KI-Video-Funktionen",
-    "description": "Alles, was Sie brauchen, um Videos mit KI zu erstellen, zu verbessern und zu transformieren.",
-    "aiGeneration": {
-      "title": "KI-Videogenerierung",
-      "description": "Erstellen Sie beeindruckende Videos aus Textbeschreibungen mit fortschrittlichen KI-Modellen."
-    },
-    "videoEnhancement": {
-      "title": "Video-Optimierung",
-      "description": "Verbessern Sie automatisch Videoqualität, Auflösung und visuelle Wirkung."
-    },
-    "formatConversion": {
-      "title": "Formatkonvertierung",
-      "description": "Konvertieren Sie zwischen beliebigen Videoformaten mit optimierten Einstellungen."
-    },
-    "batchProcessing": {
-      "title": "Stapelverarbeitung",
-      "description": "Verarbeiten Sie mehrere Videos gleichzeitig und sparen Sie Zeit."
-    },
-    "customModels": {
-      "title": "Individuelle Modelle",
-      "description": "Trainieren Sie eigene KI-Modelle für Ihre spezifischen Anforderungen."
-    },
-    "apiAccess": {
-      "title": "API-Zugang",
-      "description": "Integrieren Sie VidFabs Funktionen direkt in Ihre Anwendungen."
-    }
+  "script": {
+    "title": "Von jedem Funken zum drehfertigen Skript",
+    "subtitle": "Unser Workflow passt sich Ihrer Situation an. Ob Sie vor einer leeren Seite oder einer viralen Referenz stehen – VidFab automatisiert die schwere Arbeit.",
+    "cta": "KI-Skriptgenerierung testen →",
+    "cards": [
+      {
+        "title": "Der Outliner – „Ich habe eine Gliederung"",
+        "description": "Fügen Sie Ihre groben Ideen oder eine Grundhandlung ein. Unsere KI strukturiert sie zu spannenden Skripten mit starkem Hook, straffem Tempo und viralem Finale."
+      },
+      {
+        "title": "Der Kurator – „Ich habe ein Referenzvideo"",
+        "description": "Geben Sie einen YouTube-Shorts-Link ein. VidFab analysiert den erfolgreichen Rhythmus und erstellt ein originelles Skript mit bewährtem viralen Flow in Ihrer einzigartigen Stimme."
+      },
+      {
+        "title": "Der Funke – „Ich brauche eine frische Idee"",
+        "description": "Lassen Sie VidFabs Brainstormer Ihnen 5 episodische Konzepte basierend auf Ihrer Nische vorschlagen. Wählen Sie das beste aus und erweitern Sie es sofort zu einem vollständigen Skript."
+      }
+    ]
+  },
+  "workspace": {
+    "title": "Ein visueller Arbeitsbereich für die Massenproduktion",
+    "subtitle": "Erstellen Sie nicht nur ein Video – bauen Sie eine Serie auf. Meistern Sie unsere nahtlose Oberfläche, die für die Produktion großer Inhaltsmengen entwickelt wurde.",
+    "tabs": [
+      {
+        "number": "01",
+        "title": "Identitätssperre",
+        "description": "Definieren Sie Ihre Besetzung einmalig. VidFab hält Ihre Charaktere in jedem Frame konsistent, damit Ihr Publikum nie den Faden verliert."
+      },
+      {
+        "number": "02",
+        "title": "KI-Regie",
+        "description": "Wandeln Sie Skripte automatisch in Shot-für-Shot-Storyboards um. Visualisieren Sie Komposition und Kamerawinkel vor der Generierung."
+      },
+      {
+        "number": "03",
+        "title": "Shot-Vorschau",
+        "description": "Verwandeln Sie Storyboards in sofortige Bewegungsvorschauen. Überprüfen Sie das Tempo in Echtzeit und optimieren Sie jeden Shot, bis der Rhythmus perfekt sitzt."
+      },
+      {
+        "number": "04",
+        "title": "Finale Zusammenstellung",
+        "description": "Kombinieren Sie alle Szenen zu einem hochwertigen Video. Laden Sie Ihr Meisterwerk in Sekunden herunter, perfekt formatiert für TikTok, Reels oder Shorts."
+      }
+    ]
+  },
+  "creativeSuite": {
+    "title": "Die Creative Suite",
+    "tools": [
+      {
+        "title": "Text to Video",
+        "badge": "Vom Text zur Bewegung",
+        "description": "Die branchenführende Engine zur Generierung hochwertiger cinematischer Clips aus einfachen Textbeschreibungen.",
+        "cta": "Try Text-to-Video →"
+      },
+      {
+        "title": "Image to Video",
+        "badge": "Kunst animieren",
+        "description": "Erwecken Sie Ihre Charakterdesigns und Konzeptbilder mit professioneller, flüssiger Bewegung zum Leben.",
+        "cta": "Try Image-to-Video →"
+      },
+      {
+        "title": "Text to Image",
+        "badge": "Konzepterstellung",
+        "description": "Generieren Sie konsistente Charaktere, beeindruckende Hintergründe und einzigartige Assets in Sekunden von Grund auf.",
+        "cta": "Try Text-to-Image →"
+      },
+      {
+        "title": "Image to Image",
+        "badge": "Stiltransformation",
+        "description": "Gestalten Sie Ihre Assets neu, wechseln Sie visuelle Stile oder verwandeln Sie grobe Skizzen in polierte Meisterwerke.",
+        "cta": "Try Image-to-Image →"
+      },
+      {
+        "title": "AI Video Effects",
+        "badge": "Ein-Klick-Magie",
+        "description": "Werten Sie Ihr Filmmaterial mit trendigen KI-Effekten auf. Wenden Sie cinematische Filter und surreale Transformationen mit einem Klick an.",
+        "cta": "Try AI Video Effects →"
+      }
+    ]
+  },
+  "engineered": {
+    "title": "Entwickelt für soziales Wachstum",
+    "subtitle": "Technische Spezifikationen, die Ihnen helfen, den Algorithmus zu überwinden und mehr Zuschauer zu erreichen.",
+    "items": [
+      {
+        "title": "Multi-Plattform-Verhältnisse",
+        "description": "Natives 9:16 (Hochformat) für TikTok/Reels/Shorts und 16:9 für YouTube/Web."
+      },
+      {
+        "title": "Retentions-optimiert",
+        "description": "Dauervorlagen (15-60s), präzise strukturiert, damit Zuschauer bis zum Ende dranbleiben."
+      },
+      {
+        "title": "Granulare Kontrolle",
+        "description": "Sie sind der Regisseur. Tauschen Sie Storyboards aus oder optimieren Sie einzelne Videosegmente, um Ihre genaue Vision umzusetzen."
+      },
+      {
+        "title": "Mobile-HD-Exporte",
+        "description": "Gestochen scharfe 720p-HD-Ausgabe, optimiert für blitzschnelle Uploads und kristallklare mobile Wiedergabe."
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Über 10.000 Creator skalieren bereits mit VidFab",
+    "items": [
+      {
+        "quote": "Von 20 Stunden Bearbeitung auf 20 Minuten 'VidFabbing'. Die Charakterkonsistenz ist ein absoluter Gamechanger für meine YouTube Shorts.",
+        "author": "Alex R.",
+        "role": "YouTube Creator"
+      },
+      {
+        "quote": "Endlich ein Tool, das den Rhythmus von Social Media versteht. Ich habe in zwei Monaten 40.000 Follower gewonnen.",
+        "author": "Sarah T.",
+        "role": "Content-Strategin"
+      }
+    ]
+  },
+  "cta": {
+    "title": "Bereit, Ihre erste virale KI-Serie zu starten?",
+    "subtitle": "Werden Sie heute Teil der nächsten Generation von Storytellern.",
+    "button": "VidFab kostenlos starten →"
   }
 }

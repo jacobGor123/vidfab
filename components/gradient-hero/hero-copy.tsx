@@ -1,4 +1,5 @@
 import { Link } from "@/i18n/routing"
+import { getTranslations } from "next-intl/server"
 
 // Sparkle icon — 直接从 Figma 导出的原始 SVG path（node 347:8027）
 const SparkleIcon = () => (
@@ -10,7 +11,9 @@ const SparkleIcon = () => (
   </svg>
 )
 
-export function HeroCopy() {
+export async function HeroCopy() {
+  const t = await getTranslations('home')
+
   return (
     <div className="relative z-10 flex flex-col items-center text-center px-4 pt-20 lg:pt-32 xl:pt-36 2xl:pt-44 pb-16">
 
@@ -23,7 +26,7 @@ export function HeroCopy() {
           className="block bg-clip-text text-transparent"
           style={{ backgroundImage: "linear-gradient(90deg, #FFFFFF 0%, #DDDAFF 100%)" }}
         >
-          VidFab
+          {t('hero.line1')}
         </span>
 
         {/* 行2: The Professional AI — 渐变 white → #DDDAFF */}
@@ -31,13 +34,13 @@ export function HeroCopy() {
           className="block bg-clip-text text-transparent"
           style={{ backgroundImage: "linear-gradient(90deg, #FFFFFF 0%, #DDDAFF 100%)" }}
         >
-          The Professional AI
+          {t('hero.line2')}
         </span>
 
         {/* 行3: Story-to-Video (cyan #66CCFF) + Workflow (lavender #DDDAFF) */}
         <span className="block">
-          <span style={{ color: "rgb(102,204,255)" }}>Story-to-Video</span>
-          <span style={{ color: "rgb(221,218,255)" }}> Workflow</span>
+          <span style={{ color: "rgb(102,204,255)" }}>{t('hero.line3_1')}</span>
+          <span style={{ color: "rgb(221,218,255)" }}> {t('hero.line3_2')}</span>
         </span>
       </h1>
 
@@ -47,9 +50,8 @@ export function HeroCopy() {
         className="text-white font-normal mb-8"
         style={{ fontSize: 18, lineHeight: "30.6px", maxWidth: 758 }}
       >
-        Stop manually editing and start scaling. Turn your scripts into high-retention, 60-second
-        episodic videos with a fully automated pipeline—from
-        <span className="font-semibold"> idea to storyboard to final render.</span>
+        {t('hero.subtitle')}
+        <span className="font-semibold"> {t('hero.subtitleBold')}</span>
       </p>
 
       {/* CTA 按钮
@@ -69,12 +71,12 @@ export function HeroCopy() {
         }}
       >
         <SparkleIcon />
-        Start My First Series for Free
+        {t('hero.cta')}
       </Link>
 
       {/* 信任文案 — fontSize=16 fontWeight=400 */}
       <p className="text-white font-normal mt-4" style={{ fontSize: 16 }}>
-        No credit card required. Join 10k+ digital creators.
+        {t('hero.trust')}
       </p>
     </div>
   )

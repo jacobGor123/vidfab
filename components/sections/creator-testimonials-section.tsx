@@ -1,30 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link } from "@/i18n/routing"
+import { useTranslations } from "next-intl"
 
-// 来自 Figma 设计稿：
-// 卡片 bg: #161640，左侧紫色竖条边框 #5C46DA
-// 照片：parallelogram clip-path（右边斜切）
-// 渐变遮罩：transparent → rgba(92,70,218) → #161640
-// 分页点：27×3px，#8C89B2，active 拉宽 44px 变白
-// 箭头：Polygon 28×28 #5C46DA，位于卡片右外侧
-
-const TESTIMONIALS = [
+// 照片 URL（非翻译内容，保留在代码中）
+const TESTIMONIAL_META = [
   {
     id: "alex",
-    quote:
-      '"From 20 hours of editing to 20 minutes of \'VidFabbing\'. The character consistency is a total game-changer for my YouTube Shorts."',
-    author: "Alex R.",
-    role: "YouTube Creator",
     photo: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/testimonial-alex-r.webp",
   },
   {
     id: "sarah",
-    quote:
-      '"Finally, a tool that understands the rhythm of social media. I\'ve grown 40k followers in two months."',
-    author: "Sarah T.",
-    role: "Content Strategist",
     photo: "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets/testimonial-sarah-t.webp",
   },
 ]
@@ -32,23 +18,29 @@ const TESTIMONIALS = [
 const INTERVAL_MS = 5000
 
 export function CreatorTestimonialsSection() {
+  const t = useTranslations('home')
+  const items = t.raw('testimonials.items') as Array<{
+    quote: string; author: string; role: string
+  }>
+
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
     if (paused) return
-    const t = setInterval(
-      () => setActive((p) => (p + 1) % TESTIMONIALS.length),
+    const timer = setInterval(
+      () => setActive((p) => (p + 1) % items.length),
       INTERVAL_MS
     )
-    return () => clearInterval(t)
-  }, [paused])
+    return () => clearInterval(timer)
+  }, [paused, items.length])
 
   const prev = () =>
-    setActive((p) => (p - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)
-  const next = () => setActive((p) => (p + 1) % TESTIMONIALS.length)
+    setActive((p) => (p - 1 + items.length) % items.length)
+  const next = () => setActive((p) => (p + 1) % items.length)
 
-  const current = TESTIMONIALS[active]
+  const current = items[active]
+  const currentMeta = TESTIMONIAL_META[active]
 
   return (
     <section
@@ -69,7 +61,7 @@ export function CreatorTestimonialsSection() {
         }}
       />
 
-      {/* 底部渐变过渡：向 CTA section (#000000) 柔和衔接 */}
+      {/* 底部渐变过渡 */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0"
@@ -85,16 +77,16 @@ export function CreatorTestimonialsSection() {
           className="font-bold text-center text-white mx-auto text-[24px] sm:text-[32px] lg:text-[40px]"
           style={{ lineHeight: 1.3 }}
         >
-          Join 10,000+ Creators Scaling with VidFab
+          {t('testimonials.title')}
         </h2>
       </div>
 
-      {/* 卡片区：留出右侧空间放箭头 */}
+      {/* 卡片区 */}
       <div
         className="relative z-10 mx-auto"
         style={{ maxWidth: 1280, paddingLeft: 16, paddingRight: 16 }}
       >
-        {/* ── 主卡片：flex 布局，photo 作为 flex child 保证高度；用 mask-image 实现斜切 ── */}
+        {/* 主卡片 */}
         <div
           className="flex relative"
           style={{
@@ -104,7 +96,7 @@ export function CreatorTestimonialsSection() {
             minHeight: 234,
           }}
         >
-          {/* 照片：img height=100% width=auto，完整展示不截断 */}
+          {/* 照片 */}
           <div
             className="hidden md:block flex-shrink-0 overflow-hidden"
             style={{
@@ -115,15 +107,15 @@ export function CreatorTestimonialsSection() {
             }}
           >
             <img
-              src={current.photo}
+              src={currentMeta.photo}
               alt={`${current.author}, ${current.role} — VidFab creator`}
               style={{ height: "100%", width: "auto", display: "block" }}
             />
           </div>
 
-          {/* 分页点：卡片内底部横向居中 */}
+          {/* 分页点 */}
           <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center gap-2 z-20">
-            {TESTIMONIALS.map((_, i) => (
+            {items.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActive(i)}
@@ -142,7 +134,7 @@ export function CreatorTestimonialsSection() {
             ))}
           </div>
 
-          {/* 文字区：flex:1 占满剩余宽度 */}
+          {/* 文字区 */}
           <div
             className="relative z-10 flex flex-col justify-center px-4 sm:px-12 pt-9 pb-14 pl-6"
             style={{
@@ -150,7 +142,7 @@ export function CreatorTestimonialsSection() {
               minHeight: 234,
             }}
           >
-            {/* 装饰大引号（右上角，#5C46DA 半透明） */}
+            {/* 装饰大引号 */}
             <div
               aria-hidden="true"
               className="absolute top-4 right-6 select-none pointer-events-none"
@@ -164,15 +156,15 @@ export function CreatorTestimonialsSection() {
               &rdquo;
             </div>
 
-            {/* 引用内容（16px，lh=27.2px） */}
+            {/* 引用内容 */}
             <blockquote
               className="text-white font-normal"
               style={{ fontSize: 16, lineHeight: "27.2px" }}
             >
-              {current.quote}
+              &ldquo;{current.quote}&rdquo;
             </blockquote>
 
-            {/* 作者（斜体加粗） */}
+            {/* 作者 */}
             <p
               className="mt-4"
               style={{ fontSize: 16, fontWeight: 700, fontStyle: "italic", color: "#ffffff" }}
@@ -182,7 +174,7 @@ export function CreatorTestimonialsSection() {
           </div>
         </div>
 
-        {/* ── 导航箭头：卡片下方，紧靠在一起（来自 Figma Polygon y=17174，水平并排） ── */}
+        {/* 导航箭头 */}
         <div className="flex items-center gap-2 mt-5 justify-end">
           {/* 左箭头 */}
           <button

@@ -1,39 +1,138 @@
 {
   "meta": {
-    "title": "VidFab - AI Video Platform | Transform Your Videos with AI",
-    "description": "Transform your videos with cutting-edge AI technology. Create, enhance, and convert videos effortlessly with VidFab."
+    "title": "VidFab - AI Story-to-Video Workflow | Professional AI Video Creation",
+    "description": "Turn your scripts into high-retention episodic videos with VidFab's fully automated AI pipeline—from idea to storyboard to final render."
   },
   "hero": {
-    "title": "VidFab AI Video Generator",
-    "subtitle": "Make Video Creation Easier",
-    "searchPlaceholder": "Describe the video you want to create..."
+    "line1": "VidFab",
+    "line2": "The Professional AI",
+    "line3_1": "Story-to-Video",
+    "line3_2": "Workflow",
+    "subtitle": "Stop manually editing and start scaling. Turn your scripts into high-retention, 60-second episodic videos with a fully automated pipeline—from",
+    "subtitleBold": "idea to storyboard to final render.",
+    "cta": "Start My First Series for Free",
+    "trust": "No credit card required. Join 10k+ digital creators."
   },
-  "features": {
-    "title": "Powerful AI Video Features",
-    "description": "Everything you need to create, enhance, and transform your videos with AI.",
-    "aiGeneration": {
-      "title": "AI Video Generation",
-      "description": "Create stunning videos from text prompts using advanced AI models."
-    },
-    "videoEnhancement": {
-      "title": "Video Enhancement",
-      "description": "Improve video quality, resolution, and visual appeal automatically."
-    },
-    "formatConversion": {
-      "title": "Format Conversion",
-      "description": "Convert between any video formats with optimized settings."
-    },
-    "batchProcessing": {
-      "title": "Batch Processing",
-      "description": "Process multiple videos simultaneously to save time."
-    },
-    "customModels": {
-      "title": "Custom Models",
-      "description": "Train custom AI models for your specific video creation needs."
-    },
-    "apiAccess": {
-      "title": "API Access",
-      "description": "Integrate VidFab's capabilities directly into your applications."
-    }
+  "script": {
+    "title": "From Any Spark to a Ready-to-Shoot Script",
+    "subtitle": "Our workflow meets you where you are. Whether you're staring at a blank page or a viral reference, VidFab automates the heavy lifting.",
+    "cta": "Try Script Generation →",
+    "cards": [
+      {
+        "title": "The Outliner – \"I have an outline\"",
+        "description": "Paste your rough ideas or a basic plot. Our AI structures them into high-stakes scripts with a strong hook, tight pacing, and a viral payoff."
+      },
+      {
+        "title": "The Curator – \"I have a reference video\"",
+        "description": "Drop a link from YouTube Shorts. VidFab deconstructs the successful rhythm and generates an original script with a proven viral flow in your unique voice."
+      },
+      {
+        "title": "The Spark – \"I need a fresh idea\"",
+        "description": "Let VidFab's brainstormer pitch you 5 episodic concepts based on your niche. Pick the best one and expand it into a full script instantly."
+      }
+    ]
+  },
+  "workspace": {
+    "title": "A Visual Workspace Built for Batch Production",
+    "subtitle": "Don't just make a video—build a series. Master our seamless interface designed for high-volume content creation.",
+    "tabs": [
+      {
+        "number": "01",
+        "title": "Identity Lock",
+        "description": "Define your cast once. VidFab keeps your characters consistent in every frame, ensuring your audience never loses the plot."
+      },
+      {
+        "number": "02",
+        "title": "AI Directing",
+        "description": "Automatically convert scripts into shot-by-shot storyboards. Visualize composition and camera angles before you generate."
+      },
+      {
+        "number": "03",
+        "title": "Shot Previews",
+        "description": "Transform storyboards into instant motion-previews. Check the pacing in real-time and fine-tune any shot until the rhythm hits perfectly."
+      },
+      {
+        "number": "04",
+        "title": "Final Assembly",
+        "description": "Combine all your scenes into a polished video. Download your masterpiece in seconds, perfectly formatted for TikTok, Reels, or Shorts."
+      }
+    ]
+  },
+  "creativeSuite": {
+    "title": "The Creative Suite",
+    "tools": [
+      {
+        "title": "Text to Video",
+        "badge": "Prompt to Motion",
+        "description": "The industry-leading engine for generating high-fidelity cinematic clips from simple text descriptions.",
+        "cta": "Try Text-to-Video →"
+      },
+      {
+        "title": "Image to Video",
+        "badge": "Animate Your Art",
+        "description": "Bring your character designs and concept stills to life with professional, fluid motion.",
+        "cta": "Try Image-to-Video →"
+      },
+      {
+        "title": "Text to Image",
+        "badge": "Concept Creation",
+        "description": "Generate consistent characters, stunning backgrounds, and unique assets from scratch in seconds.",
+        "cta": "Try Text-to-Image →"
+      },
+      {
+        "title": "Image to Image",
+        "badge": "Style Transformation",
+        "description": "Reimagine your assets, swap visual styles, or transform rough sketches into polished masterpieces.",
+        "cta": "Try Image-to-Image →"
+      },
+      {
+        "title": "AI Video Effects",
+        "badge": "One-Click Magic",
+        "description": "Elevate your footage with trending AI visual effects. Apply cinematic filters and surreal transformations in a single click.",
+        "cta": "Try AI Video Effects →"
+      }
+    ]
+  },
+  "engineered": {
+    "title": "Engineered for Social Growth",
+    "subtitle": "Technical specs designed to help you bypass the algorithm and reach more viewers.",
+    "items": [
+      {
+        "title": "Multi-Platform Ratios",
+        "description": "Native 9:16 (Vertical) for TikTok/Reels/Shorts and 16:9 for YouTube/Web."
+      },
+      {
+        "title": "Retention-Optimized",
+        "description": "Duration templates (15-60s) precision-structured to keep viewers watching until the end."
+      },
+      {
+        "title": "Granular Control",
+        "description": "You're the Director. Swap storyboards or fine-tune individual video segments to match your exact vision."
+      },
+      {
+        "title": "Mobile-HD Exports",
+        "description": "Crisp 720p high-definition output, optimized for blazing-fast uploads and crystal-clear mobile viewing."
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Join 10,000+ Creators Scaling with VidFab",
+    "items": [
+      {
+        "quote": "From 20 hours of editing to 20 minutes of 'VidFabbing'. The character consistency is a total game-changer for my YouTube Shorts.",
+        "author": "Alex R.",
+        "role": "YouTube Creator"
+      },
+      {
+        "quote": "Finally, a tool that understands the rhythm of social media. I've grown 40k followers in two months.",
+        "author": "Sarah T.",
+        "role": "Content Strategist"
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to launch your first viral AI series?",
+    "subtitle": "Join the next generation of storytellers today.",
+    "button": "Get Started with VidFab for Free →"
   }
 }

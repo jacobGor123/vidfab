@@ -1,39 +1,138 @@
 {
   "meta": {
-    "title": "VidFab - AI 视频生成平台 | 用 AI 轻松创作视频",
-    "description": "VidFab 是领先的 AI 视频生成平台，支持文字转视频、图片生成视频等多种 AI 视频工具，一键生成高质量视频内容。"
+    "title": "VidFab - AI视频制作平台 | 一键生成高质量AI短视频",
+    "description": "用VidFab全自动AI流水线，将你的脚本转化为高留存的连续剧式短视频——从创意到分镜再到成片，一键生成视频。"
   },
   "hero": {
-    "title": "VidFab AI 视频生成器",
-    "subtitle": "让视频创作更简单",
-    "searchPlaceholder": "描述你想创作的视频内容..."
+    "line1": "VidFab",
+    "line2": "The Professional AI",
+    "line3_1": "Story-to-Video",
+    "line3_2": "Workflow",
+    "subtitle": "告别手动剪辑，开启规模化创作。将你的AI短视频脚本转化为高留存的60秒连续剧式短视频，全自动流水线——从",
+    "subtitleBold": "创意到分镜再到成片渲染。",
+    "cta": "免费开始我的第一个系列",
+    "trust": "无需信用卡。加入10,000+数字创作者的行列。"
   },
-  "features": {
-    "title": "强大的 AI 视频功能",
-    "description": "从创作、增强到格式转换，一站式 AI 视频解决方案。",
-    "aiGeneration": {
-      "title": "AI 视频生成",
-      "description": "输入文字描述，即可用先进 AI 模型生成精美视频。"
-    },
-    "videoEnhancement": {
-      "title": "视频画质增强",
-      "description": "AI 自动提升视频清晰度、分辨率和画面质感。"
-    },
-    "formatConversion": {
-      "title": "格式转换",
-      "description": "支持多种视频格式互转，自动优化输出参数。"
-    },
-    "batchProcessing": {
-      "title": "批量处理",
-      "description": "同时处理多个视频任务，大幅提升创作效率。"
-    },
-    "customModels": {
-      "title": "自定义模型",
-      "description": "训练专属 AI 模型，精准满足个性化视频创作需求。"
-    },
-    "apiAccess": {
-      "title": "API 接入",
-      "description": "将 VidFab 的 AI 视频能力无缝集成到您的应用中。"
-    }
+  "script": {
+    "title": "从任何灵感到可拍摄的脚本",
+    "subtitle": "我们的工作流适配你的每一种创作状态。无论你面对的是空白页面还是爆款参考，VidFab都能帮你完成繁重工作。",
+    "cta": "试试AI脚本生成 →",
+    "cards": [
+      {
+        "title": "大纲模式 – "我有一个大纲"",
+        "description": "粘贴你的粗略想法或基本情节。我们的AI会将它们构建成高吸引力的脚本，包含强力开头、紧凑节奏和爆款结尾。"
+      },
+      {
+        "title": "策展模式 – "我有一个参考视频"",
+        "description": "放入一个YouTube Shorts链接。VidFab会解构成功的节奏，并以你独特的风格生成一个全新的、经过验证的爆款脚本。"
+      },
+      {
+        "title": "灵感模式 – "我需要新点子"",
+        "description": "让VidFab的灵感生成器根据你的领域为你推荐5个连续剧概念。选择最好的一个，立即扩展为完整脚本。"
+      }
+    ]
+  },
+  "workspace": {
+    "title": "为批量生产打造的可视化工作台",
+    "subtitle": "不只是做一个视频——而是打造一个系列。掌握我们为高效内容生产设计的流畅界面。",
+    "tabs": [
+      {
+        "number": "01",
+        "title": "角色锁定",
+        "description": "只需定义一次你的角色。VidFab确保每一帧都保持角色一致性，让你的观众永远不会跟丢剧情。"
+      },
+      {
+        "number": "02",
+        "title": "AI导演",
+        "description": "自动将脚本转换为逐镜头分镜。在生成之前预览构图和镜头角度。"
+      },
+      {
+        "number": "03",
+        "title": "镜头预览",
+        "description": "将分镜转化为即时动态预览。实时检查节奏，微调每个镜头直到节奏完美。"
+      },
+      {
+        "number": "04",
+        "title": "最终合成",
+        "description": "将所有场景合成为精美视频。数秒内下载你的杰作，完美适配TikTok、Reels和Shorts格式。"
+      }
+    ]
+  },
+  "creativeSuite": {
+    "title": "创意工具套件",
+    "tools": [
+      {
+        "title": "Text to Video",
+        "badge": "文字生成视频",
+        "description": "业界领先的AI视频制作引擎，通过简单的文字描述即可生成高保真电影级片段。",
+        "cta": "Try Text-to-Video →"
+      },
+      {
+        "title": "Image to Video",
+        "badge": "让图像动起来",
+        "description": "用专业级流畅动效，让你的角色设计和概念图活起来。",
+        "cta": "Try Image-to-Video →"
+      },
+      {
+        "title": "Text to Image",
+        "badge": "概念创作",
+        "description": "数秒内从零生成一致的角色、惊艳的背景和独特的素材。",
+        "cta": "Try Text-to-Image →"
+      },
+      {
+        "title": "Image to Image",
+        "badge": "风格转换",
+        "description": "重新想象你的素材，切换视觉风格，或将草稿转化为精美作品。",
+        "cta": "Try Image-to-Image →"
+      },
+      {
+        "title": "AI Video Effects",
+        "badge": "一键特效",
+        "description": "用热门AI视觉特效提升你的画面。一键应用电影级滤镜和超现实变换效果。",
+        "cta": "Try AI Video Effects →"
+      }
+    ]
+  },
+  "engineered": {
+    "title": "专为社交增长而生",
+    "subtitle": "精心设计的技术参数，助你突破算法限制，触达更多观众。",
+    "items": [
+      {
+        "title": "多平台比例",
+        "description": "原生9:16竖屏适配TikTok/Reels/Shorts，16:9横屏适配YouTube/Web。"
+      },
+      {
+        "title": "留存率优化",
+        "description": "时长模板（15-60秒）精确结构化，确保观众看到最后一秒。"
+      },
+      {
+        "title": "精细控制",
+        "description": "你就是导演。替换分镜或微调单个视频片段，完美匹配你的创作愿景。"
+      },
+      {
+        "title": "移动高清导出",
+        "description": "清晰720p高清输出，针对快速上传和移动端清晰观看进行优化。"
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "加入10,000+正在用VidFab扩展创作的创作者",
+    "items": [
+      {
+        "quote": "从20小时的剪辑缩短到20分钟的'VidFab创作'。角色一致性对我的YouTube Shorts来说是彻底的改变。",
+        "author": "Alex R.",
+        "role": "YouTube创作者"
+      },
+      {
+        "quote": "终于有一款工具真正理解社交媒体的节奏。两个月内我涨了4万粉丝。",
+        "author": "Sarah T.",
+        "role": "内容策略师"
+      }
+    ]
+  },
+  "cta": {
+    "title": "准备好发布你的第一个爆款AI系列了吗？",
+    "subtitle": "今天就加入新一代创作者的行列。",
+    "button": "免费开始使用VidFab →"
   }
 }

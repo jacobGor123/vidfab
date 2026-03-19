@@ -1,6 +1,9 @@
 import { Link } from "@/i18n/routing"
+import { getTranslations } from "next-intl/server"
 
-export function CTASection() {
+export async function CTASection() {
+  const t = await getTranslations('home')
+
   return (
     <section
       className="relative overflow-hidden"
@@ -19,7 +22,7 @@ export function CTASection() {
         }}
       />
 
-      {/* 紫色辉光：从底部中心向上扩散（Figma 实测：底部中心 #4B3892，中心 #16143C，顶角纯黑） */}
+      {/* 紫色辉光 */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -29,7 +32,7 @@ export function CTASection() {
         }}
       />
 
-      {/* 顶部渐变过渡：与上方 EngineeredSection #0A0A12 无缝衔接 */}
+      {/* 顶部渐变过渡 */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0"
@@ -45,14 +48,14 @@ export function CTASection() {
           className="font-bold text-white text-[28px] sm:text-[38px] lg:text-[48px]"
           style={{ lineHeight: 1.25 }}
         >
-          Ready to launch your first viral AI series?
+          {t('cta.title')}
         </h2>
 
         <p
           className="mt-4"
           style={{ fontSize: 16, lineHeight: "27.2px", color: "rgba(255,255,255,0.7)" }}
         >
-          Join the next generation of storytellers today.
+          {t('cta.subtitle')}
         </p>
 
         <Link
@@ -65,7 +68,7 @@ export function CTASection() {
             background: "linear-gradient(90deg, #22d3ee 0%, #7c3aed 100%)",
           }}
         >
-          Get Started with VidFab for Free →
+          {t('cta.button')}
         </Link>
       </div>
     </section>

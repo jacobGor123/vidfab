@@ -3,7 +3,7 @@ import { HeroCopy } from "./hero-copy"
 import { HeroFloatingCards } from "./hero-floating-cards"
 import { HeroFeatureCards } from "./hero-feature-cards"
 
-export function GradientHero() {
+export async function GradientHero() {
   return (
     <div>
       {/* Hero 主区域：背景 + 浮动卡片 + 文案 */}

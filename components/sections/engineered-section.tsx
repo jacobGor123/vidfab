@@ -1,37 +1,12 @@
 import { MonitorSmartphone, Clock, SlidersHorizontal, Tv } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
-const CARDS = [
-  {
-    id: "ratios",
-    Icon: MonitorSmartphone,
-    title: "Multi-Platform Ratios",
-    description:
-      "Native 9:16 (Vertical) for TikTok/Reels/Shorts and 16:9 for YouTube/Web.",
-  },
-  {
-    id: "retention",
-    Icon: Clock,
-    title: "Retention-Optimized",
-    description:
-      "Duration templates (15-60s) precision-structured to keep viewers watching until the end.",
-  },
-  {
-    id: "control",
-    Icon: SlidersHorizontal,
-    title: "Granular Control",
-    description:
-      "You're the Director. Swap storyboards or fine-tune individual video segments to match your exact vision.",
-  },
-  {
-    id: "hd",
-    Icon: Tv,
-    title: "Mobile-HD Exports",
-    description:
-      "Crisp 720p high-definition output, optimized for blazing-fast uploads and crystal-clear mobile viewing.",
-  },
-]
+const ICONS = [MonitorSmartphone, Clock, SlidersHorizontal, Tv]
 
-export function EngineeredSection() {
+export async function EngineeredSection() {
+  const t = await getTranslations('home')
+  const items = t.raw('engineered.items') as Array<{ title: string; description: string }>
+
   return (
     <section
       className="relative overflow-hidden"
@@ -69,7 +44,7 @@ export function EngineeredSection() {
           className="font-bold text-center text-white mb-4 mx-auto text-[24px] sm:text-[32px] lg:text-[40px]"
           style={{ lineHeight: 1.3, maxWidth: 720 }}
         >
-          Engineered for Social Growth
+          {t('engineered.title')}
         </h2>
 
         {/* 副标题 */}
@@ -82,72 +57,75 @@ export function EngineeredSection() {
             maxWidth: 680,
           }}
         >
-          Technical specs designed to help you bypass the algorithm and reach more viewers.
+          {t('engineered.subtitle')}
         </p>
 
-        {/* 2×2 卡片网格 */}
+        {/* 2x2 卡片网格 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {CARDS.map(({ id, Icon, title, description }) => (
-            <div
-              key={id}
-              className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_26px_10px_rgba(40,51,170,0.28)]"
-              style={{ borderRadius: 16 }}
-            >
+          {items.map((item, i) => {
+            const Icon = ICONS[i]
+            return (
               <div
-                className="relative flex flex-col md:flex-row md:items-start gap-5 overflow-hidden"
-                style={{
-                  backgroundColor: "#161640",
-                  borderRadius: 16,
-                  padding: "24px 28px",
-                  border: "1px solid rgb(92,95,130)",
-                }}
+                key={i}
+                className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_26px_10px_rgba(40,51,170,0.28)]"
+                style={{ borderRadius: 16 }}
               >
-                {/* 卡片内椭圆光晕（来自 Figma：rgba(52,52,112) 514×103px） */}
                 <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute"
+                  className="relative flex flex-col md:flex-row md:items-start gap-5 overflow-hidden"
                   style={{
-                    left: 60,
-                    top: -10,
-                    width: 514,
-                    height: 103,
-                    borderRadius: "50%",
-                    backgroundColor: "rgba(52,52,112,0.55)",
-                    filter: "blur(24px)",
-                  }}
-                />
-
-                {/* Icon 容器（89×89px，#2F2F68，radius 16） */}
-                <div
-                  className="relative z-10 flex-shrink-0 flex items-center justify-center"
-                  style={{
-                    width: 89,
-                    height: 89,
-                    backgroundColor: "#2F2F68",
+                    backgroundColor: "#161640",
                     borderRadius: 16,
+                    padding: "24px 28px",
+                    border: "1px solid rgb(92,95,130)",
                   }}
                 >
-                  <Icon size={36} color="#A1A1FF" strokeWidth={1.5} />
-                </div>
+                  {/* 卡片内椭圆光晕 */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute"
+                    style={{
+                      left: 60,
+                      top: -10,
+                      width: 514,
+                      height: 103,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(52,52,112,0.55)",
+                      filter: "blur(24px)",
+                    }}
+                  />
 
-                {/* 文字区 */}
-                <div className="relative z-10 flex flex-col justify-center" style={{ paddingTop: 6 }}>
-                  <h3
-                    className="text-white font-semibold mb-2"
-                    style={{ fontSize: 20, lineHeight: 1.3 }}
+                  {/* Icon 容器 */}
+                  <div
+                    className="relative z-10 flex-shrink-0 flex items-center justify-center"
+                    style={{
+                      width: 89,
+                      height: 89,
+                      backgroundColor: "#2F2F68",
+                      borderRadius: 16,
+                    }}
                   >
-                    {title}
-                  </h3>
-                  <p
-                    className="font-normal"
-                    style={{ fontSize: 16, lineHeight: 1.7, color: "rgba(255,255,255,0.75)" }}
-                  >
-                    {description}
-                  </p>
+                    <Icon size={36} color="#A1A1FF" strokeWidth={1.5} />
+                  </div>
+
+                  {/* 文字区 */}
+                  <div className="relative z-10 flex flex-col justify-center" style={{ paddingTop: 6 }}>
+                    <h3
+                      className="text-white font-semibold mb-2"
+                      style={{ fontSize: 20, lineHeight: 1.3 }}
+                    >
+                      {item.title}
+                    </h3>
+                    <p
+                      className="font-normal"
+                      style={{ fontSize: 16, lineHeight: 1.7, color: "rgba(255,255,255,0.75)" }}
+                    >
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

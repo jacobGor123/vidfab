@@ -1,38 +1,33 @@
 import Image from "next/image"
 import { Link } from "@/i18n/routing"
+import { getTranslations } from "next-intl/server"
 
 const CARD_BG = "#0D0930"
 const CARD_BORDER = "rgb(92,95,130)"
 const BASE_URL = "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/homepage-assets"
 
-const CARDS = [
+const CARD_META = [
   {
     id: "outliner",
-    title: 'The Outliner – "I have an outline"',
-    description:
-      "Paste your rough ideas or a basic plot. Our AI structures them into high-stakes scripts with a strong hook, tight pacing, and a viral payoff.",
     img: `${BASE_URL}/script-card-outliner-v2.webp`,
     alt: "Outliner – AI script generation from rough ideas",
   },
   {
     id: "curator",
-    title: 'The Curator – "I have a reference video"',
-    description:
-      "Drop a link from YouTube Shorts. VidFab deconstructs the successful rhythm and generates an original script with a proven viral flow in your unique voice.",
     img: `${BASE_URL}/script-card-curator-v2.webp`,
     alt: "Curator – analyze a YouTube video and generate a viral script",
   },
   {
     id: "spark",
-    title: 'The Spark – "I need a fresh idea"',
-    description:
-      "Let VidFab's brainstormer pitch you 5 episodic concepts based on your niche. Pick the best one and expand it into a full script instantly.",
     img: `${BASE_URL}/script-card-spark-v2.webp`,
     alt: "Spark – AI script inspirations and episodic concept generator",
   },
 ]
 
-export function ScriptSection() {
+export async function ScriptSection() {
+  const t = await getTranslations('home')
+  const cards = t.raw('script.cards') as Array<{ title: string; description: string }>
+
   return (
     <section
       className="relative px-4 pt-16 pb-16"
@@ -76,7 +71,7 @@ export function ScriptSection() {
           className="font-bold text-center text-white mb-4 mx-auto text-[24px] sm:text-[32px] lg:text-[40px]"
           style={{ lineHeight: 1.3 }}
         >
-          From Any Spark to a Ready-to-Shoot Script
+          {t('script.title')}
         </h2>
 
         {/* 副标题 */}
@@ -84,15 +79,14 @@ export function ScriptSection() {
           className="text-center font-normal mb-12 mx-auto"
           style={{ fontSize: 16, lineHeight: 1.8, color: "rgb(236,238,253)", maxWidth: 758 }}
         >
-          Our workflow meets you where you are. Whether you&apos;re staring at a blank page or a
-          viral reference, VidFab automates the heavy lifting.
+          {t('script.subtitle')}
         </p>
 
         {/* 3 列卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-          {CARDS.map((card) => (
+          {CARD_META.map((meta, i) => (
             <div
-              key={card.id}
+              key={meta.id}
               className="transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_24px_48px_rgba(0,0,0,0.55)]"
               style={{
                 display: "flex",
@@ -109,21 +103,21 @@ export function ScriptSection() {
                   className="text-white font-semibold mb-3"
                   style={{ fontSize: 20, lineHeight: 1.3 }}
                 >
-                  {card.title}
+                  {cards[i].title}
                 </h3>
                 <p
                   className="font-normal"
                   style={{ fontSize: 16, lineHeight: 1.65, color: "rgb(236,238,253)" }}
                 >
-                  {card.description}
+                  {cards[i].description}
                 </p>
               </div>
 
               {/* 图片：贴底铺满 */}
               <div style={{ marginTop: "auto" }}>
                 <Image
-                  src={card.img}
-                  alt={card.alt}
+                  src={meta.img}
+                  alt={meta.alt}
                   width={410}
                   height={269}
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -149,7 +143,7 @@ export function ScriptSection() {
               boxShadow: "0 8px 34px rgba(115,108,255,0.4)",
             }}
           >
-            Try Script Generation →
+            {t('script.cta')}
           </Link>
         </div>
       </div>
