@@ -134,5 +134,27 @@
     "title": "Ready to launch your first viral AI series?",
     "subtitle": "Join the next generation of storytellers today.",
     "button": "Get Started with VidFab for Free →"
+  },
+  "featureCards": {
+    "sectionTitle1": "Empowering the ",
+    "sectionTitleHighlight": "One-Person",
+    "sectionTitle2": " Production Team",
+    "cards": [
+      {
+        "title": "Produce Episodes 10x Faster",
+        "normalText": "Don't let editing burn you out. Our AI story-to-video workflow handles the heavy lifting, ",
+        "boldText": "turning days of work into minutes of creativity."
+      },
+      {
+        "title": "Studio Quality, Solo Budget",
+        "normalText": "Replace expensive freelancers and bloated toolstacks. VidFab is your writer, illustrator, and editor—all in one browser tab.",
+        "boldText": null
+      },
+      {
+        "title": "Excellent Character Consistency",
+        "normalText": "Build a recognizable universe. Our engine ensures your characters and visual style remain identical across ",
+        "boldText": "every single episode of your series."
+      }
+    ]
   }
 }

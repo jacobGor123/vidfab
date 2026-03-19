@@ -134,5 +134,27 @@
     "title": "Bereit, Ihre erste virale KI-Serie zu starten?",
     "subtitle": "Werden Sie heute Teil der nächsten Generation von Storytellern.",
     "button": "VidFab kostenlos starten →"
+  },
+  "featureCards": {
+    "sectionTitle1": "Ermächtigung für das",
+    "sectionTitleHighlight": "Ein-Personen-Team",
+    "sectionTitle2": "",
+    "cards": [
+      {
+        "title": "10x schnellere Episodenproduktion",
+        "normalText": "Lassen Sie sich nicht von der Nachbearbeitung ausbrennen. Unser KI-Workflow übernimmt die schwere Arbeit und ",
+        "boldText": "verwandelt Tage in Minuten kreativer Arbeit."
+      },
+      {
+        "title": "Studioqualität, Solo-Budget",
+        "normalText": "Keine teuren Freelancer oder aufgeblähte Tool-Stacks mehr. VidFab ist Ihr Texter, Illustrator und Editor – alles in einem Browser-Tab.",
+        "boldText": null
+      },
+      {
+        "title": "Hervorragende Charakterkonsistenz",
+        "normalText": "Bauen Sie ein wiedererkennbares Universum auf. Unser System stellt sicher, dass Ihre Charaktere und der visuelle Stil in ",
+        "boldText": "jeder einzelnen Episode Ihrer Serie identisch bleiben."
+      }
+    ]
   }
 }

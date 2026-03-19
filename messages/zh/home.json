@@ -134,5 +134,27 @@
     "title": "准备好发布你的第一个爆款AI系列了吗？",
     "subtitle": "今天就加入新一代创作者的行列。",
     "button": "免费开始使用VidFab →"
+  },
+  "featureCards": {
+    "sectionTitle1": "赋能",
+    "sectionTitleHighlight": "单人制作团队",
+    "sectionTitle2": "，实现批量创作",
+    "cards": [
+      {
+        "title": "视频产出效率提升10倍",
+        "normalText": "不要让剪辑消耗你的热情。我们的AI视频生产工作流承担繁重工作，",
+        "boldText": "将几天的工作量压缩为几分钟的创意时光。"
+      },
+      {
+        "title": "影视品质，个人预算",
+        "normalText": "告别昂贵的外包和臃肿的工具链。VidFab是你的编剧、插画师和剪辑师——全部集成在一个浏览器标签页里。",
+        "boldText": null
+      },
+      {
+        "title": "卓越的角色一致性",
+        "normalText": "打造一个可辨识的宇宙。我们的引擎确保你的角色和视觉风格在",
+        "boldText": "系列的每一集中都保持完全一致。"
+      }
+    ]
   }
 }
