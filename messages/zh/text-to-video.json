@@ -14,6 +14,22 @@
       { "number": "4", "title": "在线预览并下载使用", "description": "在线预览生成的视频，满意后即可下载到本地使用。" }
     ]
   },
+  "keyFeatures": {
+    "title": "VidFab 文字转视频核心功能",
+    "features": [
+      { "number": "1", "title": "便捷的文字输入", "description": "将任何脚本、想法或关键词转化为动态视频。用 VidFab 实现文字生成视频从未如此简单。" },
+      { "number": "2", "title": "实时预览", "description": "在自定义视频的同时，实时观看视频效果，确保成品符合你的需求。" },
+      { "number": "3", "title": "可定制的视觉风格", "description": "调整背景、动画和风格，让视频与你的品牌完美契合。" },
+      { "number": "4", "title": "多语言支持", "description": "用任何语言输入脚本，让 AI 将其呈现为精彩视频。" },
+      { "number": "5", "title": "多任务并行处理", "description": "最多同时处理 4 个视频生成任务，大幅提升你的创作效率。" },
+      { "number": "6", "title": "纯浏览器工作流", "description": "直接在浏览器中使用 VidFab 创作视频——无需下载任何软件。" }
+    ]
+  },
+  "communityCta": {
+    "title": "用文字轻松创作视频",
+    "description": "VidFab 让文字生成精彩视频变得简单高效。无需复杂操作——我们的 AI 视频生成器为你完成所有繁重工作。",
+    "ctaText": "免费生成你的第一个视频"
+  },
   "faq": {
     "title": "常见问题",
     "subtitle": "用户常见疑问解答",

@@ -112,34 +112,8 @@ export default function ImageToVideoPage() {
     icon: [Upload, MousePointerClick, Sparkles, Download][index]
   })) || []
 
-  // Key Features data
-  const keyFeatures = [
-    {
-      number: "1",
-      title: "Effortless Video Creation",
-      description: "Convert images to video in just a few clicks. Upload your photos and let our AI-powered online video maker do the rest."
-    },
-    {
-      number: "2",
-      title: "AI-Powered Enhancements",
-      description: "Use AI to create image animations, add smooth transitions, and apply effects that bring your visuals to life while captivating your audience."
-    },
-    {
-      number: "3",
-      title: "Customized Resolution",
-      description: "Select your preferred resolution with one click to optimize your video generation."
-    },
-    {
-      number: "4",
-      title: "Multiple Ratio Options",
-      description: "Select your desired ratio and use the generated video for easy sharing on social media."
-    },
-    {
-      number: "5",
-      title: "Fast and Simple",
-      description: "Go from photo to video in under 10 minutes with no compromise on quality."
-    }
-  ]
+  // Key Features data from translations
+  const keyFeatures = (t.raw('keyFeatures.features') as any[]) || []
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -152,7 +126,7 @@ export default function ImageToVideoPage() {
           <div className="relative z-10 bg-black">
             {/* Key Features Section */}
             <AmazingFeatures
-              title="Key Features of Image-to-Video Conversion"
+              title={t('keyFeatures.title')}
               features={keyFeatures}
             />
 
@@ -167,10 +141,10 @@ export default function ImageToVideoPage() {
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title="Turn Images Into Engaging Videos"
+              title={t('communityCta.title')}
               subtitle=""
-              description="Transform your photos into stunning videos with VidFab. Forget complicated operation — our AI video generator simplifies the process for you."
-              ctaText="Start Your Free Trial Today"
+              description={t('communityCta.description')}
+              ctaText={t('communityCta.ctaText')}
               ctaLink="/studio/image-to-video"
               getInspiredText=""
               showVideos={false}

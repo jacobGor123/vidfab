@@ -34,7 +34,10 @@
     "copyright": "© 2025 VidFab. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "contact": "Contact"
+    "contact": "Contact",
+    "description": "Advanced AI video creation platform that empowers everyone to create professional video content effortlessly.",
+    "company": "Company",
+    "about": "About"
   },
   "common": {
     "loading": "Loading...",

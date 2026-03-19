@@ -30,6 +30,21 @@
       }
     ]
   },
+  "keyFeatures": {
+    "title": "Hauptfunktionen der Bild-zu-Video-Konvertierung",
+    "features": [
+      { "number": "1", "title": "Mühelose Videoerstellung", "description": "Konvertieren Sie Bilder in wenigen Klicks in Videos. Laden Sie Ihre Fotos hoch und überlassen Sie den Rest unserem KI-gestützten Online-Video-Editor." },
+      { "number": "2", "title": "KI-gestützte Verbesserungen", "description": "Nutzen Sie KI, um Bildanimationen zu erstellen, sanfte Übergänge hinzuzufügen und Effekte anzuwenden, die Ihre Visuals lebendig machen und Ihr Publikum fesseln." },
+      { "number": "3", "title": "Anpassbare Auflösung", "description": "Wählen Sie Ihre bevorzugte Auflösung mit einem Klick, um Ihre Videogenerierung zu optimieren." },
+      { "number": "4", "title": "Mehrere Seitenverhältnis-Optionen", "description": "Wählen Sie das gewünschte Seitenverhältnis und teilen Sie das generierte Video einfach in sozialen Medien." },
+      { "number": "5", "title": "Schnell und einfach", "description": "Vom Foto zum Video in unter 10 Minuten – ohne Abstriche bei der Qualität." }
+    ]
+  },
+  "communityCta": {
+    "title": "Bilder in ansprechende Videos verwandeln",
+    "description": "Verwandeln Sie Ihre Fotos mit VidFab in beeindruckende Videos. Vergessen Sie komplizierte Abläufe – unser KI-Videogenerator vereinfacht den Prozess für Sie.",
+    "ctaText": "Kostenlose Testversion starten"
+  },
   "faq": {
     "title": "FAQ",
     "subtitle": "Häufig gestellte Fragen",

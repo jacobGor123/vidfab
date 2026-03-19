@@ -1,6 +1,9 @@
 import { Link } from '@/i18n/routing';
+import { getTranslations } from 'next-intl/server';
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations('common');
+
   return (
     <footer className="border-t border-white/10 bg-black/30 backdrop-blur-lg">
       <div className="container mx-auto px-4 py-12">
@@ -15,7 +18,7 @@ export function Footer() {
               />
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
-              Advanced AI video creation platform that empowers everyone to create professional video content effortlessly.
+              {t('footer.description')}
             </p>
           </div>
 
@@ -23,37 +26,37 @@ export function Footer() {
           <div className="flex flex-col sm:flex-row gap-8 lg:gap-16">
             {/* AI Studio 菜单 */}
             <div className="min-w-[140px]">
-              <h3 className="text-white font-semibold mb-6 text-base">AI Studio</h3>
+              <h3 className="text-white font-semibold mb-6 text-base">{t('nav.aiStudio')}</h3>
               <ul className="space-y-3 text-sm">
                 <li>
                   <Link href="/studio/video-agent-beta" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out flex items-center gap-1.5">
-                    Story to Video
+                    {t('nav.storyToVideo')}
                     <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Text to Video
+                    {t('nav.textToVideo')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/image-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Image to Video
+                    {t('nav.imageToVideo')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/ai-video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    AI Video Effects
+                    {t('nav.aiVideoEffects')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/text-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Text to Image
+                    {t('nav.textToImage')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/image-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Image to Image
+                    {t('nav.imageToImage')}
                   </Link>
                 </li>
               </ul>
@@ -61,21 +64,21 @@ export function Footer() {
 
             {/* Latest Models 菜单 */}
             <div className="min-w-[140px]">
-              <h3 className="text-white font-semibold mb-6 text-base">Latest Models</h3>
+              <h3 className="text-white font-semibold mb-6 text-base">{t('nav.latestModels')}</h3>
               <ul className="space-y-3 text-sm">
                 <li>
                   <Link href="/tools/veo3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Veo 3
+                    {t('nav.veo3')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/tools/sora2" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Sora 2
+                    {t('nav.sora2')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/tools/kling3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Kling 3.0
+                    {t('nav.kling3')}
                   </Link>
                 </li>
               </ul>
@@ -83,36 +86,36 @@ export function Footer() {
 
             {/* Company 菜单 */}
             <div className="min-w-[140px]">
-              <h3 className="text-white font-semibold mb-6 text-base">Company</h3>
+              <h3 className="text-white font-semibold mb-6 text-base">{t('footer.company')}</h3>
               <ul className="space-y-3 text-sm">
                 <li>
                   <Link href="/about" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    About
+                    {t('footer.about')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/blog" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Blog
+                    {t('nav.blog')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Pricing
+                    {t('nav.pricing')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/contact" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Contact
+                    {t('nav.contactUs')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Terms of Service
+                    {t('footer.terms')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    Privacy Policy
+                    {t('footer.privacy')}
                   </Link>
                 </li>
               </ul>
@@ -121,7 +124,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm">© {new Date().getFullYear()} VidFab. All rights reserved.</p>
+          <p className="text-gray-500 text-sm">{t('footer.copyright').replace('2025', String(new Date().getFullYear()))}</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a
               href="https://x.com/vidfab_ai"

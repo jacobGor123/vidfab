@@ -14,6 +14,21 @@
       { "number": "4", "title": "在线预览并下载使用", "description": "在线观看生成的动态视频，满意后即可下载高清版本用于你的项目。" }
     ]
   },
+  "keyFeatures": {
+    "title": "图片转视频核心功能",
+    "features": [
+      { "number": "1", "title": "轻松制作视频", "description": "只需几步即可将图片转为视频。上传图片，让 AI 驱动的在线视频工具完成剩余工作。" },
+      { "number": "2", "title": "AI 智能增强", "description": "借助 AI 为图片添加动画效果、流畅转场，让你的视觉作品焕发生命力，吸引观众目光。" },
+      { "number": "3", "title": "自定义分辨率", "description": "一键选择所需分辨率，优化你的视频生成效果。" },
+      { "number": "4", "title": "多种比例选项", "description": "按需选择画面比例，轻松生成适合各大社交媒体分享的视频。" },
+      { "number": "5", "title": "快速简便", "description": "10 分钟内从图片到视频，质量毫不妥协。" }
+    ]
+  },
+  "communityCta": {
+    "title": "将图片变成吸睛视频",
+    "description": "用 VidFab 将你的照片转化为精彩视频。告别繁琐操作——我们的 AI 视频生成器让整个过程轻松简单。",
+    "ctaText": "立即开始免费体验"
+  },
   "faq": {
     "title": "常见问题",
     "subtitle": "用户常见疑问解答",

@@ -30,6 +30,22 @@
       }
     ]
   },
+  "keyFeatures": {
+    "title": "Hauptfunktionen von VidFab Text-zu-Video",
+    "features": [
+      { "number": "1", "title": "Einfache Texteingabe", "description": "Verwandeln Sie beliebige Skripte, Ideen oder Keywords in dynamische Videos. Text-zu-Video war mit VidFab noch nie so einfach." },
+      { "number": "2", "title": "Echtzeit-Vorschau", "description": "Sehen Sie Ihr Video entstehen, während Sie es anpassen – ganz nach Ihren Anforderungen." },
+      { "number": "3", "title": "Anpassbare Visuals", "description": "Passen Sie Hintergründe, Animationen und Stile an Ihre Marke an." },
+      { "number": "4", "title": "Mehrsprachige Unterstützung", "description": "Geben Sie Ihr Skript in einer beliebigen Sprache ein – unsere KI erweckt es zum Leben." },
+      { "number": "5", "title": "Mehrere Aufgaben gleichzeitig", "description": "Verarbeiten Sie bis zu 4 Videogenerierungs-Aufgaben gleichzeitig und steigern Sie so Ihre Effizienz." },
+      { "number": "6", "title": "Browser-basierter Workflow", "description": "Nutzen Sie unser Video-Erstellungs-Tool direkt im Browser – kein Download erforderlich." }
+    ]
+  },
+  "communityCta": {
+    "title": "Videos mit Text mühelos erstellen",
+    "description": "VidFab macht es einfach, ansprechende Videos aus Texten zu erstellen. Keine komplizierten Tools nötig – unser KI-Videogenerator erledigt die schwere Arbeit für Sie.",
+    "ctaText": "Erstes Video kostenlos generieren"
+  },
   "faq": {
     "title": "FAQ",
     "subtitle": "Häufig gestellte Fragen",

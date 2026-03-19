@@ -30,6 +30,20 @@
       }
     ]
   },
+  "keyFeatures": {
+    "title": "Hauptfunktionen der KI-Videoeffekte",
+    "features": [
+      { "number": "1", "title": "Dynamische Übergänge und Effekte", "description": "Entdecken Sie eine Vielzahl visuell beeindruckender Übergänge und Effekte, die Ihre Videos aufwerten und auf Plattformen wie TikTok das Publikum fesseln." },
+      { "number": "2", "title": "Aktuelle Templates", "description": "Erkunden Sie die beliebtesten KI-Videoeffekte direkt über die Hauptoberfläche. Wählen Sie Ihren Favoriten und passen Sie ihn ganz einfach mit Ihren eigenen Inhalten an." },
+      { "number": "3", "title": "Schnelle Videoverarbeitung", "description": "Erstellen und verbessern Sie Videos in Minuten mit unserem schnellen KI-Rendering – ideal für enge Deadlines oder spontane kreative Ideen." },
+      { "number": "4", "title": "Für alle Erfahrungsstufen geeignet", "description": "Ob Anfänger oder erfahrener Creator – unsere Tools sind benutzerfreundlich gestaltet, sodass jeder mühelos beeindruckende Videos erstellen kann." }
+    ]
+  },
+  "communityCta": {
+    "title": "Trendige Effekte mit einem Tap anwenden",
+    "description": "Erstellen Sie beeindruckende Videos mit spektakulären KI-Effekten. Kompliziertes Editing ade – unser KI-Videogenerator macht es einfach.",
+    "ctaText": "Kostenlose Testversion starten"
+  },
   "faq": {
     "title": "FAQ",
     "subtitle": "Häufig gestellte Fragen",

@@ -112,29 +112,8 @@ export default function AIVideoEffectsPage() {
     icon: [Layers, Upload, Sparkles, Download][index]
   })) || []
 
-  // Key Features data
-  const keyFeatures = [
-    {
-      number: "1",
-      title: "Dynamic Transitions and Effects",
-      description: "Explore an array of visually stunning transitions and effects that elevate your videos, ensuring they captivate your audience on platforms like TikTok and beyond."
-    },
-    {
-      number: "2",
-      title: "Up-to-date Templates",
-      description: "Explore the most popular AI video effects right from the main interface. Simply choose your favorite and easily customize it with your own content."
-    },
-    {
-      number: "3",
-      title: "Rapid Video Processing",
-      description: "Create and enhance videos in minutes with our fast AI-powered rendering, perfect for meeting tight deadlines or last-minute creative needs."
-    },
-    {
-      number: "4",
-      title: "Accessible to All Skill Levels",
-      description: "Whether you're a beginner or a seasoned creator, our tools are designed to be user-friendly, enabling anyone to produce amazing videos effortlessly."
-    }
-  ]
+  // Key Features data from translations
+  const keyFeatures = (t.raw('keyFeatures.features') as any[]) || []
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -147,7 +126,7 @@ export default function AIVideoEffectsPage() {
           <div className="relative z-10 bg-black">
             {/* Key Features Section */}
             <AmazingFeatures
-              title="Key Features of AI Video Effects"
+              title={t('keyFeatures.title')}
               features={keyFeatures}
               layout="2-columns"
             />
@@ -163,10 +142,10 @@ export default function AIVideoEffectsPage() {
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title="Apply Trending Effects in One Tap"
+              title={t('communityCta.title')}
               subtitle=""
-              description="Create amazing videos with stunning AI effects. Forget complicated editing — our AI video generator makes it easy."
-              ctaText="Start Your Free Trial Today"
+              description={t('communityCta.description')}
+              ctaText={t('communityCta.ctaText')}
               ctaLink="/studio/ai-video-effects"
               getInspiredText=""
               showVideos={false}

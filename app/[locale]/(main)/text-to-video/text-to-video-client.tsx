@@ -112,39 +112,8 @@ export default function TextToVideoPage() {
     icon: [FileText, MousePointerClick, Sparkles, Download][index]
   })) || []
 
-  // Key Features data
-  const keyFeatures = [
-    {
-      number: "1",
-      title: "Effortless Text Input",
-      description: "Turn any script, idea, or keywords into dynamic videos. Script to video has never been easier with VidFab."
-    },
-    {
-      number: "2",
-      title: "Real-Time Preview",
-      description: "Watch your video come to life while customizing it for your needs."
-    },
-    {
-      number: "3",
-      title: "Customizable Visuals",
-      description: "Adjust backgrounds, animations, and styles to match your brand."
-    },
-    {
-      number: "4",
-      title: "Multi-Language Support",
-      description: "Enter your script in any language, and let our AI bring it to life."
-    },
-    {
-      number: "5",
-      title: "Process Multiple Tasks",
-      description: "Handle up to 4 video generation tasks simultaneously, boosting your efficiency."
-    },
-    {
-      number: "6",
-      title: "Browser-Based Workflow",
-      description: "Use our video creation tool directly on your browser — no downloads required."
-    }
-  ]
+  // Key Features data from translations
+  const keyFeatures = (t.raw('keyFeatures.features') as any[]) || []
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -157,7 +126,7 @@ export default function TextToVideoPage() {
           <div className="relative z-10 bg-black">
             {/* Key Features Section */}
             <AmazingFeatures
-              title="Key Features of VidFab Text-to-Video"
+              title={t('keyFeatures.title')}
               features={keyFeatures}
             />
 
@@ -172,10 +141,10 @@ export default function TextToVideoPage() {
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title="Create Videos With Text Effortlessly"
+              title={t('communityCta.title')}
               subtitle=""
-              description="VidFab makes it simple to create engaging videos from text. Don't waste time with complicated tools — our AI video generator does the heavy lifting for you."
-              ctaText="Generate Your First Video for Free"
+              description={t('communityCta.description')}
+              ctaText={t('communityCta.ctaText')}
               ctaLink="/studio/text-to-video"
               getInspiredText=""
               showVideos={false}

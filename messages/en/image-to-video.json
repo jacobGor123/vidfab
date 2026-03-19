@@ -30,6 +30,21 @@
       }
     ]
   },
+  "keyFeatures": {
+    "title": "Key Features of Image-to-Video Conversion",
+    "features": [
+      { "number": "1", "title": "Effortless Video Creation", "description": "Convert images to video in just a few clicks. Upload your photos and let our AI-powered online video maker do the rest." },
+      { "number": "2", "title": "AI-Powered Enhancements", "description": "Use AI to create image animations, add smooth transitions, and apply effects that bring your visuals to life while captivating your audience." },
+      { "number": "3", "title": "Customized Resolution", "description": "Select your preferred resolution with one click to optimize your video generation." },
+      { "number": "4", "title": "Multiple Ratio Options", "description": "Select your desired ratio and use the generated video for easy sharing on social media." },
+      { "number": "5", "title": "Fast and Simple", "description": "Go from photo to video in under 10 minutes with no compromise on quality." }
+    ]
+  },
+  "communityCta": {
+    "title": "Turn Images Into Engaging Videos",
+    "description": "Transform your photos into stunning videos with VidFab. Forget complicated operation — our AI video generator simplifies the process for you.",
+    "ctaText": "Start Your Free Trial Today"
+  },
   "faq": {
     "title": "FAQ",
     "subtitle": "Frequently Asked Questions",
