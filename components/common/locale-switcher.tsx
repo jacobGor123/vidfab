@@ -1,9 +1,9 @@
 'use client';
 
-import { useTransition } from 'react';
 import { Globe } from 'lucide-react';
-import { useRouter, usePathname } from '@/i18n/routing';
+import { usePathname } from '@/i18n/routing';
 import { useLocale } from 'next-intl';
+import { routing } from '@/i18n/routing';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,14 +21,13 @@ const LOCALES = [
 
 export function LocaleSwitcher() {
   const locale = useLocale();
-  const router = useRouter();
   const pathname = usePathname();
-  const [isPending, startTransition] = useTransition();
 
   function handleLocaleChange(nextLocale: string) {
-    startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
-    });
+    // 先更新 NEXT_LOCALE cookie，再跳转，避免 middleware 按旧 cookie 重定向
+    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
+    const prefix = nextLocale === routing.defaultLocale ? '' : `/${nextLocale}`;
+    window.location.href = `${prefix}${pathname || '/'}`;
   }
 
   const current = LOCALES.find(l => l.code === locale);
@@ -40,7 +39,6 @@ export function LocaleSwitcher() {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-sm"
-          disabled={isPending}
           aria-label="Select language"
         >
           <Globe className="h-4 w-4" />
