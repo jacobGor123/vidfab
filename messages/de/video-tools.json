@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "KI-Videogenerator – VidFab | Videos erstellen mit KI",
+    "description": "Generieren Sie Videos aus Text und Bildern mit KI. Kostenlos testen auf VidFab."
+  },
+  "textToVideo": {
+    "prompt": "Geben Sie Ihren Prompt ein",
+    "generate": "Video generieren"
+  },
+  "imageToVideo": {
+    "prompt": "Beschreiben Sie Ihr Video",
+    "generate": "Bild animieren"
+  },
+  "video": {
+    "generate": "Generieren",
+    "enhance": "Verbessern",
+    "convert": "Konvertieren",
+    "processing": "Wird verarbeitet...",
+    "completed": "Abgeschlossen",
+    "failed": "Fehlgeschlagen",
+    "pending": "Ausstehend",
+    "uploadVideo": "Video hochladen",
+    "selectVideo": "Videodatei auswählen",
+    "dragAndDrop": "Video hierher ziehen und ablegen",
+    "maxFileSize": "Max. Dateigröße: {size}",
+    "supportedFormats": "Unterstützte Formate: {formats}",
+    "startProcessing": "Verarbeitung starten",
+    "downloadVideo": "Video herunterladen",
+    "shareVideo": "Video teilen",
+    "deleteVideo": "Video löschen"
+  },
+  "dashboard": {
+    "welcome": "Willkommen in Ihrem Dashboard",
+    "quickActions": "Schnellaktionen",
+    "recentVideos": "Neueste Videos",
+    "usage": "Nutzung",
+    "credits": "Credits",
+    "creditsRemaining": "{count} Credits verbleibend",
+    "storageUsed": "Speicher: {used} / {total}",
+    "generateVideo": "Video generieren",
+    "enhanceVideo": "Video verbessern",
+    "convertVideo": "Video konvertieren",
+    "viewHistory": "Verlauf anzeigen"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "title": "Preise – VidFab | Flexible Pläne für KI-Videos",
+    "description": "Einfache, transparente Preise für KI-Videogenerierung. Wählen Sie den Plan, der zu Ihnen passt."
+  },
+  "title": "Einfache, transparente Preise",
+  "description": "Wählen Sie den passenden Plan und erstellen Sie beeindruckende KI-Videos.",
+  "monthly": "Monatlich",
+  "annually": "Jährlich",
+  "save20Percent": "20 % sparen",
+  "mostPopular": "Am beliebtesten",
+  "getStarted": "Jetzt starten",
+  "contactSales": "Vertrieb kontaktieren",
+  "basic": {
+    "name": "Basic",
+    "description": "Perfekt für Einsteiger in die KI-Videoerstellung.",
+    "features": [
+      "10 Videogenerierungen pro Monat",
+      "Grundlegende KI-Video-Funktionen",
+      "Standard-Verarbeitungsgeschwindigkeit",
+      "720p-Videoausgabe",
+      "E-Mail-Support"
+    ]
+  },
+  "pro": {
+    "name": "Pro",
+    "description": "Ideal für Content Creator mit umfassenden Video-Anforderungen.",
+    "features": [
+      "50 Videogenerierungen pro Monat",
+      "Erweiterte KI-Video-Funktionen",
+      "Priorisierte Verarbeitung",
+      "1080p-Videoausgabe",
+      "Erweiterte Bearbeitungstools",
+      "Priorisierter Support"
+    ]
+  },
+  "enterprise": {
+    "name": "Enterprise",
+    "description": "Für Unternehmen, die maximale Video-Leistung benötigen.",
+    "features": [
+      "Unbegrenzte Videogenerierungen",
+      "Enterprise-KI-Video",
+      "Training individueller Modelle",
+      "4K-Videoausgabe",
+      "API-Zugang",
+      "Persönlicher Support-Manager"
+    ]
+  }
+}

@@ -1,10 +1,39 @@
 {
   "meta": {
-    "title": "VidFab - KI-Videoplattform | Videos mit KI transformieren",
-    "description": "Erstellen, verbessern und konvertieren Sie Videos mühelos mit modernster KI-Technologie."
+    "title": "VidFab – KI-Videogenerator | Videos erstellen mit künstlicher Intelligenz",
+    "description": "Erstellen und optimieren Sie Videos mit modernster KI-Technologie. Text zu Video, Bild zu Video und KI-Videoeffekte – alles auf einer Plattform."
   },
   "hero": {
-    "title": "Beeindruckende KI-Videos erstellen",
-    "subtitle": "Verwandeln Sie Text und Bilder in Sekundenschnelle in professionelle Videos"
+    "title": "VidFab KI-Videogenerator",
+    "subtitle": "Videoproduktion leicht gemacht",
+    "searchPlaceholder": "Beschreiben Sie das Video, das Sie erstellen möchten..."
+  },
+  "features": {
+    "title": "Leistungsstarke KI-Video-Funktionen",
+    "description": "Alles, was Sie brauchen, um Videos mit KI zu erstellen, zu verbessern und zu transformieren.",
+    "aiGeneration": {
+      "title": "KI-Videogenerierung",
+      "description": "Erstellen Sie beeindruckende Videos aus Textbeschreibungen mit fortschrittlichen KI-Modellen."
+    },
+    "videoEnhancement": {
+      "title": "Video-Optimierung",
+      "description": "Verbessern Sie automatisch Videoqualität, Auflösung und visuelle Wirkung."
+    },
+    "formatConversion": {
+      "title": "Formatkonvertierung",
+      "description": "Konvertieren Sie zwischen beliebigen Videoformaten mit optimierten Einstellungen."
+    },
+    "batchProcessing": {
+      "title": "Stapelverarbeitung",
+      "description": "Verarbeiten Sie mehrere Videos gleichzeitig und sparen Sie Zeit."
+    },
+    "customModels": {
+      "title": "Individuelle Modelle",
+      "description": "Trainieren Sie eigene KI-Modelle für Ihre spezifischen Anforderungen."
+    },
+    "apiAccess": {
+      "title": "API-Zugang",
+      "description": "Integrieren Sie VidFabs Funktionen direkt in Ihre Anwendungen."
+    }
   }
 }

@@ -1,0 +1,63 @@
+{
+  "hero": {
+    "title": "Beeindruckende KI-Videoeffekte für Ihre Videos",
+    "subtitle": "Verwandeln Sie gewöhnliche Clips in fesselnde Videos mit einer Vielzahl von KI-gestützten Effekten.",
+    "cta": "KI-Videoeffekte kostenlos testen"
+  },
+  "howItWorks": {
+    "title": "So funktioniert's",
+    "subtitle": "Erstellen Sie professionelle Videos in vier einfachen Schritten",
+    "steps": [
+      {
+        "number": "1",
+        "title": "Gewünschten Effekt auswählen",
+        "description": "Durchsuchen Sie unsere Bibliothek beeindruckender KI-Videoeffekte und wählen Sie den aus, der zu Ihrer kreativen Vision passt."
+      },
+      {
+        "number": "2",
+        "title": "Foto hochladen oder Text eingeben",
+        "description": "Passen Sie den Effekt an, indem Sie eigene Medien hochladen oder Text eingeben, um Elemente in der Vorlage zu ersetzen."
+      },
+      {
+        "number": "3",
+        "title": "KI-Verarbeitung",
+        "description": "Unsere fortschrittlichen KI-Modelle analysieren Ihre Eingabe und wenden die ausgewählten Effekte in professioneller Qualität an."
+      },
+      {
+        "number": "4",
+        "title": "Video ansehen und herunterladen",
+        "description": "Sehen Sie sich Ihr optimiertes Video an, nehmen Sie letzte Anpassungen vor und laden Sie es in hoher Qualität herunter."
+      }
+    ]
+  },
+  "faq": {
+    "title": "FAQ",
+    "subtitle": "Häufig gestellte Fragen",
+    "items": [
+      {
+        "question": "Wie generiert die VidFab-KI automatisch Videos?",
+        "answer": "Sie wandelt geschriebene Prompts oder Skripte mithilfe leistungsstarker KI-Modelle in bewegte Bilder um."
+      },
+      {
+        "question": "Ist der VidFab KI-Videogenerator auch für Anfänger geeignet?",
+        "answer": "Auf jeden Fall! Vom Anfänger bis zum Profi – jeder kann auf VidFab Videos erstellen."
+      },
+      {
+        "question": "Welche Sprachen werden für die Texteingabe unterstützt?",
+        "answer": "Wir unterstützen derzeit mehrere Sprachen, darunter Englisch, Deutsch, Japanisch, Spanisch und weitere."
+      },
+      {
+        "question": "Muss ich Software herunterladen?",
+        "answer": "Nein, es ist kein Download erforderlich. VidFab ist ein webbasiertes Tool und funktioniert in allen gängigen Browsern."
+      },
+      {
+        "question": "Kann ich VidFab für kommerzielle Zwecke nutzen?",
+        "answer": "Ja, unser Service unterstützt sowohl private als auch kommerzielle Nutzung."
+      },
+      {
+        "question": "Kann ich den VidFab KI-Videogenerator kostenlos nutzen?",
+        "answer": "Ja. VidFab stellt Ihnen 50 Credits zur Verfügung, mit denen Sie die Videogenerierung direkt ausprobieren können."
+      }
+    ]
+  }
+}
