@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "AI 视频生成器 - VidFab | 在线生成视频",
+    "description": "使用 VidFab AI 视频生成器，通过文字或图片快速生成高质量视频。"
+  },
+  "textToVideo": {
+    "prompt": "输入你的创意描述",
+    "generate": "生成视频"
+  },
+  "imageToVideo": {
+    "prompt": "描述你想生成的视频",
+    "generate": "让图片动起来"
+  },
+  "video": {
+    "generate": "生成",
+    "enhance": "增强",
+    "convert": "转换",
+    "processing": "处理中...",
+    "completed": "已完成",
+    "failed": "失败",
+    "pending": "排队中",
+    "uploadVideo": "上传视频",
+    "selectVideo": "选择视频文件",
+    "dragAndDrop": "将视频拖拽到此处",
+    "maxFileSize": "最大文件大小：{size}",
+    "supportedFormats": "支持格式：{formats}",
+    "startProcessing": "开始处理",
+    "downloadVideo": "下载视频",
+    "shareVideo": "分享视频",
+    "deleteVideo": "删除视频"
+  },
+  "dashboard": {
+    "welcome": "欢迎来到您的工作台",
+    "quickActions": "快捷操作",
+    "recentVideos": "最近的视频",
+    "usage": "用量统计",
+    "credits": "积分",
+    "creditsRemaining": "剩余 {count} 积分",
+    "storageUsed": "存储空间：{used} / {total}",
+    "generateVideo": "生成视频",
+    "enhanceVideo": "增强视频",
+    "convertVideo": "转换视频",
+    "viewHistory": "查看历史"
+  }
+}

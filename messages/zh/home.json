@@ -1,10 +1,39 @@
 {
   "meta": {
-    "title": "VidFab - AI 视频平台 | 用 AI 转换您的视频",
-    "description": "使用先进的 AI 技术轻松创建、增强和转换视频。"
+    "title": "VidFab - AI 视频生成平台 | 用 AI 轻松创作视频",
+    "description": "VidFab 是领先的 AI 视频生成平台，支持文字转视频、图片生成视频等多种 AI 视频工具，一键生成高质量视频内容。"
   },
   "hero": {
-    "title": "创建精彩 AI 视频",
-    "subtitle": "秒级将文字和图片转换为专业视频"
+    "title": "VidFab AI 视频生成器",
+    "subtitle": "让视频创作更简单",
+    "searchPlaceholder": "描述你想创作的视频内容..."
+  },
+  "features": {
+    "title": "强大的 AI 视频功能",
+    "description": "从创作、增强到格式转换，一站式 AI 视频解决方案。",
+    "aiGeneration": {
+      "title": "AI 视频生成",
+      "description": "输入文字描述，即可用先进 AI 模型生成精美视频。"
+    },
+    "videoEnhancement": {
+      "title": "视频画质增强",
+      "description": "AI 自动提升视频清晰度、分辨率和画面质感。"
+    },
+    "formatConversion": {
+      "title": "格式转换",
+      "description": "支持多种视频格式互转，自动优化输出参数。"
+    },
+    "batchProcessing": {
+      "title": "批量处理",
+      "description": "同时处理多个视频任务，大幅提升创作效率。"
+    },
+    "customModels": {
+      "title": "自定义模型",
+      "description": "训练专属 AI 模型，精准满足个性化视频创作需求。"
+    },
+    "apiAccess": {
+      "title": "API 接入",
+      "description": "将 VidFab 的 AI 视频能力无缝集成到您的应用中。"
+    }
   }
 }
