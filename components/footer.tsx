@@ -1,3 +1,5 @@
+import { Link } from '@/i18n/routing';
+
 export function Footer() {
   return (
     <footer className="border-t border-white/10 bg-black/30 backdrop-blur-lg">
@@ -24,35 +26,35 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">AI Studio</h3>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a href="/studio/video-agent-beta" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out flex items-center gap-1.5">
+                  <Link href="/studio/video-agent-beta" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out flex items-center gap-1.5">
                     Story to Video
                     <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold">BETA</span>
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/text-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Text to Video
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/image-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/image-to-video" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Image to Video
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/ai-video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/ai-video-effects" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     AI Video Effects
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/text-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/text-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Text to Image
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/image-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/image-to-image" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Image to Image
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -62,19 +64,19 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">Latest Models</h3>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a href="/tools/veo3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/tools/veo3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Veo 3
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/tools/sora2" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/tools/sora2" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Sora 2
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/tools/kling3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/tools/kling3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Kling 3.0
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -84,34 +86,34 @@ export function Footer() {
               <h3 className="text-white font-semibold mb-6 text-base">Company</h3>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a href="/about" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/about" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     About
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/blog" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/blog" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Blog
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/pricing" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Pricing
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/contact" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/contact" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Contact
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Terms of Service
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
