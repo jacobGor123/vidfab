@@ -118,13 +118,6 @@ export function Navbar({ scrolled }: NavbarProps) {
           <nav className="hidden md:flex items-center space-x-8">
             {!isCreatePage && (
               <>
-                <Link
-                  href="/"
-                  className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
-                >
-                  {t('nav.home')}
-                </Link>
-
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
