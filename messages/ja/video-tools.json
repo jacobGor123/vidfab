@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "AI動画生成ツール - VidFab｜テキスト・画像からAI動画を作成",
+    "description": "テキストや画像からAIで動画を生成。VidFabの動画自動生成ツールをお試しください。"
+  },
+  "textToVideo": {
+    "prompt": "プロンプトを入力",
+    "generate": "動画を生成"
+  },
+  "imageToVideo": {
+    "prompt": "動画の内容を入力",
+    "generate": "画像をアニメーション化"
+  },
+  "video": {
+    "generate": "生成",
+    "enhance": "高画質化",
+    "convert": "変換",
+    "processing": "処理中...",
+    "completed": "完了",
+    "failed": "失敗",
+    "pending": "待機中",
+    "uploadVideo": "動画をアップロード",
+    "selectVideo": "動画ファイルを選択",
+    "dragAndDrop": "ここに動画をドラッグ＆ドロップ",
+    "maxFileSize": "最大ファイルサイズ: {size}",
+    "supportedFormats": "対応フォーマット: {formats}",
+    "startProcessing": "処理を開始",
+    "downloadVideo": "動画をダウンロード",
+    "shareVideo": "動画を共有",
+    "deleteVideo": "動画を削除"
+  },
+  "dashboard": {
+    "welcome": "ダッシュボードへようこそ",
+    "quickActions": "クイックアクション",
+    "recentVideos": "最近の動画",
+    "usage": "使用状況",
+    "credits": "クレジット",
+    "creditsRemaining": "残りクレジット: {count}",
+    "storageUsed": "ストレージ: {used} / {total}",
+    "generateVideo": "動画を生成",
+    "enhanceVideo": "動画を高画質化",
+    "convertVideo": "動画を変換",
+    "viewHistory": "履歴を見る"
+  }
+}

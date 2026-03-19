@@ -1,10 +1,39 @@
 {
   "meta": {
-    "title": "VidFab - AI 動画プラットフォーム | AI で動画を変換",
-    "description": "最先端の AI 技術で動画を簡単に作成・強化・変換。"
+    "title": "VidFab - AI動画生成プラットフォーム｜AIで動画を自動生成",
+    "description": "最先端のAI技術で動画を自動生成。テキストから動画、画像から動画への変換をVidFabで簡単に実現できます。"
   },
   "hero": {
-    "title": "魅力的な AI 動画を作成",
-    "subtitle": "テキストや画像を数秒でプロの動画に変換"
+    "title": "VidFab AIビデオ生成",
+    "subtitle": "動画制作をもっと簡単に",
+    "searchPlaceholder": "作りたい動画の内容を入力してください..."
+  },
+  "features": {
+    "title": "パワフルなAI動画機能",
+    "description": "AIを活用した動画の作成・高画質化・変換に必要なすべてが揃っています。",
+    "aiGeneration": {
+      "title": "AI動画生成",
+      "description": "高度なAIモデルを使って、テキストから魅力的な動画を作成できます。"
+    },
+    "videoEnhancement": {
+      "title": "動画高画質化",
+      "description": "動画の画質・解像度・映像の美しさをAIで自動的に向上させます。"
+    },
+    "formatConversion": {
+      "title": "フォーマット変換",
+      "description": "最適な設定で、あらゆる動画フォーマット間の変換が可能です。"
+    },
+    "batchProcessing": {
+      "title": "一括処理",
+      "description": "複数の動画を同時に処理して、作業時間を大幅に短縮できます。"
+    },
+    "customModels": {
+      "title": "カスタムモデル",
+      "description": "目的に合わせたカスタムAIモデルをトレーニングできます。"
+    },
+    "apiAccess": {
+      "title": "API連携",
+      "description": "VidFabの機能をあなたのアプリケーションに直接組み込めます。"
+    }
   }
 }
