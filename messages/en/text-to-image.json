@@ -1,0 +1,42 @@
+{
+  "hero": {
+    "title": "From Prompt to Picture: Create Images With Just Text",
+    "cta": "Create Image"
+  },
+  "keyFeatures": {
+    "title": "Key Features of VidFab Text-to-Image",
+    "features": [
+      { "number": "1", "title": "Effortless Text Input", "description": "Transform any idea, description, or keyword into a unique image. Converting text to image has never been easier." },
+      { "number": "2", "title": "Powerful AI Models", "description": "VidFab integrates the most powerful AI models, bringing your concepts to life instantly." },
+      { "number": "3", "title": "Multiple Aspect Ratios", "description": "Our rich aspect ratio options satisfy all your creative needs. No extra edits needed for final use." },
+      { "number": "4", "title": "Multi-Language Support", "description": "Enter your text prompts in any language and let our AI art generator craft a beautiful image for you." },
+      { "number": "5", "title": "One-Click Video Creation", "description": "Instantly turn your generated images into videos with a single click. Maximize every creation and save valuable time." },
+      { "number": "6", "title": "Process Multiple Tasks", "description": "Handle up to 4 image generation tasks at once, boosting your creative workflow and efficiency." }
+    ]
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "steps": [
+      { "number": "1", "title": "Enter your prompt", "description": "Type or paste a description of the image you want to create. Be as detailed or as simple as you like." },
+      { "number": "2", "title": "Click to generate", "description": "Our AI gets to work, interpreting your text to create a unique visual." },
+      { "number": "3", "title": "Process with AI", "description": "Your image is generated in seconds, ready for review." },
+      { "number": "4", "title": "View and download", "description": "Preview your new image online and download it for your projects." }
+    ]
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      { "question": "How does VidFab AI generate images from text?", "answer": "VidFab uses powerful AI models that transform your written prompts into high-quality visuals. The system interprets the words you provide and generates a unique image that matches your description." },
+      { "question": "Is the VidFab AI Image Generator beginner-friendly?", "answer": "Yes! Our tool is designed with simplicity in mind. No artistic or technical skills are needed. If you can describe it, you can create it." },
+      { "question": "What languages are supported for text input?", "answer": "You can use a wide variety of languages for your text prompts, making it easy for creators around the world to generate art." },
+      { "question": "Do I need to download any software?", "answer": "No. VidFab is a fully browser-based tool. You can start creating images right away without any installation." },
+      { "question": "Can I use the generated images for commercial purposes?", "answer": "Absolutely. The images you create with VidFab are yours to use for marketing, social media, commercial products, and more." },
+      { "question": "Can I use the VidFab AI Image Generator for free?", "answer": "Yes. VidFab will provide 50 credits, allowing you to try generating images and videos initially." }
+    ]
+  },
+  "communityCta": {
+    "title": "Create Images With Text Effortlessly",
+    "description": "VidFab makes it simple to generate captivating images from your words. Stop struggling with complex design software — our AI image generator does all the creative work for you.",
+    "ctaText": "Generate Your First Image for Free"
+  }
+}

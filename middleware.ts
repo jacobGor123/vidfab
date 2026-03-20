@@ -67,11 +67,36 @@ export default async function middleware(req: NextRequest) {
   }
 
   // 4. Studio rewrite (runs before intl, preserves browser URL for GA4 tracking)
-  if (pathname.startsWith('/studio/')) {
-    // Special pages with real page.tsx files - no rewrite needed
+  // Handles both /studio/path and /{locale}/studio/path (e.g. /zh/studio/discover)
+  const strippedForStudio = getStrippedPath(pathname);
+  const isStudioRoute = pathname.startsWith('/studio/') || strippedForStudio.startsWith('/studio/');
+
+  if (isStudioRoute) {
+    // studioSegment is always /studio/... without locale prefix
+    const studioSegment = pathname.startsWith('/studio/') ? pathname : strippedForStudio;
+
+    // Detect locale: URL prefix takes priority, then cookie, then default
+    const nonDefaultLocales = routing.locales.filter(l => l !== routing.defaultLocale);
+    const localeMatch = pathname.match(new RegExp(`^\\/(${nonDefaultLocales.join('|')})(\/|$)`));
+    const cookieLocale = req.cookies.get('NEXT_LOCALE')?.value;
+    const activeLocale = localeMatch?.[1] || (cookieLocale && routing.locales.includes(cookieLocale as any) ? cookieLocale : null) || routing.defaultLocale;
+
+    // Special pages have real page.tsx files at app/studio/plans and app/studio/video-agent-beta.
+    // Rewrite locale-prefixed requests to the unprefixed versions so they match the file system.
+    // Inject x-next-intl-locale so getLocale() in app/studio/layout.tsx returns the correct locale.
     const specialPaths = ['/studio/video-agent-beta', '/studio/plans'];
-    if (specialPaths.some(p => pathname.startsWith(p))) {
-      return NextResponse.next();
+    if (specialPaths.some(p => studioSegment.startsWith(p))) {
+      const rewriteTarget = studioSegment + (nextUrl.search || '');
+      const reqHeaders = new Headers(req.headers);
+      reqHeaders.set('x-next-intl-locale', activeLocale);
+      if (!pathname.startsWith('/studio/')) {
+        return NextResponse.rewrite(
+          new URL(rewriteTarget, nextUrl.origin),
+          { request: { headers: reqHeaders } }
+        );
+      }
+      // Pathname already starts with /studio/ — still inject locale header
+      return NextResponse.next({ request: { headers: reqHeaders } });
     }
 
     // Tool path → query param mapping
@@ -86,11 +111,12 @@ export default async function middleware(req: NextRequest) {
       plans: 'my-profile',
     };
 
-    const pathParts = pathname.split('/').filter(Boolean);
+    const pathParts = studioSegment.split('/').filter(Boolean);
     const toolPath = pathParts[1];
     const tool = toolMap[toolPath] || 'discover';
 
-    const rewriteUrl = new URL('/create', nextUrl.origin);
+    // Always include locale in the rewrite target so Next.js can match app/[locale]/(main)/create/
+    const rewriteUrl = new URL(`/${activeLocale}/create`, nextUrl.origin);
     rewriteUrl.searchParams.set('tool', tool);
     // Preserve existing query params (prompt, model, etc.)
     nextUrl.searchParams.forEach((value, key) => rewriteUrl.searchParams.set(key, value));

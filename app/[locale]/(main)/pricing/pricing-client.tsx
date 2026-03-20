@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { SpaceBackground } from "@/components/space-background"
 import { LoadingState } from "@/components/loading-state"
 import { SkeletonLoader } from "@/components/skeleton-loader"
@@ -13,6 +14,7 @@ import { trackBeginCheckout, trackBillingToggle, trackCancelSubscription, trackV
 import { PlanCard } from "@/components/subscription/plan-card"
 
 export default function PricingPage() {
+  const t = useTranslations('pricing')
   const [loading, setLoading] = useState(true)
   const [annual, setAnnual] = useState(false)
   const [subscribing, setSubscribing] = useState<string | null>(null)
@@ -234,7 +236,7 @@ export default function PricingPage() {
           </div>
         </div>
         <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-          <LoadingState message="Loading Pricing Plans..." />
+          <LoadingState message={t('loading')} />
         </div>
       </div>
     )
@@ -244,9 +246,24 @@ export default function PricingPage() {
     return (priceInCents / 100).toFixed(2)
   }
 
-  const FREE_FEATURES = SUBSCRIPTION_PLANS.free.features
-  const PRO_FEATURES = SUBSCRIPTION_PLANS.pro.features
-  const PREMIUM_FEATURES = SUBSCRIPTION_PLANS.premium.features
+  const freeFeatures = t.raw('free.features') as string[]
+  const proFeatures = t.raw('pro.features') as string[]
+  const premiumFeatures = t.raw('premium.features') as string[]
+  const faqItems = t.raw('faq.items') as Array<{
+    question: string
+    answer: string | null
+    intro: string | null
+    bullets: string[] | null
+    outro: string | null
+  }>
+
+  const btnLabel = (planKey: string, isSubscribing: boolean, isCancelling?: boolean) => {
+    if (planLoading) return <><Zap className="h-4 w-4 mr-2 animate-spin" />{t('loadingBtn')}</>
+    if (isCancelling) return <><Zap className="h-4 w-4 mr-2 animate-spin" />{t('cancelling')}</>
+    if (isSubscribing) return <><Zap className="h-4 w-4 mr-2 animate-spin" />{t('processing')}</>
+    if (currentPlan === planKey) return t('currentPlan')
+    return t('getStarted')
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -259,10 +276,10 @@ export default function PricingPage() {
               className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent"
               style={{ backgroundImage: 'linear-gradient(90deg, #4CC3FF 0%, #7B5CFF 100%)' }}
             >
-              Simple, Transparent Pricing
+              {t('title')}
             </h1>
             <p className="text-lg text-white mb-8">
-              Choose the plan that's right for you and start creating amazing AI videos.
+              {t('subtitle')}
             </p>
 
             {/* Monthly / Annual toggle — Figma pill style */}
@@ -278,7 +295,7 @@ export default function PricingPage() {
                     ? { background: '#555555', color: '#ffffff' }
                     : { color: 'rgba(255,255,255,0.5)' }}
                 >
-                  Monthly
+                  {t('monthly')}
                 </button>
                 <button
                   onClick={() => { setAnnual(true); trackBillingToggle('annual') }}
@@ -287,12 +304,12 @@ export default function PricingPage() {
                     ? { background: '#555555', color: '#ffffff' }
                     : { color: 'rgba(255,255,255,0.5)' }}
                 >
-                  Annual
+                  {t('annual')}
                   <span
                     className="text-xs font-medium px-2 py-0.5 rounded-full"
                     style={{ background: '#470085', color: '#CD94FF' }}
                   >
-                    Save up to 20%
+                    {t('saveUpTo20')}
                   </span>
                 </button>
               </div>
@@ -305,17 +322,17 @@ export default function PricingPage() {
             <div className="relative p-[1px] rounded-[20px]" style={{ background: 'linear-gradient(to bottom, #af60ec, #592055)' }}>
               <div className="rounded-[20px] overflow-hidden flex flex-col h-full" style={{ background: '#1a1539' }}>
                 <div className="px-5 md:px-6 pt-5 md:pt-6 pb-4 md:pb-5">
-                  <h3 className="text-xl font-bold text-white mb-3">Free</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">{t('free.name')}</h3>
                   <div className="flex items-baseline gap-2 mb-3">
                     <span className="text-4xl font-bold text-white">$0</span>
-                    <span className="text-[#dddddd] text-sm">/ forever</span>
+                    <span className="text-[#dddddd] text-sm">{t('foreverFree')}</span>
                   </div>
-                  <p className="text-[#dddddd] text-sm leading-relaxed">{SUBSCRIPTION_PLANS.free.description}</p>
+                  <p className="text-[#dddddd] text-sm leading-relaxed">{t('free.description')}</p>
                 </div>
                 <div className="h-px bg-[#2f2b49] mx-5 md:mx-6" />
                 <div className="px-5 md:px-6 py-4 md:py-5 flex-1">
                   <ul className="space-y-3">
-                    {FREE_FEATURES.map(f => (
+                    {freeFeatures.map(f => (
                       <li key={f} className="flex items-start gap-2.5">
                         <Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#30ff8e' }} />
                         <span className="text-sm text-white">{f}</span>
@@ -330,7 +347,7 @@ export default function PricingPage() {
                     className="w-full h-11 rounded-lg text-sm font-medium !text-white/60 cursor-not-allowed"
                     style={{ background: '#2b2555' }}
                   >
-                    {planLoading ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Loading...</> : cancelling ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Cancelling...</> : currentPlan === 'free' ? 'Current Plan' : 'Get Started'}
+                    {btnLabel('free', false, cancelling)}
                   </Button>
                 </div>
               </div>
@@ -340,33 +357,39 @@ export default function PricingPage() {
             <PlanCard
               borderGradient="linear-gradient(to bottom, #4e66ff, #53b7e8)"
               bgGradient="linear-gradient(180deg, #3f298c 0%, #140b48 100%)"
-              badge="MOST POPULAR"
+              badge={t('mostPopular')}
               headerImage="/images/pricing-pro-header.png"
               headerMinHeight={172}
               featureSpacing="space-y-3"
               featureGap="gap-2.5"
               header={
                 <>
-                  <h3 className="text-xl font-bold text-white mb-3">Pro Plan</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">{t('pro.name')}</h3>
                   {annual ? (
                     <div className="flex items-baseline gap-2 mb-1">
                       <span className="text-4xl font-bold" style={{ color: '#4cc3ff' }}>${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual / 12)}</span>
-                      <span className="text-sm text-white/80">/ month</span>
+                      <span className="text-sm text-white/80">{t('perMonth')}</span>
                     </div>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-2 mb-1">
                         <span className="text-4xl font-bold" style={{ color: '#4cc3ff' }}>$9.90</span>
-                        <span className="text-sm text-white/80">first month</span>
+                        <span className="text-sm text-white/80">{t('firstMonth')}</span>
                       </div>
-                      <p className="text-sm font-semibold text-white mb-3">Then ${formatPrice(SUBSCRIPTION_PLANS.pro.price.monthly)}/month</p>
+                      <p className="text-sm font-semibold text-white mb-3">
+                        {t('thenPerMonth').replace('${price}', formatPrice(SUBSCRIPTION_PLANS.pro.price.monthly))}
+                      </p>
                     </>
                   )}
-                  {annual && <p className="text-sm text-[#dddddd] mb-3">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.pro.price.annual)})</p>}
-                  <p className="text-sm text-[#dddddd]">{SUBSCRIPTION_PLANS.pro.description}</p>
+                  {annual && (
+                    <p className="text-sm text-[#dddddd] mb-3">
+                      {t('billedAnnually').replace('${price}', formatPrice(SUBSCRIPTION_PLANS.pro.price.annual))}
+                    </p>
+                  )}
+                  <p className="text-sm text-[#dddddd]">{t('pro.description')}</p>
                 </>
               }
-              features={PRO_FEATURES}
+              features={proFeatures}
               dividerColor="#422d90"
               button={
                 <Button
@@ -375,7 +398,7 @@ export default function PricingPage() {
                   className={`w-full h-11 rounded-lg text-sm font-medium !text-white ${currentPlan === 'pro' ? '!bg-white/10 !text-white/40 cursor-not-allowed' : 'hover:opacity-90'}`}
                   style={currentPlan !== 'pro' ? { background: 'linear-gradient(90deg, #e037ff 0%, #3e6aff 100%)' } : undefined}
                 >
-                  {planLoading ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Loading...</> : subscribing === 'pro' ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Processing...</> : currentPlan === 'pro' ? 'Current Plan' : 'Get Started'}
+                  {btnLabel('pro', subscribing === 'pro')}
                 </Button>
               }
             />
@@ -390,16 +413,22 @@ export default function PricingPage() {
               featureGap="gap-2.5"
               header={
                 <>
-                  <h3 className="text-xl font-bold text-white mb-3">Premium</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">{t('premium.name')}</h3>
                   <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-4xl font-bold text-white">${annual ? formatPrice(SUBSCRIPTION_PLANS.premium.price.annual / 12) : formatPrice(SUBSCRIPTION_PLANS.premium.price.monthly)}</span>
-                    <span className="text-sm text-white/80">/ month</span>
+                    <span className="text-4xl font-bold text-white">
+                      ${annual ? formatPrice(SUBSCRIPTION_PLANS.premium.price.annual / 12) : formatPrice(SUBSCRIPTION_PLANS.premium.price.monthly)}
+                    </span>
+                    <span className="text-sm text-white/80">{t('perMonth')}</span>
                   </div>
-                  {annual && <p className="text-sm text-[#dddddd] mb-3">Billed annually (${formatPrice(SUBSCRIPTION_PLANS.premium.price.annual)})</p>}
-                  <p className="text-sm text-[#dddddd]">{SUBSCRIPTION_PLANS.premium.description}</p>
+                  {annual && (
+                    <p className="text-sm text-[#dddddd] mb-3">
+                      {t('billedAnnually').replace('${price}', formatPrice(SUBSCRIPTION_PLANS.premium.price.annual))}
+                    </p>
+                  )}
+                  <p className="text-sm text-[#dddddd]">{t('premium.description')}</p>
                 </>
               }
-              features={PREMIUM_FEATURES}
+              features={premiumFeatures}
               dividerColor="#4b2d90"
               button={
                 <Button
@@ -408,56 +437,38 @@ export default function PricingPage() {
                   className={`w-full h-11 rounded-lg text-sm font-medium !text-white ${currentPlan === 'premium' ? '!bg-white/10 !text-white/40 cursor-not-allowed' : 'hover:opacity-90'}`}
                   style={currentPlan !== 'premium' ? { background: '#814cff' } : undefined}
                 >
-                  {planLoading ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Loading...</> : subscribing === 'premium' ? <><Zap className="h-4 w-4 mr-2 animate-spin" />Processing...</> : currentPlan === 'premium' ? 'Current Plan' : 'Get Started'}
+                  {btnLabel('premium', subscribing === 'premium')}
                 </Button>
               }
             />
           </div>
 
+          {/* FAQ Section */}
           <div className="max-w-3xl mx-auto mt-12 md:mt-20 text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
-              Frequently Asked Questions
+              {t('faq.title')}
             </h2>
 
             <div className="mt-6 md:mt-8 space-y-4 md:space-y-6 text-left">
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
-                <h3 className="text-base md:text-lg font-bold mb-2">Can I change plans later?</h3>
-                <p className="text-gray-400 text-sm md:text-base">
-                  Yes, you can upgrade or downgrade your plan at any time. When upgrading, credits are added to your account immediately.
-                </p>
-              </div>
-
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
-                <h3 className="text-base md:text-lg font-bold mb-2">What occurs if I exceed my allocated monthly credits?</h3>
-                <p className="text-gray-400 text-sm md:text-base mb-3 md:mb-4">
-                  If you use up all your monthly credits:
-                </p>
-                <ul className="list-disc list-inside text-gray-400 text-sm md:text-base space-y-2">
-                  <li>You'll be prompted to upgrade to a higher plan.</li>
-                  <li>Video generation will be unavailable until your credits are renewed or your plan is upgraded.</li>
-                </ul>
-              </div>
-
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
-                <h3 className="text-base md:text-lg font-bold mb-2">How do credits work?</h3>
-                <p className="text-gray-400 text-sm md:text-base mb-3">
-                  Credits are used up based on the AI model and video settings you select. For example:
-                </p>
-                <ul className="list-disc list-inside text-gray-400 text-sm md:text-base space-y-2 mb-3">
-                  <li>A 480p 5-second video costs 10 credits.</li>
-                  <li>A 1080p 10-second video costs 80 credits.</li>
-                </ul>
-                <p className="text-gray-400 text-sm md:text-base">
-                  Higher resolution or longer videos use more credits. Different AI models may also have varying credit requirements.
-                </p>
-              </div>
-
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
-                <h3 className="text-base md:text-lg font-bold mb-2">Which payment methods are available?</h3>
-                <p className="text-gray-400 text-sm md:text-base">
-                  We accept all major credit cards through Stripe. Annual plans also provide additional savings compared to monthly billing.
-                </p>
-              </div>
+              {faqItems.map((item, i) => (
+                <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-bold mb-2">{item.question}</h3>
+                  {item.answer && (
+                    <p className="text-gray-400 text-sm md:text-base">{item.answer}</p>
+                  )}
+                  {item.intro && (
+                    <p className="text-gray-400 text-sm md:text-base mb-3 md:mb-4">{item.intro}</p>
+                  )}
+                  {item.bullets && (
+                    <ul className="list-disc list-inside text-gray-400 text-sm md:text-base space-y-2 mb-3">
+                      {item.bullets.map((b, bi) => <li key={bi}>{b}</li>)}
+                    </ul>
+                  )}
+                  {item.outro && (
+                    <p className="text-gray-400 text-sm md:text-base">{item.outro}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>

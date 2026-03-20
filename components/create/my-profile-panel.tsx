@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { ArrowUpCircle, XCircle, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSubscription } from "@/hooks/use-subscription"
@@ -15,6 +16,7 @@ import toast from "react-hot-toast"
 import { trackUpgradeClick } from "@/lib/analytics/gtm"
 
 export function MyProfilePanel() {
+  const t = useTranslations('studio')
   const router = useRouter()
   const { data: session } = useSession()
   const {
@@ -43,16 +45,16 @@ export function MyProfilePanel() {
         <div className="text-center max-w-md">
           <LogIn className="h-16 w-16 mx-auto mb-4 text-gray-600" />
           <h2 className="text-2xl font-bold text-white mb-2">
-            Please Sign In
+            {t('myProfile.pleaseSignIn')}
           </h2>
           <p className="text-gray-400 mb-6">
-            You need to sign in to view your profile and subscription details.
+            {t('myProfile.signInPrompt')}
           </p>
           <Button
             onClick={() => router.push('/login')}
             className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:opacity-90"
           >
-            Sign In
+            {t('myProfile.signIn')}
           </Button>
         </div>
       </div>
@@ -67,7 +69,7 @@ export function MyProfilePanel() {
 
   const handleCancelClick = () => {
     if (subscription?.plan_id === 'free') {
-      toast.error('You are already on the Free plan')
+      toast.error(t('myProfile.alreadyFree'))
       return
     }
     setShowCancelDialog(true)
@@ -102,7 +104,7 @@ export function MyProfilePanel() {
             className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:opacity-90 text-white"
           >
             <ArrowUpCircle className="h-4 w-4 mr-2" />
-            Upgrade Plan
+            {t('myProfile.upgradePlan')}
           </Button>
 
           {subscription?.plan_id !== 'free' && (
@@ -113,7 +115,7 @@ export function MyProfilePanel() {
               className="border-red-600 text-red-600 hover:bg-red-600/10"
             >
               <XCircle className="h-4 w-4 mr-2" />
-              {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
+              {cancelling ? t('myProfile.cancelling') : t('myProfile.cancelSubscription')}
             </Button>
           )}
         </div>

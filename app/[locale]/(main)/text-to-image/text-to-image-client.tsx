@@ -8,6 +8,7 @@ import { AmazingFeatures } from "@/components/sections/amazing-features"
 import { LoadingState } from "@/components/loading-state"
 import { TEXT_TO_IMAGE_ITEMS } from "@/components/video-hero/config/video-hero.config"
 import { HeroContent } from "@/components/video-hero/hero-content"
+import { useTranslations } from "next-intl"
 import { Type, MousePointerClick, Sparkles, Download } from "lucide-react"
 
 // 动态导入 CommunityCTA - 非首屏内容延迟加载
@@ -20,6 +21,7 @@ const CommunityCTA = dynamic(
 )
 
 function TextToImageHero() {
+  const t = useTranslations('text-to-image')
   const currentItem = TEXT_TO_IMAGE_ITEMS[0]
 
   return (
@@ -38,14 +40,14 @@ function TextToImageHero() {
       <div className="relative z-10 flex flex-col items-center justify-center container mx-auto px-4 text-center py-20 md:py-0">
         <div className="max-w-6xl mx-auto w-full">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-extrabold mb-8 sm:mb-12 text-gradient-brand leading-tight">
-            {"From Prompt to Picture: Create Images With Just Text"}
+            {t('hero.title')}
           </h1>
 
           {/* Typewriter Input + CTA Button from HeroContent */}
           <HeroContent
             currentItem={currentItem}
             targetPath="/studio/text-to-image"
-            buttonText="Create Image"
+            buttonText={t('hero.cta')}
             showTitle={false}
             showFeatureTags={false}
             className="!min-h-0 !py-0"
@@ -57,134 +59,49 @@ function TextToImageHero() {
 }
 
 export default function TextToImageClient() {
-  // How It Works steps
-  const steps: Step[] = [
-    {
-      id: 'step-1',
-      number: '1',
-      title: 'Enter your prompt',
-      description: 'Type or paste a description of the image you want to create. Be as detailed or as simple as you like.',
-      video: 'https://static.vidfab.ai/public/video/text-to-image-001.mp4',
-      icon: Type
-    },
-    {
-      id: 'step-2',
-      number: '2',
-      title: 'Click to generate',
-      description: 'Our AI gets to work, interpreting your text to create a unique visual.',
-      video: 'https://static.vidfab.ai/public/video/text-to-image-02.mp4',
-      icon: MousePointerClick
-    },
-    {
-      id: 'step-3',
-      number: '3',
-      title: 'Process with AI',
-      description: 'Your image is generated in seconds, ready for review.',
-      video: 'https://static.vidfab.ai/public/video/text-to-image-03.mp4',
-      icon: Sparkles
-    },
-    {
-      id: 'step-4',
-      number: '4',
-      title: 'View and download',
-      description: 'Preview your new image online and download it for your projects.',
-      video: 'https://static.vidfab.ai/public/video/text-to-image-04.mp4',
-      icon: Download
-    }
-  ]
+  const t = useTranslations('text-to-image')
 
-  // Key Features data
-  const keyFeatures = [
-    {
-      number: "1",
-      title: "Effortless Text Input",
-      description: "Transform any idea, description, or keyword into a unique image. Converting text to image has never been easier."
-    },
-    {
-      number: "2",
-      title: "Powerful AI Models",
-      description: "VidFab integrates the most powerful AI models, bringing your concepts to life instantly."
-    },
-    {
-      number: "3",
-      title: "Multiple Aspect Ratios",
-      description: "Our rich aspect ratio options satisfy all your creative needs. No extra edits needed for final use."
-    },
-    {
-      number: "4",
-      title: "Multi-Language Support",
-      description: "Enter your text prompts in any language and let our AI art generator craft a beautiful image for you."
-    },
-    {
-      number: "5",
-      title: "One-Click Video Creation",
-      description: "Instantly turn your generated images into videos with a single click. Maximize every creation and save valuable time."
-    },
-    {
-      number: "6",
-      title: "Process Multiple Tasks",
-      description: "Handle up to 4 image generation tasks at once, boosting your creative workflow and efficiency."
-    }
-  ]
+  const steps: Step[] = (t.raw('howItWorks.steps') as any[])?.map((step: any, index: number) => ({
+    id: `step-${index + 1}`,
+    number: step.number,
+    title: step.title,
+    description: step.description,
+    video: `https://static.vidfab.ai/public/video/text-to-image-0${index + 1}.mp4`,
+    icon: [Type, MousePointerClick, Sparkles, Download][index]
+  })) || []
 
-  // FAQ data
-  const faqs = [
-    {
-      question: "How does VidFab AI generate images from text?",
-      answer: "VidFab uses powerful AI models that transform your written prompts into high-quality visuals. The system interprets the words you provide and generates a unique image that matches your description."
-    },
-    {
-      question: "Is the VidFab AI Image Generator beginner-friendly?",
-      answer: "Yes! Our tool is designed with simplicity in mind. No artistic or technical skills are needed. If you can describe it, you can create it."
-    },
-    {
-      question: "What languages are supported for text input?",
-      answer: "You can use a wide variety of languages for your text prompts, making it easy for creators around the world to generate art."
-    },
-    {
-      question: "Do I need to download any software?",
-      answer: "No. VidFab is a fully browser-based tool. You can start creating images right away without any installation."
-    },
-    {
-      question: "Can I use the generated images for commercial purposes?",
-      answer: "Absolutely. The images you create with VidFab are yours to use for marketing, social media, commercial products, and more."
-    },
-    {
-      question: "Can I use the VidFab AI Image Generator for free?",
-      answer: "Yes. VidFab will provide 50 credits, allowing you to try generating images and videos initially."
-    }
-  ]
+  const keyFeatures = (t.raw('keyFeatures.features') as any[]) || []
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <Suspense fallback={<LoadingState message="Loading Text-to-Image..." />}>
         <main>
-          {/* Hero Section - Full Screen with Video Background */}
+          {/* Hero Section */}
           <TextToImageHero />
 
           {/* Content Sections */}
           <div className="relative z-10 bg-black">
             {/* Key Features Section */}
             <AmazingFeatures
-              title="Key Features of VidFab Text-to-Image"
+              title={t('keyFeatures.title')}
               features={keyFeatures}
             />
 
             {/* How It Works Section */}
-            <HowItWorks steps={steps} />
+            <HowItWorks title={t('howItWorks.title')} steps={steps} />
 
             {/* FAQ Section */}
             <FAQSection
-              title="FAQ"
-              faqs={faqs}
+              title={t('faq.title')}
+              faqs={t.raw('faq.items') as any[]}
             />
 
             {/* Community CTA Section */}
             <CommunityCTA
-              title="Create Images With Text Effortlessly"
+              title={t('communityCta.title')}
               subtitle=""
-              description="VidFab makes it simple to generate captivating images from your words. Stop struggling with complex design software — our AI image generator does all the creative work for you."
-              ctaText="Generate Your First Image for Free"
+              description={t('communityCta.description')}
+              ctaText={t('communityCta.ctaText')}
               ctaLink="/studio/text-to-image"
               getInspiredText=""
               showVideos={false}

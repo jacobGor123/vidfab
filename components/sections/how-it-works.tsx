@@ -53,10 +53,11 @@ interface HowItWorksProps {
   steps?: Step[]
   className?: string
   autoPlayInterval?: number
+  title?: string
   subtitle?: string
 }
 
-export function HowItWorks({ steps = defaultSteps, className, autoPlayInterval = 5000, subtitle }: HowItWorksProps) {
+export function HowItWorks({ steps = defaultSteps, className, autoPlayInterval = 5000, title, subtitle }: HowItWorksProps) {
   const [activeStep, setActiveStep] = useState(steps[0].id)
   const [isUserInteracting, setIsUserInteracting] = useState(false)
 
@@ -92,7 +93,7 @@ export function HowItWorks({ steps = defaultSteps, className, autoPlayInterval =
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-extrabold mb-4 text-white">
-            How It Works
+            {title ?? "How It Works"}
           </h2>
           {subtitle && (
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">

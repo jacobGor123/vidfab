@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
@@ -27,6 +28,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { GenerationAnalytics } from "@/lib/analytics/generation-events"
 
 export function ImageToImagePanel() {
+  const t = useTranslations('studio')
   const isMobile = useIsMobile()
   const [prompt, setPrompt] = useState("")
   const [model, setModelState] = useState("seedream-v4")
@@ -134,7 +136,7 @@ export function ImageToImagePanel() {
 
     await authModal.requireAuth(async () => {
       if (imageUrls.length === 0) {
-        throw new Error('Please upload at least one image')
+        throw new Error(t('validation.uploadAtLeastOne'))
       }
 
       const result = await generateImageToImage(imageUrls, prompt, model)
@@ -226,12 +228,12 @@ export function ImageToImagePanel() {
         sessionStorage.removeItem('vidfab-image-to-image')
 
         // 显示成功提示
-        toast.success('Image loaded successfully')
+        toast.success(t('imageToImage.imageLoaded'))
 
       } catch (error) {
         console.error('❌ Failed to load image-to-image data:', error)
         sessionStorage.removeItem('vidfab-image-to-image')
-        toast.error('Failed to load image')
+        toast.error(t('imageToImage.imageLoadFailed'))
       }
     }
 
@@ -283,7 +285,7 @@ export function ImageToImagePanel() {
             <Card className="bg-gray-950 border-gray-800">
               <CardContent className="space-y-4 pt-6">
                 <Textarea
-                  placeholder="Transform the image into a watercolor painting style with vibrant colors..."
+                  placeholder={t('imageToImage.promptPlaceholder')}
                   value={prompt}
                   onChange={(e) => {
                     setPrompt(e.target.value)
@@ -293,7 +295,7 @@ export function ImageToImagePanel() {
                   disabled={isGenerating}
                 />
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Describe how to transform the images</span>
+                  <span className="text-gray-500">{t('imageToImage.describeTransform')}</span>
                   <span className={`${prompt.length > 900 ? 'text-yellow-400' : 'text-gray-400'}`}>
                     {prompt.length}/1000
                   </span>
@@ -324,16 +326,16 @@ export function ImageToImagePanel() {
               {isGenerating ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Submitting...
+                  {t('common.submitting')}
                 </>
               ) : processingCount >= 4 ? (
                 <>
                   <AlertTriangle className="w-5 h-5 mr-2" />
-                  Maximum 4 Images at Once
+                  {t('imageToImage.maxImages')}
                 </>
               ) : (
                 <div className="gap-[20px] w-full flex justify-center items-center">
-                  <span>Generate Image {processingCount > 0 ? `(${processingCount}/4)` : ''}</span>
+                  <span>{t('imageToImage.generateImage')} {processingCount > 0 ? `(${processingCount}/4)` : ''}</span>
                   <span className="flex items-center text-sm opacity-90">
                     <Zap className="w-3 h-3 mr-1" />
                     {IMAGE_GENERATION_CREDITS}
@@ -368,8 +370,8 @@ export function ImageToImagePanel() {
                   <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-6">
                     <Sparkles className="w-8 h-8 text-gray-500" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-400 mb-2">Preview Area</h3>
-                  <p className="text-gray-500">Your generated images will appear here</p>
+                  <h3 className="text-lg font-semibold text-gray-400 mb-2">{t('common.previewArea')}</h3>
+                  <p className="text-gray-500">{t('imageToImage.imagePreviewHint')}</p>
                 </div>
               </CardContent>
             </Card>

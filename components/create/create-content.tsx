@@ -9,6 +9,8 @@ import { TemplateGallery } from "./template-gallery"
 import { MyAssets } from "./my-assets"
 import { MyProfilePanel } from "./my-profile-panel"
 import { type ToolType } from "@/lib/config/studio-tools"
+import { useLocale } from "next-intl"
+import { defaultLocale } from "@/i18n/locale"
 
 interface CreateContentProps {
   activeTool: ToolType
@@ -17,16 +19,17 @@ interface CreateContentProps {
 }
 
 export function CreateContent({ activeTool, onToolChange, initialPrompt }: CreateContentProps) {
+  const locale = useLocale()
+  const localePrefix = locale === defaultLocale ? '' : `/${locale}`
+
   const renderContent = () => {
     switch (activeTool) {
       case "discover":
         return <TemplateGallery />
       case "story-to-video":
-        // Story-to-Video 有独立的页面 /studio/video-agent-beta
-        // 这里不应该被触发，因为路由已经处理了跳转
-        // 如果被触发，重定向到独立页面
+        // Story-to-Video 有独立的页面 /studio/video-agent-beta，跳转时携带 locale
         if (typeof window !== 'undefined') {
-          window.location.href = '/studio/video-agent-beta'
+          window.location.href = `${localePrefix}/studio/video-agent-beta`
         }
         return null
       case "text-to-video":

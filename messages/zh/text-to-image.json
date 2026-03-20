@@ -1,0 +1,42 @@
+{
+  "hero": {
+    "title": "文字变图片：用一句话生成精美图像",
+    "cta": "立即生成"
+  },
+  "keyFeatures": {
+    "title": "VidFab 文字生图核心功能",
+    "features": [
+      { "number": "1", "title": "轻松的文字输入", "description": "将任何想法、描述或关键词转化为独特图像。文字生图从未如此简单。" },
+      { "number": "2", "title": "强大的 AI 模型", "description": "VidFab 集成了最强大的 AI 模型，让您的创意即刻成真。" },
+      { "number": "3", "title": "多种宽高比", "description": "丰富的宽高比选项满足所有创意需求，无需额外裁剪即可直接使用。" },
+      { "number": "4", "title": "多语言支持", "description": "用任意语言输入文字提示，让 AI 艺术生成器为您创作精美图像。" },
+      { "number": "5", "title": "一键生成视频", "description": "一键将生成的图像转化为视频，充分利用每一次创作，节省宝贵时间。" },
+      { "number": "6", "title": "多任务并发处理", "description": "同时处理最多 4 个图像生成任务，大幅提升创意工作效率。" }
+    ]
+  },
+  "howItWorks": {
+    "title": "使用方法",
+    "steps": [
+      { "number": "1", "title": "输入提示词", "description": "输入或粘贴您想生成图像的描述，可以详细也可以简洁。" },
+      { "number": "2", "title": "点击生成", "description": "AI 开始工作，将您的文字转化为独特的视觉图像。" },
+      { "number": "3", "title": "AI 处理中", "description": "几秒钟内即可完成图像生成，随时可供查看。" },
+      { "number": "4", "title": "在线查看并下载", "description": "在线预览生成的图像，下载后用于您的项目。" }
+    ]
+  },
+  "faq": {
+    "title": "常见问题",
+    "items": [
+      { "question": "VidFab AI 如何从文字生成图像？", "answer": "VidFab 使用强大的 AI 模型将您的文字提示转化为高质量视觉图像。系统解读您提供的文字，生成与描述相符的独特图像。" },
+      { "question": "VidFab AI 图像生成器适合新手使用吗？", "answer": "非常适合！我们的工具设计简洁易用，无需任何美术或技术技能，只要能描述就能创作。" },
+      { "question": "文字输入支持哪些语言？", "answer": "您可以使用多种语言输入提示词，让全球各地的创作者都能轻松生成艺术作品。" },
+      { "question": "需要下载软件吗？", "answer": "不需要。VidFab 是完全基于浏览器的工具，无需安装，随时即可开始创作。" },
+      { "question": "生成的图像可以商用吗？", "answer": "当然可以。您用 VidFab 创作的图像可用于营销、社交媒体、商业产品等各类用途。" },
+      { "question": "VidFab AI 图像生成器可以免费使用吗？", "answer": "可以。VidFab 提供 50 个积分，让您先免费体验图像和视频生成功能。" }
+    ]
+  },
+  "communityCta": {
+    "title": "轻松用文字生成精彩图像",
+    "description": "VidFab 让您能从文字轻松生成引人注目的图像。告别复杂的设计软件——我们的 AI 图像生成器为您完成所有创意工作。",
+    "ctaText": "免费生成第一张图像"
+  }
+}

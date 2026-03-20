@@ -1,6 +1,7 @@
 'use client'
 
 import { Mic, Sparkles } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import {
   Select,
   SelectContent,
@@ -69,7 +70,23 @@ export default function VideoToolbar({
   isLoading,
   hasScript,
 }: VideoToolbarProps) {
-  const currentStyleLabel = STORY_STYLES.find(s => s.value === storyStyle)?.label ?? 'Auto'
+  const t = useTranslations('studio')
+
+  const STYLE_KEY_MAP: Record<string, string> = {
+    auto: 'storyToVideo.styleAuto',
+    comedy: 'storyToVideo.styleComedy',
+    mystery: 'storyToVideo.styleMystery',
+    moral: 'storyToVideo.styleMoral',
+    twist: 'storyToVideo.styleTwist',
+    suspense: 'storyToVideo.styleSuspense',
+    warmth: 'storyToVideo.styleWarmth',
+    inspiration: 'storyToVideo.styleInspire',
+  }
+
+  function getStyleLabel(value: string): string {
+    const key = STYLE_KEY_MAP[value]
+    return key ? t(key) : value
+  }
 
   return (
     <div
@@ -124,7 +141,7 @@ export default function VideoToolbar({
         {/* BGM 开关 — mic 图标 */}
         <button
           onClick={() => onMuteBgmChange(!muteBgm)}
-          title={muteBgm ? 'Enable Background Music' : 'Mute Background Music'}
+          title={muteBgm ? t('storyToVideo.enableBgm') : t('storyToVideo.muteBgm')}
           className={cn(
             "flex items-center justify-center w-9 h-8 rounded-lg transition-all flex-shrink-0",
             muteBgm
@@ -146,19 +163,19 @@ export default function VideoToolbar({
           ) : (
             <SparkleIcon />
           )}
-          <span>AI Inspiration</span>
+          <span>{t('storyToVideo.aiInspiration')}</span>
         </button>
 
         {/* Story Style 下拉 */}
         <Select value={storyStyle} onValueChange={onStoryStyleChange}>
           <SelectTrigger className={cn(toolBtnClass, "gap-1.5 px-3 w-auto [&>svg:last-child]:hidden")}>
             <SparkleIcon />
-            <span>Story Style: <span className="capitalize">{currentStyleLabel}</span></span>
+            <span>{t('storyToVideo.storyStyle')}: <span className="capitalize">{getStyleLabel(storyStyle)}</span></span>
           </SelectTrigger>
           <SelectContent className={selectContentClass}>
             {STORY_STYLES.map(s => (
               <SelectItem key={s.value} value={s.value} className={selectItemClass}>
-                {s.label}
+                {getStyleLabel(s.value)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -181,7 +198,7 @@ export default function VideoToolbar({
         ) : (
           <Sparkles className="w-3.5 h-3.5" />
         )}
-        <span>Generate Video</span>
+        <span>{t('storyToVideo.generateVideo')}</span>
       </button>
     </div>
   )

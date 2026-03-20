@@ -5,8 +5,9 @@
  */
 
 import { Metadata } from 'next'
+import { getAlternateLinks } from '@/lib/seo/alternate-links'
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
 interface PageMetadataProps {
   title: string
@@ -18,7 +19,7 @@ interface PageMetadataProps {
 }
 
 /**
- * Generate page-specific metadata
+ * Generate page-specific metadata with hreflang alternates
  */
 export function generatePageMetadata({
   title,
@@ -36,6 +37,7 @@ export function generatePageMetadata({
     keywords,
     alternates: {
       canonical: url,
+      languages: getAlternateLinks(path),
     },
     openGraph: {
       title,

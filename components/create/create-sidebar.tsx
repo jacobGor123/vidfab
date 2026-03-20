@@ -8,6 +8,8 @@ import {
   ChevronRight
 } from "lucide-react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { useLocale, useTranslations } from "next-intl"
+import { defaultLocale } from "@/i18n/locale"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
@@ -27,21 +29,43 @@ interface CreateSidebarProps {
   onToggle: () => void
 }
 
+const TOOL_LABEL_KEYS: Record<ToolType, string> = {
+  'discover': 'sidebar.discover',
+  'story-to-video': 'sidebar.storyToVideo',
+  'text-to-video': 'sidebar.textToVideo',
+  'image-to-video': 'sidebar.imageToVideo',
+  'video-effects': 'sidebar.videoEffects',
+  'text-to-image': 'sidebar.textToImage',
+  'image-to-image': 'sidebar.imageToImage',
+  'my-assets': 'sidebar.myAssets',
+  'my-profile': 'sidebar.myProfile',
+}
+
+const CATEGORY_LABEL_KEYS: Record<string, string> = {
+  'AI Video': 'sidebar.aiVideo',
+  'AI Image': 'sidebar.aiImage',
+  'My Works': 'sidebar.myWorks',
+  'Account': 'sidebar.account',
+}
+
 export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
+  const locale = useLocale()
+  const t = useTranslations('studio')
   const isMobile = useIsMobile()
   const { status } = useSession()
   const isLoggedIn = status === 'authenticated'
+
+  const localePrefix = locale === defaultLocale ? '' : `/${locale}`
 
   // 使用统一配置的路径映射表
   const activeTool = getToolFromPath(pathname) || (searchParams.get("tool") as ToolType) || 'discover'
 
   const handleToolSelect = (toolId: ToolType) => {
-    const newUrl = toolToUrlMap[toolId]
-    // 直接跳转，不保留 query 参数
-    router.push(newUrl)
+    const studioUrl = toolToUrlMap[toolId]
+    router.push(`${localePrefix}${studioUrl}`)
   }
 
   // 在移动端隐藏侧边栏
@@ -61,7 +85,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
         {/* Header */}
         <div className="p-4 border-b border-gray-800 flex items-center justify-between">
           {isOpen && (
-            <h2 className="text-lg font-semibold text-white">Studio</h2>
+            <h2 className="text-lg font-semibold text-white">{t('sidebar.title')}</h2>
           )}
           <Button
             variant="ghost"
@@ -110,7 +134,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                   </div>
                   {isOpen && (
                     <div className="ml-3 flex-1 min-w-0">
-                      <div className="font-medium truncate">{discoverTool.label}</div>
+                      <div className="font-medium truncate">{t('sidebar.discover')}</div>
                     </div>
                   )}
                 </button>
@@ -130,7 +154,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
               {isOpen && (
                 <div className="px-4 mb-3">
                   <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {category.category}
+                    {t(CATEGORY_LABEL_KEYS[category.category] as Parameters<typeof t>[0])}
                   </h3>
                 </div>
               )}
@@ -168,7 +192,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
                       </div>
                       {isOpen && (
                         <div className="ml-3 flex-1 min-w-0 flex items-center gap-2">
-                          <div className="font-medium truncate">{item.label}</div>
+                          <div className="font-medium truncate">{t(TOOL_LABEL_KEYS[item.id] as Parameters<typeof t>[0])}</div>
                           {item.isBeta && (
                             <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded font-semibold shrink-0">
                               BETA
@@ -189,7 +213,7 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
         {isOpen && (
           <div className="p-4 border-t border-gray-800">
             <div className="text-xs text-gray-500">
-              <p>Create your first masterpiece with AI</p>
+              <p>{t('sidebar.footer')}</p>
             </div>
           </div>
         )}

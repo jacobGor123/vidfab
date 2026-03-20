@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 export type TypeFilter = 'all' | 'story' | 'video' | 'image'
 export type SortOrder = 'newest' | 'oldest'
 
@@ -61,18 +63,20 @@ function ImageIcon() {
   )
 }
 
-const TYPE_OPTIONS: { key: TypeFilter; label?: string; Icon?: React.FC; title: string }[] = [
-  { key: 'all',   label: 'All',  title: 'All types' },
-  { key: 'story', Icon: StoryIcon, title: 'Story videos' },
-  { key: 'video', Icon: VideoIcon, title: 'Videos' },
-  { key: 'image', Icon: ImageIcon, title: 'Images' },
-]
-
 export function AssetFilterBar({
   total, videoCount, imageCount,
   typeFilter, onTypeFilterChange,
   sortOrder, onSortOrderChange,
 }: AssetFilterBarProps) {
+  const t = useTranslations('studio')
+
+  const TYPE_OPTIONS: { key: TypeFilter; label?: string; Icon?: React.FC; title: string }[] = [
+    { key: 'all',   label: t('myAssets.filter.all'),  title: t('myAssets.filter.allTypes') },
+    { key: 'story', Icon: StoryIcon, title: t('myAssets.filter.storyVideos') },
+    { key: 'video', Icon: VideoIcon, title: t('myAssets.filter.videosTitle') },
+    { key: 'image', Icon: ImageIcon, title: t('myAssets.filter.imagesTitle') },
+  ]
+
   return (
     <div
       className="flex-shrink-0 flex items-center justify-between gap-4 px-3 py-2.5 md:px-6"
@@ -80,9 +84,9 @@ export function AssetFilterBar({
     >
       {/* Left: stats */}
       <p className="text-sm whitespace-nowrap hidden md:block" style={{ color: '#9b9ab4' }}>
-        Total:&nbsp;<span style={{ color: '#9d9ab8' }}>{total}</span>&nbsp;assets
-        &nbsp;•&nbsp;<span style={{ color: '#9d9ab8' }}>{videoCount}</span>&nbsp;videos
-        &nbsp;•&nbsp;<span style={{ color: '#9d9ab8' }}>{imageCount}</span>&nbsp;images
+        {t('myAssets.filter.total')}&nbsp;<span style={{ color: '#9d9ab8' }}>{total}</span>&nbsp;{t('myAssets.filter.assets')}
+        &nbsp;•&nbsp;<span style={{ color: '#9d9ab8' }}>{videoCount}</span>&nbsp;{t('myAssets.filter.videos')}
+        &nbsp;•&nbsp;<span style={{ color: '#9d9ab8' }}>{imageCount}</span>&nbsp;{t('myAssets.filter.images')}
       </p>
 
       {/* Right controls */}
@@ -90,7 +94,7 @@ export function AssetFilterBar({
 
         {/* Type label + grouped buttons */}
         <div className="flex items-center gap-2">
-          <span className="text-sm" style={{ color: '#9b9ab4' }}>Type:</span>
+          <span className="text-sm" style={{ color: '#9b9ab4' }}>{t('myAssets.filter.type')}</span>
 
           {/* Single container for all type options */}
           <div
@@ -134,7 +138,7 @@ export function AssetFilterBar({
 
         {/* Sort by */}
         <div className="flex items-center gap-2">
-          <span className="text-sm" style={{ color: '#9b9ab4' }}>Sort by:</span>
+          <span className="text-sm" style={{ color: '#9b9ab4' }}>{t('myAssets.filter.sortBy')}</span>
 
           {/* Creation Time (static, only one sort field) */}
           <button
@@ -146,7 +150,7 @@ export function AssetFilterBar({
             }}
             disabled
           >
-            Creation Time
+            {t('myAssets.filter.creationTime')}
             <ChevronDown />
           </button>
 
@@ -160,7 +164,7 @@ export function AssetFilterBar({
               color: '#c4c3d8',
             }}
           >
-            {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
+            {sortOrder === 'newest' ? t('myAssets.filter.newest') : t('myAssets.filter.oldest')}
             <SortIcon />
           </button>
         </div>

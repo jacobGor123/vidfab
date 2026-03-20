@@ -7,6 +7,7 @@ import { useRemix } from "@/hooks/use-remix"
 import useSWR from 'swr'
 import { transformDiscoverListToVideoData } from '@/lib/discover/transform'
 import type { VideoData } from '@/types/video-optimization'
+import { useTranslations } from "next-intl"
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -16,6 +17,7 @@ interface VideoCardProps {
 }
 
 function VideoCard({ video, onCreateSimilar }: VideoCardProps) {
+  const t = useTranslations('studio')
   const [isHovered, setIsHovered] = useState(false)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -149,7 +151,7 @@ function VideoCard({ video, onCreateSimilar }: VideoCardProps) {
       {imageError && (
         <div className="absolute inset-0 bg-gray-800 flex flex-col items-center justify-center">
           <Play className="w-16 h-16 text-gray-500 mb-2" />
-          <div className="text-gray-400 text-sm">Video Preview</div>
+          <div className="text-gray-400 text-sm">{t('discover.videoPreview')}</div>
         </div>
       )}
 
@@ -219,7 +221,7 @@ function VideoCard({ video, onCreateSimilar }: VideoCardProps) {
           }`}
         >
           <Copy className="w-3 h-3 mr-1" />
-          Remix
+          {t('discover.remix')}
         </Button>
       </div>
 
@@ -237,6 +239,7 @@ function VideoCard({ video, onCreateSimilar }: VideoCardProps) {
 
 
 export function TemplateGallery() {
+  const t = useTranslations('studio')
   const [activeCategory, setActiveCategory] = useState("All")
 
   const { remixVideo } = useRemix()
@@ -288,8 +291,8 @@ export function TemplateGallery() {
               <div className="w-16 h-16 border-4 border-gray-600 border-t-purple-500 rounded-full animate-spin"></div>
               <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-blue-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
             </div>
-            <div className="text-white text-lg font-medium">Loading Discover...</div>
-            <div className="text-gray-400 text-sm">Fetching creative inspirations</div>
+            <div className="text-white text-lg font-medium">{t('discover.loading')}</div>
+            <div className="text-gray-400 text-sm">{t('discover.fetchingInspirations')}</div>
           </div>
         </div>
       )}
@@ -317,8 +320,8 @@ export function TemplateGallery() {
       {!isLoading && filteredVideos.length === 0 && (
         <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
           <div className="text-gray-500 text-6xl">🎬</div>
-          <div className="text-gray-400 text-lg font-medium">No videos found</div>
-          <div className="text-gray-500 text-sm">Check back later for new creative content</div>
+          <div className="text-gray-400 text-lg font-medium">{t('discover.noVideos')}</div>
+          <div className="text-gray-500 text-sm">{t('discover.checkBackLater')}</div>
         </div>
       )}
 
@@ -341,7 +344,7 @@ export function TemplateGallery() {
       {!isLoading && filteredVideos.length > 0 && (
         <div className="text-center mt-8">
           <div className="text-gray-400 text-sm mb-4">
-            <div>Showing {filteredVideos.length} / {currentData.length} videos</div>
+            <div>{t('discover.showing', { count: filteredVideos.length, total: currentData.length })}</div>
           </div>
         </div>
       )}

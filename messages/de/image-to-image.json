@@ -1,0 +1,42 @@
+{
+  "hero": {
+    "title": "Vom Bild zum Meisterwerk: Neugestaltung Ihrer Visuals mit KI",
+    "cta": "Transformieren"
+  },
+  "keyFeatures": {
+    "title": "Hauptfunktionen von VidFab Bild-zu-Bild",
+    "features": [
+      { "number": "1", "title": "Mühelose Bildtransformation", "description": "Laden Sie Ihr Bild hoch und verwenden Sie einfache Textprompts, um die KI zu steuern. Die Umwandlung eines Bildes in ein anderes war noch nie so einfach." },
+      { "number": "2", "title": "Leistungsstarke KI-Modelle", "description": "Egal was Sie eingeben, VidFab versteht Ihre Ideen präzise und lässt Ihr Originalbild weiterentwickeln. Experimentieren Sie mit verschiedenen Stilen und sehen Sie die Ergebnisse sofort." },
+      { "number": "3", "title": "Vollständige kreative Kontrolle", "description": "Verfeinern Sie Ihre Originalbilder durch Anpassung von Stilen, Farben und Komposition, um Ihre künstlerische Vision perfekt umzusetzen." },
+      { "number": "4", "title": "Mehrbildfusion", "description": "Laden Sie mehrere Bilder hoch und geben Sie eine Beschreibung ein — VidFab KI kombiniert sie nahtlos zu einer einzigen realistischen Komposition." },
+      { "number": "5", "title": "Sofortige Videoerstellung", "description": "Verwandeln Sie Bilder mit einem Klick in Videos. Sparen Sie Zeit und erwecken Sie Ihre Kreationen zum Leben." },
+      { "number": "6", "title": "Mehrere Aufgaben gleichzeitig", "description": "Steigern Sie Ihren kreativen Workflow, indem Sie bis zu 4 Bild-zu-Bild-Aufgaben gleichzeitig ausführen." }
+    ]
+  },
+  "howItWorks": {
+    "title": "So funktioniert's",
+    "steps": [
+      { "number": "1", "title": "Originalbild hochladen", "description": "Beginnen Sie, indem Sie das Bild hochladen, das Sie transformieren möchten." },
+      { "number": "2", "title": "Transformation beschreiben", "description": "Geben Sie einen Textprompt ein, um der KI zu sagen, was Sie ändern möchten." },
+      { "number": "3", "title": "KI-Verarbeitung", "description": "Unsere KI verbindet Ihr Originalbild mit Ihrem Textprompt und generiert ein neues Meisterwerk." },
+      { "number": "4", "title": "Anzeigen und herunterladen", "description": "Sehen Sie sich Ihr neu generiertes Bild an und laden Sie es für Ihre Projekte herunter." }
+    ]
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      { "question": "Wie transformiert VidFab KI ein Bild in ein anderes?", "answer": "VidFab verwendet fortschrittliche KI-Modelle, die Ihr hochgeladenes Bild und Ihren Textprompt analysieren. Es generiert dann ein neues, einzigartiges Bild, das die Struktur Ihres Originalbildes mit dem beschriebenen Stil und den beschriebenen Elementen kombiniert." },
+      { "question": "Ist der VidFab KI-Bildgenerator anfängerfreundlich?", "answer": "Ja! Unser Tool ist auf Einfachheit ausgelegt. Keine künstlerischen oder technischen Kenntnisse erforderlich. Wenn Sie es beschreiben können, können Sie es erstellen." },
+      { "question": "Welche Sprachen werden für die Texteingabe unterstützt?", "answer": "Sie können eine Vielzahl von Sprachen für Ihre Textprompts verwenden, sodass Creator weltweit problemlos Kunstwerke generieren können." },
+      { "question": "Muss ich Software herunterladen?", "answer": "Nein. VidFab ist ein vollständig browserbasiertes Tool. Sie können sofort ohne Installation mit der Bildgenerierung beginnen." },
+      { "question": "Kann ich die generierten Bilder für kommerzielle Zwecke nutzen?", "answer": "Absolut. Die Bilder, die Sie mit VidFab erstellen, können Sie für Marketing, Social Media, kommerzielle Produkte und vieles mehr verwenden." },
+      { "question": "Kann ich den VidFab KI-Bildgenerator kostenlos nutzen?", "answer": "Ja. VidFab stellt Ihnen 50 Credits zur Verfügung, mit denen Sie die Bild- und Videogenerierung zunächst kostenlos ausprobieren können." }
+    ]
+  },
+  "communityCta": {
+    "title": "Gestalten Sie Ihre Bilder mühelos neu",
+    "description": "VidFab macht es einfach, Ihre vorhandenen Bilder in neue Kunstwerke zu verwandeln. Schluss mit komplizierter Bearbeitungssoftware — unser KI-Bildgenerator eröffnet Ihnen neue kreative Möglichkeiten.",
+    "ctaText": "Erstes Bild kostenlos generieren"
+  }
+}

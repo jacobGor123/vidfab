@@ -1,0 +1,42 @@
+{
+  "hero": {
+    "title": "Von Text zu Bild: Erstelle Bilder mit nur einem Satz",
+    "cta": "Bild erstellen"
+  },
+  "keyFeatures": {
+    "title": "Hauptfunktionen von VidFab Text-zu-Bild",
+    "features": [
+      { "number": "1", "title": "Mühelose Texteingabe", "description": "Verwandeln Sie jede Idee, Beschreibung oder jedes Keyword in ein einzigartiges Bild. Die Konvertierung von Text zu Bild war noch nie so einfach." },
+      { "number": "2", "title": "Leistungsstarke KI-Modelle", "description": "VidFab integriert die leistungsstärksten KI-Modelle und bringt Ihre Konzepte sofort zum Leben." },
+      { "number": "3", "title": "Mehrere Seitenverhältnisse", "description": "Unsere vielfältigen Seitenverhältnisse erfüllen alle kreativen Anforderungen. Keine zusätzliche Bearbeitung für den Endeinsatz erforderlich." },
+      { "number": "4", "title": "Mehrsprachige Unterstützung", "description": "Geben Sie Ihre Textprompts in beliebiger Sprache ein und lassen Sie unseren KI-Kunstgenerator ein schönes Bild für Sie erstellen." },
+      { "number": "5", "title": "Ein-Klick-Video-Erstellung", "description": "Verwandeln Sie Ihre generierten Bilder sofort mit einem einzigen Klick in Videos. Maximieren Sie jede Kreation und sparen Sie wertvolle Zeit." },
+      { "number": "6", "title": "Mehrere Aufgaben gleichzeitig", "description": "Bearbeiten Sie bis zu 4 Bildgenerierungsaufgaben gleichzeitig und steigern Sie Ihren kreativen Workflow." }
+    ]
+  },
+  "howItWorks": {
+    "title": "So funktioniert's",
+    "steps": [
+      { "number": "1", "title": "Prompt eingeben", "description": "Tippen oder fügen Sie eine Beschreibung des Bildes ein, das Sie erstellen möchten. So detailliert oder einfach wie Sie möchten." },
+      { "number": "2", "title": "Auf Generieren klicken", "description": "Unsere KI legt los und interpretiert Ihren Text, um ein einzigartiges Bild zu erstellen." },
+      { "number": "3", "title": "KI-Verarbeitung", "description": "Ihr Bild wird in Sekunden generiert und ist zur Überprüfung bereit." },
+      { "number": "4", "title": "Anzeigen und herunterladen", "description": "Sehen Sie sich Ihr neues Bild online an und laden Sie es für Ihre Projekte herunter." }
+    ]
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      { "question": "Wie generiert VidFab KI Bilder aus Text?", "answer": "VidFab verwendet leistungsstarke KI-Modelle, die Ihre geschriebenen Prompts in hochwertige Bilder umwandeln. Das System interpretiert Ihre Wörter und generiert ein einzigartiges Bild, das Ihrer Beschreibung entspricht." },
+      { "question": "Ist der VidFab KI-Bildgenerator anfängerfreundlich?", "answer": "Ja! Unser Tool ist auf Einfachheit ausgelegt. Keine künstlerischen oder technischen Kenntnisse erforderlich. Wenn Sie es beschreiben können, können Sie es erstellen." },
+      { "question": "Welche Sprachen werden für die Texteingabe unterstützt?", "answer": "Sie können eine Vielzahl von Sprachen für Ihre Textprompts verwenden, sodass Creator weltweit problemlos Kunstwerke generieren können." },
+      { "question": "Muss ich Software herunterladen?", "answer": "Nein. VidFab ist ein vollständig browserbasiertes Tool. Sie können sofort ohne Installation mit der Bildgenerierung beginnen." },
+      { "question": "Kann ich die generierten Bilder für kommerzielle Zwecke nutzen?", "answer": "Absolut. Die Bilder, die Sie mit VidFab erstellen, können Sie für Marketing, Social Media, kommerzielle Produkte und vieles mehr verwenden." },
+      { "question": "Kann ich den VidFab KI-Bildgenerator kostenlos nutzen?", "answer": "Ja. VidFab stellt Ihnen 50 Credits zur Verfügung, mit denen Sie die Bild- und Videogenerierung zunächst kostenlos ausprobieren können." }
+    ]
+  },
+  "communityCta": {
+    "title": "Erstellen Sie mühelos Bilder aus Text",
+    "description": "VidFab macht es einfach, fesselnde Bilder aus Ihren Worten zu generieren. Schluss mit komplexer Designsoftware — unser KI-Bildgenerator übernimmt die gesamte kreative Arbeit für Sie.",
+    "ctaText": "Erstes Bild kostenlos generieren"
+  }
+}

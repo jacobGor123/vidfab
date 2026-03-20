@@ -5,6 +5,7 @@
  * 图片生成参数设置组件
  */
 
+import { useTranslations } from "next-intl"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ASPECT_RATIOS, IMAGE_MODEL_CONFIG } from "@/lib/types/image"
@@ -27,11 +28,12 @@ export function ImageGenerationSettings({
   disabled = false,
   showAspectRatio = true
 }: ImageGenerationSettingsProps) {
+  const t = useTranslations('studio')
   return (
     <div className="space-y-4">
       {/* Model 选择 */}
       <div className="space-y-2">
-        <Label className="text-gray-300">Model</Label>
+        <Label className="text-gray-300">{t('common.model')}</Label>
         <Select
           value={model}
           onValueChange={onModelChange}
@@ -75,7 +77,7 @@ export function ImageGenerationSettings({
       {/* Aspect Ratio 选择 */}
       {showAspectRatio && (
         <div className="space-y-2">
-          <Label className="text-gray-300">Aspect Ratio</Label>
+          <Label className="text-gray-300">{t('common.aspectRatio')}</Label>
           <div className="grid grid-cols-5 gap-2">
             {ASPECT_RATIOS.map((ratio) => (
               <button

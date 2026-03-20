@@ -1,0 +1,42 @@
+{
+  "hero": {
+    "badge": "Powered by Kuaishou",
+    "h1": "Ihr direkter Zugang zum Kling 3.0 Modell",
+    "description": "Das KI-Videomodell, das in Szenen denkt, nicht in Sekunden. Beschreiben Sie Ihre Geschichte in einfachem Deutsch. Kling 3.0 erledigt den Rest — Multi-Shot-Sequenzierung, Charakterkonsistenz und lippensynchrones Audio, alles in einer Generierung.",
+    "ctaText": "Story kostenlos starten"
+  },
+  "builderTitle": "Der Kling 3.0 Playground",
+  "builderSubtitle": "Prompt. Generieren. Staunen.",
+  "featuresTitle": "Was macht Kling 3.0 zur ultimativen Story-Engine?",
+  "features": [
+    { "title": "Multi-Shot Story-Generierung", "description": "Die meisten KI-Videotools geben Ihnen einen einzelnen Clip. Kling 3.0 gibt Ihnen eine Szene. Beschreiben Sie Ihre gesamte Storysequenz in einfacher Sprache — Establishing-Shots, Close-Ups, Gegen-Shots, Dialogmomente — und das Modell plant die Coverage, respektiert Kontinuität und führt den Schnitt automatisch aus." },
+    { "title": "Nativer Audio & Lip-Sync — Keine Nachbearbeitung nötig", "description": "Vergessen Sie das spätere Zusammensetzen von Audio. Kling 3.0 generiert charakterspezifische Stimmen, Multi-Charakter-Dialog und atmosphärische Soundeffekte, die alle nativ in Ihr Video eingebacken sind. Emotionale Darbietung, natürliche Mundsynchronisation, immersive Umgebung — alles aus einem einzigen Prompt." },
+    { "title": "Natives 4K — Cinematic von Anfang an", "description": "Jedes Frame wird in nativer 4K-Auflösung gerendert. Realistische Physik — Fluiddynamik, Stoffbewegung, dramatische Beleuchtung — simuliert die echte Welt, damit Ihr Publikum in der Geschichte verbleibt, nicht von KI-Artefakten abgelenkt wird." },
+    { "title": "Felsenfeste Charakterkonsistenz", "description": "Ihr Held bleibt Ihr Held — über jeden Shot, jede Szene, jede Episode hinweg. Kling 3.0 handhabt 3+ Charaktere in derselben Szene ohne Verwechslungen — die Konsistenz, die serialisiertes Storytelling verlangt." },
+    { "title": "Erweiterte Szenenkohärenz", "description": "Keine schmelzenden Gesichter oder teleportierenden Requisiten mehr nach der 4-Sekunden-Marke. Kling 3.0's Architektur erhält räumliche Logik und zeitliche Konsistenz für bis zu 15 Sekunden pro Generierung — lang genug, um einen vollständigen Beat Ihrer Geschichte zu erzählen." }
+  ],
+  "promptShowcaseTitle": "Sehen Sie, wie Kling 3.0 jedes Story-Genre zum Leben erweckt",
+  "promptShowcaseSubtitle": "Was Sie schreiben, wird genau das gefilmt.",
+  "promptCategories": [
+    "Detektiv-Drama",
+    "Sci-Fi-Action",
+    "Fantasy-Lore",
+    "Indie-Kurzfilm"
+  ],
+  "creatorTypesTitle": "Gebaut für Creators, die Geschichten erzählen",
+  "creatorTypes": [
+    { "title": "Unabhängige Filmemacher", "description": "Visualisieren Sie vollständige Skripte, Storyboard-Sequenzen oder produzieren Sie Null-Budget-Kurzfilme mit Hollywood-Produktionstreue. Pitchen Sie bei Investoren. Posten Sie bei Festivals. Alles von Ihrem Laptop." },
+    { "title": "Gesichtslose Story-Kanäle", "description": "Produzieren Sie True Crime-, Reddit-Stories- und Lore-Serien mit hoher Bindungsrate deutlich schneller. Kling 3.0's Multi-Shot-Generierung bedeutet weniger Schnitt, mehr Veröffentlichungen, mehr Einnahmen." },
+    { "title": "Autoren & Drehbuchautoren", "description": "Verwandeln Sie Ihre Kapitel in filmische Teaser. Fördern Sie Buchverkäufe und Drehbuch-Aufmerksamkeit auf TikTok, YouTube Shorts und Reels — mit Visuals, die tatsächlich zu Ihrer narrativen Stimme passen." }
+  ],
+  "faqTitle": "Häufig gestellte Fragen",
+  "faqs": [
+    { "question": "Werden diese Videos wirklich von Kling 3.0 generiert?", "answer": "Ja. Wir nutzen die offizielle Kling 3.0 API direkt, sodass jede Generierung die volle Storytelling-Qualität des Modells liefert. Unsere Plattform fügt die Schicht des Story-Kontinuität-Managements hinzu." },
+    { "question": "Darf ich meine generierten Storys kommerziell nutzen?", "answer": "Absolut. Sie besitzen die Rechte an jedem Video, das Sie erstellen — ideal für YouTube-Monetarisierung, Kundenlieferungen oder den Verkauf von Story-Content." },
+    { "question": "Muss ich wissen, wie man KI-Prompts schreibt?", "answer": "Keineswegs. Genau dafür haben wir das gebaut. Sie schreiben Ihre Geschichte so, wie Sie darüber nachdenken — wir übersetzen es in die präzisen Multi-Shot-Anweisungen, die Kling 3.0 benötigt, um die Szene zu treffen." },
+    { "question": "Wie unterscheidet sich das von anderen KI-Videotools?", "answer": "Die meisten Tools generieren isolierte Clips. Kling 3.0 auf unserer Plattform generiert Szenen mit narrativer Logik — Multi-Shot-Sequenzierung, Charakterkonsistenz und lippensynchronisierter Dialog, alles auf einmal. Das ist der Unterschied zwischen einem Clip und einer Geschichte." }
+  ],
+  "ctaTitle": "Bereit, Ihre erste Kling 3.0 Geschichte zu inszenieren?",
+  "ctaDescription": "Erhalten Sie 100 kostenlose Credits und testen Sie das Kling 3.0 Modell noch heute.",
+  "ctaButtonText": "Story kostenlos starten"
+}

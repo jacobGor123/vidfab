@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {
@@ -55,6 +56,7 @@ function isStoryVideo(asset: UnifiedAsset): boolean {
 }
 
 export function MyAssets() {
+  const t = useTranslations('studio')
   const videoContext = useVideoContext()
   const { data: session, status: sessionStatus } = useSession()
   const router = useRouter()
@@ -83,7 +85,7 @@ export function MyAssets() {
       if (data.success) setAssets(data.data.assets || [])
       else throw new Error(data.error)
     } catch {
-      toast.error('Failed to load assets')
+      toast.error(t('myAssets.failedToLoad'))
     } finally {
       setIsLoading(false)
     }
@@ -118,10 +120,10 @@ export function MyAssets() {
       link.click()
       document.body.removeChild(link)
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000)
-      toast.success('Download started')
+      toast.success(t('myAssets.downloadStarted'))
     } catch (err) {
       console.error('Download error:', err)
-      toast.error('Download failed. Please try again.')
+      toast.error(t('myAssets.downloadFailed'))
     }
   }, [])
 
@@ -130,7 +132,7 @@ export function MyAssets() {
       imageUrl: asset.downloadUrl, prompt: asset.prompt || '', timestamp: Date.now(),
     }))
     router.push('/studio/image-to-video')
-    toast.success('Image ready for video generation')
+    toast.success(t('myAssets.imageReadyForVideo'))
   }, [router])
 
   const handleImageToImage = useCallback((asset: UnifiedAsset) => {
@@ -138,7 +140,7 @@ export function MyAssets() {
       imageUrl: asset.downloadUrl, prompt: asset.prompt || '', timestamp: Date.now(),
     }))
     router.push('/studio/image-to-image')
-    toast.success('Image ready for transformation')
+    toast.success(t('myAssets.imageReadyForTransform'))
   }, [router])
 
   const handleOpen = useCallback((asset: UnifiedAsset) => {
@@ -161,11 +163,11 @@ export function MyAssets() {
       const res = await fetch(endpoint, { method: 'DELETE' })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.error || 'Delete failed')
-      toast.success(`${type === 'image' ? 'Image' : 'Video'} deleted`)
+      toast.success(type === 'image' ? t('myAssets.imageDeleted') : t('myAssets.videoDeleted'))
       if (type === 'video') await videoContext.refreshQuotaInfo()
       await loadAssets()
     } catch (e) {
-      toast.error(`Delete failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+      toast.error(t('myAssets.deleteFailed', { error: e instanceof Error ? e.message : 'Unknown error' }))
       await loadAssets()
     } finally {
       setDeletingIds(prev => { const s = new Set(prev); s.delete(id); return s })
@@ -191,9 +193,9 @@ export function MyAssets() {
 
   const groups = groupByDate(filteredAssets)
   const DATE_SECTIONS: { key: keyof DateGroups; label: string }[] = [
-    { key: 'today', label: 'Today' },
-    { key: 'thisWeek', label: 'This Week' },
-    { key: 'older', label: 'Older' },
+    { key: 'today', label: t('myAssets.today') },
+    { key: 'thisWeek', label: t('myAssets.thisWeek') },
+    { key: 'older', label: t('myAssets.older') },
   ]
 
   if (isLoading) {
@@ -230,10 +232,10 @@ export function MyAssets() {
               <FolderOpen className="w-8 h-8" style={{ color: '#5a5580' }} />
             </div>
             <h3 className="text-base font-semibold mb-2" style={{ color: '#9d9ab8' }}>
-              No assets yet
+              {t('myAssets.noAssetsYet')}
             </h3>
             <p className="text-sm" style={{ color: '#5a5580' }}>
-              Start creating your first image or video to see it here
+              {t('myAssets.noAssetsHint')}
             </p>
           </div>
         ) : (
@@ -319,18 +321,18 @@ export function MyAssets() {
         <AlertDialogContent className="bg-gray-950 border border-gray-800">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">
-              Delete {deleteDialog.type === 'image' ? 'Image' : 'Video'}
+              {deleteDialog.type === 'image' ? t('myAssets.deleteImage') : t('myAssets.deleteVideo')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400">
-              This action cannot be undone.
+              {t('myAssets.deleteConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-gray-700 text-gray-300 hover:bg-gray-800">
-              Cancel
+              {t('myAssets.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
-              Delete
+              {t('myAssets.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

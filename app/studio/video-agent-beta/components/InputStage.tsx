@@ -6,6 +6,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Settings } from 'lucide-react'
@@ -38,6 +39,7 @@ interface InputStageProps {
 }
 
 export default function InputStage({ onStart }: InputStageProps) {
+  const t = useTranslations('studio')
   const { getInspirations } = useVideoAgentAPI()
   const { creditsRemaining } = useSimpleSubscription()
   const authModal = useVideoGenerationAuth()
@@ -57,7 +59,7 @@ export default function InputStage({ onStart }: InputStageProps) {
 
   const handleSubmit = async () => {
     if (!script.trim()) {
-      showError('Please enter a video script')
+      showError(t('storyToVideo.enterScript'))
       return
     }
     if (creditsRemaining < 10) {
@@ -73,7 +75,7 @@ export default function InputStage({ onStart }: InputStageProps) {
         if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
           setShowUpgradeDialog(true)
         } else {
-          showError(error.message || 'Failed to create project')
+          showError(error.message || t('storyToVideo.failedCreate'))
         }
       } finally {
         setIsLoading(false)
@@ -89,7 +91,7 @@ export default function InputStage({ onStart }: InputStageProps) {
         setInspirations(data)
         setShowInspirationDialog(true)
       } catch {
-        showError('Failed to generate AI inspirations.')
+        showError(t('storyToVideo.failedInspiration'))
       } finally {
         setIsGeneratingInspiration(false)
       }
@@ -118,7 +120,7 @@ export default function InputStage({ onStart }: InputStageProps) {
             } : undefined}
           >
             <Image src="/icons/tab-myself.svg" alt="" width={24} height={24} className="flex-shrink-0" />
-            <span>Create by myself</span>
+            <span>{t('storyToVideo.createByMyself')}</span>
           </button>
 
           {/* 右：Create by reference */}
@@ -134,7 +136,7 @@ export default function InputStage({ onStart }: InputStageProps) {
             } : undefined}
           >
             <Image src="/icons/tab-reference.svg" alt="" width={24} height={24} className="flex-shrink-0" />
-            <span>Create by reference</span>
+            <span>{t('storyToVideo.createByReference')}</span>
           </button>
         </div>
       </div>
@@ -164,13 +166,13 @@ export default function InputStage({ onStart }: InputStageProps) {
           <div className="relative px-6 md:px-8 pt-6 md:pt-8">
             {/* 字符计数 — 移动端右上角 */}
             <div className="absolute top-4 right-4 text-xs text-white/30 font-mono px-3 py-1 bg-black/20 rounded-lg backdrop-blur-sm md:hidden z-10">
-              {script.length} chars
+              {t('storyToVideo.charCount', { count: script.length })}
             </div>
 
             <Textarea
               value={script}
               onChange={(e) => setScript(e.target.value)}
-              placeholder="Start writing your story here..."
+              placeholder={t('storyToVideo.storyPlaceholder')}
               className={cn(
                 "w-full resize-none leading-relaxed text-white font-medium",
                 "text-lg p-0",
@@ -188,7 +190,7 @@ export default function InputStage({ onStart }: InputStageProps) {
           {/* 字符计数 — 桌面端独立行，位于 textarea 与工具栏之间 */}
           <div className="hidden md:flex justify-end px-8 py-2">
             <span className="text-xs text-white/30 font-mono">
-              {script.length} chars
+              {t('storyToVideo.charCount', { count: script.length })}
             </span>
           </div>
 
@@ -232,7 +234,7 @@ export default function InputStage({ onStart }: InputStageProps) {
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : 'Generate Video'}
+              ) : t('storyToVideo.generateVideo')}
             </button>
           </div>
         </Card>

@@ -224,7 +224,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
                               <div className="text-sm font-medium leading-none text-white">{t('nav.veo3')}</div>
-                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">Google DeepMind</p>
+                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.veo3Provider')}</p>
                             </Link>
                           </NavigationMenuLink>
                           <NavigationMenuLink asChild>
@@ -233,7 +233,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
                               <div className="text-sm font-medium leading-none text-white">{t('nav.sora2')}</div>
-                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">OpenAI</p>
+                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.sora2Provider')}</p>
                             </Link>
                           </NavigationMenuLink>
                           <NavigationMenuLink asChild>
@@ -242,7 +242,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
                               <div className="text-sm font-medium leading-none text-white">{t('nav.kling3')}</div>
-                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">Kuaishou</p>
+                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.kling3Provider')}</p>
                             </Link>
                           </NavigationMenuLink>
                         </div>
@@ -278,7 +278,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               href="/about"
                               className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
-                              <div className="text-sm font-medium leading-none text-white">About</div>
+                              <div className="text-sm font-medium leading-none text-white">{t('nav.about')}</div>
                             </Link>
                           </NavigationMenuLink>
                           <NavigationMenuLink asChild>
@@ -286,7 +286,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                               href="/contact"
                               className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                             >
-                              <div className="text-sm font-medium leading-none text-white">Contact</div>
+                              <div className="text-sm font-medium leading-none text-white">{t('nav.contact')}</div>
                             </Link>
                           </NavigationMenuLink>
                         </div>
@@ -430,21 +430,21 @@ export function Navbar({ scrolled }: NavbarProps) {
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {t('nav.veo3')} <span className="text-xs text-gray-500 ml-1">Google DeepMind</span>
+                      {t('nav.veo3')} <span className="text-xs text-gray-500 ml-1">{t('nav.veo3Provider')}</span>
                     </Link>
                     <Link
                       href="/tools/sora2"
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {t('nav.sora2')} <span className="text-xs text-gray-500 ml-1">OpenAI</span>
+                      {t('nav.sora2')} <span className="text-xs text-gray-500 ml-1">{t('nav.sora2Provider')}</span>
                     </Link>
                     <Link
                       href="/tools/kling3"
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {t('nav.kling3')} <span className="text-xs text-gray-500 ml-1">Kuaishou</span>
+                      {t('nav.kling3')} <span className="text-xs text-gray-500 ml-1">{t('nav.kling3Provider')}</span>
                     </Link>
                   </div>
                 </div>
@@ -474,14 +474,14 @@ export function Navbar({ scrolled }: NavbarProps) {
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      About
+                      {t('nav.about')}
                     </Link>
                     <Link
                       href="/contact"
                       className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Contact
+                      {t('nav.contact')}
                     </Link>
                   </div>
                 </div>

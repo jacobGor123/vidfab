@@ -4,46 +4,101 @@
     "description": "Simple, transparent pricing for AI video generation. Choose the plan that fits your needs."
   },
   "title": "Simple, Transparent Pricing",
-  "description": "Choose the plan that's right for you and start creating amazing AI videos.",
+  "subtitle": "Choose the plan that's right for you and start creating amazing AI videos.",
+  "loading": "Loading Pricing Plans...",
   "monthly": "Monthly",
-  "annually": "Annual",
-  "save20Percent": "Save 20%",
-  "mostPopular": "Most Popular",
+  "annual": "Annual",
+  "saveUpTo20": "Save up to 20%",
+  "foreverFree": "/ forever",
+  "perMonth": "/ month",
+  "firstMonth": "first month",
+  "thenPerMonth": "Then ${price}/month",
+  "billedAnnually": "Billed annually (${price})",
+  "mostPopular": "MOST POPULAR",
+  "currentPlan": "Current Plan",
   "getStarted": "Get Started",
-  "contactSales": "Contact Sales",
-  "basic": {
-    "name": "Basic",
-    "description": "Perfect for individuals just getting started with AI video creation.",
+  "loadingBtn": "Loading...",
+  "cancelling": "Cancelling...",
+  "processing": "Processing...",
+  "free": {
+    "name": "Free",
+    "description": "Get started with AI video creation — simple and risk-free.",
     "features": [
-      "10 video generations per month",
-      "Basic AI video capabilities",
-      "Standard processing speed",
-      "720p video output",
-      "Email support"
+      "Initial 100 credits",
+      "About 33 images or 10 videos (480p)",
+      "5 free script creations & analyses",
+      "Export with watermark",
+      "Basic resolution (480p and 720p)",
+      "24-hour retention for creations"
     ]
   },
   "pro": {
-    "name": "Pro",
-    "description": "Ideal for content creators who need comprehensive video capabilities.",
+    "name": "Pro Plan",
+    "description": "Advanced video production suite for professionals and studios.",
     "features": [
-      "50 video generations per month",
-      "Advanced AI video capabilities",
-      "Priority processing",
-      "1080p video output",
-      "Advanced editing tools",
-      "Priority support"
+      "1500 credits reset monthly",
+      "About 500 images or 150 videos (480p)",
+      "20 free script creations & analyses/month",
+      "Watermark-free exports",
+      "Advanced AI models",
+      "Access to HD resolution (up to 1080P)",
+      "4 concurrent generation",
+      "Priority support",
+      "Cancel anytime"
     ]
   },
-  "enterprise": {
-    "name": "Enterprise",
-    "description": "For organizations that need the most powerful video capabilities.",
+  "premium": {
+    "name": "Premium",
+    "description": "For organizations that need the most powerful video creation capabilities.",
     "features": [
-      "Unlimited video generations",
-      "Enterprise-grade AI video",
-      "Custom model training",
-      "4K video output",
-      "API access",
-      "Dedicated support manager"
+      "3500 credits reset monthly",
+      "About 1166 images or 350 videos (480p)",
+      "50 free script creations & analyses/month",
+      "Watermark-free exports",
+      "Advanced AI models",
+      "Access to HD resolution (up to 1080P)",
+      "4 concurrent generation",
+      "Dedicated support",
+      "Cancel anytime"
+    ]
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": [
+      {
+        "question": "Can I change plans later?",
+        "answer": "Yes, you can upgrade or downgrade your plan at any time. When upgrading, credits are added to your account immediately.",
+        "intro": null,
+        "bullets": null,
+        "outro": null
+      },
+      {
+        "question": "What occurs if I exceed my allocated monthly credits?",
+        "answer": null,
+        "intro": "If you use up all your monthly credits:",
+        "bullets": [
+          "You'll be prompted to upgrade to a higher plan.",
+          "Video generation will be unavailable until your credits are renewed or your plan is upgraded."
+        ],
+        "outro": null
+      },
+      {
+        "question": "How do credits work?",
+        "answer": null,
+        "intro": "Credits are used up based on the AI model and video settings you select. For example:",
+        "bullets": [
+          "A 480p 5-second video costs 10 credits.",
+          "A 1080p 10-second video costs 80 credits."
+        ],
+        "outro": "Higher resolution or longer videos use more credits. Different AI models may also have varying credit requirements."
+      },
+      {
+        "question": "Which payment methods are available?",
+        "answer": "We accept all major credit cards through Stripe. Annual plans also provide additional savings compared to monthly billing.",
+        "intro": null,
+        "bullets": null,
+        "outro": null
+      }
     ]
   }
 }

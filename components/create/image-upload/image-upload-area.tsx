@@ -3,7 +3,10 @@
  * 支持拖放上传和点击选择文件
  */
 
+"use client"
+
 import { Upload } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface ImageUploadAreaProps {
   disabled?: boolean
@@ -28,6 +31,8 @@ export function ImageUploadArea({
   onDragLeave,
   onDrop
 }: ImageUploadAreaProps) {
+  const t = useTranslations('studio')
+
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const filesArray = event.target.files ? Array.from(event.target.files) : []
     if (filesArray.length > 0) {
@@ -64,17 +69,17 @@ export function ImageUploadArea({
           <Upload className="w-6 h-6 text-gray-400" />
         </div>
         <p className="text-gray-300 mb-1 text-sm">
-          {isDragging ? 'Drop images here' : 'Click to upload or drag & drop'}
+          {isDragging ? t('imageUpload.dropHere') : t('imageUpload.clickToUpload')}
         </p>
         <p className="text-xs text-gray-500">
-          JPEG, PNG, WebP (max 10MB each) • {
+          {t('imageUpload.formatHint')} • {
             maxFiles === 1
-              ? 'Single image'
+              ? t('imageUpload.singleImage')
               : maxFiles
-                ? `Max ${maxFiles} images (${currentCount}/${maxFiles})`
+                ? t('imageUpload.maxImages', { max: maxFiles, current: currentCount })
                 : multiple
-                  ? 'Multiple images supported'
-                  : 'Single image'
+                  ? t('imageUpload.multipleSupported')
+                  : t('imageUpload.singleImage')
           }
         </p>
       </label>

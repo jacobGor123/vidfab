@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback, Suspense, useMemo } from "react"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
+import { useLocale } from "next-intl"
+import { defaultLocale } from "@/i18n/locale"
 import { CreateTabs } from "./create-tabs"
 import { CreateContent } from "./create-content"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -19,6 +21,8 @@ function CreatePageClientInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
+  const locale = useLocale()
+  const localePrefix = locale === defaultLocale ? '' : `/${locale}`
   const isMobile = useIsMobile()
 
   // 🔥 统一轮询管理：在父组件启动轮询，确保切换 tab 时轮询不会停止
@@ -125,11 +129,10 @@ function CreatePageClientInner() {
 
   // 从 pathname 或 searchParams 获取当前工具
   const activeTool = useMemo(() => {
-    // 优先从 /studio/{tool} pathname 中提取
-    if (pathname.startsWith('/studio/')) {
-      const pathParts = pathname.split('/').filter(Boolean)
-      const toolPath = pathParts[1]
-      return urlToToolMap[toolPath] || 'discover'
+    // 优先从 /studio/{tool} 或 /{locale}/studio/{tool} pathname 中提取
+    const studioMatch = pathname.match(/^(?:\/[a-z]{2}(?:-[A-Z]{2})?)?\/studio\/([^/]+)/)
+    if (studioMatch) {
+      return urlToToolMap[studioMatch[1]] || 'discover'
     }
 
     // 否则从 searchParams 获取 (兼容 /create?tool=xxx)
@@ -140,16 +143,15 @@ function CreatePageClientInner() {
 
   const handleToolChange = (tool: ToolType) => {
     if (tool && toolToUrlMap[tool]) {
-      // 保留原有的 query 参数（如果有的话）
-      const newUrl = toolToUrlMap[tool]
+      const studioUrl = toolToUrlMap[tool]
+      // 保留原有的 query 参数（如果有的话），并携带 locale 前缀
       if (searchParams.toString()) {
-        router.push(`${newUrl}?${searchParams.toString()}`)
+        router.push(`${localePrefix}${studioUrl}?${searchParams.toString()}`)
       } else {
-        router.push(newUrl)
+        router.push(`${localePrefix}${studioUrl}`)
       }
     } else {
-      // 如果没有匹配的 tool，默认跳转到 discover
-      router.push('/studio/discover')
+      router.push(`${localePrefix}/studio/discover`)
     }
   }
 

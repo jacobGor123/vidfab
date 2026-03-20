@@ -1,0 +1,42 @@
+{
+  "hero": {
+    "title": "From Image to Masterpiece: Reimagine Your Visuals with AI",
+    "cta": "Transform"
+  },
+  "keyFeatures": {
+    "title": "Key Features of VidFab Image-to-Image",
+    "features": [
+      { "number": "1", "title": "Effortless Image Transformation", "description": "Upload your image and use simple text prompts to guide the AI. Transforming one image into another has never been so easy." },
+      { "number": "2", "title": "Powerful AI Models", "description": "No matter what you input, VidFab accurately understands your ideas and lets you watch your original image evolve. Experiment with various styles and see the results generated instantly." },
+      { "number": "3", "title": "Total Creative Control", "description": "Fine-tune your original pictures by adjusting styles, colors, and composition to perfectly match your artistic vision." },
+      { "number": "4", "title": "Multi-Image Fusion", "description": "Upload multiple images and provide a description—VidFab AI combines them into a single, realistic composition with seamless precision." },
+      { "number": "5", "title": "Instant Video Creation", "description": "Turn your images into videos with one click. Save time and bring your creations to life." },
+      { "number": "6", "title": "Process Multiple Tasks", "description": "Boost your creative workflow by running up to 4 image-to-image tasks at once. Explore more ideas in less time." }
+    ]
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "steps": [
+      { "number": "1", "title": "Upload your original image", "description": "Start by uploading the picture you want to transform." },
+      { "number": "2", "title": "Describe the transformation", "description": "Enter a text prompt to guide the AI on what you want to change." },
+      { "number": "3", "title": "Process with AI", "description": "Our AI gets to work, blending your original image with your text prompt to generate a new masterpiece." },
+      { "number": "4", "title": "View and download", "description": "Preview your newly generated image and download it for your projects." }
+    ]
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      { "question": "How does VidFab AI transform an image into another?", "answer": "VidFab uses advanced AI models that analyze your uploaded image and text prompt. It then generates a new, unique visual that combines the structure of your original image with the style and elements you described." },
+      { "question": "Is the VidFab AI Image Generator beginner-friendly?", "answer": "Yes! Our tool is designed with simplicity in mind. No artistic or technical skills are needed. If you can describe it, you can create it." },
+      { "question": "What languages are supported for text input?", "answer": "You can use a wide variety of languages for your text prompts, making it easy for creators around the world to generate art." },
+      { "question": "Do I need to download any software?", "answer": "No. VidFab is a fully browser-based tool. You can start creating images right away without any installation." },
+      { "question": "Can I use the generated images for commercial purposes?", "answer": "Absolutely. The images you create with VidFab are yours to use for marketing, social media, commercial products, and more." },
+      { "question": "Can I use the VidFab AI Image Generator for free?", "answer": "Yes. VidFab will provide 50 credits, allowing you to try generating images and videos initially." }
+    ]
+  },
+  "communityCta": {
+    "title": "Reimagine Your Images Effortlessly",
+    "description": "VidFab makes it simple to turn your existing pictures into new works of art. Stop struggling with complicated editing software—our AI image generator unlocks new creative possibilities for you.",
+    "ctaText": "Generate Your First Image for Free"
+  }
+}

@@ -1,49 +1,104 @@
 {
   "meta": {
-    "title": "Preise – VidFab | Flexible Pläne für KI-Videos",
-    "description": "Einfache, transparente Preise für KI-Videogenerierung. Wählen Sie den Plan, der zu Ihnen passt."
+    "title": "Preise - VidFab | KI-Videopläne",
+    "description": "Einfache, transparente Preise für die KI-Videogenerierung. Wählen Sie den Plan, der Ihren Anforderungen entspricht."
   },
   "title": "Einfache, transparente Preise",
-  "description": "Wählen Sie den passenden Plan und erstellen Sie beeindruckende KI-Videos.",
+  "subtitle": "Wählen Sie den passenden Plan und beginnen Sie noch heute mit der Erstellung beeindruckender KI-Videos.",
+  "loading": "Preispläne werden geladen...",
   "monthly": "Monatlich",
-  "annually": "Jährlich",
-  "save20Percent": "20 % sparen",
-  "mostPopular": "Am beliebtesten",
+  "annual": "Jährlich",
+  "saveUpTo20": "Bis zu 20% sparen",
+  "foreverFree": "/ für immer",
+  "perMonth": "/ Monat",
+  "firstMonth": "erster Monat",
+  "thenPerMonth": "Danach ${price}/Monat",
+  "billedAnnually": "Jährlich abgerechnet (${price})",
+  "mostPopular": "BELIEBTESTER",
+  "currentPlan": "Aktueller Plan",
   "getStarted": "Jetzt starten",
-  "contactSales": "Vertrieb kontaktieren",
-  "basic": {
-    "name": "Basic",
-    "description": "Perfekt für Einsteiger in die KI-Videoerstellung.",
+  "loadingBtn": "Wird geladen...",
+  "cancelling": "Wird gekündigt...",
+  "processing": "Wird verarbeitet...",
+  "free": {
+    "name": "Kostenlos",
+    "description": "Starten Sie mit der KI-Videoproduktion – einfach und ohne Risiko.",
     "features": [
-      "10 Videogenerierungen pro Monat",
-      "Grundlegende KI-Video-Funktionen",
-      "Standard-Verarbeitungsgeschwindigkeit",
-      "720p-Videoausgabe",
-      "E-Mail-Support"
+      "Einmalig 100 Credits",
+      "Ca. 33 Bilder oder 10 Videos (480p)",
+      "5 kostenlose Skripterstellungen & Analysen",
+      "Export mit Wasserzeichen",
+      "Grundauflösung (480p und 720p)",
+      "24-Stunden-Aufbewahrung der Kreationen"
     ]
   },
   "pro": {
-    "name": "Pro",
-    "description": "Ideal für Content Creator mit umfassenden Video-Anforderungen.",
+    "name": "Pro-Plan",
+    "description": "Fortschrittliche Videoproduktionssuite für Profis und Studios.",
     "features": [
-      "50 Videogenerierungen pro Monat",
-      "Erweiterte KI-Video-Funktionen",
-      "Priorisierte Verarbeitung",
-      "1080p-Videoausgabe",
-      "Erweiterte Bearbeitungstools",
-      "Priorisierter Support"
+      "1500 Credits monatlich zurückgesetzt",
+      "Ca. 500 Bilder oder 150 Videos (480p)",
+      "20 kostenlose Skripterstellungen & Analysen/Monat",
+      "Export ohne Wasserzeichen",
+      "Erweiterte KI-Modelle",
+      "Zugang zu HD-Auflösung (bis zu 1080P)",
+      "4 gleichzeitige Generierungen",
+      "Prioritäts-Support",
+      "Jederzeit kündbar"
     ]
   },
-  "enterprise": {
-    "name": "Enterprise",
-    "description": "Für Unternehmen, die maximale Video-Leistung benötigen.",
+  "premium": {
+    "name": "Premium",
+    "description": "Für Organisationen, die die leistungsfähigsten Videoproduktionsmöglichkeiten benötigen.",
     "features": [
-      "Unbegrenzte Videogenerierungen",
-      "Enterprise-KI-Video",
-      "Training individueller Modelle",
-      "4K-Videoausgabe",
-      "API-Zugang",
-      "Persönlicher Support-Manager"
+      "3500 Credits monatlich zurückgesetzt",
+      "Ca. 1166 Bilder oder 350 Videos (480p)",
+      "50 kostenlose Skripterstellungen & Analysen/Monat",
+      "Export ohne Wasserzeichen",
+      "Erweiterte KI-Modelle",
+      "Zugang zu HD-Auflösung (bis zu 1080P)",
+      "4 gleichzeitige Generierungen",
+      "Dedizierter Support",
+      "Jederzeit kündbar"
+    ]
+  },
+  "faq": {
+    "title": "Häufig gestellte Fragen",
+    "items": [
+      {
+        "question": "Kann ich meinen Plan später ändern?",
+        "answer": "Ja, Sie können Ihren Plan jederzeit upgraden oder downgraden. Bei einem Upgrade werden Credits sofort Ihrem Konto gutgeschrieben.",
+        "intro": null,
+        "bullets": null,
+        "outro": null
+      },
+      {
+        "question": "Was passiert, wenn ich meine monatlichen Credits aufgebraucht habe?",
+        "answer": null,
+        "intro": "Wenn Sie alle Ihre monatlichen Credits verbraucht haben:",
+        "bullets": [
+          "Sie werden aufgefordert, auf einen höheren Plan zu upgraden.",
+          "Die Videogenerierung ist nicht verfügbar, bis Ihre Credits erneuert oder Ihr Plan geupgradet wird."
+        ],
+        "outro": null
+      },
+      {
+        "question": "Wie funktionieren Credits?",
+        "answer": null,
+        "intro": "Credits werden basierend auf dem KI-Modell und den Videoeinstellungen verbraucht. Zum Beispiel:",
+        "bullets": [
+          "Ein 480p-5-Sekunden-Video kostet 10 Credits.",
+          "Ein 1080p-10-Sekunden-Video kostet 80 Credits."
+        ],
+        "outro": "Höhere Auflösungen oder längere Videos verbrauchen mehr Credits. Verschiedene KI-Modelle können auch unterschiedliche Credit-Anforderungen haben."
+      },
+      {
+        "question": "Welche Zahlungsmethoden sind verfügbar?",
+        "answer": "Wir akzeptieren alle gängigen Kreditkarten über Stripe. Jahrespläne bieten zudem zusätzliche Einsparungen im Vergleich zur monatlichen Abrechnung.",
+        "intro": null,
+        "bullets": null,
+        "outro": null
+      }
     ]
   }
 }

@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useTranslations } from "next-intl"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,6 +43,7 @@ import { ImageUploadArea } from "./image-upload/image-upload-area"
 import { ImageUploadGrid } from "./image-upload/image-upload-grid"
 
 export function ImageToVideoPanelEnhanced() {
+  const t = useTranslations('studio')
   const isMobile = useIsMobile()
   const [params, setParams] = useState<ImageToVideoParams>({
     image: "",
@@ -313,31 +315,31 @@ export function ImageToVideoPanelEnhanced() {
     const errors: string[] = []
 
     if (!params.prompt?.trim()) {
-      errors.push("Please enter video description")
+      errors.push(t('validation.enterVideoDescription'))
     }
 
     if (params.prompt && params.prompt.length > 500) {
-      errors.push("Video description cannot exceed 500 characters")
+      errors.push(t('validation.descriptionTooLong'))
     }
 
     if (!params.image || params.image.trim() === '') {
-      errors.push("Please upload an image or provide image URL")
+      errors.push(t('validation.uploadImageOrUrl'))
     }
 
     if (!params.model) {
-      errors.push("Please select generation model")
+      errors.push(t('validation.selectModel'))
     }
 
     if (!params.duration) {
-      errors.push("Please select video duration")
+      errors.push(t('validation.selectDuration'))
     }
 
     if (!params.resolution) {
-      errors.push("Please select video resolution")
+      errors.push(t('validation.selectResolution'))
     }
 
     if (!params.aspectRatio) {
-      errors.push("Please select aspect ratio")
+      errors.push(t('validation.selectAspectRatio'))
     }
 
     return errors
@@ -574,7 +576,7 @@ export function ImageToVideoPanelEnhanced() {
                           : "text-gray-400 hover:text-white"
                       }`}
                     >
-                      Upload File
+                      {t('common.uploadFile')}
                     </button>
                     <button
                       onClick={() => updateParam("uploadMode", "url")}
@@ -585,7 +587,7 @@ export function ImageToVideoPanelEnhanced() {
                           : "text-gray-400 hover:text-white"
                       }`}
                     >
-                      Image URL
+                      {t('common.imageUrl')}
                     </button>
                   </div>
 
@@ -615,7 +617,7 @@ export function ImageToVideoPanelEnhanced() {
                   ) : (
                     /* URL Upload Mode */
                     <div className="space-y-2">
-                      <Label className="text-gray-300">Image URL</Label>
+                      <Label className="text-gray-300">{t('common.imageUrl')}</Label>
                       <input
                         type="url"
                         placeholder="https://example.com/image.jpg"
@@ -640,7 +642,7 @@ export function ImageToVideoPanelEnhanced() {
                             className="w-full text-gray-400 hover:text-white hover:bg-gray-800"
                           >
                             <X className="w-4 h-4 mr-2" />
-                            Remove Image
+                            {t('common.removeImage')}
                           </Button>
                         </div>
                       )}
@@ -653,7 +655,7 @@ export function ImageToVideoPanelEnhanced() {
               <Card className="bg-gray-950 border-gray-800">
                 <CardContent className="space-y-4 pt-6">
                   <Textarea
-                    placeholder="A girl turns toward the camera, her earrings swaying gently with the motion. The camera rotates, bathed in dreamy sunlight..."
+                    placeholder={t('imageToVideo.promptPlaceholder')}
                     value={params.prompt}
                     onChange={(e) => updateParam("prompt", e.target.value)}
                     className="min-h-[120px] bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-none focus:border-purple-500 focus:ring-purple-500"
@@ -661,7 +663,7 @@ export function ImageToVideoPanelEnhanced() {
                     disabled={videoGeneration.isGenerating}
                   />
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Detailed descriptions produce better results</span>
+                    <span className="text-gray-500">{t('common.detailedDescriptions')}</span>
                     <span className={`${params.prompt.length > 450 ? 'text-yellow-400' : 'text-gray-400'}`}>
                       {params.prompt.length}/500
                     </span>
@@ -674,7 +676,7 @@ export function ImageToVideoPanelEnhanced() {
                 <CardContent className="space-y-4 pt-6">
                   {/* Model selection */}
                   <div className="space-y-2">
-                    <Label className="text-gray-300">Model</Label>
+                    <Label className="text-gray-300">{t('common.model')}</Label>
                     {subscriptionLoading ? (
                       <div className="bg-gray-900 border border-gray-700 rounded-md h-10 flex items-center px-3 animate-pulse">
                         <div className="h-4 bg-gray-700 rounded w-24"></div>
@@ -690,9 +692,9 @@ export function ImageToVideoPanelEnhanced() {
                           <SelectValue placeholder="Select model" />
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-gray-700">
-                          <SelectItem value="vidfab-q1" className="transition-all duration-200">Vidfab Q1 ⭐</SelectItem>
+                          <SelectItem value="vidfab-q1" className="transition-all duration-200">{t('common.modelVidfabQ1')}</SelectItem>
                           <SelectItem value="vidfab-pro" className="transition-all duration-200">
-                            Vidfab Pro 🚀
+                            {t('common.modelVidfabPro')}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -702,7 +704,7 @@ export function ImageToVideoPanelEnhanced() {
                   {/* Duration and resolution */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-gray-300">Duration</Label>
+                      <Label className="text-gray-300">{t('common.duration')}</Label>
                       <Select
                         value={params.duration}
                         defaultValue="5s"
@@ -714,16 +716,16 @@ export function ImageToVideoPanelEnhanced() {
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-gray-700">
                           {params.model === "vidfab-pro" ? (
-                            <SelectItem value="8s">8 seconds</SelectItem>
+                            <SelectItem value="8s">{t('common.duration8s')}</SelectItem>
                           ) : (
                             <>
-                              <SelectItem value="4s">4 seconds</SelectItem>
-                              <SelectItem value="5s">5 seconds</SelectItem>
-                              <SelectItem value="6s">6 seconds</SelectItem>
-                              <SelectItem value="7s">7 seconds</SelectItem>
-                              <SelectItem value="8s">8 seconds</SelectItem>
-                              <SelectItem value="10s">10 seconds</SelectItem>
-                              <SelectItem value="12s">12 seconds</SelectItem>
+                              <SelectItem value="4s">{t('common.duration4s')}</SelectItem>
+                              <SelectItem value="5s">{t('common.duration5s')}</SelectItem>
+                              <SelectItem value="6s">{t('common.duration6s')}</SelectItem>
+                              <SelectItem value="7s">{t('common.duration7s')}</SelectItem>
+                              <SelectItem value="8s">{t('common.duration8s')}</SelectItem>
+                              <SelectItem value="10s">{t('common.duration10s')}</SelectItem>
+                              <SelectItem value="12s">{t('common.duration12s')}</SelectItem>
                             </>
                           )}
                         </SelectContent>
@@ -731,7 +733,7 @@ export function ImageToVideoPanelEnhanced() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-gray-300">Resolution</Label>
+                      <Label className="text-gray-300">{t('common.resolution')}</Label>
                       {subscriptionLoading ? (
                         <div className="bg-gray-900 border border-gray-700 rounded-md h-10 flex items-center px-3 animate-pulse">
                           <div className="h-4 bg-gray-700 rounded w-20"></div>
@@ -749,14 +751,14 @@ export function ImageToVideoPanelEnhanced() {
                           <SelectContent className="bg-gray-900 border-gray-700">
                             {params.model === "vidfab-pro" ? (
                               <>
-                                <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
-                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
+                                <SelectItem value="720p" className="transition-all duration-200">{t('common.resolution720p')}</SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">{t('common.resolution1080p')}</SelectItem>
                               </>
                             ) : (
                               <>
-                                <SelectItem value="480p" className="transition-all duration-200">480p</SelectItem>
-                                <SelectItem value="720p" className="transition-all duration-200">720p HD</SelectItem>
-                                <SelectItem value="1080p" className="transition-all duration-200">1080p Full HD</SelectItem>
+                                <SelectItem value="480p" className="transition-all duration-200">{t('common.resolution480p')}</SelectItem>
+                                <SelectItem value="720p" className="transition-all duration-200">{t('common.resolution720p')}</SelectItem>
+                                <SelectItem value="1080p" className="transition-all duration-200">{t('common.resolution1080p')}</SelectItem>
                               </>
                             )}
                           </SelectContent>
@@ -767,7 +769,7 @@ export function ImageToVideoPanelEnhanced() {
 
                   {/* Aspect ratio */}
                   <div className="space-y-2">
-                    <Label className="text-gray-300">Aspect Ratio</Label>
+                    <Label className="text-gray-300">{t('common.aspectRatio')}</Label>
                     <div className="flex gap-2">
                       {(params.model === "vidfab-pro" ? ["16:9", "9:16"] : ["16:9", "9:16", "1:1"]).map((ratio) => (
                         <button
@@ -786,7 +788,7 @@ export function ImageToVideoPanelEnhanced() {
                     </div>
                     {params.model === "vidfab-pro" && (
                       <p className="text-xs text-gray-500">
-                        Image-to-Video Vidfab Pro supports 16:9 and 9:16 aspect ratios
+                        {t('imageToVideo.proAspectRatioHint')}
                       </p>
                     )}
                   </div>
@@ -795,8 +797,8 @@ export function ImageToVideoPanelEnhanced() {
                   {params.model === "vidfab-q1" && (
                     <div className="flex items-center justify-between pt-1">
                       <div className="space-y-0.5">
-                        <Label className="text-gray-300">Generate Audio</Label>
-                        <p className="text-xs text-gray-500">AI-generated background audio · 2× credits</p>
+                        <Label className="text-gray-300">{t('common.generateAudio')}</Label>
+                        <p className="text-xs text-gray-500">{t('common.generateAudioHint')}</p>
                       </div>
                       <button
                         type="button"
@@ -825,25 +827,25 @@ export function ImageToVideoPanelEnhanced() {
                 {videoGeneration.isGenerating ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Submitting...
+                    {t('common.submitting')}
                   </>
                 ) : authModal.isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Checking login...
+                    {t('common.checkingLogin')}
                   </>
                 ) : !authModal.isAuthenticated ? (
                   <>
-                    Sign In & Generate Video
+                    {t('common.signInAndGenerate')}
                   </>
                 ) : processingJobs.length >= 4 ? (
                   <>
                     <AlertTriangle className="w-5 h-5 mr-2" />
-                    Maximum 4 Videos at Once
+                    {t('imageToVideo.maxVideos')}
                   </>
                 ) : (
                   <div className="gap-[20px] w-full flex justify-center items-center">
-                    <span>Generate Video</span>
+                    <span>{t('imageToVideo.generateVideo')} {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}</span>
                     <span className="flex items-center text-sm opacity-90">
                       <Zap className="w-3 h-3 mr-1" />
                       {getCreditsRequired()}
@@ -899,8 +901,8 @@ export function ImageToVideoPanelEnhanced() {
                     <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-6">
                       <Play className="w-8 h-8 text-gray-500 ml-1" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-400 mb-2">Preview Area</h3>
-                    <p className="text-gray-500">Your generated video will appear here</p>
+                    <h3 className="text-lg font-semibold text-gray-400 mb-2">{t('common.previewArea')}</h3>
+                    <p className="text-gray-500">{t('imageToVideo.videoPreviewHint')}</p>
                   </div>
                 </CardContent>
               </Card>

@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "badge": "Powered by OpenAI",
+    "h1": "Ihr direkter Zugang zum Sora 2 Modell",
+    "description": "Kein Warten mehr. Erleben Sie jetzt die unvergleichliche Erzählkraft von OpenAIs Sora 2. Geben Sie Ihren Prompt ein und beobachten Sie, wie das fortschrittlichste Videomodell der Welt Ihre Geschichte zum Leben erweckt.",
+    "ctaText": "Kostenlos testen"
+  },
+  "builderTitle": "Der Sora 2 Playground",
+  "builderSubtitle": "Prompt. Generieren. Staunen.",
+  "featuresTitle": "Was macht Sora 2 zur ultimativen Kinomaschine?",
+  "features": [
+    { "title": "Absolute räumliche Konsistenz", "description": "Sora 2 versteht Objektpermanenz. Wenn Ihr Charakter eine Kaffeetasse auf den Tisch stellt und die Kamera wegzoomt, ist die Tasse beim Zurückkehren genau dort, wo sie hingestellt wurde. Makellose Kontinuität für echtes Storytelling." },
+    { "title": "Meisterhafte Langaufnahmen", "description": "Kein Zusammensetzen von 2-Sekunden-Clips mehr. Sora 2 glänzt bei kontinuierlichen, ununterbrochenen Tracking-Shots, die nahtlos durch mehrere Räume und komplexe Umgebungen führen, ohne die narrative Logik zu verlieren." },
+    { "title": "Komplexe Charakterinteraktionen", "description": "Regie bei echtem Schauspiel, nicht nur statischen Gesichtern. Sora 2 erfasst nuancierte Mikro-Ausdrücke, dynamische emotionale Übergänge und logische physische Interaktionen zwischen mehreren Charakteren und ihrer Umgebung." },
+    { "title": "Hochpräzises narratives Pacing", "description": "Schreiben Sie Ihr Skript wie ein Regisseur. Sora 2 versteht Ursache und Wirkung in Ihren mehrsätzigen Prompts tiefgehend und timed Aktionen, Umgebungswechsel und Kamerabewegungen perfekt auf Ihren Story-Beat." }
+  ],
+  "promptShowcaseTitle": "Sehen Sie, wie Sora 2 jedes Wort versteht.",
+  "promptShowcaseSubtitle": "Was Sie schreiben, wird genau das gefilmt.",
+  "promptCategories": [
+    "Indie-Kurzfilm / Drama",
+    "Kinolangtake / Weltaufbau",
+    "Sci-Fi-Trailer / Actionszene",
+    "Fantasy-Lore / Ursache und Wirkung"
+  ],
+  "creatorTypesTitle": "Perfekt für Creators, die mehr als nur B-Roll brauchen",
+  "creatorTypes": [
+    { "title": "Indie-Filmemacher", "description": "Hören Sie auf, zusammenhanglose 4-Sekunden-Clips zusammenzusetzen. Nutzen Sie Sora 2's räumliches Bewusstsein, um kontinuierliche Tracking-Shots zu inszenieren, die nahtlos durch mehrere Räume führen. Visualisieren Sie komplexes Blocking und erstellen Sie Null-Budget-Filme mit absoluter räumlicher Kontinuität." },
+    { "title": "Gesichtslose Kanalinhaber", "description": "Bauen Sie ein erkennbares \"Set\" für Ihre True Crime- oder Reddit-Storys. Sora 2 erinnert sich an Objektpermanenz — Ihr Geisterhaus oder Detektivbüro sieht aus verschiedenen Kameraperspektiven genau gleich aus. Erstellen Sie Langform-Videos mit hoher Bindungsrate, ohne dass der Hintergrund sich magisch verändert." },
+    { "title": "Autoren & Schreiber", "description": "Geben Sie sich nicht mit KI-Charakteren zufrieden, die nur leer in die Kamera starren. Sora 2 versteht physische Ursache und Wirkung. Übersetzen Sie Ihre komplexesten Kapitel — ein intensiver Schwertkampf, eine chaotische Verfolgungsjagd oder Charaktere, die mit Requisiten interagieren — in dynamische, lebendige Buchtrailer für TikTok." }
+  ],
+  "faqTitle": "Häufig gestellte Fragen",
+  "faqs": [
+    { "question": "Werden diese Videos wirklich vom Sora 2 Modell generiert?", "answer": "Ja. Wir nutzen die offizielle Sora 2 API, um Ihnen die bahnbrechende Kinoqualität, erweiterte Dauer und räumliche Konsistenz zu gewährleisten, während unsere proprietäre Plattform Ihren gesamten Workflow handhabt." },
+    { "question": "Darf ich die generierten Storys kommerziell nutzen?", "answer": "Ja. Sie besitzen die Rechte an Ihren generierten Videos — ideal für YouTube-Monetarisierung, Filmfestivals oder Kundenprojekte." },
+    { "question": "Muss ich Experte im Prompt Engineering sein?", "answer": "Keineswegs. Das ist die Magie unserer Plattform. Sie konzentrieren sich auf die Story; wir übersetzen sie in die komplexen Prompts, die Sora 2 benötigt, um die perfekte Szene zu rendern." }
+  ],
+  "ctaTitle": "Bereit, Ihr erstes Sora 2 Meisterwerk zu inszenieren?",
+  "ctaDescription": "Erhalten Sie 100 kostenlose Credits und testen Sie das Sora 2 Modell noch heute.",
+  "ctaButtonText": "Story kostenlos starten"
+}

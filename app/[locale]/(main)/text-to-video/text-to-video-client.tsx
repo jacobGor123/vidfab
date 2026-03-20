@@ -131,7 +131,7 @@ export default function TextToVideoPage() {
             />
 
             {/* How It Works Section */}
-            <HowItWorks steps={steps} />
+            <HowItWorks title={t('howItWorks.title')} steps={steps} />
 
             {/* FAQ Section */}
             <FAQSection

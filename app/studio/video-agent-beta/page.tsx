@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuthModal } from '@/hooks/use-auth-modal'
 import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -19,6 +20,7 @@ import ProjectList from './components/ProjectList'
 export const dynamic = 'force-dynamic'
 
 export default function VideoAgentBetaPage() {
+  const t = useTranslations('studio')
   const router = useRouter()
   const authModal = useAuthModal()
 
@@ -126,14 +128,14 @@ export default function VideoAgentBetaPage() {
             {/* 标题区域 - 移动端垂直排列 */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full">
               <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent pb-2 px-2 break-words text-center w-full sm:w-auto">
-                AI Story-to-Video Workflow
+                {t('storyToVideo.title')}
               </h1>
               <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 text-xs font-medium text-purple-200 tracking-wide uppercase backdrop-blur-sm">
                 Beta
               </span>
             </div>
             <p className="text-sm sm:text-base lg:text-lg text-slate-400 max-w-2xl mx-auto px-4 w-full break-words">
-              Transform your ideas into fully produced videos in minutes.
+              {t('storyToVideo.subtitle')}
             </p>
           </div>
 
@@ -147,7 +149,7 @@ export default function VideoAgentBetaPage() {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-red-200 mb-1">Something went wrong</h4>
+                  <h4 className="font-medium text-red-200 mb-1">{t('storyToVideo.somethingWrong')}</h4>
                   <p className="text-sm text-red-300/80">{error}</p>
                 </div>
                 <button
@@ -168,9 +170,9 @@ export default function VideoAgentBetaPage() {
 
             <div className="border-t border-white/5 pt-12 sm:pt-16">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-2">
-                <h2 className="text-xl sm:text-2xl font-bold text-white/90">Your Drafts</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white/90">{t('storyToVideo.yourDrafts')}</h2>
                 <div className="text-xs sm:text-sm text-slate-500">
-                  Auto-saved while you work
+                  {t('storyToVideo.autoSaved')}
                 </div>
               </div>
               {/* 🔥 修改：使用新的 handleResumeProject */}

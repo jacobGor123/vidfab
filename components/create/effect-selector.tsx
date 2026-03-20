@@ -5,6 +5,7 @@
  * Effect Selector Component - Display current selected effect in main panel
  */
 
+import { useTranslations } from 'next-intl'
 import { VideoEffect, DEFAULT_EFFECT } from '@/lib/constants/video-effects'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +15,7 @@ interface EffectSelectorProps {
 }
 
 export function EffectSelector({ selectedEffect, onOpenModal }: EffectSelectorProps) {
+  const t = useTranslations('studio')
   const currentEffect = selectedEffect || DEFAULT_EFFECT
 
   return (
@@ -21,10 +23,10 @@ export function EffectSelector({ selectedEffect, onOpenModal }: EffectSelectorPr
       {/* Title */}
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-white">
-          Video Effects
+          {t('effectSelector.title')}
         </label>
         <span className="text-xs text-gray-400">
-          64 effects available
+          {t('effectSelector.available')}
         </span>
       </div>
 
@@ -60,14 +62,14 @@ export function EffectSelector({ selectedEffect, onOpenModal }: EffectSelectorPr
               {currentEffect.name}
             </h3>
             <p className="text-gray-400 text-xs mt-1">
-              Click to view all effects
+              {t('effectSelector.clickToView')}
             </p>
           </div>
 
           {/* Change button */}
           <div className="flex-shrink-0">
             <div className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors duration-200">
-              <span className="text-xs">Change</span>
+              <span className="text-xs">{t('effectSelector.change')}</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -81,7 +83,7 @@ export function EffectSelector({ selectedEffect, onOpenModal }: EffectSelectorPr
 
       {/* Help text */}
       <p className="text-xs text-gray-500 leading-relaxed">
-        Select a video effect to apply to your image. Each effect has unique animations and visual effects.
+        {t('effectSelector.helpText')}
       </p>
     </div>
   )

@@ -10,6 +10,7 @@ import { CreatorTypes } from "@/components/tools/creator-types"
 import { FAQSection } from "@/components/sections/faq-section"
 import { LoadingState } from "@/components/loading-state"
 import { sora2Config } from "@/lib/tools/tool-configs"
+import { useTranslations } from "next-intl"
 
 const CommunityCTA = dynamic(
   () => import("@/components/sections/community-cta").then((m) => ({ default: m.CommunityCTA })),
@@ -17,45 +18,70 @@ const CommunityCTA = dynamic(
 )
 
 export default function Sora2Client() {
-  const features = sora2Config.features.map((f) => ({
+  const t = useTranslations('sora2')
+
+  const features = (t.raw('features') as any[]).map((f: any) => ({
     title: f.title,
     description: f.description,
   }))
 
+  const promptCategories = t.raw('promptCategories') as string[]
+  const prompts = sora2Config.prompts.map((p, i) => ({
+    ...p,
+    category: promptCategories[i] ?? p.category,
+  }))
+
+  const creatorTypes = (t.raw('creatorTypes') as any[]).map((c: any, i: number) => ({
+    icon: sora2Config.creatorTypes[i]?.icon,
+    title: c.title,
+    description: c.description,
+  }))
+
+  const heroConfig = {
+    badge: t('hero.badge'),
+    h1: t('hero.h1'),
+    description: t('hero.description'),
+    ctaText: t('hero.ctaText'),
+    ctaHref: sora2Config.hero.ctaHref,
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      <ToolHero config={{ ...sora2Config.hero, slug: sora2Config.slug }} />
+      <ToolHero config={{ ...heroConfig, slug: sora2Config.slug }} />
 
       <Suspense fallback={<LoadingState message="Loading Sora 2 Playground..." />}>
-        <ToolBuilder config={sora2Config} className="bg-brand-gray-900/30" />
+        <ToolBuilder
+          config={{ ...sora2Config, builderTitle: t('builderTitle'), builderSubtitle: t('builderSubtitle') }}
+          className="bg-brand-gray-900/30"
+        />
       </Suspense>
 
       <FeaturesOptionB
-        title={sora2Config.featuresTitle}
+        title={t('featuresTitle')}
         features={features}
       />
 
       <PromptShowcase
-        title={sora2Config.promptShowcaseTitle}
-        subtitle={sora2Config.promptShowcaseSubtitle}
-        prompts={sora2Config.prompts}
+        title={t('promptShowcaseTitle')}
+        subtitle={t('promptShowcaseSubtitle')}
+        prompts={prompts}
       />
 
       <CreatorTypes
-        title={sora2Config.creatorTypesTitle}
-        types={sora2Config.creatorTypes}
+        title={t('creatorTypesTitle')}
+        types={creatorTypes}
       />
 
       <FAQSection
-        title="Frequently Asked Questions"
-        faqs={sora2Config.faqs}
+        title={t('faqTitle')}
+        faqs={t.raw('faqs') as any[]}
       />
 
       <CommunityCTA
-        title={sora2Config.ctaTitle}
+        title={t('ctaTitle')}
         subtitle=""
-        description={sora2Config.ctaDescription}
-        ctaText={sora2Config.ctaButtonText}
+        description={t('ctaDescription')}
+        ctaText={t('ctaButtonText')}
         playgroundId="sora2-playground"
         getInspiredText=""
         showVideos={false}

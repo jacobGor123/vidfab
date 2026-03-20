@@ -10,6 +10,7 @@ import { CreatorTypes } from "@/components/tools/creator-types"
 import { FAQSection } from "@/components/sections/faq-section"
 import { LoadingState } from "@/components/loading-state"
 import { veo3Config } from "@/lib/tools/tool-configs"
+import { useTranslations } from "next-intl"
 
 const CommunityCTA = dynamic(
   () => import("@/components/sections/community-cta").then((m) => ({ default: m.CommunityCTA })),
@@ -17,52 +18,70 @@ const CommunityCTA = dynamic(
 )
 
 export default function Veo3Client() {
-  const features = veo3Config.features.map((f) => ({
+  const t = useTranslations('veo3')
+
+  const features = (t.raw('features') as any[]).map((f: any) => ({
     title: f.title,
     description: f.description,
   }))
 
+  const promptCategories = t.raw('promptCategories') as string[]
+  const prompts = veo3Config.prompts.map((p, i) => ({
+    ...p,
+    category: promptCategories[i] ?? p.category,
+  }))
+
+  const creatorTypes = (t.raw('creatorTypes') as any[]).map((c: any, i: number) => ({
+    icon: veo3Config.creatorTypes[i]?.icon,
+    title: c.title,
+    description: c.description,
+  }))
+
+  const heroConfig = {
+    badge: t('hero.badge'),
+    h1: t('hero.h1'),
+    description: t('hero.description'),
+    ctaText: t('hero.ctaText'),
+    ctaHref: veo3Config.hero.ctaHref,
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      {/* Hero */}
-      <ToolHero config={{ ...veo3Config.hero, slug: veo3Config.slug }} />
+      <ToolHero config={{ ...heroConfig, slug: veo3Config.slug }} />
 
-      {/* Builder (Playground) */}
       <Suspense fallback={<LoadingState message="Loading Veo 3 Playground..." />}>
-        <ToolBuilder config={veo3Config} className="bg-brand-gray-900/30" />
+        <ToolBuilder
+          config={{ ...veo3Config, builderTitle: t('builderTitle'), builderSubtitle: t('builderSubtitle') }}
+          className="bg-brand-gray-900/30"
+        />
       </Suspense>
 
-      {/* Features */}
       <FeaturesOptionB
-        title={veo3Config.featuresTitle}
+        title={t('featuresTitle')}
         features={features}
       />
 
-      {/* Prompt Showcase */}
       <PromptShowcase
-        title={veo3Config.promptShowcaseTitle}
-        subtitle={veo3Config.promptShowcaseSubtitle}
-        prompts={veo3Config.prompts}
+        title={t('promptShowcaseTitle')}
+        subtitle={t('promptShowcaseSubtitle')}
+        prompts={prompts}
       />
 
-      {/* Creator Types */}
       <CreatorTypes
-        title={veo3Config.creatorTypesTitle}
-        types={veo3Config.creatorTypes}
+        title={t('creatorTypesTitle')}
+        types={creatorTypes}
       />
 
-      {/* FAQ */}
       <FAQSection
-        title="Frequently Asked Questions"
-        faqs={veo3Config.faqs}
+        title={t('faqTitle')}
+        faqs={t.raw('faqs') as any[]}
       />
 
-      {/* CTA */}
       <CommunityCTA
-        title={veo3Config.ctaTitle}
+        title={t('ctaTitle')}
         subtitle=""
-        description={veo3Config.ctaDescription}
-        ctaText={veo3Config.ctaButtonText}
+        description={t('ctaDescription')}
+        ctaText={t('ctaButtonText')}
         playgroundId="veo3-playground"
         getInspiredText=""
         showVideos={false}

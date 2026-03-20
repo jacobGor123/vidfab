@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
@@ -41,68 +42,6 @@ import { VideoEffect, DEFAULT_EFFECT } from "@/lib/constants/video-effects"
 import { ImageProcessor } from "@/lib/image-processor"
 import { toast } from "sonner"
 
-// 错误信息转换函数
-function getFriendlyErrorMessage(error: string): string {
-  const errorMessages: Record<string, string> = {
-    'ImageObjectsUndetected': 'No clear objects detected in image. Please try using images with visible people, objects, or buildings',
-    'InputTooLarge': 'File too large. Please use images smaller than 10MB',
-    'InvalidImageFormat': 'Unsupported image format. Please use JPG, PNG, or WebP formats',
-    'ContentPolicyViolation': 'Image content violates usage policy. Please select a different image',
-    'ProcessingTimeout': 'Processing timeout. Please retry or use a smaller resolution image',
-    'InsufficientCredits': 'Insufficient credits. Please top up your account and try again',
-    'ImageTooSmall': 'Image resolution too low. Please use images of at least 512x512 pixels',
-    'ImageTooBlurry': 'Image too blurry. Please use a higher quality, clearer image',
-    'NoFaceDetected': 'No face detected. Please ensure image contains a clear human face',
-    'MultipleFacesDetected': 'Multiple faces detected. Please use an image with only one person',
-    'NetworkError': 'Network connection failed. Please check your connection and retry',
-    'ServerError': 'Server temporarily unavailable. Please try again later',
-    'RateLimitExceeded': 'Too many requests. Please wait a moment and try again',
-    'UnknownError': 'Unknown error occurred. Please retry or contact support'
-  }
-
-  // Exact match
-  if (errorMessages[error]) {
-    return errorMessages[error]
-  }
-
-  // Fuzzy match
-  for (const [key, message] of Object.entries(errorMessages)) {
-    if (error.toLowerCase().includes(key.toLowerCase())) {
-      return message
-    }
-  }
-
-  // Special keyword matching
-  const errorLower = error.toLowerCase()
-  if (errorLower.includes('object') && errorLower.includes('detect')) {
-    return errorMessages['ImageObjectsUndetected']
-  }
-  if (errorLower.includes('face') && errorLower.includes('not')) {
-    return errorMessages['NoFaceDetected']
-  }
-  if (errorLower.includes('multiple') && errorLower.includes('face')) {
-    return errorMessages['MultipleFacesDetected']
-  }
-  if (errorLower.includes('blur') || errorLower.includes('quality')) {
-    return errorMessages['ImageTooBlurry']
-  }
-  if (errorLower.includes('small') || errorLower.includes('resolution')) {
-    return errorMessages['ImageTooSmall']
-  }
-  if (errorLower.includes('network') || errorLower.includes('connection')) {
-    return errorMessages['NetworkError']
-  }
-  if (errorLower.includes('server')) {
-    return errorMessages['ServerError']
-  }
-  if (errorLower.includes('rate') && errorLower.includes('limit')) {
-    return errorMessages['RateLimitExceeded']
-  }
-
-  // Default return
-  return error || 'Unknown error. Please try again with a different image'
-}
-
 interface VideoEffectsParams {
   image: string // Image URL or base64
   imageFile: File | null // Local file reference
@@ -111,6 +50,7 @@ interface VideoEffectsParams {
 }
 
 export function VideoEffectsPanel() {
+  const t = useTranslations('studio')
   const isMobile = useIsMobile()
   const [params, setParams] = useState<VideoEffectsParams>({
     image: "",
@@ -128,6 +68,68 @@ export function VideoEffectsPanel() {
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [uploadHistory, setUploadHistory] = useState<Array<{id: string, name: string, size: string, timestamp: Date}>>([])
+
+  // 错误信息转换函数（移至组件内部以访问 t）
+  const getFriendlyErrorMessage = (error: string): string => {
+    const errorMessages: Record<string, string> = {
+      'ImageObjectsUndetected': t('videoEffects.errors.imageObjectsUndetected'),
+      'InputTooLarge': t('videoEffects.errors.inputTooLarge'),
+      'InvalidImageFormat': t('videoEffects.errors.invalidImageFormat'),
+      'ContentPolicyViolation': t('videoEffects.errors.contentPolicyViolation'),
+      'ProcessingTimeout': t('videoEffects.errors.processingTimeout'),
+      'InsufficientCredits': t('videoEffects.errors.insufficientCredits'),
+      'ImageTooSmall': t('videoEffects.errors.imageTooSmall'),
+      'ImageTooBlurry': t('videoEffects.errors.imageTooBlurry'),
+      'NoFaceDetected': t('videoEffects.errors.noFaceDetected'),
+      'MultipleFacesDetected': t('videoEffects.errors.multipleFacesDetected'),
+      'NetworkError': t('videoEffects.errors.networkError'),
+      'ServerError': t('videoEffects.errors.serverError'),
+      'RateLimitExceeded': t('videoEffects.errors.rateLimitExceeded'),
+      'UnknownError': t('videoEffects.errors.unknownError')
+    }
+
+    // Exact match
+    if (errorMessages[error]) {
+      return errorMessages[error]
+    }
+
+    // Fuzzy match
+    for (const [key, message] of Object.entries(errorMessages)) {
+      if (error.toLowerCase().includes(key.toLowerCase())) {
+        return message
+      }
+    }
+
+    // Special keyword matching
+    const errorLower = error.toLowerCase()
+    if (errorLower.includes('object') && errorLower.includes('detect')) {
+      return errorMessages['ImageObjectsUndetected']
+    }
+    if (errorLower.includes('face') && errorLower.includes('not')) {
+      return errorMessages['NoFaceDetected']
+    }
+    if (errorLower.includes('multiple') && errorLower.includes('face')) {
+      return errorMessages['MultipleFacesDetected']
+    }
+    if (errorLower.includes('blur') || errorLower.includes('quality')) {
+      return errorMessages['ImageTooBlurry']
+    }
+    if (errorLower.includes('small') || errorLower.includes('resolution')) {
+      return errorMessages['ImageTooSmall']
+    }
+    if (errorLower.includes('network') || errorLower.includes('connection')) {
+      return errorMessages['NetworkError']
+    }
+    if (errorLower.includes('server')) {
+      return errorMessages['ServerError']
+    }
+    if (errorLower.includes('rate') && errorLower.includes('limit')) {
+      return errorMessages['RateLimitExceeded']
+    }
+
+    // Default return
+    return error || t('videoEffects.errors.fallbackError')
+  }
 
   // Context and hooks
   const videoContext = useVideoContext()
@@ -164,8 +166,8 @@ export function VideoEffectsPanel() {
     },
     onFailed: (job, error) => {
       const friendlyError = getFriendlyErrorMessage(error)
-      toast.error(`Video effects generation failed: ${friendlyError}`, {
-        description: 'You can try using a different image or regenerate',
+      toast.error(`${t('videoEffects.generationFailedError', { error: friendlyError })}`, {
+        description: t('videoEffects.tryDifferentImage'),
         duration: 8000
       })
     },
@@ -240,15 +242,15 @@ export function VideoEffectsPanel() {
     const errors: string[] = []
 
     if (!params.image) {
-      errors.push("Please upload an image")
+      errors.push(t('videoEffects.pleaseUploadImage'))
     }
 
     if (!params.selectedEffect) {
-      errors.push("Please select a video effect")
+      errors.push(t('validation.selectEffect'))
     }
 
     return errors
-  }, [params.image, params.selectedEffect])
+  }, [params.image, params.selectedEffect, t])
 
   // Image upload handling
   const handleImageUpload = async (file: File) => {
@@ -269,14 +271,14 @@ export function VideoEffectsPanel() {
   const uploadImageFile = async (file: File) => {
     // Enhanced validation
     if (!file.type.startsWith('image/')) {
-      setValidationErrors(["Please upload an image file (JPG, PNG, WebP formats)"])
+      setValidationErrors([t('videoEffects.uploadImageFileError')])
       return
     }
 
     // Check file format more strictly
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
     if (!allowedTypes.includes(file.type.toLowerCase())) {
-      setValidationErrors(["Unsupported image format. Please use JPG, PNG, or WebP formats"])
+      setValidationErrors([t('videoEffects.unsupportedFormatError')])
       return
     }
 
@@ -288,7 +290,7 @@ export function VideoEffectsPanel() {
 
     // Minimum file size check (avoid empty or corrupted files)
     if (file.size < 1024) { // Less than 1KB
-      setValidationErrors(["Image file too small. Please select a valid image file"])
+      setValidationErrors([t('videoEffects.fileTooSmallError')])
       return
     }
 
@@ -313,12 +315,12 @@ export function VideoEffectsPanel() {
       // Check aspect ratio (too extreme ratios might cause issues)
       const aspectRatio = Math.max(width, height) / Math.min(width, height)
       if (aspectRatio > 4) {
-        setValidationErrors(["Image aspect ratio too extreme. Please use images with aspect ratio within 1:4"])
+        setValidationErrors([t('videoEffects.aspectRatioExtremeError')])
         return
       }
 
     } catch (error) {
-      setValidationErrors(["Image file invalid or corrupted. Please select a different image"])
+      setValidationErrors([t('videoEffects.invalidImageError')])
       return
     }
 
@@ -401,7 +403,7 @@ export function VideoEffectsPanel() {
 
     } catch (error) {
       setValidationErrors([
-        error instanceof Error ? error.message : "Image upload failed, please try again"
+        error instanceof Error ? error.message : t('videoEffects.uploadFailedError')
       ])
       setImagePreview(null)
     } finally {
@@ -552,7 +554,7 @@ export function VideoEffectsPanel() {
 
       // For local upload mode, we should already have a Supabase URL
       if (params.uploadMode === 'local' && !imageUrl) {
-        throw new Error("Please upload an image first")
+        throw new Error(t('validation.uploadImageFirst'))
       }
 
       // For URL mode, validate the URL
@@ -560,10 +562,10 @@ export function VideoEffectsPanel() {
         try {
           new URL(imageUrl) // Validate URL format
           if (!imageUrl.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i)) {
-            throw new Error("Please provide a valid image URL with jpg, jpeg, png, or webp extension")
+            throw new Error(t('validation.validImageUrlFormat'))
           }
         } catch {
-          throw new Error("Please provide a valid image URL")
+          throw new Error(t('validation.validImageUrl'))
         }
       }
 
@@ -589,10 +591,10 @@ export function VideoEffectsPanel() {
       if (error instanceof Error && error.message.includes('insufficient') || error.message.includes('credits')) {
         setShowUpgradeDialog(true)
       } else {
-        setValidationErrors(['视频生成失败，请稍后重试'])
+        setValidationErrors([t('videoEffects.uploadFailedError')])
       }
     }
-  }, [params, validateForm, videoGeneration, userJobs.length, canAccessModel, checkCreditsAvailability, allUserItems, videoContext])
+  }, [params, validateForm, videoGeneration, userJobs.length, canAccessModel, checkCreditsAvailability, allUserItems, videoContext, t])
 
   // Update form parameters
   const updateParam = useCallback((key: keyof VideoEffectsParams, value: any) => {
@@ -635,7 +637,7 @@ export function VideoEffectsPanel() {
                       : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  Upload File
+                  {t('common.uploadFile')}
                 </button>
                 <button
                   onClick={() => updateParam("uploadMode", "url")}
@@ -646,14 +648,14 @@ export function VideoEffectsPanel() {
                       : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  Image URL
+                  {t('common.imageUrl')}
                 </button>
               </div>
 
               {params.uploadMode === 'local' ? (
                 /* Local Upload Mode */
                 <div className="space-y-2">
-                  <Label className="text-gray-300">Select Image File</Label>
+                  <Label className="text-gray-300">{t('videoEffects.selectImageFile')}</Label>
                   {!params.image ? (
                     <div className="space-y-4">
                       <div
@@ -670,8 +672,8 @@ export function VideoEffectsPanel() {
                         }}
                       >
                         <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <p className="text-gray-400 mb-2">Click to upload or drag & drop</p>
-                        <p className="text-xs text-gray-500">JPEG, PNG, WebP (max 10MB)</p>
+                        <p className="text-gray-400 mb-2">{t('videoEffects.clickToUpload')}</p>
+                        <p className="text-xs text-gray-500">{t('videoEffects.uploadHint')}</p>
                         <input
                           id="image-upload"
                           type="file"
@@ -687,9 +689,9 @@ export function VideoEffectsPanel() {
                         <div className="space-y-3">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-400">
-                              {imageUploadProgress < 15 ? 'Validating...' :
-                               imageUploadProgress < 60 ? 'Processing...' :
-                               imageUploadProgress < 90 ? 'Uploading...' : 'Completing...'}
+                              {imageUploadProgress < 15 ? t('videoEffects.validating') :
+                               imageUploadProgress < 60 ? t('videoEffects.processing') :
+                               imageUploadProgress < 90 ? t('videoEffects.uploading') : t('videoEffects.completing')}
                             </span>
                             <span className="text-gray-400">{Math.round(imageUploadProgress)}%</span>
                           </div>
@@ -700,11 +702,11 @@ export function VideoEffectsPanel() {
                             />
                           </div>
                           <div className="text-xs text-gray-500 text-center">
-                            {imageUploadProgress < 15 ? 'Checking file format and size...' :
-                             imageUploadProgress < 30 ? 'Creating preview...' :
-                             imageUploadProgress < 60 ? '🤖 Auto-optimizing image quality...' :
-                             imageUploadProgress < 90 ? 'Uploading to cloud storage...' :
-                             'Finalizing upload...'}
+                            {imageUploadProgress < 15 ? t('videoEffects.checkingFormat') :
+                             imageUploadProgress < 30 ? t('videoEffects.creatingPreview') :
+                             imageUploadProgress < 60 ? t('videoEffects.optimizingQuality') :
+                             imageUploadProgress < 90 ? t('videoEffects.uploadingCloud') :
+                             t('videoEffects.finalizingUpload')}
                           </div>
                         </div>
                       )}
@@ -733,9 +735,9 @@ export function VideoEffectsPanel() {
                         <div className="space-y-3">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-400">
-                              {imageUploadProgress < 15 ? 'Validating...' :
-                               imageUploadProgress < 60 ? 'Processing...' :
-                               imageUploadProgress < 90 ? 'Uploading...' : 'Completing...'}
+                              {imageUploadProgress < 15 ? t('videoEffects.validating') :
+                               imageUploadProgress < 60 ? t('videoEffects.processing') :
+                               imageUploadProgress < 90 ? t('videoEffects.uploading') : t('videoEffects.completing')}
                             </span>
                             <span className="text-gray-400">{Math.round(imageUploadProgress)}%</span>
                           </div>
@@ -746,11 +748,11 @@ export function VideoEffectsPanel() {
                             />
                           </div>
                           <div className="text-xs text-gray-500 text-center">
-                            {imageUploadProgress < 15 ? 'Checking file format and size...' :
-                             imageUploadProgress < 30 ? 'Creating preview...' :
-                             imageUploadProgress < 60 ? '🤖 Auto-optimizing image quality...' :
-                             imageUploadProgress < 90 ? 'Uploading to cloud storage...' :
-                             'Finalizing upload...'}
+                            {imageUploadProgress < 15 ? t('videoEffects.checkingFormat') :
+                             imageUploadProgress < 30 ? t('videoEffects.creatingPreview') :
+                             imageUploadProgress < 60 ? t('videoEffects.optimizingQuality') :
+                             imageUploadProgress < 90 ? t('videoEffects.uploadingCloud') :
+                             t('videoEffects.finalizingUpload')}
                           </div>
                         </div>
                       )}
@@ -760,7 +762,7 @@ export function VideoEffectsPanel() {
                         <div className="flex items-center gap-2 text-sm text-green-400">
                           <CheckCircle className="w-4 h-4" />
                           <span>
-                            Upload successful • Saved {uploadHistory[0].size} to cloud
+                            {t('videoEffects.uploadSuccessMessage', { size: uploadHistory[0].size })}
                           </span>
                         </div>
                       )}
@@ -770,7 +772,7 @@ export function VideoEffectsPanel() {
               ) : (
                 /* URL Upload Mode */
                 <div className="space-y-2">
-                  <Label className="text-gray-300">Image URL</Label>
+                  <Label className="text-gray-300">{t('common.imageUrl')}</Label>
                   <input
                     type="url"
                     placeholder="https://example.com/image.jpg"
@@ -785,7 +787,7 @@ export function VideoEffectsPanel() {
                         src={params.image}
                         alt="URL preview"
                         className="w-full max-h-48 object-contain rounded-lg bg-gray-800"
-                        onError={() => setValidationErrors(["Invalid image URL or image cannot be loaded"])}
+                        onError={() => setValidationErrors([t('validation.validImageUrl')])}
                       />
                       <Button
                         variant="ghost"
@@ -795,7 +797,7 @@ export function VideoEffectsPanel() {
                         className="w-full text-gray-400 hover:text-white hover:bg-gray-800"
                       >
                         <X className="w-4 h-4 mr-2" />
-                        Remove Image
+                        {t('common.removeImage')}
                       </Button>
                     </div>
                   )}
@@ -824,30 +826,30 @@ export function VideoEffectsPanel() {
             {videoGeneration.isGenerating ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Submitting...
+                {t('common.submitting')}
               </>
             ) : isSessionLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Checking login...
+                {t('common.checkingLogin')}
               </>
             ) : !isAuthenticated ? (
               <>
-                Sign In & Generate Video
+                {t('common.signInAndGenerate')}
               </>
             ) : isUploadingImage ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Processing Image...
+                {t('videoEffects.processingImage')}
               </>
             ) : processingJobs.length >= 4 ? (
               <>
                 <AlertTriangle className="w-5 h-5 mr-2" />
-                Maximum 4 Videos at Once
+                {t('videoEffects.maxVideos')}
               </>
             ) : (
               <div className="gap-[20px] w-full flex justify-center items-center">
-                <span>Generate Video Effects {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}</span>
+                <span>{t('videoEffects.generateEffects')} {processingJobs.length > 0 ? `(${processingJobs.length}/4)` : ''}</span>
                 <span className="flex items-center text-sm opacity-90">
                   <Zap className="w-3 h-3 mr-1" />
                   {CREDITS_CONSUMPTION['video-effects']['4s']}
@@ -902,8 +904,8 @@ export function VideoEffectsPanel() {
               <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-6">
                 <Play className="w-8 h-8 text-gray-500 ml-1" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-400 mb-2">Preview Area</h3>
-              <p className="text-gray-500">Your generated video will appear here</p>
+              <h3 className="text-lg font-semibold text-gray-400 mb-2">{t('common.previewArea')}</h3>
+              <p className="text-gray-500">{t('videoEffects.videoPreviewHint')}</p>
             </div>
           )}
         </div>

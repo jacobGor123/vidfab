@@ -1,0 +1,45 @@
+{
+  "hero": {
+    "badge": "Powered by Google DeepMind",
+    "h1": "Ihr direkter Zugang zum Veo 3 Modell",
+    "description": "Kein Warten mehr. Erleben Sie jetzt die rohe, kinoreife Power von Googles Veo 3. Geben Sie Ihren Prompt ein und beobachten Sie, wie das fortschrittlichste Videomodell der Welt ihn zum Leben erweckt.",
+    "ctaText": "Kostenlos testen"
+  },
+  "builderTitle": "Der Veo 3 Playground",
+  "builderSubtitle": "Prompt. Generieren. Staunen.",
+  "featuresTitle": "Was macht Veo 3 zur ultimativen Kinomaschine?",
+  "features": [
+    { "title": "Makellose Realwelt-Physik", "description": "Simuliert nativ komplexe Fluiddynamik, Stoffbewegungen und realistisches Licht. Verabschieden Sie sich von störenden KI-Artefakten, die Zuschauer aus dem Erlebnis reißen." },
+    { "title": "Natürliche Kamera-Regie", "description": "Nutzen Sie natürliche Sprache, um komplexe Kamerabewegungen zu steuern — dramatische Push-Ins, weitläufige Drohnenaufnahmen oder schnelle Tracking-Pans — passend zu Ihrem emotionalen Ton." },
+    { "title": "Hochpräzises Prompting", "description": "Kein Kämpfen mit der KI mehr. Veo 3 versteht komplexe, mehrsätzige Prompts tiefgehend. Beschreiben Sie spezifische Aktionen und Details — es setzt Ihr Skript genau um." },
+    { "title": "Erweiterte zeitliche Konsistenz", "description": "Keine schmelzenden Szenen nach 2 Sekunden. Veo 3's bahnbrechende Architektur erhält zeitliche Konsistenz und räumliche Logik für deutlich längere Dauer." },
+    { "title": "Native Audiogenerierung", "description": "Veo 3 ist das erste Modell, das nativ synchronisierten Audio generiert — Umgebungsgeräusche, Dialoge und Effekte — alles aus demselben Prompt, ohne Nachbearbeitung." },
+    { "title": "Blitzschnelle Generierung", "description": "Angetrieben von der veo3-fast-Architektur: Generieren Sie hochwertige Filmclips in Minuten, nicht Stunden. Iterieren Sie schnell und finden Sie den perfekten Take." }
+  ],
+  "promptShowcaseTitle": "Sehen Sie, wie Veo 3 jedes Wort versteht.",
+  "promptShowcaseSubtitle": "Was Sie schreiben, wird genau das gefilmt.",
+  "promptCategories": [
+    "Kinematisches B-Roll / Naturdoku",
+    "Indie-Kurzfilm / Drama",
+    "Sci-Fi-Trailer / Actionszene",
+    "Fantasy-Lore / Produktkonzept"
+  ],
+  "creatorTypesTitle": "Perfekt für Creators, die mehr als B-Roll brauchen",
+  "creatorTypes": [
+    { "title": "Indie-Filmemacher", "description": "Visualisieren Sie komplette Skripte oder erstellen Sie Null-Budget-Trailer mit Hollywood-Qualität. Veo 3's Physik-Engine und Kamera-Kontrolle geben Ihnen eine vollständige virtuelle Filmcrew." },
+    { "title": "Gesichtslose Kanalinhaber", "description": "Produzieren Sie Shorts mit hoher Bindungsrate (True Crime, Reddit-Storys, Lore) deutlich schneller. Veo 3's anhaltende Kohärenz hält Ihre Erzählung über Szenen hinweg konsistent." },
+    { "title": "Autoren & Schreiber", "description": "Verwandeln Sie Ihre Kapitel in visuelle Teaser, um Ihre Bücher auf TikTok und Reels zu vermarkten. Veo 3 versteht narrative Kontexte und emotionale Bögen wie kein anderes Modell." }
+  ],
+  "faqTitle": "Häufig gestellte Fragen",
+  "faqs": [
+    { "question": "Werden diese Videos wirklich vom Veo 3 Modell generiert?", "answer": "Ja. Wir nutzen die offizielle Veo 3 API, um Ihnen die bahnbrechende Kinoqualität zu gewährleisten. Unsere Plattform übernimmt Job-Queuing, Kreditverwaltung und Speicherung." },
+    { "question": "Darf ich die generierten Videos kommerziell nutzen?", "answer": "Ja. Sie besitzen die Rechte an Ihren generierten Videos — ideal für YouTube-Monetarisierung oder Kundenprojekte. Bitte lesen Sie unsere Nutzungsbedingungen für vollständige Details." },
+    { "question": "Muss ich Experte im Prompt Engineering sein?", "answer": "Keineswegs. Veo 3 versteht natürliche Sprache tiefgehend. Beschreiben Sie einfach, was Sie sehen möchten — Kamerabewegungen, Emotionen, Aktionen — und das Modell setzt es getreu um." },
+    { "question": "Wofür ist der Audio-Schalter?", "answer": "Veo 3 ist das erste Modell, das nativ synchronisierten Audio generiert. Schalten Sie ihn EIN, um Umgebungsgeräusche, Dialoghinweise und Effekte zu erhalten. AUS ergibt einen stummen Clip." },
+    { "question": "Was kosten die Credits?", "answer": "Credits variieren je nach Dauer und Auflösung. 720p-Videos kosten 70–100 Credits (4s–8s), 1080p-Videos 90–130 Credits. Neue Konten erhalten 100 kostenlose Credits." },
+    { "question": "Wie lange dauert die Generierung?", "answer": "Typischerweise 2–5 Minuten, abhängig von Serverlast und Videoparametern. Sie können die Seite verlassen — wir benachrichtigen Sie, wenn es fertig ist, und speichern es in Ihrem Asset-Bereich." }
+  ],
+  "ctaTitle": "Bereit, Ihr erstes Veo 3 Meisterwerk zu inszenieren?",
+  "ctaDescription": "Erhalten Sie 100 kostenlose Credits und erleben Sie das Veo 3 Modell noch heute.",
+  "ctaButtonText": "Story kostenlos starten"
+}

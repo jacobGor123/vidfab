@@ -38,19 +38,21 @@ export function LocaleSwitcher() {
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-sm"
+          className="gap-1.5 text-sm hover:bg-primary/20 hover:text-white focus:bg-primary/20 focus:text-white"
           aria-label="Select language"
         >
           <Globe className="h-4 w-4" />
           <span>{current?.short ?? 'EN'}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-gray-900 border-gray-700">
         {LOCALES.map(({ code, label }) => (
           <DropdownMenuItem
             key={code}
             onClick={() => handleLocaleChange(code)}
-            className={locale === code ? 'font-semibold' : ''}
+            className={`cursor-pointer focus:bg-primary/20 focus:text-white hover:bg-primary/20 hover:text-white ${
+              locale === code ? 'font-semibold text-white bg-primary/10' : 'text-gray-300'
+            }`}
           >
             {label}
           </DropdownMenuItem>

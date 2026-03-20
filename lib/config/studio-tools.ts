@@ -230,9 +230,10 @@ export function getToolConfig(toolId: ToolType): ToolConfig | undefined {
  * 从路径提取工具 ID
  */
 export function getToolFromPath(pathname: string): ToolType {
-  if (pathname.startsWith('/studio/')) {
-    const pathParts = pathname.split('/').filter(Boolean)
-    const toolPath = pathParts[1]
+  // Match /studio/path or /{locale}/studio/path (e.g. /zh/studio/text-to-video)
+  const match = pathname.match(/^(?:\/[a-z]{2}(?:-[A-Z]{2})?)?\/studio\/([^/]+)/)
+  if (match) {
+    const toolPath = match[1]
     return urlToToolMap[toolPath] || 'discover'
   }
 

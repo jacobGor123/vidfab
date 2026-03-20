@@ -27,7 +27,7 @@ interface ProductOffer {
  * Organization Schema - Describes the company/organization
  */
 export function getOrganizationSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   return {
     '@context': 'https://schema.org',
@@ -55,7 +55,7 @@ export function getOrganizationSchema() {
  * WebSite Schema - Describes the website and enables search box
  */
 export function getWebSiteSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   return {
     '@context': 'https://schema.org',
@@ -78,7 +78,7 @@ export function getWebSiteSchema() {
  * BreadcrumbList Schema - Navigation breadcrumbs for SEO
  */
 export function getBreadcrumbSchema(items: BreadcrumbItem[]) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   return {
     '@context': 'https://schema.org',
@@ -96,7 +96,7 @@ export function getBreadcrumbSchema(items: BreadcrumbItem[]) {
  * SoftwareApplication Schema - Describes the application
  */
 export function getSoftwareApplicationSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   return {
     '@context': 'https://schema.org',
@@ -169,7 +169,7 @@ export function getServiceSchema(service: {
   description: string
   serviceType: string
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   return {
     '@context': 'https://schema.org',
@@ -237,7 +237,7 @@ export function getVideoObjectSchema(video: {
   uploadDate: string
   duration?: string
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   return {
     '@context': 'https://schema.org',
@@ -276,7 +276,7 @@ export function getBlogPostingSchema(post: {
   tags?: string[]
   keywords?: string[]
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
   const postUrl = `${baseUrl}/blog/${post.slug}`
 
   const schema: any = {
@@ -353,7 +353,7 @@ export function getBlogSchema(posts?: Array<{
   excerpt?: string
   published_at?: string
 }>) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   const schema: any = {
     '@context': 'https://schema.org',
@@ -394,7 +394,7 @@ export function getItemListSchema(posts: Array<{
   excerpt?: string
   featured_image_url?: string
 }>) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
   return {
     '@context': 'https://schema.org',
