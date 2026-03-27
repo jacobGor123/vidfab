@@ -28,7 +28,12 @@ CREATE TABLE IF NOT EXISTS users (
     total_videos_processed INTEGER DEFAULT 0,
     storage_used_mb BIGINT DEFAULT 0,
     max_storage_mb BIGINT DEFAULT 1024, -- 1GB default limit
-    
+
+    -- Anti-fraud fields (Layer 1 + Layer 2, added 2026-03-16)
+    normalized_email VARCHAR(255),       -- Normalized email for duplicate detection
+    is_credit_limited BOOLEAN DEFAULT FALSE, -- Whether initial credits were withheld due to fraud
+    fraud_reason VARCHAR(100),           -- 'email_duplicate' | 'ip_limit' | 'email_duplicate_and_ip_limit'
+
     CONSTRAINT unique_email UNIQUE (email),
     CONSTRAINT valid_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );

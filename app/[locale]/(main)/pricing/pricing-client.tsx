@@ -377,13 +377,13 @@ export default function PricingPage() {
                         <span className="text-sm text-white/80">{t('firstMonth')}</span>
                       </div>
                       <p className="text-sm font-semibold text-white mb-3">
-                        {t('thenPerMonth').replace('${price}', formatPrice(SUBSCRIPTION_PLANS.pro.price.monthly))}
+                        {t('thenPerMonth', { price: formatPrice(SUBSCRIPTION_PLANS.pro.price.monthly) })}
                       </p>
                     </>
                   )}
                   {annual && (
                     <p className="text-sm text-[#dddddd] mb-3">
-                      {t('billedAnnually').replace('${price}', formatPrice(SUBSCRIPTION_PLANS.pro.price.annual))}
+                      {t('billedAnnually', { price: formatPrice(SUBSCRIPTION_PLANS.pro.price.annual) })}
                     </p>
                   )}
                   <p className="text-sm text-[#dddddd]">{t('pro.description')}</p>
@@ -422,7 +422,7 @@ export default function PricingPage() {
                   </div>
                   {annual && (
                     <p className="text-sm text-[#dddddd] mb-3">
-                      {t('billedAnnually').replace('${price}', formatPrice(SUBSCRIPTION_PLANS.premium.price.annual))}
+                      {t('billedAnnually', { price: formatPrice(SUBSCRIPTION_PLANS.premium.price.annual) })}
                     </p>
                   )}
                   <p className="text-sm text-[#dddddd]">{t('premium.description')}</p>

@@ -120,7 +120,11 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       };
 
       // 🎁 用户创建成功后，标记 pending_credits 为已领取
-      if (pendingCreditIds.length > 0) {
+      // 🛡️ 仅在非欺诈用户时消费 pending_credits：
+      //   - isEmailDup=true 时消费可接受（同一人多账号尝试）
+      //   - isIpLimited=true && isEmailDup=false 时是合法新用户被 IP 限制，
+      //     不应消费其 pending_credits（否则积分永久丢失）
+      if (!isFraud && pendingCreditIds.length > 0) {
         // 🔧 使用独立变量存储，避免污染 userToSave 对象
         pendingCreditIdsToProcess = pendingCreditIds;
       }
