@@ -366,8 +366,8 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
     errors.push("Prompt is required")
   }
 
-  if (request.prompt && request.prompt.length > 500) {
-    errors.push("Prompt must be 500 characters or less")
+  if (request.prompt && request.prompt.length > 1000) {
+    errors.push("Prompt must be 1000 characters or less")
   }
 
   if (!request.model) {

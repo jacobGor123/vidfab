@@ -195,7 +195,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
       errors.push(t('validation.enterVideoDescription'))
     }
 
-    if (params.prompt && params.prompt.length > 500) {
+    if (params.prompt && params.prompt.length > 1000) {
       errors.push(t('validation.descriptionTooLong'))
     }
 
@@ -418,13 +418,13 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                     value={params.prompt}
                     onChange={(e) => updateParam("prompt", e.target.value)}
                     className="min-h-[120px] bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-none focus:border-purple-500 focus:ring-purple-500"
-                    maxLength={500}
+                    maxLength={1000}
                     disabled={videoGeneration.isGenerating}
                   />
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">{t('common.detailedDescriptions')}</span>
-                    <span className={`${params.prompt.length > 450 ? 'text-yellow-400' : 'text-gray-400'}`}>
-                      {params.prompt.length}/500
+                    <span className={`${params.prompt.length > 900 ? 'text-yellow-400' : 'text-gray-400'}`}>
+                      {params.prompt.length}/1000
                     </span>
                   </div>
                 </CardContent>
