@@ -391,28 +391,8 @@ export const POST = withAuth(async (request, { params, userId }) => {
           }
         )
 
-        // Also enqueue a follow-up job that will download/store the generated images.
-        // This prevents the UI from being stuck with external signed URLs.
-        await videoQueueManager.addJob(
-          'storyboard_download',
-          {
-            jobId: `storyboard_download_batch_${projectId}`,
-            userId,
-            videoId: projectId,
-            projectId,
-            shotNumber: 0,
-            externalUrl: '__BATCH__',
-            createdAt: new Date().toISOString(),
-          } as any,
-          {
-            priority: 'high',
-            attempts: 3,
-            backoff: { type: 'exponential', delay: 5000 },
-            delay: 2000,
-            removeOnComplete: 10,
-            removeOnFail: 20,
-          }
-        )
+        // 注意：storyboard_download 任务由 storyboard_generation handler 在完成后入队，
+        // 不在路由层提前入队——路由层入队时生成还未开始，查不到任何 success 记录。
 
         return NextResponse.json({
           success: true,
