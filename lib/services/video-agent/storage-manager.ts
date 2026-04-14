@@ -307,6 +307,73 @@ export class VideoAgentStorageManager {
   }
 
   /**
+   * 下载最终合成视频并上传到 Supabase Storage（永久保存）
+   */
+  static async downloadAndStoreFinalVideo(
+    userId: string,
+    projectId: string,
+    externalUrl: string
+  ): Promise<{ storagePath: string; cdnUrl: string; fileSize: number }> {
+    const MAX_RETRIES = 3
+    const TIMEOUT_MS = 300000 // 5 分钟超时（最终视频可能较大）
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
+
+      try {
+        console.log(`[Storage Manager] 📥 Downloading final video (attempt ${attempt}/${MAX_RETRIES})...`)
+
+        assertSafeExternalUrl(externalUrl, { purpose: 'final_video_download' })
+
+        const response = await fetch(externalUrl, { signal: controller.signal })
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          throw new Error(`Failed to download: ${response.status} ${response.statusText}`)
+        }
+
+        const arrayBuffer = await response.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        const fileSize = buffer.length
+
+        console.log(`[Storage Manager] Downloaded ${(fileSize / 1024 / 1024).toFixed(2)} MB`)
+
+        const storagePath = STORAGE_CONFIG.paths.getVideoAgentFinalVideoPath(userId, projectId)
+
+        const { error: uploadError } = await supabaseAdmin.storage
+          .from(STORAGE_CONFIG.buckets.videos)
+          .upload(storagePath, buffer, { contentType: 'video/mp4', upsert: true })
+
+        if (uploadError) {
+          throw new Error(`Upload failed: ${uploadError.message}`)
+        }
+
+        const { data: urlData } = supabaseAdmin.storage
+          .from(STORAGE_CONFIG.buckets.videos)
+          .getPublicUrl(storagePath)
+
+        console.log(`[Storage Manager] ✅ Final video uploaded to: ${storagePath}`)
+        return { storagePath, cdnUrl: urlData.publicUrl, fileSize }
+
+      } catch (error) {
+        clearTimeout(timeoutId)
+        const isTimeout = (error as Error).name === 'AbortError'
+        const msg = isTimeout ? 'Download timeout (5 minutes)' : (error as Error).message
+        console.error(`[Storage Manager] ❌ Attempt ${attempt}/${MAX_RETRIES} failed: ${msg}`)
+
+        if (attempt < MAX_RETRIES) {
+          await new Promise(resolve => setTimeout(resolve, attempt * 3000))
+          continue
+        }
+        throw new Error(`Failed to store final video after ${MAX_RETRIES} attempts: ${msg}`)
+      }
+    }
+
+    throw new Error('Unexpected: retry loop completed without return or throw')
+  }
+
+  /**
    * 批量下载分镜图（带进度追踪）
    */
   static async batchDownloadStoryboards(

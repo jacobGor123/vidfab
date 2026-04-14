@@ -2,6 +2,7 @@ import { Job } from 'bullmq'
 import { supabaseAdmin } from '@/lib/supabase'
 import { estimateTotalDuration } from '@/lib/services/video-agent/video-composer'
 import { concatenateVideosWithShotstack } from '@/lib/services/video-agent/processors/shotstack-composer'
+import { VideoAgentStorageManager } from '@/lib/services/video-agent/storage-manager'
 import type { Database } from '@/lib/database.types'
 import type { VideoAgentComposeJobData } from '@/lib/queue/types'
 
@@ -81,9 +82,25 @@ export async function handleVideoAgentCompose(job: Job): Promise<any> {
     subtitleUrl,
   })
 
+  await job.updateProgress({ percent: 90, message: 'Uploading final video to permanent storage...' })
+
+  // 下载 Shotstack 视频并上传到 Supabase Storage（防止临时链接过期导致视频丢失）
+  // 不做 fallback：上传失败直接 throw，让 BullMQ 按退避策略重试。
+  // Shotstack 渲染结果通常保留数天，重试窗口足够。
+  const userId = (project as any).user_id as string
+  const stored = await VideoAgentStorageManager.downloadAndStoreFinalVideo(
+    userId,
+    projectId,
+    videoMetadata.url
+  )
+  const permanentUrl = stored.cdnUrl
+  const permanentStoragePath = stored.storagePath
+  const permanentFileSize = stored.fileSize
+  console.log(`[Compose] Final video stored permanently: ${permanentStoragePath}`)
+
   await job.updateProgress({ percent: 95, message: 'Saving final video metadata...' })
 
-  // 🔥 重要：确保数据库更新成功，否则会导致"Job finished but status not updated"错误
+  // 确保数据库更新成功，否则会导致"Job finished but status not updated"错误
   const maxRetries = 3
   let updateSuccess = false
   let lastError: Error | null = null
@@ -95,10 +112,10 @@ export async function handleVideoAgentCompose(job: Job): Promise<any> {
         .update({
           status: 'completed',
           step_6_status: 'completed',
-          final_video_url: videoMetadata.url,
-          final_video_file_size: videoMetadata.fileSize,
+          final_video_url: permanentUrl,
+          final_video_file_size: permanentFileSize,
           final_video_resolution: videoMetadata.resolution,
-          final_video_storage_path: `shotstack:${projectId}`,
+          final_video_storage_path: permanentStoragePath,
           completed_at: new Date().toISOString(),
         } as any)
         .eq('id', projectId)
@@ -119,12 +136,12 @@ export async function handleVideoAgentCompose(job: Job): Promise<any> {
       }
 
       updateSuccess = true
-      console.log(`✅ [Compose] Database updated successfully for project ${projectId}`)
+      console.log(`[Compose] Database updated successfully for project ${projectId}`)
       break
 
     } catch (err) {
       lastError = err as Error
-      console.error(`❌ [Compose] Database update attempt ${attempt}/${maxRetries} failed:`, err)
+      console.error(`[Compose] Database update attempt ${attempt}/${maxRetries} failed:`, err)
 
       if (attempt < maxRetries) {
         // 指数退避：1s, 2s, 4s

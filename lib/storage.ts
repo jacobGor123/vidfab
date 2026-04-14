@@ -40,6 +40,8 @@ export const STORAGE_CONFIG = {
         : `images/${userId}/video-agent/${projectId}/storyboards/shot-${shotNumber}.jpg`,
     getVideoAgentClipPath: (userId: string, projectId: string, shotNumber: number) =>
       `videos/${userId}/video-agent/${projectId}/clips/shot-${shotNumber}.mp4`,
+    getVideoAgentFinalVideoPath: (userId: string, projectId: string) =>
+      `videos/${userId}/video-agent/${projectId}/final.mp4`,
   },
 
   // CDN and transformation settings

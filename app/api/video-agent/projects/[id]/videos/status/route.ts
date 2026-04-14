@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { checkVideoStatus as getBytePlusVideoStatus } from '@/lib/services/byteplus/video/seedance-api'
+import { videoQueueManager } from '@/lib/queue/queue-manager'
 import type { Database } from '@/lib/database.types'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
@@ -116,7 +117,7 @@ export const GET = withAuth(async (request, { params, userId }) => {
             }
 
             if (result.status === 'success' && result.videoUrl) {
-              // 更新为成功
+              // 更新为成功，同时标记待下载
               await supabaseAdmin
                 .from('project_video_clips')
                 .update({
@@ -124,9 +125,38 @@ export const GET = withAuth(async (request, { params, userId }) => {
                   video_url: result.videoUrl,
                   video_url_external: result.videoUrl,
                   last_frame_url: result.lastFrameUrl || null,
+                  storage_status: 'pending',
                   updated_at: new Date().toISOString()
                 } as any)
                 .eq('id', clip.id)
+
+              // 入队下载任务，将片段永久存入 Supabase Storage
+              // jobId 包含 taskId 后缀，保证幂等：同一视频任务不会重复入队
+              try {
+                const now = new Date().toISOString()
+                const taskSuffix = clip.seedance_task_id ? `:${clip.seedance_task_id}` : ''
+                await videoQueueManager.addJob(
+                  'video_clip_download',
+                  {
+                    type: 'video_clip_download',
+                    jobId: `va:clip:download:${projectId}:${clip.shot_number}${taskSuffix}`,
+                    userId,
+                    videoId: projectId,
+                    projectId,
+                    shotNumber: clip.shot_number,
+                    externalUrl: result.videoUrl,
+                    createdAt: now,
+                  } as any,
+                  {
+                    priority: 'normal',
+                    attempts: 6,
+                    backoff: { type: 'exponential', delay: 10000 },
+                  }
+                )
+              } catch (queueErr) {
+                // 入队失败不阻断状态响应，片段 video_url 已保存，只是暂未上传到 Supabase
+                console.error(`[Video Agent] Failed to enqueue clip download for shot ${clip.shot_number}:`, queueErr)
+              }
             } else if (result.status === 'failed') {
               // 更新为失败
               await supabaseAdmin

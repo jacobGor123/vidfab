@@ -13,6 +13,7 @@ export type ExternalUrlPurpose =
   | 'storyboard_download'
   | 'character_reference_download'
   | 'subtitle_download'
+  | 'final_video_download'
   | 'generic'
 
 export interface UrlGuardOptions {
