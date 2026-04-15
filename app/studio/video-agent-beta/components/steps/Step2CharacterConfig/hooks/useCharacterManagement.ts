@@ -100,7 +100,8 @@ export function useCharacterManagement({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to upload image')
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error || 'Failed to upload image')
       }
 
       const { url } = await response.json()
