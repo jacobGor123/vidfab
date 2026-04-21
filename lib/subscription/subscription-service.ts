@@ -157,7 +157,7 @@ export class SubscriptionService {
         amount,
         currency: 'usd',
         billingCycle: billing_cycle,
-        successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/studio/plans?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}`,
+        successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/studio/plans?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}&billing_cycle=${billing_cycle}`,
         cancelUrl: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
         userUuid,
         planId: plan_id,

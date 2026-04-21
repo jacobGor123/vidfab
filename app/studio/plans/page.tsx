@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useSession } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 import { useSubscription } from "@/hooks/use-subscription"
 import { Crown } from "lucide-react"
 import Image from "next/image"
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription/pricing-config"
 import type { SubscriptionOrder } from "@/lib/subscription/types"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
+import { trackPurchase } from "@/lib/analytics/gtm"
 import toast from "react-hot-toast"
 import { format } from "date-fns"
 
@@ -16,11 +18,32 @@ export const dynamic = 'force-dynamic'
 
 export default function PlansPage() {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
   const { subscription, creditsRemaining, isLoading, refreshSubscription } = useSubscription()
   const [orders, setOrders] = useState<SubscriptionOrder[]>([])
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const purchaseTrackedRef = useRef(false)
+
+  // 检测 Stripe 支付成功回调，触发购买转化事件
+  useEffect(() => {
+    const paymentSuccess = searchParams.get('payment_success')
+    const sessionId = searchParams.get('session_id')
+    const planId = searchParams.get('plan')
+    const billingCycle = (searchParams.get('billing_cycle') || 'monthly') as 'monthly' | 'annual'
+
+    if (!paymentSuccess || !planId || purchaseTrackedRef.current) return
+    if (!['lite', 'pro', 'premium'].includes(planId)) return
+
+    purchaseTrackedRef.current = true
+
+    const plan = SUBSCRIPTION_PLANS[planId as 'lite' | 'pro' | 'premium']
+    const value = billingCycle === 'annual' ? plan.price.annual / 100 : plan.price.monthly / 100
+
+    trackPurchase(planId, billingCycle, value, sessionId || `sub_${Date.now()}`)
+    toast.success('🎉 Subscription activated successfully!')
+  }, [searchParams])
 
   const fetchOrders = useCallback(async () => {
     if (!session?.user) return
