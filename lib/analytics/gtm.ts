@@ -23,34 +23,43 @@ export function trackPurchase(
   value: number,
   transactionId: string
 ) {
-  if (typeof window !== 'undefined' && window.gtag) {
-    // GA4 标准 purchase 事件
-    window.gtag('event', 'purchase', {
+  if (typeof window === 'undefined') return;
+
+  const items = [
+    {
+      item_id: `${planId}_${billingCycle}`,
+      item_name: `${planId.toUpperCase()} Plan - ${billingCycle === 'annual' ? 'Annual' : 'Monthly'}`,
+      item_category: 'subscription',
+      item_variant: billingCycle,
+      price: value,
+      quantity: 1
+    }
+  ];
+
+  // 直接 push 到 dataLayer，让 GTM {{dlv - value}} 等变量能正确读到顶层字段
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'purchase',
+    transaction_id: transactionId,
+    value: value,
+    currency: 'USD',
+    items,
+    plan_id: planId,
+    billing_cycle: billingCycle,
+    ecommerce: {
       transaction_id: transactionId,
       value: value,
       currency: 'USD',
-      items: [
-        {
-          item_id: `${planId}_${billingCycle}`,
-          item_name: `${planId.toUpperCase()} Plan - ${billingCycle === 'annual' ? 'Annual' : 'Monthly'}`,
-          item_category: 'subscription',
-          item_variant: billingCycle,
-          price: value,
-          quantity: 1
-        }
-      ],
-      // 自定义维度
-      plan_id: planId,
-      billing_cycle: billingCycle
-    });
+      items
+    }
+  });
 
-    console.log('✅ GTM Purchase Event Tracked:', {
-      planId,
-      billingCycle,
-      value,
-      transactionId
-    });
-  }
+  console.log('✅ GTM Purchase Event Tracked:', {
+    planId,
+    billingCycle,
+    value,
+    transactionId
+  });
 }
 
 /**
