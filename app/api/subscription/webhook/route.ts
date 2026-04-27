@@ -111,18 +111,38 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription): Pro
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
   try {
-    // 每次续费/更新都同步最新的 period_end
+    const { updateUser } = await import('@/services/user');
+    const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
+
     if (subscription.status === 'active' && subscription.current_period_end) {
-      const { updateUser } = await import('@/services/user');
-      const userUuid = subscription.metadata?.user_uuid;
+      // 通过 metadata 或 subscription_stripe_id 查找用户
+      let userUuid = subscription.metadata?.user_uuid;
+      if (!userUuid) {
+        const { data: user } = await supabaseAdmin
+          .from(TABLES.USERS)
+          .select('uuid')
+          .eq('subscription_stripe_id', subscription.id)
+          .single();
+        userUuid = user?.uuid;
+      }
+
       if (userUuid) {
-        await updateUser(userUuid, {
+        const updateData: Record<string, string> = {
           subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-        });
+        };
+
+        // cancel_at_period_end: true 表示期末取消，把 DB 状态提前置为 cancelled
+        // subscription_stripe_id 和 subscription_plan 保留，确保期末前服务正常
+        // 且下次再点取消时仍能找到 stripe_id 发起立即取消
+        if (subscription.cancel_at_period_end) {
+          updateData.subscription_status = 'cancelled';
+          console.log(`[WEBHOOK] Subscription ${subscription.id} set to cancel at period end, marking DB as cancelled`);
+        }
+
+        await updateUser(userUuid, updateData);
       }
     }
 
-    // 检查是否取消
     if (subscription.status === 'canceled') {
       await handleSubscriptionCanceled(subscription.id);
     }

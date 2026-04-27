@@ -5,12 +5,13 @@
 
 import { supabaseAdmin, TABLES, handleSupabaseError } from '@/lib/supabase';
 import { CreditsManager } from './credits-manager';
-import {
+import stripe, {
   createOrGetStripeCustomer,
   createCheckoutSession,
   getPlanFromStripePriceId,
   cancelSubscription,
   getSubscriptionDetails,
+  getCustomerSubscriptions,
   createCustomerPortalSession,
   validateCouponCode,
 } from './stripe-config';
@@ -337,9 +338,8 @@ export class SubscriptionService {
         .from(TABLES.USERS)
         .update({
           subscription_plan: 'free',
-          subscription_status: 'canceled', // 统一使用 'canceled' 而非 'cancelled'
+          subscription_status: 'cancelled',
           subscription_stripe_id: null,
-          // ❌ 删除：credits_remaining: 50, // 不再重置积分！
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', user.uuid);
@@ -591,7 +591,8 @@ export class SubscriptionService {
 
   /**
    * 取消用户订阅
-   * ✅ 修复：无论立即取消还是期末取消，都等待 webhook 处理状态更新
+   * 以 Stripe 为 source of truth：有 stripe_id 无条件先调 Stripe，
+   * 无 stripe_id 时通过 email 反查 Stripe 补救，找不到才清理 DB。
    */
   async cancelUserSubscription(
     userUuid: string,
@@ -600,74 +601,80 @@ export class SubscriptionService {
     try {
       const { data: user, error } = await supabaseAdmin
         .from(TABLES.USERS)
-        .select('subscription_stripe_id, subscription_plan, subscription_status')
+        .select('email, subscription_stripe_id, subscription_plan, subscription_status')
         .eq('uuid', userUuid)
         .single();
 
       if (error || !user) {
-        return {
-          success: false,
-          error: 'User not found',
-        };
+        return { success: false, error: 'User not found' };
       }
 
-      // 🔥 检查用户是否已经是免费计划
-      if (user.subscription_plan === 'free' || user.subscription_status === 'cancelled') {
-        console.log(`⚠️ User ${userUuid} is already on free plan or cancelled`);
-        return {
-          success: true, // ✅ 改为 true，因为目标状态已达成
-          error: 'You are already on the free plan',
-          cleaned: true,
-        };
+      // ── Case 1: 有 stripe_id → 无条件先调 Stripe，不信任 DB 状态 ──────────
+      if (user.subscription_stripe_id) {
+        console.log(`🔄 Canceling subscription for user ${userUuid}: ${user.subscription_stripe_id}`);
+        try {
+          await cancelSubscription(user.subscription_stripe_id, cancelAtPeriodEnd);
+          console.log(`✅ Stripe cancellation request sent, waiting for webhook`);
+          return { success: true };
+        } catch (stripeError: any) {
+          if (stripeError.code === 'resource_missing' || stripeError.statusCode === 404) {
+            console.log(`⚠️ ${user.subscription_stripe_id} not found in Stripe, cleaning up DB`);
+            await this.cleanupOrphanedSubscription(userUuid);
+            return {
+              success: true,
+              cleaned: true,
+              error: 'Subscription not found in Stripe. Account reset to free plan.',
+            };
+          }
+          throw stripeError;
+        }
       }
 
-      if (!user.subscription_stripe_id) {
-        console.log(`⚠️ User ${userUuid} has no subscription_stripe_id but plan is ${user.subscription_plan}`);
-        // 🔥 数据不一致：有付费计划但没有 Stripe ID，直接清理
-        await this.cleanupOrphanedSubscription(userUuid);
-        return {
-          success: true, // ✅ 改为 true，因为已成功清理
-          error: 'Invalid subscription state detected and fixed. Your account has been reset to free plan.',
-          cleaned: true,
-        };
-      }
+      // ── Case 2: 无 stripe_id 但 DB 显示付费套餐 → 通过 email 反查 Stripe ──
+      if (user.subscription_plan !== 'free') {
+        console.log(`⚠️ User ${userUuid} has paid plan but no stripe_id, looking up in Stripe by email`);
 
-      console.log(`🔄 Canceling subscription for user ${userUuid}: ${user.subscription_stripe_id}`);
+        const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        if (customers.data.length > 0) {
+          const subscriptions = await getCustomerSubscriptions(customers.data[0].id);
+          const activeSub = subscriptions.find(
+            s => s.status === 'active' || s.status === 'trialing'
+          );
 
-      try {
-        // 🔥 关键修复：只调用 Stripe API，不直接修改数据库
-        // 让 Stripe webhook 来处理状态更新，避免竞态条件
-        await cancelSubscription(user.subscription_stripe_id, cancelAtPeriodEnd);
+          if (activeSub) {
+            // 补存 stripe_id 并取消
+            await supabaseAdmin
+              .from(TABLES.USERS)
+              .update({ subscription_stripe_id: activeSub.id })
+              .eq('uuid', userUuid);
 
-        console.log(`✅ Stripe cancellation request sent successfully`);
-        console.log(`⏳ Waiting for webhook to update user status...`);
-
-        return { success: true };
-
-      } catch (stripeError: any) {
-        console.error('Stripe API error:', stripeError);
-
-        // 🔥 如果 Stripe 中找不到订阅，说明是孤儿数据，直接清理
-        if (stripeError.code === 'resource_missing' || stripeError.statusCode === 404) {
-          console.log(`⚠️ Subscription ${user.subscription_stripe_id} not found in Stripe, cleaning up orphaned data`);
-          await this.cleanupOrphanedSubscription(userUuid);
-          return {
-            success: true, // ✅ 改为 true，因为已成功清理
-            error: 'Subscription not found in Stripe. Your account has been reset to free plan.',
-            cleaned: true,
-          };
+            await cancelSubscription(activeSub.id, cancelAtPeriodEnd);
+            console.log(`✅ Found & cancelled Stripe sub ${activeSub.id} for user ${userUuid}`);
+            return { success: true };
+          }
         }
 
-        throw stripeError;
+        // DB 有付费记录但 Stripe 找不到 → 清理 DB
+        console.log(`⚠️ No active Stripe subscription for ${userUuid}, cleaning up DB`);
+        await this.cleanupOrphanedSubscription(userUuid);
+        return {
+          success: true,
+          cleaned: true,
+          error: 'No active subscription found in Stripe. Account reset to free plan.',
+        };
       }
+
+      // ── Case 3: 已是免费套餐且无 stripe_id → 什么都不需要做 ────────────────
+      console.log(`ℹ️ User ${userUuid} already on free plan`);
+      return {
+        success: true,
+        cleaned: true,
+        error: 'You are already on the free plan',
+      };
 
     } catch (error: any) {
       console.error('Error canceling subscription:', error);
-
-      return {
-        success: false,
-        error: error.message || 'Failed to cancel subscription',
-      };
+      return { success: false, error: error.message || 'Failed to cancel subscription' };
     }
   }
 

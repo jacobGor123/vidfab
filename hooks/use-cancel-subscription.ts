@@ -79,14 +79,14 @@ export function useCancelSubscription(
                 options.onSuccess()
               }
             } else if (attempts >= maxAttempts) {
-              // ⏱️ 超时，强制刷新页面
+              // ⏱️ 超时：Stripe webhook 未在预期内返回，
+              // 取消请求已发出但结果未确认，不能显示"成功"
               clearInterval(checkInterval)
-              toast.success('Subscription cancelled. Refreshing page...', {
-                duration: 2000,
+              setCancelling(false)
+              toast('Cancellation request sent. Please refresh the page in a moment to confirm the updated status.', {
+                duration: 6000,
+                icon: '⏳',
               })
-              setTimeout(() => {
-                window.location.reload()
-              }, 2000)
             }
           } catch (error) {
             console.error('Error checking subscription status:', error)
