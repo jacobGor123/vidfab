@@ -227,21 +227,33 @@ export const TABLES = {
   SCRIPT_CREATION_USAGE: 'script_creation_usage', // Monthly script creation quota tracking
 } as const;
 
+/**
+ * Error wrapper for Supabase failures that preserves the original PostgREST/PG code.
+ * Upstream callers can branch on `.code` (e.g. '23505' for unique violation,
+ * 'PGRST116' for "no rows") instead of brittle message matching.
+ */
+export class SupabaseDbError extends Error {
+  constructor(message: string, public readonly code?: string, public readonly cause?: any) {
+    super(message)
+    this.name = 'SupabaseDbError'
+  }
+}
+
 // Helper function to handle Supabase errors
 export function handleSupabaseError(error: any): never {
   console.error('Supabase error:', error);
 
   if (error?.code === 'PGRST116') {
-    throw new Error('No rows found');
+    throw new SupabaseDbError('No rows found', 'PGRST116', error);
   }
 
   if (error?.code === '23505') {
-    throw new Error('Resource already exists');
+    throw new SupabaseDbError('Resource already exists', '23505', error);
   }
 
   if (error?.message) {
-    throw new Error(error.message);
+    throw new SupabaseDbError(error.message, error?.code, error);
   }
 
-  throw new Error('Database operation failed');
+  throw new SupabaseDbError('Database operation failed', error?.code, error);
 }

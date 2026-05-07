@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { UserVideosDB } from '@/lib/database/user-videos'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin, SupabaseDbError } from '@/lib/supabase'
 import { VideoStorageManager } from '@/lib/storage'  // 🔥 新增: 用于上传视频到 Supabase Storage
 // import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail' // 已禁用: Vercel 无 ffmpeg
 
@@ -207,7 +207,12 @@ async function processVideoStorage(userId: string, userEmail: string, data: {
     })
 
   } catch (error) {
-    if (error instanceof Error && (error.message.includes('23505') || error.message.includes('duplicate key'))) {
+    // 并发或重试导致同一 wavespeed_request_id 被重复 INSERT 时，落到 unique constraint。
+    // 此处 fallback 查回已有记录并返回 200，避免把 race condition 当成真错误抛 500。
+    const isDuplicateKey =
+      error instanceof SupabaseDbError && error.code === '23505'
+
+    if (isDuplicateKey) {
       try {
         const existingVideo = await UserVideosDB.getVideoByWavespeedId(wavespeedRequestId, userId)
         if (existingVideo) {
