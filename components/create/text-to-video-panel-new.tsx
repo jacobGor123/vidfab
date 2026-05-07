@@ -481,7 +481,9 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                               <SelectItem value="6s">{t('common.duration6s')}</SelectItem>
                               <SelectItem value="7s">{t('common.duration7s')}</SelectItem>
                               <SelectItem value="8s">{t('common.duration8s')}</SelectItem>
+                              <SelectItem value="9s">{t('common.duration9s')}</SelectItem>
                               <SelectItem value="10s">{t('common.duration10s')}</SelectItem>
+                              <SelectItem value="11s">{t('common.duration11s')}</SelectItem>
                               <SelectItem value="12s">{t('common.duration12s')}</SelectItem>
                             </>
                           )}

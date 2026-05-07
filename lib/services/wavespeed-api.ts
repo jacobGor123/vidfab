@@ -378,11 +378,18 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
     errors.push("Invalid resolution")
   }
 
-  // kling-3 支持 5–15s 任意整数，其他模型走固定白名单
-  const isKling3Validation = request.model === "kling-3"
-  const validDuration = isKling3Validation
-    ? (Number.isInteger(request.duration) && request.duration >= 5 && request.duration <= 15)
-    : [4, 5, 6, 8, 10, 12].includes(request.duration)
+  // 按模型分支决定 duration 合法范围（来源：各 provider 官方 API 文档）
+  // - vidfab-pro (Wavespeed veo3-fast): 4 / 6 / 8
+  // - kling-3 (Wavespeed kling): 5–15 任意整数
+  // - vidfab-q1 / seedance: Wavespeed seedance v1 pro 支持 2–12，BytePlus 4–12，取交集 4–12
+  let validDuration: boolean
+  if (request.model === "vidfab-pro") {
+    validDuration = [4, 6, 8].includes(request.duration)
+  } else if (request.model === "kling-3") {
+    validDuration = Number.isInteger(request.duration) && request.duration >= 5 && request.duration <= 15
+  } else {
+    validDuration = Number.isInteger(request.duration) && request.duration >= 4 && request.duration <= 12
+  }
   if (!validDuration) {
     errors.push("Invalid duration")
   }
