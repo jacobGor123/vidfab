@@ -142,18 +142,20 @@ export async function getBlogPostBySlug(
 ): Promise<BlogPost | undefined> {
   const supabase = supabaseAdmin;
 
+  // maybeSingle: 0 行 → data=null, error=null（用户访问不存在的 slug 是常态，
+  // 走 notFound() 即可，不应该按 error 打日志污染告警）
   const { data, error } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('slug', slug)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching blog post by slug:', error);
     return undefined;
   }
 
-  return data as BlogPost;
+  return data ? (data as BlogPost) : undefined;
 }
 
 /**
@@ -168,14 +170,14 @@ export async function getBlogPostById(id: string): Promise<BlogPost | undefined>
     .from('blog_posts')
     .select('*')
     .eq('id', id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching blog post by ID:', error);
     return undefined;
   }
 
-  return data as BlogPost;
+  return data ? (data as BlogPost) : undefined;
 }
 
 /**
