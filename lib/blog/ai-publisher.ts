@@ -7,10 +7,34 @@
 import { createBlogPost } from '@/models/blog'
 import { generateBlogImage } from './wavespeed-image-generator'
 import { uploadBlogImage } from './supabase-storage-uploader'
-import type { ArticleContent, ImageConfig } from './ai-content-generator'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 import { addHeadingIds } from './toc'
 import fs from 'fs/promises'
+
+export interface ImageConfig {
+  filename: string
+  prompt: string
+  aspect_ratio: '16:9' | '4:3'
+  output_format: 'jpg' | 'png'
+  usage: 'cover' | 'inline'
+  insertAfter?: string
+  alt: string
+  caption?: string
+}
+
+export interface ArticleContent {
+  title: string
+  slug: string
+  htmlContent: string
+  excerpt: string
+  metaTitle: string
+  metaDescription: string
+  canonicalUrl: string
+  tags: string[]
+  category: string
+  images: ImageConfig[]
+  faqSchema: any
+}
 
 export interface PublishResult {
   success: boolean

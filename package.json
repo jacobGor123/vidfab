@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prebuild": "node scripts/generate-embedded-docs.mjs",
     "build": "next build",
     "dev": "next dev -p 3000",
     "lint": "next lint",
@@ -15,7 +14,6 @@
     "lighthouse:budget": "lighthouse http://localhost:3000 --budget-path=./lighthouse-budget.json --view"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.0",
     "@aws-sdk/client-s3": "^3.921.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@fingerprintjs/fingerprintjs": "^5.1.0",

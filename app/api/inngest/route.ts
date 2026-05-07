@@ -14,20 +14,14 @@ import {
   updateUserQuota,
 } from '@/lib/inngest/functions/video-processing'
 
-import { generateBlogArticle } from '@/lib/inngest/functions/blog-generation'
-
 // Export HTTP handlers for Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
-    // Video processing functions
     downloadVideo,
     generateThumbnail,
     cleanupTempFiles,
     updateUserQuota,
-
-    // Blog generation function
-    generateBlogArticle,
   ],
   signingKey: process.env.INNGEST_SIGNING_KEY!,
 
