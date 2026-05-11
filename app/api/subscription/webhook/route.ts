@@ -6,8 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import { verifyWebhookSignature } from '@/lib/subscription/stripe-config';
+import stripe, { verifyWebhookSignature } from '@/lib/subscription/stripe-config';
 import { handleCheckoutSession } from '@/lib/subscription/checkout-handler';
+import { SUBSCRIPTION_PLANS } from '@/lib/subscription/pricing-config';
+import { normalizePlanId } from '@/lib/subscription/entitlements';
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,6 +58,14 @@ export async function POST(req: NextRequest) {
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
 
+      case 'invoice.payment_succeeded':
+        await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
+        break;
+
+      case 'invoice.payment_failed':
+        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+        break;
+
       default:
         console.log(`[WEBHOOK] Unhandled event type: ${event.type}`);
     }
@@ -69,6 +79,185 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const rawSubscription = (invoice as any).subscription;
+  if (!rawSubscription) return null;
+  return typeof rawSubscription === 'string' ? rawSubscription : rawSubscription.id;
+}
+
+function inferBillingCycle(subscription: Stripe.Subscription): 'monthly' | 'annual' {
+  const interval = subscription.items.data[0]?.price?.recurring?.interval;
+  return interval === 'year' ? 'annual' : 'monthly';
+}
+
+/**
+ * 处理续费成功。初次订阅入账由 checkout.session.completed 处理；
+ * 这里只给 subscription_cycle 发放下一周期积分。
+ */
+async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
+  const billingReason = (invoice as any).billing_reason;
+  if (billingReason !== 'subscription_cycle') {
+    console.log(`[WEBHOOK] Ignoring invoice.payment_succeeded with billing_reason=${billingReason}`);
+    return;
+  }
+
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
+  if (!subscriptionId) {
+    console.error('[WEBHOOK] Missing subscription ID on invoice.payment_succeeded');
+    return;
+  }
+
+  const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ['items.data.price'],
+  });
+
+  let { data: user } = await supabaseAdmin
+    .from(TABLES.USERS)
+    .select('uuid, subscription_plan, credits_remaining')
+    .eq('subscription_stripe_id', subscriptionId)
+    .single();
+
+  const metadataUserUuid = subscription.metadata?.user_uuid;
+  if (!user && metadataUserUuid) {
+    const userResult = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('uuid, subscription_plan, credits_remaining')
+      .eq('uuid', metadataUserUuid)
+      .single();
+    user = userResult.data;
+  }
+
+  if (!user) {
+    console.error('[WEBHOOK] User not found for renewal invoice:', { invoiceId: invoice.id, subscriptionId });
+    return;
+  }
+
+  const { data: existingCreditGrant } = await supabaseAdmin
+    .from('credits_transactions')
+    .select('id')
+    .eq('user_uuid', user.uuid)
+    .eq('transaction_type', 'earned')
+    .contains('metadata', { invoice_id: invoice.id })
+    .limit(1);
+
+  if (existingCreditGrant && existingCreditGrant.length > 0) {
+    console.log(`[WEBHOOK] Renewal invoice ${invoice.id} already credited, skipping`);
+    return;
+  }
+
+  const planId = normalizePlanId(subscription.metadata?.plan_id || user.subscription_plan);
+  if (planId === 'free') {
+    console.warn('[WEBHOOK] Renewal invoice resolved to free plan, skipping credit grant:', invoice.id);
+    return;
+  }
+
+  const billingCycle = (subscription.metadata?.billing_cycle as 'monthly' | 'annual' | undefined) || inferBillingCycle(subscription);
+  const planConfig = SUBSCRIPTION_PLANS[planId];
+  const creditsToGrant = billingCycle === 'annual' ? planConfig.credits * 12 : planConfig.credits;
+  const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+  const periodStart = new Date(subscription.current_period_start * 1000).toISOString();
+
+  const { data: newBalance, error: creditsError } = await supabaseAdmin.rpc('update_user_credits_balance', {
+    p_user_uuid: user.uuid,
+    p_credits_change: creditsToGrant,
+    p_transaction_type: 'earned',
+    p_description: `Credits granted for ${planId} ${billingCycle} subscription renewal`,
+    p_metadata: {
+      invoice_id: invoice.id,
+      subscription_id: subscriptionId,
+      plan_id: planId,
+      billing_cycle: billingCycle,
+      billing_reason: billingReason,
+    },
+  });
+
+  if (creditsError) {
+    throw creditsError;
+  }
+
+  await supabaseAdmin
+    .from(TABLES.USERS)
+    .update({
+      subscription_plan: planId,
+      subscription_status: 'active',
+      subscription_stripe_id: subscriptionId,
+      subscription_period_end: periodEnd,
+      credits_monthly_total: typeof newBalance === 'number' ? newBalance : undefined,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('uuid', user.uuid);
+
+  await supabaseAdmin
+    .from('subscription_orders')
+    .insert({
+      user_uuid: user.uuid,
+      order_type: 'renewal',
+      plan_id: planId,
+      billing_cycle: billingCycle,
+      amount_cents: invoice.amount_paid || 0,
+      currency: (invoice.currency || 'usd').toUpperCase(),
+      credits_included: creditsToGrant,
+      status: 'completed',
+      stripe_subscription_id: subscriptionId,
+      stripe_customer_id: typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id,
+      stripe_payment_intent_id: typeof (invoice as any).payment_intent === 'string'
+        ? (invoice as any).payment_intent
+        : (invoice as any).payment_intent?.id,
+      period_start: periodStart,
+      period_end: periodEnd,
+      completed_at: new Date().toISOString(),
+      metadata: {
+        invoice_id: invoice.id,
+        billing_reason: billingReason,
+      },
+    });
+
+  await supabaseAdmin
+    .from('subscription_changes')
+    .insert({
+      user_uuid: user.uuid,
+      from_plan: user.subscription_plan || planId,
+      to_plan: planId,
+      change_type: 'renewal',
+      credits_before: user.credits_remaining || 0,
+      credits_after: typeof newBalance === 'number' ? newBalance : (user.credits_remaining || 0) + creditsToGrant,
+      credits_adjustment: creditsToGrant,
+      reason: `Subscription renewed for ${planId} ${billingCycle}`,
+      metadata: {
+        invoice_id: invoice.id,
+        subscription_id: subscriptionId,
+      },
+    });
+}
+
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
+  if (!subscriptionId) {
+    return;
+  }
+
+  const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId).catch(() => null);
+  const periodEnd = subscription?.current_period_end
+    ? new Date(subscription.current_period_end * 1000).toISOString()
+    : undefined;
+
+  await supabaseAdmin
+    .from(TABLES.USERS)
+    .update({
+      subscription_status: 'past_due',
+      ...(periodEnd && { subscription_period_end: periodEnd }),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('subscription_stripe_id', subscriptionId);
+
+  console.warn('[WEBHOOK] Marked subscription as past_due after failed invoice:', {
+    invoiceId: invoice.id,
+    subscriptionId,
+  });
 }
 
 export async function GET() {
@@ -94,9 +283,15 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription): Pro
       return;
     }
 
+    const dbStatus = subscription.status === 'active' || subscription.status === 'trialing'
+      ? 'active'
+      : subscription.status === 'past_due'
+        ? 'past_due'
+        : 'inactive';
+
     await updateUser(userUuid, {
       subscription_stripe_id: subscription.id,
-      subscription_status: subscription.status === 'active' ? 'active' : subscription.status,
+      subscription_status: dbStatus,
       subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
     });
 
@@ -116,7 +311,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
 
     if (subscription.status === 'active' && subscription.current_period_end) {
       // 通过 metadata 或 subscription_stripe_id 查找用户
-      let userUuid = subscription.metadata?.user_uuid;
+      let userUuid: string | undefined = subscription.metadata?.user_uuid;
       if (!userUuid) {
         const { data: user } = await supabaseAdmin
           .from(TABLES.USERS)
@@ -137,6 +332,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
         if (subscription.cancel_at_period_end) {
           updateData.subscription_status = 'cancelled';
           console.log(`[WEBHOOK] Subscription ${subscription.id} set to cancel at period end, marking DB as cancelled`);
+        } else {
+          updateData.subscription_status = 'active';
         }
 
         await updateUser(userUuid, updateData);

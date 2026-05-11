@@ -235,7 +235,7 @@ export function calculateCreditsRequired(
 
 // 检查用户是否可以访问模型
 export function canAccessModel(userPlan: keyof typeof SUBSCRIPTION_PLANS, model: string): boolean {
-  return MODEL_ACCESS[userPlan].includes(model);
+  return (MODEL_ACCESS[userPlan] as readonly string[]).includes(model);
 }
 
 // 获取套餐的年付折扣率

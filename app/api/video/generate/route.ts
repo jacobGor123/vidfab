@@ -14,6 +14,7 @@ import { submitVideoGeneration as submitBytePlusVideoGeneration } from "@/lib/se
 import { VideoGenerationRequest, getGenerationType } from "@/lib/types/video"
 import { checkUserCredits, deductUserCredits } from "@/lib/simple-credits-check"
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
+import { checkGenerationAccess, getUserEntitlements } from "@/lib/subscription/entitlements"
 
 const USE_BYTEPLUS = process.env.USE_BYTEPLUS
   ? process.env.USE_BYTEPLUS !== 'false'
@@ -111,6 +112,20 @@ export async function POST(request: NextRequest) {
                            originalModel === 'video-effects' ? 'video-effects' :
                            'vidfab-q1'
 
+    const entitlements = await getUserEntitlements(session.user.uuid)
+    const accessCheck = checkGenerationAccess(entitlements, modelForCredits, resolution)
+    if (!accessCheck.canAccess) {
+      return NextResponse.json(
+        {
+          error: "Subscription required",
+          code: "SUBSCRIPTION_REQUIRED",
+          message: accessCheck.reason,
+          upgrade_required: true,
+        },
+        { status: 403 }
+      )
+    }
+
     // 检查用户积分（veo3 / kling-3 / seedance 1.5 Pro 需区分 audio）
     const generateAudio = body.generateAudio === true
     const creditsCheck = await checkUserCredits(
@@ -174,16 +189,10 @@ export async function POST(request: NextRequest) {
     console.log(`🔧 API 提供商选择: ${isVeo3Model ? 'Wavespeed (veo3-fast)' : isSoraModel ? 'Wavespeed (sora-2)' : isKling3Model ? 'Wavespeed (kling-3)' : useBytePlus ? 'BytePlus (seedance)' : 'Wavespeed (seedance)'} (模型: ${body.model})`)
 
     // 🔥 根据用户订阅状态设置水印（付费用户关闭，免费用户开启）
-    const { data: userData } = await supabaseAdmin
-      .from(TABLES.USERS)
-      .select('subscription_plan')
-      .eq('uuid', session.user.uuid)
-      .single()
-
-    const isFreeUser = !userData || userData.subscription_plan === 'free'
+    const isFreeUser = !entitlements.hasPaidAccess
     body.watermark = isFreeUser  // 免费用户开启水印，付费用户关闭
 
-    console.log(`🎨 水印设置: ${isFreeUser ? '开启' : '关闭'} (用户套餐: ${userData?.subscription_plan || 'free'})`)
+    console.log(`🎨 水印设置: ${isFreeUser ? '开启' : '关闭'} (用户套餐: ${entitlements.effectivePlan})`)
 
     // 调用统一的视频生成API（自动处理text-to-video和image-to-video）
     let result
@@ -229,13 +238,14 @@ export async function POST(request: NextRequest) {
 
     // 处理 Wavespeed API 错误
     if (error instanceof WavespeedAPIError) {
+      const status = error.status ?? 500
       return NextResponse.json(
         {
           error: error.message,
           code: error.code,
-          status: error.status
+          status
         },
-        { status: error.status >= 500 ? 500 : 400 }
+        { status: status >= 500 ? 500 : 400 }
       )
     }
 

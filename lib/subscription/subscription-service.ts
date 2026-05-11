@@ -10,9 +10,11 @@ import stripe, {
   createCheckoutSession,
   getPlanFromStripePriceId,
   cancelSubscription,
+  getStripePriceId,
   getSubscriptionDetails,
   getCustomerSubscriptions,
   createCustomerPortalSession,
+  updateSubscriptionPlan,
   validateCouponCode,
 } from './stripe-config';
 import { SUBSCRIPTION_PLANS, getPlanConfig } from './pricing-config';
@@ -25,6 +27,7 @@ import type {
   CreateCheckoutSessionResponse,
   SubscriptionStatusResponse,
 } from './types';
+import { getEffectiveEntitlements, normalizePlanId as normalizeEntitlementPlanId } from './entitlements';
 
 export class SubscriptionService {
   private creditsManager: CreditsManager;
@@ -152,19 +155,48 @@ export class SubscriptionService {
       }
 
       // 创建Stripe checkout会话 - 使用动态产品创建
-      const session = await createCheckoutSession({
-        customerId: stripeCustomer.id,
-        planName,
-        amount,
-        currency: 'usd',
-        billingCycle: billing_cycle,
-        successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/studio/plans?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}&billing_cycle=${billing_cycle}`,
-        cancelUrl: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
-        userUuid,
-        planId: plan_id,
-        promotionCodeId, // 用户输入的 Promotion Code ID
-        couponId,        // 系统自动附加的首月优惠 Coupon ID
-      });
+      let session;
+      try {
+        session = await createCheckoutSession({
+          customerId: stripeCustomer.id,
+          planName,
+          amount,
+          currency: 'usd',
+          billingCycle: billing_cycle,
+          successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/studio/plans?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}&billing_cycle=${billing_cycle}`,
+          cancelUrl: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+          userUuid,
+          planId: plan_id,
+          promotionCodeId, // 用户输入的 Promotion Code ID
+          couponId,        // 系统自动附加的首月优惠 Coupon ID
+        });
+      } catch (error: any) {
+        const isAutoCouponMissing =
+          couponId &&
+          !coupon_code &&
+          error?.type === 'StripeInvalidRequestError' &&
+          error?.code === 'resource_missing' &&
+          String(error?.param || '').startsWith('discounts');
+
+        if (!isAutoCouponMissing) {
+          throw error;
+        }
+
+        console.warn(`⚠️ Auto coupon ${couponId} is invalid in Stripe, retrying checkout without it`);
+        couponId = undefined;
+        session = await createCheckoutSession({
+          customerId: stripeCustomer.id,
+          planName,
+          amount,
+          currency: 'usd',
+          billingCycle: billing_cycle,
+          successUrl: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/studio/plans?payment_success=true&session_id={CHECKOUT_SESSION_ID}&plan=${plan_id}&billing_cycle=${billing_cycle}`,
+          cancelUrl: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+          userUuid,
+          planId: plan_id,
+          promotionCodeId,
+        });
+      }
 
       // 更新订单记录
       await supabaseAdmin
@@ -172,7 +204,9 @@ export class SubscriptionService {
         .update({
           stripe_checkout_session_id: session.id,
           metadata: {
-            ...order.metadata,
+            ...(order.metadata && typeof order.metadata === 'object' && !Array.isArray(order.metadata)
+              ? order.metadata
+              : {}),
             checkout_session_id: session.id,
             checkout_url: session.url,
           },
@@ -237,6 +271,29 @@ export class SubscriptionService {
       // 获取Stripe订阅详情
       const subscription = await getSubscriptionDetails(stripeSubscriptionId);
 
+      const { data: existingCompletedOrder } = await supabaseAdmin
+        .from('subscription_orders')
+        .select('id')
+        .eq('user_uuid', userUuid)
+        .eq('stripe_subscription_id', stripeSubscriptionId)
+        .eq('status', 'completed')
+        .limit(1);
+
+      if (existingCompletedOrder && existingCompletedOrder.length > 0) {
+        console.log(`ℹ️ Subscription ${stripeSubscriptionId} already processed, skipping duplicate credit grant`);
+        await supabaseAdmin
+          .from(TABLES.USERS)
+          .update({
+            subscription_plan: planId,
+            subscription_status: 'active',
+            subscription_stripe_id: stripeSubscriptionId,
+            subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('uuid', userUuid);
+        return;
+      }
+
       // ✅ 修复3: 分离订阅状态更新和积分增加（参考iMideo设计）
       // 3.1 更新用户订阅状态（不包含积分字段）
       await supabaseAdmin
@@ -245,8 +302,6 @@ export class SubscriptionService {
           subscription_plan: planId,
           subscription_status: 'active',
           subscription_stripe_id: stripeSubscriptionId,
-          credits_remaining: newCreditsBalance,
-          credits_monthly_total: newCreditsBalance,
           subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -266,7 +321,7 @@ export class SubscriptionService {
         .eq('status', 'pending');
 
       // ✅ 修复4: 使用准确的积分变更记录（参考iMideo的increaseCredits）
-      await supabaseAdmin.rpc('update_user_credits_balance', {
+      const { data: balanceAfterGrant, error: creditsError } = await supabaseAdmin.rpc('update_user_credits_balance', {
         p_user_uuid: userUuid,
         p_credits_change: creditsToGrant,
         p_transaction_type: 'earned',
@@ -280,6 +335,18 @@ export class SubscriptionService {
           new_total_credits: newCreditsBalance,
         },
       });
+
+      if (creditsError) {
+        throw creditsError;
+      }
+
+      await supabaseAdmin
+        .from(TABLES.USERS)
+        .update({
+          credits_monthly_total: typeof balanceAfterGrant === 'number' ? balanceAfterGrant : newCreditsBalance,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('uuid', userUuid);
 
       // ✅ 修复5: 记录准确的积分变更（使用实际的before/after值）
       await supabaseAdmin
@@ -403,7 +470,7 @@ export class SubscriptionService {
       const creditsToGrant = billingCycle === 'annual' ? planConfig.credits * 12 : planConfig.credits;
 
       // 累加积分（按用户要求）
-      const newCreditsBalance = user.credits_remaining + creditsToGrant;
+      const newCreditsBalance = (user.credits_remaining || 0) + creditsToGrant;
 
       // 更新用户订阅
       await supabaseAdmin
@@ -474,57 +541,32 @@ export class SubscriptionService {
       }
 
       // ✅ 简化2: 使用iMideo风格的状态判断
-      const currentPlan = this.normalizePlanId(user.subscription_plan || 'free');
+      const normalizedPlan = normalizeEntitlementPlanId(user.subscription_plan || 'free');
       const creditsRemaining = user.credits_remaining || 0;
-      const subscriptionStatus = user.subscription_status || 'active';
-
-      // ✅ 简化3: 验证订阅是否仍然有效（参考iMideo的getUserActiveSubscription）
-      let isActive = false;
-      let autoRenew = true; // 默认开启自动续订
-
-      // 判断订阅是否活跃的逻辑：
-      // 1. 如果有积分且是付费套餐，应该是活跃的
-      // 2. 如果有Stripe ID且状态为active，是活跃的
-      // 3. 如果状态明确为active，是活跃的
-      if (currentPlan !== 'free' && creditsRemaining > 0) {
-        // 付费套餐且还有积分，认为是活跃的
-        isActive = true;
-        autoRenew = !user.subscription_stripe_id; // 没有Stripe ID的情况下默认不自动续订
-      } else if (user.subscription_stripe_id && subscriptionStatus === 'active') {
-        // 有Stripe订阅且状态为active
-        isActive = true;
-        autoRenew = true;
-      } else if (subscriptionStatus === 'active' && currentPlan !== 'free') {
-        // 状态明确为active的付费套餐
-        isActive = true;
-        autoRenew = false;
-      } else if (subscriptionStatus === 'cancelled') {
-        // 已取消的订阅
-        isActive = false;
-        autoRenew = false;
-      }
+      const entitlements = getEffectiveEntitlements(user);
+      const displayPlan = entitlements.hasPaidAccess ? normalizedPlan : 'free';
 
       // ✅ 简化4: 构建响应（参考iMideo的getUserCurrentPlan）
-      const planConfig = getPlanConfig(currentPlan);
+      const planConfig = getPlanConfig(displayPlan);
       const subscription: UserSubscription = {
         uuid: user.uuid,
-        plan_id: currentPlan,
-        status: isActive ? 'active' : (subscriptionStatus === 'cancelled' ? 'cancelled' : 'expired'),
+        plan_id: displayPlan,
+        status: entitlements.status,
         billing_cycle: 'monthly', // 简化：默认月付，可以从Stripe获取详细信息
         credits_remaining: creditsRemaining,
         credits_total: planConfig.credits,
-        credits_monthly_total: user.credits_monthly_total, // 本月可用总积分
+        credits_monthly_total: user.credits_monthly_total ?? undefined, // 本月可用总积分
         period_start: user.created_at,
-        period_end: user.subscription_period_end || user.updated_at,
+        period_end: user.subscription_period_end || user.updated_at || new Date().toISOString(),
         stripe_subscription_id: user.subscription_stripe_id,
-        auto_renew: autoRenew,
+        auto_renew: entitlements.autoRenew,
         created_at: user.created_at,
-        updated_at: user.updated_at,
+        updated_at: user.updated_at || user.created_at,
       };
 
       console.log(`📊 User subscription status for ${userUuid}:`, {
-        plan: currentPlan,
-        status: isActive ? 'active' : 'expired',
+        plan: displayPlan,
+        status: entitlements.status,
         credits: creditsRemaining
       });
 
@@ -822,12 +864,46 @@ export class SubscriptionService {
         });
       }
 
-      // 由于我们使用动态产品创建，升级需要创建新的checkout会话
-      // 这样可以保持与新订阅流程的一致性
-      return await this.createCheckoutSession(userUuid, {
+      const newPriceId = getStripePriceId(newPlanId, newBillingCycle);
+      const updatedSubscription = await updateSubscriptionPlan(user.subscription_stripe_id, newPriceId, {
+        user_uuid: userUuid,
         plan_id: newPlanId,
         billing_cycle: newBillingCycle,
       });
+      const dbStatus = updatedSubscription.status === 'active'
+        ? 'active'
+        : updatedSubscription.status === 'past_due'
+          ? 'past_due'
+          : 'inactive';
+
+      await supabaseAdmin
+        .from(TABLES.USERS)
+        .update({
+          subscription_plan: newPlanId,
+          subscription_status: dbStatus,
+          subscription_period_end: new Date(updatedSubscription.current_period_end * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('uuid', userUuid);
+
+      await supabaseAdmin
+        .from('subscription_changes')
+        .insert({
+          user_uuid: userUuid,
+          from_plan: currentPlan,
+          to_plan: newPlanId,
+          change_type: currentPlan === newPlanId ? 'renewal' : (newPlanId === 'premium' ? 'upgrade' : 'downgrade'),
+          credits_before: user.credits_remaining || 0,
+          credits_after: user.credits_remaining || 0,
+          credits_adjustment: 0,
+          reason: `Stripe subscription updated to ${newPlanId} ${newBillingCycle}`,
+          metadata: {
+            subscription_id: user.subscription_stripe_id,
+            billing_cycle: newBillingCycle,
+          },
+        });
+
+      return { success: true };
 
     } catch (error: any) {
       console.error('Error upgrading subscription:', error);

@@ -8,10 +8,10 @@ import { getServerSession } from 'next-auth';
 import { authConfig } from '@/auth/config';
 import { getUserByUuid, updateUser } from '@/services/user';
 import { getIsoTimestr } from '@/lib/time';
+import { requireSubscriptionDebugAccess } from '@/lib/subscription/debug-access';
 
 // 套餐积分配置
 const PLAN_CREDITS: Record<string, number> = {
-  'lite': 300,
   'pro': 2000,
   'premium': 5000,
 };
@@ -27,10 +27,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const debugAccessError = requireSubscriptionDebugAccess(session);
+    if (debugAccessError) {
+      return debugAccessError;
+    }
+
     const body = await req.json();
     const { plan_id } = body;
 
-    if (!plan_id || !['lite', 'pro', 'premium'].includes(plan_id)) {
+    if (!plan_id || !['pro', 'premium'].includes(plan_id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid plan_id' },
         { status: 400 }
@@ -125,7 +130,7 @@ export async function GET() {
     message: 'Test purchase endpoint',
     method: 'POST',
     body: {
-      plan_id: 'lite | pro | premium'
+      plan_id: 'pro | premium'
     },
     description: 'Simulates a successful purchase and updates user subscription',
   });

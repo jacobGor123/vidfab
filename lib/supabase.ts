@@ -73,10 +73,15 @@ export interface DatabaseUser {
   last_login?: string;
   is_active: boolean;
   // AI Video Platform specific fields
-  subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due';
+  subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'expired';
   subscription_plan?: 'free' | 'lite' | 'pro' | 'premium';
-  subscription_stripe_id?: string;
+  subscription_stripe_id?: string | null;
+  subscription_period_end?: string | null;
   credits_remaining?: number;
+  credits_monthly_total?: number | null;
+  concurrent_jobs_running?: number | null;
+  total_credits_earned?: number | null;
+  total_credits_spent?: number | null;
   total_videos_processed?: number;
   storage_used_mb?: number;
   max_storage_mb?: number;

@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 const manageSubscriptionSchema = z.object({
   action: z.enum(['upgrade', 'portal']),
-  plan_id: z.enum(['lite', 'pro', 'premium']).optional(),
+  plan_id: z.enum(['pro', 'premium']).optional(),
   billing_cycle: z.enum(['monthly', 'annual']).optional(),
   return_url: z.string().url().optional(),
 });
@@ -120,7 +120,7 @@ export async function GET() {
     },
     body_example: {
       action: 'upgrade | portal',
-      plan_id: 'lite | pro | premium (required for upgrade)',
+      plan_id: 'pro | premium (required for upgrade)',
       billing_cycle: 'monthly | annual (required for upgrade)',
       return_url: 'optional URL to return to after portal session'
     }

@@ -8,10 +8,8 @@ import { getServerSession } from 'next-auth';
 import { authConfig } from '@/auth/config';
 import { SubscriptionService } from '@/lib/subscription/subscription-service';
 import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+import stripe from '@/lib/subscription/stripe-config';
+import { requireSubscriptionDebugAccess } from '@/lib/subscription/debug-access';
 
 const subscriptionService = new SubscriptionService();
 
@@ -24,6 +22,11 @@ export async function POST(req: NextRequest) {
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    const debugAccessError = requireSubscriptionDebugAccess(session);
+    if (debugAccessError) {
+      return debugAccessError;
     }
 
     const { sessionId } = await req.json();
@@ -71,6 +74,12 @@ export async function POST(req: NextRequest) {
 
     // 从metadata获取计划信息
     const userUuid = checkoutSession.metadata?.user_uuid || session.user.uuid;
+    if (userUuid !== session.user.uuid) {
+      return NextResponse.json(
+        { success: false, error: 'Checkout session does not belong to the current user' },
+        { status: 403 }
+      );
+    }
     const planId = checkoutSession.metadata?.plan_id;
     const billingCycle = checkoutSession.metadata?.billing_cycle;
 

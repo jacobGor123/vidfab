@@ -11,7 +11,7 @@ import { BytePlusAPIError } from "@/lib/services/byteplus/core/errors"
 import { WavespeedImageAPIError } from "@/lib/services/wavespeed-image-api"
 import { ImageGenerationRequest, getImageGenerationType, getImageProvider } from "@/lib/types/image"
 import { checkImageGenerationCredits, deductUserCredits, IMAGE_GENERATION_CREDITS } from "@/lib/simple-credits-check"
-import { supabaseAdmin, TABLES } from "@/lib/supabase"
+import { getUserEntitlements } from "@/lib/subscription/entitlements"
 
 export async function POST(request: NextRequest) {
   try {
@@ -139,16 +139,11 @@ export async function POST(request: NextRequest) {
     console.log(`✅ Image-to-image 积分扣除成功: ${IMAGE_GENERATION_CREDITS} 积分，剩余: ${deductResult.newBalance}`)
 
     // 🔥 根据用户订阅状态设置水印（付费用户关闭，免费用户开启）
-    const { data: userData } = await supabaseAdmin
-      .from(TABLES.USERS)
-      .select('subscription_plan')
-      .eq('uuid', session.user.uuid)
-      .single()
-
-    const isFreeUser = !userData || userData.subscription_plan === 'free'
+    const entitlements = await getUserEntitlements(session.user.uuid)
+    const isFreeUser = !entitlements.hasPaidAccess
     body.watermark = isFreeUser  // 免费用户开启水印，付费用户关闭
 
-    console.log(`🎨 水印设置: ${isFreeUser ? '开启' : '关闭'} (用户套餐: ${userData?.subscription_plan || 'free'})`)
+    console.log(`🎨 水印设置: ${isFreeUser ? '开启' : '关闭'} (用户套餐: ${entitlements.effectivePlan})`)
 
     // 根据模型路由到对应 provider
     const provider = getImageProvider(body.model)
@@ -225,9 +220,10 @@ export async function POST(request: NextRequest) {
 
     // 处理 Provider API 错误
     if (error instanceof BytePlusAPIError) {
+      const status = error.status ?? 500
       return NextResponse.json(
-        { error: error.message, code: error.code, status: error.status },
-        { status: error.status >= 500 ? 500 : 400 }
+        { error: error.message, code: error.code, status },
+        { status: status >= 500 ? 500 : 400 }
       )
     }
 

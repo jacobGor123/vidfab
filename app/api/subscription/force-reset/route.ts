@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth';
 import { authConfig } from '@/auth/config';
 import { supabaseAdmin, TABLES } from '@/lib/supabase';
 import { getIsoTimestr } from '@/lib/time';
+import { requireSubscriptionDebugAccess } from '@/lib/subscription/debug-access';
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +19,11 @@ export async function POST(req: NextRequest) {
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    const debugAccessError = requireSubscriptionDebugAccess(session);
+    if (debugAccessError) {
+      return debugAccessError;
     }
 
     const userUuid = session.user.uuid;

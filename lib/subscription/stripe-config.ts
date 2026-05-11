@@ -8,7 +8,7 @@ import type { PlanId, BillingCycle } from './types';
 
 // 初始化Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-09-30.acacia',
+  apiVersion: '2025-02-24.acacia',
   typescript: true,
 });
 

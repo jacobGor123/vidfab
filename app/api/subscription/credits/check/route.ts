@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 获取用户ID
-    let userId = session.user.uuid || session.user.id
+    let userId = session.user.uuid
 
     if (!userId) {
       console.error('❌ Authentication failed: User UUID/ID missing')

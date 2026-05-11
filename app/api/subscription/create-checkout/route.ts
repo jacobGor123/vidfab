@@ -9,7 +9,7 @@ import { SubscriptionService } from '@/lib/subscription/subscription-service';
 import { z } from 'zod';
 
 const createCheckoutSchema = z.object({
-  plan_id: z.enum(['lite', 'pro', 'premium']),
+  plan_id: z.enum(['pro', 'premium']),
   billing_cycle: z.enum(['monthly', 'annual']),
   success_url: z.string().url().optional(),
   cancel_url: z.string().url().optional(),
@@ -74,7 +74,7 @@ export async function GET() {
     message: 'Create checkout endpoint',
     method: 'POST',
     body: {
-      plan_id: 'lite | pro | premium',
+      plan_id: 'pro | premium',
       billing_cycle: 'monthly | annual',
       success_url: 'optional redirect URL after success',
       cancel_url: 'optional redirect URL after cancel'

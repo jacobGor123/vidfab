@@ -51,9 +51,13 @@ export interface UpdateUserData {
   nickname?: string;
   avatar_url?: string;
   last_login?: string;
+  updated_at?: string;
   subscription_status?: string;
   subscription_plan?: string;
+  subscription_stripe_id?: string | null;
+  subscription_period_end?: string | null;
   credits_remaining?: number;
+  credits_monthly_total?: number;
   total_videos_processed?: number;
 }
 

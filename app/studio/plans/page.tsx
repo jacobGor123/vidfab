@@ -34,11 +34,11 @@ export default function PlansPage() {
     const billingCycle = (searchParams.get('billing_cycle') || 'monthly') as 'monthly' | 'annual'
 
     if (!paymentSuccess || !planId || purchaseTrackedRef.current) return
-    if (!['lite', 'pro', 'premium'].includes(planId)) return
+    if (!['pro', 'premium'].includes(planId)) return
 
     purchaseTrackedRef.current = true
 
-    const plan = SUBSCRIPTION_PLANS[planId as 'lite' | 'pro' | 'premium']
+    const plan = SUBSCRIPTION_PLANS[planId as 'pro' | 'premium']
     const value = billingCycle === 'annual' ? plan.price.annual / 100 : plan.price.monthly / 100
 
     trackPurchase(planId, billingCycle, value, sessionId || `sub_${Date.now()}`)

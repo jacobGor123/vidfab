@@ -7,7 +7,7 @@ import { SUBSCRIPTION_PLANS } from './pricing-config';
 // 基础类型
 export type PlanId = keyof typeof SUBSCRIPTION_PLANS;
 export type BillingCycle = 'monthly' | 'annual';
-export type SubscriptionStatus = 'active' | 'inactive' | 'cancelled' | 'past_due' | 'trialing';
+export type SubscriptionStatus = 'active' | 'inactive' | 'cancelled' | 'past_due' | 'trialing' | 'expired';
 export type OrderStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 export type TransactionType = 'earned' | 'spent' | 'refunded' | 'expired' | 'bonus';
 export type ReservationStatus = 'active' | 'consumed' | 'released' | 'expired';
@@ -21,9 +21,9 @@ export interface SubscriptionPlan {
     monthly: number;
     annual: number;
   };
-  features: string[];
+  features: readonly string[];
   limits: {
-    models: string[];
+    models: readonly string[];
     concurrent_jobs: number;
     storage_days: number;
     max_resolution: string;
@@ -41,8 +41,8 @@ export interface UserSubscription {
   credits_monthly_total?: number; // 本月可用总积分（包含上月剩余）
   period_start: string;
   period_end: string;
-  stripe_subscription_id?: string;
-  stripe_customer_id?: string;
+  stripe_subscription_id?: string | null;
+  stripe_customer_id?: string | null;
   auto_renew: boolean;
   created_at: string;
   updated_at: string;
@@ -75,34 +75,34 @@ export interface SubscriptionOrder {
 export interface CreditsTransaction {
   id: string;
   user_uuid: string;
-  order_id?: string;
+  order_id?: string | null;
   transaction_type: TransactionType;
   credits_amount: number;
   balance_before: number;
   balance_after: number;
-  consumed_by?: string;
-  video_job_id?: string;
-  model_used?: string;
-  resolution?: string;
-  duration?: string;
-  created_at: string;
-  metadata: Record<string, any>;
-  description?: string;
+  consumed_by?: string | null;
+  video_job_id?: string | null;
+  model_used?: string | null;
+  resolution?: string | null;
+  duration?: string | null;
+  created_at: string | null;
+  metadata: Record<string, any> | null;
+  description?: string | null;
 }
 
 // Credits预扣记录
 export interface CreditsReservation {
   id: string;
   user_uuid: string;
-  video_job_id?: string;
+  video_job_id?: string | null;
   reserved_credits: number;
   model_name: string;
   estimated_cost: number;
-  status: ReservationStatus;
-  created_at: string;
+  status: ReservationStatus | string | null;
+  created_at: string | null;
   expires_at: string;
-  consumed_at?: string;
-  metadata: Record<string, any>;
+  consumed_at?: string | null;
+  metadata: Record<string, any> | null;
 }
 
 // 套餐变更记录

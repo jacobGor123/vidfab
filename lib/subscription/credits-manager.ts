@@ -4,11 +4,11 @@
  */
 
 import { supabaseAdmin, TABLES, handleSupabaseError } from '@/lib/supabase';
-import { calculateCreditsRequired, canAccessModel, CONCURRENT_LIMITS } from './pricing-config';
+import { calculateCreditsRequired, CONCURRENT_LIMITS } from './pricing-config';
+import { checkGenerationAccess, getUserEntitlements } from './entitlements';
 import type {
   CreditsReservation,
   CreditsTransaction,
-  PlanId,
   CreditsBudgetInfo,
   CreditsUsageRequest,
   CreditsUsageResponse,
@@ -73,8 +73,14 @@ export class CreditsManager {
       throw new Error(`Insufficient credits. Required: ${requiredCredits}, Available: ${currentBalance}`);
     }
 
+    const entitlements = await getUserEntitlements(userUuid);
+    const accessCheck = checkGenerationAccess(entitlements, model, resolution);
+    if (!accessCheck.canAccess) {
+      throw new Error(accessCheck.reason || 'Subscription required');
+    }
+
     // 检查并发限制
-    const maxConcurrent = user.subscription_plan === 'free' ? 1 : 4;
+    const maxConcurrent = entitlements.effectivePlan === 'free' ? 1 : 4;
     const currentRunning = user.concurrent_jobs_running || 0;
 
     if (currentRunning >= maxConcurrent) {
@@ -169,7 +175,7 @@ export class CreditsManager {
       return {
         success: true,
         credits_consumed: creditsToConsume,
-        credits_remaining: user.credits_remaining
+        credits_remaining: user.credits_remaining ?? undefined
       };
 
     } catch (error: any) {
@@ -218,7 +224,9 @@ export class CreditsManager {
         .update({
           status: 'released',
           metadata: {
-            ...reservation.metadata,
+            ...(reservation.metadata && typeof reservation.metadata === 'object' && !Array.isArray(reservation.metadata)
+              ? reservation.metadata
+              : {}),
             release_reason: reason || 'task_failed',
             released_at: new Date().toISOString()
           }
@@ -368,39 +376,15 @@ export class CreditsManager {
         };
       }
 
-      const userPlan = user.subscription_plan as PlanId || 'free';
-
-      // 检查模型访问权限
-      let canAccess = false;
-      let reason = '';
-
-      if (model === 'seedance-v1-pro-t2v') {
-        if (userPlan === 'free') {
-          // Free用户只能访问480p和720p
-          canAccess = !resolution || resolution === '480p' || resolution === '720p';
-          reason = canAccess ? '' : 'Free users can only use 480p/720p resolution';
-        } else {
-          // 付费用户可以访问所有分辨率
-          canAccess = true;
-        }
-      } else if (model === 'veo3-fast') {
-        // veo3-fast只有付费用户可以访问
-        canAccess = userPlan !== 'free';
-        reason = canAccess ? '' : 'veo3-fast requires a paid subscription';
-      } else if (model === 'video-effects') {
-        // video-effects所有用户都可以访问
-        canAccess = true;
-      } else {
-        canAccess = false;
-        reason = 'Unknown model';
-      }
+      const entitlements = await getUserEntitlements(user.uuid);
+      const access = checkGenerationAccess(entitlements, model, resolution);
 
       return {
         model,
-        user_plan: userPlan,
+        user_plan: entitlements.effectivePlan,
         resolution,
-        can_access: canAccess,
-        reason
+        can_access: access.canAccess,
+        reason: access.reason || ''
       };
 
     } catch (error: any) {
@@ -452,7 +436,8 @@ export class CreditsManager {
         throw new Error('User not found');
       }
 
-      const userPlan = user.subscription_plan as PlanId || 'free';
+      const entitlements = await getUserEntitlements(user.uuid);
+      const userPlan = entitlements.effectivePlan;
       const currentRunning = user.concurrent_jobs_running || 0;
       const maxAllowed = CONCURRENT_LIMITS[userPlan];
 
@@ -511,7 +496,7 @@ export class CreditsManager {
       throw new Error('Failed to fetch credits history');
     }
 
-    return data || [];
+    return (data || []) as CreditsTransaction[];
   }
 
   /**
@@ -530,21 +515,21 @@ export class CreditsManager {
       throw new Error('Failed to fetch active reservations');
     }
 
-    return data || [];
+    return (data || []) as CreditsReservation[];
   }
 
   /**
    * 清理过期的预扣记录
    */
   async cleanupExpiredReservations(): Promise<number> {
-    const { data, error } = await supabaseAdmin.rpc('cleanup_expired_reservations');
+    const { error } = await supabaseAdmin.rpc('cleanup_expired_reservations');
 
     if (error) {
       console.error('Error cleaning up expired reservations:', error);
       return 0;
     }
 
-    return data?.cleaned_count || 0;
+    return 0;
   }
 
   /**
@@ -560,7 +545,7 @@ export class CreditsManager {
       throw new Error('Bonus credits must be positive');
     }
 
-    const newBalance = await supabaseAdmin.rpc('update_user_credits_balance', {
+    const { data: newBalance, error } = await supabaseAdmin.rpc('update_user_credits_balance', {
       p_user_uuid: userUuid,
       p_credits_change: credits,
       p_transaction_type: 'bonus',
@@ -571,6 +556,11 @@ export class CreditsManager {
         granted_at: new Date().toISOString()
       }
     });
+
+    if (error) {
+      console.error('Error adding bonus credits:', error);
+      throw new Error('Failed to add bonus credits');
+    }
 
     return newBalance;
   }

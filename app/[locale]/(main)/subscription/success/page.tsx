@@ -39,8 +39,8 @@ function SubscriptionSuccessPageInner() {
           const planId = data.subscription.plan_id
           const billingCycle = data.subscription.billing_cycle || 'monthly'
 
-          if (['lite', 'pro', 'premium'].includes(planId)) {
-            const plan = SUBSCRIPTION_PLANS[planId as 'lite' | 'pro' | 'premium']
+          if (['pro', 'premium'].includes(planId)) {
+            const plan = SUBSCRIPTION_PLANS[planId as 'pro' | 'premium']
             const value = billingCycle === 'annual'
               ? plan.price.annual / 100
               : plan.price.monthly / 100

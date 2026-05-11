@@ -3,12 +3,17 @@
  */
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { NextAuthConfig } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import { Provider } from "next-auth/providers/index";
 import { User } from "@/types/user";
 import { getClientIp } from "@/lib/ip";
 import { getIsoTimestr } from "@/lib/time";
 import { getUuid, getUserUuidFromEmail } from "@/lib/hash";
+
+type VidFabAuthOptions = NextAuthOptions & {
+  basePath?: string
+  trustHost?: boolean
+}
 
 let providers: Provider[] = [];
 
@@ -131,7 +136,7 @@ if (
 export const providerMap = providers
   .map((provider) => {
     if (typeof provider === "function") {
-      const providerData = provider();
+      const providerData = (provider as () => { id: string; name: string })();
       return { id: providerData.id, name: providerData.name };
     } else {
       return { id: provider.id, name: provider.name };
@@ -139,7 +144,7 @@ export const providerMap = providers
   })
   .filter((provider) => provider.id !== "google-one-tap"); // Hide One Tap from UI
 
-export const authConfig: NextAuthConfig = {
+export const authConfig: VidFabAuthOptions = {
   providers,
   basePath: "/api/auth",
   pages: {

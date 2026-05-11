@@ -113,6 +113,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       project_characters: {
         Row: {
@@ -148,6 +149,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       character_reference_images: {
         Row: {
@@ -171,6 +173,7 @@ export interface Database {
           image_order?: number
           created_at?: string
         }
+        Relationships: []
       }
       project_shots: {
         Row: {
@@ -221,6 +224,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       project_storyboards: {
         Row: {
@@ -277,6 +281,7 @@ export interface Database {
           storage_status?: string | null
           file_size?: number | null
         }
+        Relationships: []
       }
       project_video_clips: {
         Row: {
@@ -348,6 +353,7 @@ export interface Database {
           cdn_url?: string | null
           storage_status?: string | null
         }
+        Relationships: []
       }
       blog_posts: {
         Row: {
@@ -407,6 +413,7 @@ export interface Database {
           view_count?: number
           read_time_minutes?: number | null
         }
+        Relationships: []
       }
       users: {
         Row: {
@@ -426,7 +433,13 @@ export interface Database {
           subscription_status: 'active' | 'inactive' | 'cancelled' | 'past_due' | null
           subscription_plan: 'free' | 'lite' | 'pro' | 'premium' | null
           subscription_stripe_id: string | null
+          subscription_period_end: string | null
           credits_remaining: number | null
+          credits_monthly_total: number | null
+          concurrent_jobs_running: number | null
+          credits_last_reset_date: string | null
+          total_credits_earned: number | null
+          total_credits_spent: number | null
           total_videos_processed: number | null
           storage_used_mb: number | null
           max_storage_mb: number | null
@@ -450,7 +463,13 @@ export interface Database {
           subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | null
           subscription_plan?: 'free' | 'lite' | 'pro' | 'premium' | null
           subscription_stripe_id?: string | null
+          subscription_period_end?: string | null
           credits_remaining?: number | null
+          credits_monthly_total?: number | null
+          concurrent_jobs_running?: number | null
+          credits_last_reset_date?: string | null
+          total_credits_earned?: number | null
+          total_credits_spent?: number | null
           total_videos_processed?: number | null
           storage_used_mb?: number | null
           max_storage_mb?: number | null
@@ -474,13 +493,233 @@ export interface Database {
           subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | null
           subscription_plan?: 'free' | 'lite' | 'pro' | 'premium' | null
           subscription_stripe_id?: string | null
+          subscription_period_end?: string | null
           credits_remaining?: number | null
+          credits_monthly_total?: number | null
+          concurrent_jobs_running?: number | null
+          credits_last_reset_date?: string | null
+          total_credits_earned?: number | null
+          total_credits_spent?: number | null
           total_videos_processed?: number | null
           storage_used_mb?: number | null
           max_storage_mb?: number | null
           is_credit_limited?: boolean | null
           fraud_reason?: string | null
         }
+        Relationships: []
+      }
+      subscription_orders: {
+        Row: {
+          id: string
+          user_uuid: string
+          order_type: string
+          plan_id: string
+          billing_cycle: string
+          amount_cents: number
+          currency: string | null
+          credits_included: number
+          status: string | null
+          stripe_payment_intent_id: string | null
+          stripe_subscription_id: string | null
+          stripe_customer_id: string | null
+          stripe_checkout_session_id: string | null
+          period_start: string | null
+          period_end: string | null
+          created_at: string | null
+          updated_at: string | null
+          completed_at: string | null
+          metadata: Json | null
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          user_uuid: string
+          order_type: string
+          plan_id: string
+          billing_cycle: string
+          amount_cents?: number
+          currency?: string | null
+          credits_included?: number
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_checkout_session_id?: string | null
+          period_start?: string | null
+          period_end?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          completed_at?: string | null
+          metadata?: Json | null
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          user_uuid?: string
+          order_type?: string
+          plan_id?: string
+          billing_cycle?: string
+          amount_cents?: number
+          currency?: string | null
+          credits_included?: number
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_checkout_session_id?: string | null
+          period_start?: string | null
+          period_end?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          completed_at?: string | null
+          metadata?: Json | null
+          notes?: string | null
+        }
+        Relationships: []
+      }
+      credits_transactions: {
+        Row: {
+          id: string
+          user_uuid: string
+          order_id: string | null
+          transaction_type: string
+          credits_amount: number
+          balance_before: number
+          balance_after: number
+          consumed_by: string | null
+          video_job_id: string | null
+          model_used: string | null
+          resolution: string | null
+          duration: string | null
+          created_at: string | null
+          metadata: Json | null
+          description: string | null
+        }
+        Insert: {
+          id?: string
+          user_uuid: string
+          order_id?: string | null
+          transaction_type: string
+          credits_amount: number
+          balance_before?: number
+          balance_after?: number
+          consumed_by?: string | null
+          video_job_id?: string | null
+          model_used?: string | null
+          resolution?: string | null
+          duration?: string | null
+          created_at?: string | null
+          metadata?: Json | null
+          description?: string | null
+        }
+        Update: {
+          id?: string
+          user_uuid?: string
+          order_id?: string | null
+          transaction_type?: string
+          credits_amount?: number
+          balance_before?: number
+          balance_after?: number
+          consumed_by?: string | null
+          video_job_id?: string | null
+          model_used?: string | null
+          resolution?: string | null
+          duration?: string | null
+          created_at?: string | null
+          metadata?: Json | null
+          description?: string | null
+        }
+        Relationships: []
+      }
+      credits_reservations: {
+        Row: {
+          id: string
+          user_uuid: string
+          video_job_id: string | null
+          reserved_credits: number
+          model_name: string
+          estimated_cost: number
+          status: string | null
+          created_at: string | null
+          expires_at: string
+          consumed_at: string | null
+          metadata: Json | null
+        }
+        Insert: {
+          id?: string
+          user_uuid: string
+          video_job_id?: string | null
+          reserved_credits: number
+          model_name: string
+          estimated_cost: number
+          status?: string | null
+          created_at?: string | null
+          expires_at?: string
+          consumed_at?: string | null
+          metadata?: Json | null
+        }
+        Update: {
+          id?: string
+          user_uuid?: string
+          video_job_id?: string | null
+          reserved_credits?: number
+          model_name?: string
+          estimated_cost?: number
+          status?: string | null
+          created_at?: string | null
+          expires_at?: string
+          consumed_at?: string | null
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
+      subscription_changes: {
+        Row: {
+          id: string
+          user_uuid: string
+          from_plan: string | null
+          to_plan: string
+          change_type: string
+          order_id: string | null
+          credits_before: number | null
+          credits_after: number | null
+          credits_adjustment: number | null
+          effective_date: string | null
+          created_at: string | null
+          reason: string | null
+          metadata: Json | null
+        }
+        Insert: {
+          id?: string
+          user_uuid: string
+          from_plan?: string | null
+          to_plan: string
+          change_type: string
+          order_id?: string | null
+          credits_before?: number | null
+          credits_after?: number | null
+          credits_adjustment?: number | null
+          effective_date?: string | null
+          created_at?: string | null
+          reason?: string | null
+          metadata?: Json | null
+        }
+        Update: {
+          id?: string
+          user_uuid?: string
+          from_plan?: string | null
+          to_plan?: string
+          change_type?: string
+          order_id?: string | null
+          credits_before?: number | null
+          credits_after?: number | null
+          credits_adjustment?: number | null
+          effective_date?: string | null
+          created_at?: string | null
+          reason?: string | null
+          metadata?: Json | null
+        }
+        Relationships: []
       }
       device_fingerprints: {
         Row: {
@@ -504,6 +743,7 @@ export interface Database {
           ip_address?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       script_creation_usage: {
         Row: {
@@ -530,13 +770,78 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_user_credits_balance: {
+        Args: {
+          p_user_uuid: string
+          p_credits_change: number
+          p_transaction_type: string
+          p_description?: string | null
+          p_metadata?: Json
+        }
+        Returns: number
+      }
+      deduct_user_credits_atomic: {
+        Args: {
+          p_user_uuid: string
+          p_credits: number
+          p_description?: string | null
+          p_metadata?: Json
+        }
+        Returns: Json
+      }
+      add_user_credits_atomic: {
+        Args: {
+          p_user_uuid: string
+          p_credits: number
+          p_transaction_type?: string
+          p_description?: string | null
+          p_metadata?: Json
+        }
+        Returns: Json
+      }
+      reserve_user_credits: {
+        Args: {
+          p_user_uuid: string
+          p_required_credits: number
+          p_model_name: string
+          p_video_job_id?: string | null
+          p_metadata?: Json
+        }
+        Returns: string
+      }
+      consume_reserved_credits: {
+        Args: {
+          p_reservation_id: string
+          p_actual_credits: number
+          p_consumed_by: string
+          p_video_job_id?: string | null
+        }
+        Returns: Json
+      }
+      update_concurrent_jobs: {
+        Args: {
+          p_user_uuid: string
+          p_increment: number
+        }
+        Returns: number
+      }
+      cleanup_expired_reservations: {
+        Args: Record<PropertyKey, never>
+        Returns: void
+      }
+      batch_credits_update: {
+        Args: {
+          operations: Json
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
