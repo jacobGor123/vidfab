@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription/pricing-config"
 import type { SubscriptionOrder } from "@/lib/subscription/types"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
+import { CancelSubscriptionDialog } from "@/components/ui/cancel-subscription-dialog"
 import { trackPurchase } from "@/lib/analytics/gtm"
 import toast from "react-hot-toast"
 import { format } from "date-fns"
@@ -24,6 +25,7 @@ export default function PlansPage() {
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
   const purchaseTrackedRef = useRef(false)
 
   // 检测 Stripe 支付成功回调，触发购买转化事件
@@ -60,7 +62,7 @@ export default function PlansPage() {
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
   const handleCancel = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription? You will keep access until the end of your billing period.')) return
+    if (cancelling) return
     setCancelling(true)
     try {
       const res = await fetch('/api/subscription/cancel', {
@@ -70,6 +72,7 @@ export default function PlansPage() {
       })
       const data = await res.json()
       if (data.success) {
+        setShowCancelDialog(false)
         toast.success('Subscription cancelled. Access continues until period end.')
         await refreshSubscription()
       } else {
@@ -176,7 +179,7 @@ export default function PlansPage() {
                 </Button>
                 {subscription?.plan_id !== 'free' && subscription?.status === 'active' && (
                   <Button
-                    onClick={handleCancel}
+                    onClick={() => setShowCancelDialog(true)}
                     disabled={cancelling}
                     variant="ghost"
                     className="h-10 px-5 text-sm font-medium rounded-lg !border !border-white/10"
@@ -295,6 +298,15 @@ export default function PlansPage() {
         open={showUpgrade}
         onOpenChange={setShowUpgrade}
         recommendedPlan={subscription?.plan_id === 'pro' ? 'premium' : 'pro'}
+      />
+      <CancelSubscriptionDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        onConfirm={handleCancel}
+        isLoading={cancelling}
+        currentPlan={currentPlanConfig?.name || 'subscription'}
+        creditsRemaining={creditsRemaining}
+        cancelAtPeriodEnd
       />
     </div>
   )

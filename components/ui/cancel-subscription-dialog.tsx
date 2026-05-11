@@ -14,10 +14,11 @@ import {
 interface CancelSubscriptionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
   isLoading?: boolean
   currentPlan?: string
   creditsRemaining?: number
+  cancelAtPeriodEnd?: boolean
 }
 
 export function CancelSubscriptionDialog({
@@ -27,6 +28,7 @@ export function CancelSubscriptionDialog({
   isLoading = false,
   currentPlan = "subscription",
   creditsRemaining = 0,
+  cancelAtPeriodEnd = false,
 }: CancelSubscriptionDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -41,12 +43,22 @@ export function CancelSubscriptionDialog({
             </p>
 
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 space-y-2">
-              <p className="text-yellow-400 font-medium">⚠️ What happens after cancellation:</p>
+              <p className="text-yellow-400 font-medium">What happens after cancellation:</p>
               <ul className="text-sm text-gray-300 space-y-1 ml-4 list-disc">
-                <li>Your subscription will be cancelled immediately</li>
-                <li>You will lose access to premium features</li>
+                {cancelAtPeriodEnd ? (
+                  <>
+                    <li>Your subscription will be cancelled at the end of the current billing period</li>
+                    <li>You will keep premium access until then</li>
+                    <li>Auto-renewal will be disabled</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Your subscription will be cancelled immediately</li>
+                    <li>You will lose access to premium features</li>
+                    <li>You will be downgraded to the Free plan</li>
+                  </>
+                )}
                 <li>Your remaining <span className="font-semibold text-white">{creditsRemaining} credits</span> will be retained</li>
-                <li>You will be downgraded to the Free plan</li>
               </ul>
             </div>
 
@@ -63,7 +75,12 @@ export function CancelSubscriptionDialog({
             Keep Subscription
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={onConfirm}
+            onClick={(event) => {
+              event.preventDefault()
+              if (!isLoading) {
+                void onConfirm()
+              }
+            }}
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
