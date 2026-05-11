@@ -540,28 +540,65 @@ export class SubscriptionService {
         return this.getDefaultFreeStatus(userUuid);
       }
 
+      let effectiveUser = { ...user };
+      if (
+        effectiveUser.subscription_stripe_id &&
+        normalizeEntitlementPlanId(effectiveUser.subscription_plan || 'free') !== 'free'
+      ) {
+        try {
+          const stripeSubscription = await stripe.subscriptions.retrieve(effectiveUser.subscription_stripe_id);
+          const stripePeriodEnd = stripeSubscription.current_period_end
+            ? new Date(stripeSubscription.current_period_end * 1000).toISOString()
+            : effectiveUser.subscription_period_end;
+
+          if (stripeSubscription.status === 'canceled') {
+            await this.handleSubscriptionCanceled(stripeSubscription.id);
+            effectiveUser = {
+              ...effectiveUser,
+              subscription_plan: 'free',
+              subscription_status: 'cancelled',
+              subscription_stripe_id: null,
+              subscription_period_end: stripePeriodEnd,
+            };
+          } else if (stripeSubscription.cancel_at_period_end && effectiveUser.subscription_status !== 'cancelled') {
+            await this.markSubscriptionCancelAtPeriodEnd(userUuid, stripeSubscription);
+            effectiveUser = {
+              ...effectiveUser,
+              subscription_status: 'cancelled',
+              subscription_period_end: stripePeriodEnd,
+            };
+          }
+        } catch (stripeError: any) {
+          console.warn('[subscription] Failed to reconcile Stripe subscription state:', {
+            userUuid,
+            subscriptionId: effectiveUser.subscription_stripe_id,
+            error: stripeError?.message || stripeError,
+          });
+        }
+      }
+
       // ✅ 简化2: 使用iMideo风格的状态判断
-      const normalizedPlan = normalizeEntitlementPlanId(user.subscription_plan || 'free');
-      const creditsRemaining = user.credits_remaining || 0;
-      const entitlements = getEffectiveEntitlements(user);
+      const normalizedPlan = normalizeEntitlementPlanId(effectiveUser.subscription_plan || 'free');
+      const creditsRemaining = effectiveUser.credits_remaining || 0;
+      const entitlements = getEffectiveEntitlements(effectiveUser);
       const displayPlan = entitlements.hasPaidAccess ? normalizedPlan : 'free';
 
       // ✅ 简化4: 构建响应（参考iMideo的getUserCurrentPlan）
       const planConfig = getPlanConfig(displayPlan);
       const subscription: UserSubscription = {
-        uuid: user.uuid,
+        uuid: effectiveUser.uuid,
         plan_id: displayPlan,
         status: entitlements.status,
         billing_cycle: 'monthly', // 简化：默认月付，可以从Stripe获取详细信息
         credits_remaining: creditsRemaining,
         credits_total: planConfig.credits,
-        credits_monthly_total: user.credits_monthly_total ?? undefined, // 本月可用总积分
-        period_start: user.created_at,
-        period_end: user.subscription_period_end || user.updated_at || new Date().toISOString(),
-        stripe_subscription_id: user.subscription_stripe_id,
+        credits_monthly_total: effectiveUser.credits_monthly_total ?? undefined, // 本月可用总积分
+        period_start: effectiveUser.created_at,
+        period_end: effectiveUser.subscription_period_end || effectiveUser.updated_at || new Date().toISOString(),
+        stripe_subscription_id: effectiveUser.subscription_stripe_id,
         auto_renew: entitlements.autoRenew,
-        created_at: user.created_at,
-        updated_at: user.updated_at || user.created_at,
+        created_at: effectiveUser.created_at,
+        updated_at: effectiveUser.updated_at || effectiveUser.created_at,
       };
 
       console.log(`📊 User subscription status for ${userUuid}:`, {
@@ -655,8 +692,14 @@ export class SubscriptionService {
       if (user.subscription_stripe_id) {
         console.log(`🔄 Canceling subscription for user ${userUuid}: ${user.subscription_stripe_id}`);
         try {
-          await cancelSubscription(user.subscription_stripe_id, cancelAtPeriodEnd);
-          console.log(`✅ Stripe cancellation request sent, waiting for webhook`);
+          const stripeSubscription = await cancelSubscription(user.subscription_stripe_id, cancelAtPeriodEnd);
+          if (cancelAtPeriodEnd) {
+            await this.markSubscriptionCancelAtPeriodEnd(userUuid, stripeSubscription);
+            console.log(`✅ Stripe cancellation scheduled and DB updated`);
+          } else {
+            await this.handleSubscriptionCanceled(user.subscription_stripe_id);
+            console.log(`✅ Stripe subscription cancelled immediately and DB updated`);
+          }
           return { success: true };
         } catch (stripeError: any) {
           if (stripeError.code === 'resource_missing' || stripeError.statusCode === 404) {
@@ -690,7 +733,12 @@ export class SubscriptionService {
               .update({ subscription_stripe_id: activeSub.id })
               .eq('uuid', userUuid);
 
-            await cancelSubscription(activeSub.id, cancelAtPeriodEnd);
+            const stripeSubscription = await cancelSubscription(activeSub.id, cancelAtPeriodEnd);
+            if (cancelAtPeriodEnd) {
+              await this.markSubscriptionCancelAtPeriodEnd(userUuid, stripeSubscription);
+            } else {
+              await this.handleSubscriptionCanceled(activeSub.id);
+            }
             console.log(`✅ Found & cancelled Stripe sub ${activeSub.id} for user ${userUuid}`);
             return { success: true };
           }
@@ -717,6 +765,28 @@ export class SubscriptionService {
     } catch (error: any) {
       console.error('Error canceling subscription:', error);
       return { success: false, error: error.message || 'Failed to cancel subscription' };
+    }
+  }
+
+  private async markSubscriptionCancelAtPeriodEnd(
+    userUuid: string,
+    subscription: { current_period_end?: number | null }
+  ): Promise<void> {
+    const periodEnd = subscription.current_period_end
+      ? new Date(subscription.current_period_end * 1000).toISOString()
+      : undefined;
+
+    const { error } = await supabaseAdmin
+      .from(TABLES.USERS)
+      .update({
+        subscription_status: 'cancelled',
+        ...(periodEnd && { subscription_period_end: periodEnd }),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('uuid', userUuid);
+
+    if (error) {
+      throw error;
     }
   }
 

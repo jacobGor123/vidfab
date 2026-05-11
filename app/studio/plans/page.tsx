@@ -73,7 +73,7 @@ export default function PlansPage() {
       const data = await res.json()
       if (data.success) {
         setShowCancelDialog(false)
-        toast.success('Subscription cancelled. Access continues until period end.')
+        toast.success('Auto-renew disabled. Access continues until period end.')
         await refreshSubscription()
       } else {
         toast.error(data.error || 'Failed to cancel subscription')
@@ -95,6 +95,7 @@ export default function PlansPage() {
   const formatDate = (iso: string) => format(new Date(iso), 'MMM dd, yyyy')
 
   const planId = subscription?.plan_id || 'free'
+  const isCancellationScheduled = planId !== 'free' && subscription?.status === 'cancelled' && subscription.auto_renew === false
   const cardBgImage = planId === 'premium'
     ? '/images/plans-card-bg-premium.png'
     : planId === 'pro'
@@ -150,12 +151,21 @@ export default function PlansPage() {
                   >
                     Active
                   </span>
+                ) : isCancellationScheduled ? (
+                  <span
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    style={{ background: 'rgba(255,200,99,0.18)', color: '#ffc863' }}
+                  >
+                    Cancels soon
+                  </span>
                 ) : null}
               </div>
 
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm">
-                  <span style={{ color: '#c7bfe4' }}>Next billing :</span>
+                  <span style={{ color: '#c7bfe4' }}>
+                    {isCancellationScheduled ? 'Access until :' : 'Next billing :'}
+                  </span>
                   <span style={{ color: '#c7bfe4' }}>
                     {planId === 'free' ? 'No active subscription' : nextBillingDate}
                   </span>
@@ -177,7 +187,7 @@ export default function PlansPage() {
                   <Image src="/icons/plans/upgrade-plan-icon.png" width={16} height={16} alt="" className="mr-1.5" />
                   Upgrade Plan
                 </Button>
-                {subscription?.plan_id !== 'free' && subscription?.status === 'active' && (
+                {subscription?.plan_id !== 'free' && subscription?.status === 'active' && subscription.auto_renew && (
                   <Button
                     onClick={() => setShowCancelDialog(true)}
                     disabled={cancelling}
