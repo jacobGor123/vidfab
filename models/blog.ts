@@ -452,7 +452,7 @@ export async function incrementBlogViewCount(
 ): Promise<boolean> {
   const supabase = supabaseAdmin;
 
-  const { error } = await supabase.rpc('increment_blog_view_count', {
+  const { error } = await (supabase as any).rpc('increment_blog_view_count', {
     post_id: postId,
   });
 

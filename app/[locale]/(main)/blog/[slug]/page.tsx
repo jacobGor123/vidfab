@@ -12,17 +12,16 @@ import { Link } from '@/i18n/routing';
 import {
   getBlogPostBySlug,
   getBlogPosts,
-  incrementBlogViewCount,
 } from '@/models/blog';
 import { BlogContent } from '@/components/blog/blog-content';
 import { BlogCard } from '@/components/blog/blog-card';
+import { BlogViewCounter } from '@/components/blog/blog-view-counter';
 import { ShareButton } from '@/components/blog/share-button';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { extractHeadings } from '@/lib/blog/toc';
 import {
   Calendar,
   Clock,
-  Eye,
   ArrowLeft,
   BookOpen,
 } from 'lucide-react';
@@ -103,11 +102,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) {
     notFound();
   }
-
-  // Increment view count (async, don't wait)
-  incrementBlogViewCount(post.id).catch((err) =>
-    console.error('Failed to increment view count:', err)
-  );
 
   // Fetch related posts (same category, exclude current)
   const relatedPosts = await getBlogPosts({
@@ -225,12 +219,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               )}
 
               {/* View Count */}
-              {post.view_count !== undefined && post.view_count > 0 && (
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  <span>{post.view_count.toLocaleString()} views</span>
-                </div>
-              )}
+              <BlogViewCounter
+                slug={post.slug}
+                initialViewCount={post.view_count || 0}
+              />
 
               {/* Share Button */}
               <ShareButton title={post.title} excerpt={post.excerpt} />
