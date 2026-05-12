@@ -41,6 +41,39 @@ interface VideoResultProps {
   isFromDatabase?: boolean
 }
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isUuid(value: string | undefined): boolean {
+  return !!value && UUID_PATTERN.test(value)
+}
+
+function sanitizeFilenamePart(value: string | undefined): string {
+  return (value || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80)
+}
+
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const downloadUrl = window.URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = downloadUrl
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 60_000)
+}
+
+function triggerDirectDownload(url: string, filename: string) {
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+  link.target = "_blank"
+  link.rel = "noopener noreferrer"
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 export function VideoResult({
   videoUrl,
   thumbnailUrl,
@@ -60,6 +93,26 @@ export function VideoResult({
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const videoContext = useVideoContext()
+
+  const isExternalStoragePath =
+    video?.storage_path?.startsWith("shotstack:") || false
+  const actualVideoUrl =
+    video?.storage_path && !isExternalStoragePath
+      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/user-videos/${video.storage_path}`
+      : video?.original_url || videoUrl
+
+  const downloadVideoId = isUuid(video?.id)
+    ? video?.id
+    : isUuid(videoId)
+      ? videoId
+      : undefined
+
+  const downloadFilename = `vidfab-video-${sanitizeFilenamePart(downloadVideoId || videoId || video?.wavespeed_request_id) || "generated"}.mp4`
+  const downloadEndpoint = downloadVideoId
+    ? `/api/video/download?videoId=${encodeURIComponent(downloadVideoId)}&filename=${encodeURIComponent(downloadFilename)}`
+    : actualVideoUrl
+      ? `/api/video/download?url=${encodeURIComponent(actualVideoUrl)}&filename=${encodeURIComponent(downloadFilename)}`
+      : undefined
 
   // 🔥 强制重置状态，确保视频可见
   useEffect(() => {
@@ -157,71 +210,84 @@ export function VideoResult({
 
   // Download video
   const handleDownload = useCallback(async () => {
-    try {
+    if (!downloadEndpoint) {
+      toast.error("Download URL is not available", { id: "download" })
+      return
+    }
 
-      // Show download progress
+    try {
       toast.loading("Preparing download...", { id: "download" })
 
-      const response = await fetch(videoUrl)
+      const response = await fetch(downloadEndpoint, {
+        credentials: "include",
+      })
       if (!response.ok) {
-        throw new Error("Download failed")
+        let errorMessage = `Download failed with HTTP ${response.status}`
+        try {
+          const data = await response.json()
+          if (data?.error) {
+            errorMessage = data.error
+          }
+        } catch {
+          // Keep the HTTP status message when the response is not JSON.
+        }
+        throw new Error(errorMessage)
       }
 
       const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
+      if (!blob.size) {
+        throw new Error("Downloaded video is empty")
+      }
 
-      const link = document.createElement('a')
-      link.href = downloadUrl
-      link.download = `vidfab-video-${Date.now()}.mp4`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-      // Clean up resources
-      window.URL.revokeObjectURL(downloadUrl)
-
+      triggerBlobDownload(blob, downloadFilename)
       toast.success("Video download started", { id: "download" })
     } catch (error) {
+      console.error("Video download failed:", error)
+
+      if (actualVideoUrl) {
+        triggerDirectDownload(actualVideoUrl, downloadFilename)
+        toast.success("Download opened in a new tab", { id: "download" })
+        return
+      }
+
       toast.error("Download failed, please try again", { id: "download" })
     }
-  }, [videoUrl])
+  }, [actualVideoUrl, downloadEndpoint, downloadFilename])
 
   // Share video
   const handleShare = useCallback(async () => {
     const shareData = {
       title: 'VidFab AI Generated Video',
       text: `Check out this video I created with VidFab: "${prompt.slice(0, 100)}..."`,
-      url: videoUrl,
+      url: actualVideoUrl,
     }
 
     try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare(shareData)
+      ) {
         await navigator.share(shareData)
         toast.success("Shared successfully")
       } else {
         // Fallback to copy link
-        await navigator.clipboard.writeText(videoUrl)
+        await navigator.clipboard.writeText(actualVideoUrl)
         toast.success("Video link copied to clipboard")
       }
     } catch (error) {
-
       // Fallback to copy link
       try {
-        await navigator.clipboard.writeText(videoUrl)
+        await navigator.clipboard.writeText(actualVideoUrl)
         toast.success("Video link copied to clipboard")
       } catch (clipboardError) {
         toast.error("Share failed, please copy video link manually")
       }
     }
-  }, [videoUrl, prompt])
+  }, [actualVideoUrl, prompt])
 
   // Calculate progress percentage
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
-
-  // Get video storage URL if available
-  const actualVideoUrl = video?.storage_path
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/videos/${video.storage_path}`
-    : videoUrl
 
   // 🔄 CLOUD NATIVE MIGRATION: 处理缩略图 URL
   // thumbnail_path 可能是:
@@ -235,7 +301,6 @@ export function VideoResult({
       ? video.thumbnail_path // 完整图片 URL
       : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/video-thumbnails/${video.thumbnail_path}` // 相对路径
     : (thumbnailUrl && !thumbnailUrl.includes('.mp4') ? thumbnailUrl : undefined) // 如果是视频 URL,不使用 poster
-
 
   return (
     <Card className="bg-gray-950 border-gray-800">
