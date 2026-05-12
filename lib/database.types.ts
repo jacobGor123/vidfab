@@ -777,6 +777,21 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      get_admin_daily_stats: {
+        Args: {
+          p_days?: number
+          p_timezone?: string
+          p_include_video_agent?: boolean
+        }
+        Returns: {
+          stat_date: string
+          new_users: number
+          video_tasks: number
+          image_tasks: number
+          video_agent_tasks: number
+          total_tasks: number
+        }[]
+      }
       update_user_credits_balance: {
         Args: {
           p_user_uuid: string

@@ -154,6 +154,135 @@
     animation: shimmer 2s infinite linear;
   }
 
+  @keyframes admin-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.995);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes admin-soft-pop {
+    0% {
+      transform: scale(0.985);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .admin-page-transition {
+    animation: admin-page-enter 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    will-change: opacity, transform;
+  }
+
+  .admin-shell :where(a, button, [role="button"]) {
+    transition-property:
+      color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .admin-shell
+    :where(a, button, [role="button"]):where(:active):not(:disabled) {
+    transform: translateY(1px) scale(0.985);
+  }
+
+  .admin-shell :where(input, select, textarea) {
+    transition-property: border-color, box-shadow, background-color;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .admin-shell :where(input, select, textarea):focus {
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  }
+
+  .admin-shell
+    :where(
+      .rounded-lg.border.bg-white,
+      .rounded-lg.shadow,
+      .rounded-lg.shadow-sm
+    ) {
+    transition-property: box-shadow, border-color, transform, background-color;
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .admin-shell
+    :where(
+      .rounded-lg.border.bg-white,
+      .rounded-lg.shadow,
+      .rounded-lg.shadow-sm
+    ):hover {
+    border-color: rgba(147, 197, 253, 0.9);
+    box-shadow:
+      0 10px 28px rgba(15, 23, 42, 0.08),
+      0 3px 10px rgba(15, 23, 42, 0.05);
+  }
+
+  .admin-shell tbody tr {
+    transition:
+      background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .admin-shell tbody tr:hover {
+    background-color: rgba(239, 246, 255, 0.75);
+    box-shadow: inset 3px 0 0 rgba(37, 99, 235, 0.55);
+  }
+
+  .admin-shell .admin-tab-trigger {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .admin-shell .admin-tab-trigger::after {
+    content: "";
+    position: absolute;
+    inset: auto 12px 6px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0;
+    transform: scaleX(0.35);
+    transition:
+      opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .admin-shell .admin-tab-trigger:hover::after,
+  .admin-shell .admin-tab-trigger[data-active="true"]::after {
+    opacity: 0.45;
+    transform: scaleX(1);
+  }
+
+  .admin-shell .admin-tab-trigger[data-active="true"] {
+    animation: admin-soft-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .admin-page-transition,
+    .admin-shell .admin-tab-trigger[data-active="true"] {
+      animation: none;
+    }
+
+    .admin-shell :where(a, button, [role="button"], input, select, textarea),
+    .admin-shell
+      :where(
+        .rounded-lg.border.bg-white,
+        .rounded-lg.shadow,
+        .rounded-lg.shadow-sm
+      ),
+    .admin-shell tbody tr,
+    .admin-shell .admin-tab-trigger::after {
+      transition: none;
+    }
+  }
+
   /* AOS Animation Custom Styles */
   [data-aos] {
     transition-property: opacity, transform;

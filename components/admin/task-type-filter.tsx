@@ -58,7 +58,8 @@ export default function TaskTypeFilter({ currentType = 'all' }: TaskTypeFilterPr
           <button
             key={type}
             onClick={() => handleTypeChange(type)}
-            className={`px-3 py-1.5 rounded-md text-xs transition-all border ${baseColor} ${activeStyle}`}
+            data-active={isActive}
+            className={`admin-tab-trigger px-3 py-1.5 rounded-md text-xs transition-all border ${baseColor} ${activeStyle}`}
           >
             {getTaskTypeLabel(type)}
           </button>

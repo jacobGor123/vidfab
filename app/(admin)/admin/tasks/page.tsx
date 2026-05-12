@@ -7,6 +7,7 @@ import React from 'react';
 import { fetchAllTasks, fetchTaskStats } from '@/lib/admin/all-tasks-fetcher';
 import { TaskType } from '@/types/admin/tasks';
 import TasksListWithPagination from '@/components/admin/tasks-list-with-pagination';
+import TaskTypeFilter from '@/components/admin/task-type-filter';
 
 // 🔥 Force dynamic rendering - disable caching for admin pages
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,8 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
 
   return (
     <div className="space-y-6">
+      <TaskTypeFilter currentType={taskType || 'all'} />
+
       {/* Tasks List */}
       <TasksListWithPagination
         initialTasks={tasks}

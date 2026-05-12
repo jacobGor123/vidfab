@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isCurrentUserAdmin } from '@/lib/admin/auth';
 import SidebarNav from '@/components/admin/sidebar-nav';
+import AdminPageTransition from '@/components/admin/admin-page-transition';
 
 // 🔥 Force dynamic rendering - disable caching for admin pages
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 pt-20">
+    <div className="admin-shell flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 pt-20">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex-shrink-0 fixed left-0 top-20 bottom-0 overflow-y-auto shadow-sm">
         <div className="flex flex-col h-full">
@@ -57,7 +58,7 @@ export default async function AdminLayout({
       {/* Main Content */}
       <main className="flex-1 overflow-auto ml-64">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {children}
+          <AdminPageTransition>{children}</AdminPageTransition>
         </div>
       </main>
     </div>
