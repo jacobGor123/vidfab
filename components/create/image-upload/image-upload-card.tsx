@@ -34,12 +34,12 @@ export function ImageUploadCard({
       }`}
     >
       {/* 图片预览 */}
-      <div className="aspect-video bg-gray-800 flex items-center justify-center">
+      <div className="min-h-[140px] max-h-[260px] bg-gray-900/70 flex items-center justify-center overflow-hidden">
         {task.previewUrl ? (
           <img
             src={task.previewUrl}
             alt={task.fileName}
-            className="w-full h-full object-cover"
+            className="block max-h-[260px] max-w-full object-contain"
           />
         ) : (
           <ImageIcon className="w-8 h-8 text-gray-600" />

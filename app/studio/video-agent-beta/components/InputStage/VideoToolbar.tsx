@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { AspectRatioSelector } from '@/components/create/aspect-ratio-selector'
 import { cn } from '@/lib/utils'
 
 const DURATIONS = [
@@ -104,20 +105,13 @@ export default function VideoToolbar({
       <div className="flex items-center gap-1.5 shrink-0">
 
         {/* Aspect Ratio */}
-        <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
-          <SelectTrigger className={cn(toolBtnClass, "w-auto px-3")}>
-            {/* Filled aspect ratio icon — outer frame minus inner cutout + vertical divider */}
-            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 flex-shrink-0">
-              <path fillRule="evenodd" clipRule="evenodd" d="M2 3C2 2.44772 2.44772 2 3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3ZM3.4 3.4V12.6H12.6V3.4H3.4Z" fill="currentColor"/>
-              <rect x="5.7" y="3.4" width="1.3" height="9.2" fill="currentColor"/>
-            </svg>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent side="top" className={selectContentClass}>
-            <SelectItem value="16:9" className={selectItemClass}>16:9</SelectItem>
-            <SelectItem value="9:16" className={selectItemClass}>9:16</SelectItem>
-          </SelectContent>
-        </Select>
+        <AspectRatioSelector
+          value={aspectRatio}
+          options={["16:9", "9:16"]}
+          onChange={(ratio) => onAspectRatioChange(ratio as '16:9' | '9:16')}
+          size="compact"
+          className="shrink-0"
+        />
 
         {/* Duration */}
         <Select value={duration.toString()} onValueChange={(v) => onDurationChange(parseInt(v))}>

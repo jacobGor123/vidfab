@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { AspectRatioSelector } from '@/components/create/aspect-ratio-selector'
 import { cn } from '@/lib/utils'
 
 const DURATIONS = [
@@ -89,19 +90,12 @@ export default function OptionsDrawer({
           {/* Aspect Ratio */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-white/70">{t('storyToVideo.aspectRatio')}</label>
-            <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
-              <SelectTrigger className={selectTriggerClass}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" className="w-4 h-4 mr-2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-                  <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className={selectContentClass}>
-                <SelectItem value="16:9" className={selectItemClass}>{t('storyToVideo.landscape')}</SelectItem>
-                <SelectItem value="9:16" className={selectItemClass}>{t('storyToVideo.portrait')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <AspectRatioSelector
+              value={aspectRatio}
+              options={["16:9", "9:16"]}
+              onChange={(ratio) => onAspectRatioChange(ratio as '16:9' | '9:16')}
+              className="grid-cols-2"
+            />
           </div>
 
           {/* Duration */}

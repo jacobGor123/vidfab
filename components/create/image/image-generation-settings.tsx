@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ASPECT_RATIOS, IMAGE_MODEL_CONFIG } from "@/lib/types/image"
 import Image from "next/image"
+import { AspectRatioSelector } from "../aspect-ratio-selector"
 
 interface ImageGenerationSettingsProps {
   model: string
@@ -78,22 +79,13 @@ export function ImageGenerationSettings({
       {showAspectRatio && (
         <div className="space-y-2">
           <Label className="text-gray-300">{t('common.aspectRatio')}</Label>
-          <div className="grid grid-cols-5 gap-2">
-            {ASPECT_RATIOS.map((ratio) => (
-              <button
-                key={ratio}
-                onClick={() => onAspectRatioChange(ratio)}
-                disabled={disabled}
-                className={`py-2 px-3 rounded-md text-sm font-medium transition-all disabled:opacity-50 ${
-                  aspectRatio === ratio
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-gray-800 text-gray-400 hover:bg-primary/80 hover:text-white"
-                }`}
-              >
-                {ratio}
-              </button>
-            ))}
-          </div>
+          <AspectRatioSelector
+            value={aspectRatio}
+            options={ASPECT_RATIOS}
+            onChange={onAspectRatioChange}
+            disabled={disabled}
+            className="grid-cols-3 sm:grid-cols-5"
+          />
         </div>
       )}
     </div>

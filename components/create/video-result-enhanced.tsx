@@ -5,7 +5,7 @@
  * 增强版视频结果组件，支持真实视频播放、下载、分享等功能
  */
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback, useEffect, type CSSProperties } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -19,7 +19,6 @@ import {
   Copy,
   ExternalLink
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { useVideoContext } from "@/lib/contexts/video-context"
 import { UserVideo } from "@/lib/supabase"
 import { toast } from "sonner"
@@ -43,6 +42,16 @@ interface VideoResultProps {
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+const RESULT_MEDIA_VIEWPORT_STYLE: CSSProperties = {
+  height: "clamp(260px, 44vh, 460px)",
+}
+
+const RESULT_VIDEO_STYLE: CSSProperties = {
+  width: "100%",
+  height: "100%",
+  objectFit: "contain",
+}
 
 function isUuid(value: string | undefined): boolean {
   return !!value && UUID_PATTERN.test(value)
@@ -308,19 +317,16 @@ export function VideoResult({
         {/* Video player */}
         <div className="relative group">
           <div
-            className={cn(
-              "relative bg-gray-900 flex items-center justify-center overflow-hidden",
-              settings.aspectRatio === "16:9" ? "aspect-video" :
-              settings.aspectRatio === "9:16" ? "aspect-[9/16]" :
-              "aspect-square"
-            )}
+            className="relative bg-black flex items-center justify-center overflow-hidden"
+            style={RESULT_MEDIA_VIEWPORT_STYLE}
           >
             {/* 🔥 修复：始终显示视频元素，用loading overlay */}
             <video
               ref={videoRef}
               src={actualVideoUrl}
               poster={actualThumbnailUrl}
-              className="w-full h-full object-contain bg-black"
+              className="bg-black"
+              style={RESULT_VIDEO_STYLE}
               onLoadedData={handleVideoLoad}
               onError={handleVideoError}
               onTimeUpdate={handleTimeUpdate}

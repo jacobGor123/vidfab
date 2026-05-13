@@ -41,6 +41,7 @@ import { ImageToVideoParams } from "./types"
 import { useImageUpload } from "./hooks/use-image-upload"
 import { ImageUploadArea } from "./image-upload/image-upload-area"
 import { ImageUploadGrid } from "./image-upload/image-upload-grid"
+import { AspectRatioSelector } from "./aspect-ratio-selector"
 
 export function ImageToVideoPanelEnhanced() {
   const t = useTranslations('studio')
@@ -772,22 +773,13 @@ export function ImageToVideoPanelEnhanced() {
                   {/* Aspect ratio */}
                   <div className="space-y-2">
                     <Label className="text-gray-300">{t('common.aspectRatio')}</Label>
-                    <div className="flex gap-2">
-                      {(params.model === "vidfab-pro" ? ["16:9", "9:16"] : ["16:9", "9:16", "1:1"]).map((ratio) => (
-                        <button
-                          key={ratio}
-                          onClick={() => updateParam("aspectRatio", ratio)}
-                          disabled={videoGeneration.isGenerating}
-                          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all disabled:opacity-50 ${
-                            params.aspectRatio === ratio
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-gray-800 text-gray-400 hover:bg-primary/80 hover:text-white"
-                          }`}
-                        >
-                          {ratio}
-                        </button>
-                      ))}
-                    </div>
+                    <AspectRatioSelector
+                      value={params.aspectRatio}
+                      options={params.model === "vidfab-pro" ? ["16:9", "9:16"] : ["16:9", "9:16", "1:1"]}
+                      onChange={(ratio) => updateParam("aspectRatio", ratio)}
+                      disabled={videoGeneration.isGenerating}
+                      className={params.model === "vidfab-pro" ? "grid-cols-2" : "grid-cols-3"}
+                    />
                     {params.model === "vidfab-pro" && (
                       <p className="text-xs text-gray-500">
                         {t('imageToVideo.proAspectRatioHint')}

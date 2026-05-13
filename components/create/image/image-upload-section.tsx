@@ -9,7 +9,6 @@ import { useState, useRef } from "react"
 import { Upload, X, Loader2, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
 
 interface UploadedImage {
   id: string
@@ -124,12 +123,11 @@ export function ImageUploadSection({
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           {images.map((image) => (
-            <div key={image.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-800 border border-gray-700">
-              <Image
+            <div key={image.id} className="relative min-h-[120px] max-h-[220px] rounded-lg overflow-hidden bg-gray-800 border border-gray-700 flex items-center justify-center">
+              <img
                 src={image.url}
                 alt="Uploaded"
-                fill
-                className="object-cover"
+                className="block max-h-[220px] max-w-full object-contain"
               />
               {!disabled && (
                 <button
