@@ -45,9 +45,16 @@ interface CreateProjectParams {
 }
 
 interface CharacterPromptParams {
-  characterNames: string[]
-  shots: Shot[]
-  storyStyle: string
+  imageStyle?: string
+}
+
+interface CharacterPromptsResponse {
+  characterPrompts: Array<{
+    characterName: string
+    prompt: string
+    negativePrompt: string
+  }>
+  imageStyle: string
 }
 
 
@@ -386,7 +393,7 @@ export function useVideoAgentAPI() {
   const generateCharacterPrompts = useCallback(async (
     projectId: string,
     params: CharacterPromptParams
-  ): Promise<Record<string, string>> => {
+  ): Promise<CharacterPromptsResponse> => {
     return callAPI(`/api/video-agent/projects/${projectId}/character-prompts`, {
       method: 'POST',
       body: JSON.stringify(params),

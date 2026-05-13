@@ -11,106 +11,10 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-api'
 import { ImageGenerationRequest } from '@/lib/types/image'
 import type { Database } from '@/lib/database.types'
-import { IMAGE_STYLES, type ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
+import { enforceCharacterPromptStyle } from '@/lib/services/video-agent/character-prompt-generator'
 import { checkAndDeductCharacterInitialBatch, checkAndDeductCharacterRegenerate } from '@/lib/video-agent/credits-check'
 
 type VideoAgentProject = Database['public']['Tables']['video_agent_projects']['Row']
-
-/**
- * 🔥 强制后处理（方案 A）：统一风格处理
- * 与 character-prompt-generator.ts 中的逻辑保持一致
- */
-function enforceStyleConsistency(
-  prompt: string,
-  negativePrompt: string,
-  characterName: string,
-  imageStyle: string
-): {
-  prompt: string
-  negativePrompt: string
-} {
-  const styleConfig = IMAGE_STYLES[imageStyle as ImageStyle]
-  if (!styleConfig) {
-    console.warn(`[Enforce Style] Unknown style: ${imageStyle}, using as-is`)
-    return { prompt, negativePrompt }
-  }
-
-  let cleanedPrompt = prompt
-
-  console.log('[Enforce Style] Original:', {
-    characterName,
-    imageStyle,
-    originalPrompt: prompt.substring(0, 150)
-  })
-
-  // 🔥 步骤 1: 清理所有审美评价词
-  const aestheticWords = [
-    'adorable', 'cute', 'kawaii', 'charming', 'lovely', 'sweet',
-    'beautiful', 'stunning', 'gorgeous', 'elegant', 'graceful',
-    'majestic', 'magnificent', 'impressive', 'striking'
-  ]
-  aestheticWords.forEach(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi')
-    cleanedPrompt = cleanedPrompt.replace(regex, '').trim()
-  })
-
-  // 🔥 步骤 2: 清理所有风格关键词
-  const allStyleKeywords = [
-    'photorealistic', 'realistic photograph', 'professional photography',
-    'natural lighting', 'dslr', 'film grain', 'Fujifilm', 'RAW photo',
-    'real photo', 'documentary photography', 'wildlife photography',
-    'national geographic', 'hyper-realistic',
-    '3d render', '3d rendered', 'octane render', 'unreal engine',
-    'cgi', 'ray tracing', 'Pixar style',
-    'anime', 'anime style', 'manga', 'cel shaded', 'japanese animation',
-    'oil painting', 'watercolor', 'painted', 'painting style',
-    'illustration', 'illustrated', 'drawing', 'sketch',
-    'cartoon', 'comic', 'fantasy art', 'concept art'
-  ]
-
-  allStyleKeywords.forEach(keyword => {
-    const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
-    cleanedPrompt = cleanedPrompt.replace(regex, '').trim()
-  })
-
-  // 清理多余的逗号、空格和连续标点
-  cleanedPrompt = cleanedPrompt
-    .replace(/,\s*,/g, ',')
-    .replace(/\s+/g, ' ')
-    .replace(/,\s*\./g, '.')
-    .replace(/^\s*,\s*/, '')
-    .replace(/\s*,\s*$/, '')
-    .trim()
-
-  // 🔥 步骤 3: 强制添加风格前缀 + 核心描述 + 风格后缀
-  const finalPrompt = `${styleConfig.promptPrefix} ${cleanedPrompt}, ${styleConfig.promptSuffix}`.trim()
-
-  // 🔥 步骤 4: 强制添加风格特定的负面 prompt
-  let finalNegativePrompt = negativePrompt
-
-  if (styleConfig.negativePromptExtra) {
-    const extraNegatives = styleConfig.negativePromptExtra.split(',').map(s => s.trim())
-    const missingExtraNegatives = extraNegatives.filter(neg =>
-      !finalNegativePrompt.toLowerCase().includes(neg.toLowerCase())
-    )
-
-    if (missingExtraNegatives.length > 0) {
-      finalNegativePrompt += ', ' + missingExtraNegatives.join(', ')
-    }
-  }
-
-  console.log('[Enforce Style] ✅ Processed:', {
-    characterName,
-    imageStyle,
-    cleanedPrompt: cleanedPrompt.substring(0, 100),
-    finalPromptPreview: finalPrompt.substring(0, 150)
-  })
-
-  return {
-    prompt: finalPrompt,
-    negativePrompt: finalNegativePrompt
-  }
-}
 
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5分钟超时（批量生成可能需要较长时间）
@@ -203,16 +107,14 @@ export const POST = withAuth(async (request, { params, userId }) => {
       try {
         console.log(`[API] Generating image for ${charPrompt.characterName}...`)
 
-        // 🔥 强制后处理：清理冲突关键词并强制执行风格规则（针对所有风格）
+        // 只统一风格包装；角色核心描述由用户/脚本分析结果锁定，不做审美词删除或外观改写。
         const imageStyle = project.image_style_id || 'realistic'
         let finalPrompt = charPrompt.prompt
         let finalNegativePrompt = charPrompt.negativePrompt || ''
 
-        // 对所有风格都执行后处理，清理冲突关键词
-        const processed = enforceStyleConsistency(
+        const processed = enforceCharacterPromptStyle(
           finalPrompt,
           finalNegativePrompt,
-          charPrompt.characterName,
           imageStyle
         )
         finalPrompt = processed.prompt
@@ -281,7 +183,13 @@ export const POST = withAuth(async (request, { params, userId }) => {
     if (successfulCharacters.length > 0) {
       try {
         // 🔥 修复：直接保存到数据库，不要调用 API（避免 401 错误）
+        const promptByCharacterName = new Map(
+          characterPrompts.map(cp => [cp.characterName, cp])
+        )
+
         for (const char of successfulCharacters) {
+          const sourcePrompt = promptByCharacterName.get(char.characterName)
+
           // 检查角色是否已存在
           const { data: existingChar } = await supabaseAdmin
             .from('project_characters')
@@ -297,7 +205,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
             const { data: updatedChar, error: updateError } = await supabaseAdmin
               .from('project_characters')
               .update({
-                source: 'ai_generate'
+                source: 'ai_generate',
+                generation_prompt: sourcePrompt?.prompt || null,
+                negative_prompt: sourcePrompt?.negativePrompt || null
                 // 移除 updated_at：project_characters 表中没有此字段
               } as any)
               .eq('id', existingChar.id)
@@ -323,7 +233,9 @@ export const POST = withAuth(async (request, { params, userId }) => {
               .insert({
                 project_id: projectId,
                 character_name: char.characterName,
-                source: 'ai_generate'
+                source: 'ai_generate',
+                generation_prompt: sourcePrompt?.prompt || null,
+                negative_prompt: sourcePrompt?.negativePrompt || null
               } as any)
               .select('id')
               .single()

@@ -122,20 +122,15 @@ export function useCharacterAutoGeneration(
       console.log('[CharacterAutoGen] Step 1: Generating character prompts...')
 
       // 步骤 1: 生成所有人物的 prompts
-      const promptsData = await generateCharacterPrompts(project.id, {
+      const { characterPrompts } = await generateCharacterPrompts(project.id, {
         imageStyle: project.image_style_id || 'realistic'
-      } as any)
-      const { characterPrompts } = promptsData as unknown as { characterPrompts: Array<{
-        characterName: string
-        prompt: string
-        negativePrompt: string
-      }> }
+      })
 
       console.log('[CharacterAutoGen] Prompts generated:', characterPrompts.length)
 
       // 步骤 2: 批量生成人物图片
       console.log('[CharacterAutoGen] Step 2: Starting batch image generation...')
-      await batchGenerateCharacters(project.id, { characterPrompts } as any)
+      await batchGenerateCharacters(project.id, { characterPrompts })
 
       // ✅ API 调用成功后立即触发积分更新（后端已扣费）
       emitCreditsUpdated('video-agent-characters-api-called')

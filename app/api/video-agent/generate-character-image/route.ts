@@ -6,97 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
 import { submitImageGeneration } from '@/lib/services/byteplus/image/seedream-api'
-import { IMAGE_STYLES, type ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
-
-/**
- * 🔥 强制后处理（方案 A）：统一风格处理
- * 与 character-prompt-generator.ts 中的逻辑保持一致
- */
-function enforceStyleConsistency(
-  prompt: string,
-  negativePrompt: string,
-  imageStyle: string
-): {
-  prompt: string
-  negativePrompt: string
-} {
-  const styleConfig = IMAGE_STYLES[imageStyle as ImageStyle]
-  if (!styleConfig) {
-    console.warn(`[Enforce Style] Unknown style: ${imageStyle}, using as-is`)
-    return { prompt, negativePrompt }
-  }
-
-  let cleanedPrompt = prompt
-
-  console.log('[Enforce Style] Original:', {
-    imageStyle,
-    originalPrompt: prompt.substring(0, 150)
-  })
-
-  // 🔥 步骤 1: 清理所有审美评价词
-  const aestheticWords = [
-    'adorable', 'cute', 'kawaii', 'charming', 'lovely', 'sweet',
-    'beautiful', 'stunning', 'gorgeous', 'elegant', 'graceful',
-    'majestic', 'magnificent', 'impressive', 'striking'
-  ]
-  aestheticWords.forEach(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi')
-    cleanedPrompt = cleanedPrompt.replace(regex, '').trim()
-  })
-
-  // 🔥 步骤 2: 清理所有风格关键词
-  const allStyleKeywords = [
-    'photorealistic', 'realistic photograph', 'professional photography',
-    'natural lighting', 'dslr', 'film grain', 'Fujifilm', 'RAW photo',
-    'real photo', 'documentary photography', 'wildlife photography',
-    'national geographic', 'hyper-realistic',
-    '3d render', '3d rendered', 'octane render', 'unreal engine',
-    'cgi', 'ray tracing', 'Pixar style',
-    'anime', 'anime style', 'manga', 'cel shaded', 'japanese animation',
-    'oil painting', 'watercolor', 'painted', 'painting style',
-    'illustration', 'illustrated', 'drawing', 'sketch',
-    'cartoon', 'comic', 'fantasy art', 'concept art'
-  ]
-
-  allStyleKeywords.forEach(keyword => {
-    const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
-    cleanedPrompt = cleanedPrompt.replace(regex, '').trim()
-  })
-
-  // 清理多余的逗号、空格和连续标点
-  cleanedPrompt = cleanedPrompt
-    .replace(/,\s*,/g, ',')
-    .replace(/\s+/g, ' ')
-    .replace(/,\s*\./g, '.')
-    .replace(/^\s*,\s*/, '')
-    .replace(/\s*,\s*$/, '')
-    .trim()
-
-  // 🔥 步骤 3: 强制添加风格前缀 + 核心描述 + 风格后缀
-  const finalPrompt = `${styleConfig.promptPrefix} ${cleanedPrompt}, ${styleConfig.promptSuffix}`.trim()
-
-  // 🔥 步骤 4: 强制添加风格特定的负面 prompt
-  let finalNegativePrompt = negativePrompt
-
-  if (styleConfig.negativePromptExtra) {
-    const extraNegatives = styleConfig.negativePromptExtra.split(',').map(s => s.trim())
-    const missingExtraNegatives = extraNegatives.filter(neg =>
-      !finalNegativePrompt.toLowerCase().includes(neg.toLowerCase())
-    )
-
-    if (missingExtraNegatives.length > 0) {
-      finalNegativePrompt += ', ' + missingExtraNegatives.join(', ')
-    }
-  }
-
-  console.log('[Enforce Style] ✅ Processed:', {
-    imageStyle,
-    cleanedPrompt: cleanedPrompt.substring(0, 100),
-    finalPromptPreview: finalPrompt.substring(0, 150)
-  })
-
-  return { prompt: finalPrompt, negativePrompt: finalNegativePrompt }
-}
+import { enforceCharacterPromptStyle } from '@/lib/services/video-agent/character-prompt-generator'
 
 /**
  * 生成人物参考图
@@ -104,8 +14,7 @@ function enforceStyleConsistency(
  */
 export const POST = withAuth(async (request, { params, userId }) => {
   try {
-    // 验证用户身份
-        // 解析请求体
+    // 解析请求体
     let body: {
       prompt: string
       negativePrompt?: string
@@ -133,12 +42,12 @@ export const POST = withAuth(async (request, { params, userId }) => {
       )
     }
 
-    // 🔥 强制后处理：清理冲突关键词并强制执行风格规则（针对所有风格）
+    // 🔥 风格包装：只追加统一风格，不重写角色外观。
     let finalPrompt = prompt
     let finalNegativePrompt = negativePrompt || ''
 
-    // 对所有风格都执行后处理，清理冲突关键词
-    const processed = enforceStyleConsistency(finalPrompt, finalNegativePrompt, imageStyle)
+    // 只统一风格包装；角色核心描述由用户/脚本分析结果锁定，不做审美词删除或外观改写。
+    const processed = enforceCharacterPromptStyle(finalPrompt, finalNegativePrompt, imageStyle)
     finalPrompt = processed.prompt
     finalNegativePrompt = processed.negativePrompt
     console.log('[Video Agent] ✅ Enforced style consistency:', { imageStyle })

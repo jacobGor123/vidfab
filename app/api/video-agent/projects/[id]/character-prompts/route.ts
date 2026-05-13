@@ -67,7 +67,7 @@ export const POST = withAuth(async (request, { params, userId }) => {
       characters: (project.script_analysis as unknown as ScriptAnalysisResult).characters
     })
 
-    // 5. 调用 Gemini 生成 prompts
+    // 5. 确定性生成 prompts：保留 script_analysis.characters 中的核心设定
     const characterPrompts = await generateCharacterPrompts(
       project.script_analysis as unknown as ScriptAnalysisResult,
       imageStyle as ImageStyle

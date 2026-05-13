@@ -6,6 +6,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
+import {
+  getDefaultCharacterNegativePrompt,
+  getDefaultCharacterPrompt
+} from '@/lib/services/video-agent/character-prompt-generator'
 
 export interface CharacterState {
   id?: string
@@ -64,8 +68,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
         const existingState = currentStatesSnapshot[char]
         initialStates[char] = existingState || {
           name: char,
-          prompt: char,
-          negativePrompt: '',
+          prompt: getDefaultCharacterPrompt(char),
+          negativePrompt: getDefaultCharacterNegativePrompt(char, project.image_style_id || 'realistic'),
           isGenerating: false,
           mode: 'ai'
         }
@@ -349,8 +353,8 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
             } else {
               nextStates[newName] = {
                 name: newName,
-                prompt: newName,
-                negativePrompt: '',
+                prompt: getDefaultCharacterPrompt(newName),
+                negativePrompt: getDefaultCharacterNegativePrompt(newName, project.image_style_id || 'realistic'),
                 isGenerating: false,
                 mode: 'ai'
               }
@@ -432,9 +436,9 @@ export function useCharacterState({ project, onUpdate }: UseCharacterStateProps)
 
         // 保存到数据库
         try {
-          await updateProject(project.id, { script_analysis: updatedAnalysis })
+          await updateProject(project.id, { script_analysis: updatedAnalysis as any })
 
-          onUpdateRef.current({ script_analysis: updatedAnalysis })
+          onUpdateRef.current({ script_analysis: updatedAnalysis as any })
         } catch (error) {
           console.error(`[useCharacterState] [${syncId}] ❌ syncCharacterNames failed:`, error)
           // Silent fail - auto-sync is best effort

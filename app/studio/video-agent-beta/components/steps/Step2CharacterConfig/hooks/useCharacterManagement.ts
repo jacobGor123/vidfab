@@ -9,6 +9,7 @@ import { CharacterState } from './useCharacterState'
 import { CharacterPreset } from '@/lib/constants/character-presets'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { useDebounce } from '@/lib/hooks/useDebounce'
+import { getDefaultCharacterNegativePrompt } from '@/lib/services/video-agent/character-prompt-generator'
 
 interface UseCharacterManagementProps {
   project: VideoAgentProject
@@ -120,6 +121,7 @@ export function useCharacterManagement({
         }
         newCharacterName = `${shortName} (${description})`
       }
+      const negativePromptSource = generatedPrompt && generatedPrompt.trim() ? newCharacterName : ''
 
       // 构建新状态（名称可能变化，需要更换 key）
       const nextStates = { ...characterStates }
@@ -132,6 +134,7 @@ export function useCharacterManagement({
         imageUrl: url,
         mode: 'upload' as const,
         prompt: generatedPrompt || characterStates[characterName]?.prompt,
+        negativePrompt: getDefaultCharacterNegativePrompt(negativePromptSource, project.image_style_id || 'realistic'),
         isGenerating: false,
         error: undefined
       }
@@ -201,6 +204,7 @@ export function useCharacterManagement({
     //   be handled server-side (character-replace) rather than changing the identity key.
     const oldName = String(characterName || '').trim()
     const newName = preset.name
+    const presetNegativePrompt = getDefaultCharacterNegativePrompt(newName, project.image_style_id || 'realistic')
 
     const currentState = characterStates[oldName] || {
       prompt: '',
@@ -219,6 +223,7 @@ export function useCharacterManagement({
         imageUrl: preset.imageUrl,  // 立即显示预设图片
         mode: 'upload',
         prompt: '',  // 🔥 清空旧描述
+        negativePrompt: presetNegativePrompt,
         isGenerating: true,  // 显示加载状态
         error: undefined
       }
@@ -254,9 +259,6 @@ export function useCharacterManagement({
       }
     }
 
-    const currentPrompt = currentState.prompt || ''
-    const currentNegativePrompt = currentState.negativePrompt || ''
-
     // 🔥 构建最终状态对象（用于数据库更新）
     const newStates = { ...characterStates }
     delete newStates[oldName]
@@ -266,7 +268,7 @@ export function useCharacterManagement({
       imageUrl: preset.imageUrl,
       mode: 'upload',
       prompt: '',  // 🔥 清空旧描述，避免与新图片冲突（待后续 Vision API 自动生成）
-      negativePrompt: currentNegativePrompt,
+      negativePrompt: presetNegativePrompt,
       isGenerating: false  // 准备关闭加载状态
     }
 

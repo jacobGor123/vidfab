@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { VideoAgentProject } from '@/lib/stores/video-agent'
 import { CharacterState } from './useCharacterState'
 import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
+import { parseCharacterSpec } from '@/lib/services/video-agent/character-prompt-generator'
 
 interface CharacterPrompt {
   characterName: string
@@ -62,7 +63,7 @@ export function useCharacterGeneration({
       return {
         id: state.id,
         name: state.name,
-        source: state.mode === 'upload' ? 'upload' : 'ai_generate',
+        source: (state.mode === 'upload' ? 'upload' : 'ai_generate') as 'upload' | 'ai_generate',
         referenceImages,
         generationPrompt: state.prompt,
         negativePrompt: state.negativePrompt
@@ -166,8 +167,7 @@ export function useCharacterGeneration({
     setError(null)
 
     try {
-      const data = await generateCharacterPrompts(project.id, { imageStyle: selectedStyle })
-      const { characterPrompts } = data as { characterPrompts: CharacterPrompt[] }
+      const { characterPrompts } = await generateCharacterPrompts(project.id, { imageStyle: selectedStyle })
 
       // 更新人物状态
       const newStates = { ...characterStates }
@@ -390,9 +390,9 @@ export function useCharacterGeneration({
         analysisDescription = await analyzeCharacterImage(characterName, result.imageUrl)
 
         if (analysisDescription && analysisDescription.trim()) {
-          // 🔥 从用户输入的 prompt 中提取新的角色名称，而不是从旧名称中提取
-          // 例如用户输入 "Brown Cat (...)" 则提取 "Brown Cat"
-          const shortName = state.prompt.split('(')[0].trim()
+          // Prompt is no longer the identity source. Keep the logical character key stable
+          // and only refresh the analyzed description after image regeneration.
+          const shortName = parseCharacterSpec(characterName).characterName
 
           // 🔥 截断描述，确保总长度不超过 400 字符（数据库限制 500，留一些余量）
           let description = analysisDescription.trim()
