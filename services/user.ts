@@ -8,6 +8,7 @@ import { getUuid, getUserUuidFromEmail } from '@/lib/hash';
 import { normalizeEmail, isDuplicateNormalizedEmail } from '@/lib/fraud/email-normalizer'
 import { getAntifraudIp, checkIpCreditLimit, recordIpGrant } from '@/lib/fraud/ip-checker'
 import { deductUserCredits } from '@/lib/simple-credits-check'
+import { isMissingColumnError, omitCreditBucketFields } from '@/lib/supabase-schema-compat'
 
 function mapDatabaseUser(data: any): User {
   return {
@@ -46,11 +47,29 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     const userUuid = userData.uuid || getUserUuidFromEmail(userData.email);
 
     // ✅ 关键修复：先检查用户是否已存在
-    const { data: existingUser } = await supabaseAdmin
+    let hasCreditBucketColumns = true;
+    let { data: existingUser, error: existingUserError } = await supabaseAdmin
       .from(TABLES.USERS)
       .select('uuid, subscription_plan, subscription_status, credits_remaining, credits_monthly_total, credits_monthly_balance, credits_other_balance, credits_last_reset_date, credits_next_reset_at, total_videos_processed, storage_used_mb')
       .eq('uuid', userUuid)
       .single();
+
+    if (isMissingColumnError(existingUserError)) {
+      hasCreditBucketColumns = false;
+      const legacyResult = await supabaseAdmin
+        .from(TABLES.USERS)
+        .select('uuid, subscription_plan, subscription_status, credits_remaining, credits_monthly_total, credits_last_reset_date, total_videos_processed, storage_used_mb')
+        .eq('uuid', userUuid)
+        .single();
+
+      existingUser = legacyResult.data as any;
+      existingUserError = legacyResult.error;
+    }
+
+    if (existingUserError && existingUserError.code !== 'PGRST116') {
+      console.error('Fetch existing user error:', existingUserError);
+      handleSupabaseError(existingUserError);
+    }
 
     let userToSave: Partial<DatabaseUser>;
     let pendingCreditIdsToProcess: string[] = []; // 🔧 用独立变量存储
@@ -85,6 +104,10 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         total_videos_processed: existingUser.total_videos_processed ?? 0,
         storage_used_mb: existingUser.storage_used_mb ?? 0,
       };
+
+      if (!hasCreditBucketColumns) {
+        userToSave = omitCreditBucketFields(userToSave as Record<string, unknown>) as Partial<DatabaseUser>;
+      }
     } else {
       // ✅ 新用户：使用默认值
       console.log(`✨ 创建新用户: ${userUuid}`);
@@ -158,6 +181,10 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
             : isEmailDup ? 'email_duplicate' : 'ip_limit')
           : null,
       };
+
+      if (!hasCreditBucketColumns) {
+        userToSave = omitCreditBucketFields(userToSave as Record<string, unknown>) as Partial<DatabaseUser>;
+      }
 
       // 🎁 用户创建成功后，标记 pending_credits 为已领取
       // 🛡️ 仅在非欺诈用户时消费 pending_credits：
@@ -338,12 +365,24 @@ export async function updateUser(uuid: string, updateData: UpdateUserData): Prom
       updated_at: getIsoTimestr(),
     };
 
-    const { data, error } = await supabaseAdmin
+    let { data, error } = await supabaseAdmin
       .from(TABLES.USERS)
       .update(updates as any)
       .eq('uuid', uuid)
       .select()
       .single();
+
+    if (isMissingColumnError(error)) {
+      const legacyResult = await supabaseAdmin
+        .from(TABLES.USERS)
+        .update(omitCreditBucketFields(updates as Record<string, unknown>) as any)
+        .eq('uuid', uuid)
+        .select()
+        .single();
+
+      data = legacyResult.data;
+      error = legacyResult.error;
+    }
 
     if (error) {
       console.error('Update user error:', error);

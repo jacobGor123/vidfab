@@ -4,6 +4,7 @@
  */
 import { supabaseAdmin } from '@/lib/supabase'
 import { getIsoTimestr } from '@/lib/time'
+import { isMissingColumnError, omitCreditBucketFields } from '@/lib/supabase-schema-compat'
 
 interface CheckResult {
   isFraud: boolean
@@ -90,7 +91,7 @@ export async function checkAndRecordDevice(
       ? `device_fingerprint:consumed:${consumed}`
       : 'device_fingerprint'
 
-    const { error: updateError } = await supabaseAdmin
+    let { error: updateError } = await supabaseAdmin
       .from('users')
       .update({
         credits_remaining: 0,
@@ -103,6 +104,21 @@ export async function checkAndRecordDevice(
         updated_at: getIsoTimestr(),
       })
       .eq('uuid', userUuid)
+
+    if (isMissingColumnError(updateError)) {
+      const fallbackResult = await supabaseAdmin
+        .from('users')
+        .update(omitCreditBucketFields({
+          credits_remaining: 0,
+          credits_monthly_total: 0,
+          is_credit_limited: true,
+          fraud_reason: fraudReason,
+          updated_at: getIsoTimestr(),
+        }))
+        .eq('uuid', userUuid)
+
+      updateError = fallbackResult.error
+    }
 
     if (updateError) {
       console.error('[fraud/device] 追缴积分失败:', updateError)

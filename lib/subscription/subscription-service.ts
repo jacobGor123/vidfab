@@ -29,6 +29,7 @@ import type {
 } from './types';
 import { getEffectiveEntitlements, normalizePlanId as normalizeEntitlementPlanId } from './entitlements';
 import { ensureMonthlyCreditsCurrent, resetSubscriptionMonthlyCredits } from './credit-buckets';
+import { isMissingColumnError, omitCreditBucketFields } from '../supabase-schema-compat';
 
 export class SubscriptionService {
   private creditsManager: CreditsManager;
@@ -386,7 +387,7 @@ export class SubscriptionService {
       const retainedCredits = user.credits_other_balance ?? Math.max(0, currentCredits - (user.credits_monthly_balance || 0));
 
       // 订阅结束后月度积分过期，只保留其他积分（如新用户赠送/额外发放）。
-      await supabaseAdmin
+      const { error: cancelUpdateError } = await supabaseAdmin
         .from(TABLES.USERS)
         .update({
           subscription_plan: 'free',
@@ -400,6 +401,24 @@ export class SubscriptionService {
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', user.uuid);
+
+      if (isMissingColumnError(cancelUpdateError)) {
+        const { error: legacyCancelError } = await supabaseAdmin
+          .from(TABLES.USERS)
+          .update({
+            subscription_plan: 'free',
+            subscription_status: 'cancelled',
+            subscription_stripe_id: null,
+            credits_monthly_total: 0,
+            credits_remaining: retainedCredits,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('uuid', user.uuid);
+
+        if (legacyCancelError) throw legacyCancelError;
+      } else if (cancelUpdateError) {
+        throw cancelUpdateError;
+      }
 
       // ✅ 修复：记录订阅变更时，积分保持不变
       await supabaseAdmin
@@ -522,11 +541,22 @@ export class SubscriptionService {
   async getUserSubscriptionStatus(userUuid: string): Promise<SubscriptionStatusResponse> {
     try {
       // ✅ 简化1: 直接获取用户完整信息（参考iMideo设计）
-      const { data: user, error } = await supabaseAdmin
+      let { data: user, error } = await supabaseAdmin
         .from(TABLES.USERS)
         .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_total, credits_monthly_balance, credits_other_balance, credits_last_reset_date, credits_next_reset_at, subscription_period_end')
         .eq('uuid', userUuid)
         .single();
+
+      if (isMissingColumnError(error)) {
+        const legacyResult = await supabaseAdmin
+          .from(TABLES.USERS)
+          .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_total, credits_last_reset_date, subscription_period_end')
+          .eq('uuid', userUuid)
+          .single();
+
+        user = legacyResult.data as any;
+        error = legacyResult.error;
+      }
 
       if (error || !user) {
         console.warn('User not found, returning default free plan:', userUuid);
@@ -576,6 +606,7 @@ export class SubscriptionService {
       const displayPlan = entitlements.hasPaidAccess ? normalizedPlan : 'free';
       const creditSnapshot = await ensureMonthlyCreditsCurrent(userUuid);
       const creditsRemaining = creditSnapshot?.total ?? (effectiveUser.credits_remaining || 0);
+      const hasBucketSnapshot = creditSnapshot?.hasPaidAccess === true || creditSnapshot?.otherBalance !== undefined;
 
       // ✅ 简化4: 构建响应（参考iMideo的getUserCurrentPlan）
       const planConfig = getPlanConfig(displayPlan);
@@ -586,11 +617,11 @@ export class SubscriptionService {
         billing_cycle: 'monthly', // 简化：默认月付，可以从Stripe获取详细信息
         credits_remaining: creditsRemaining,
         credits_total: planConfig.credits,
-        credits_monthly_total: creditSnapshot?.hasPaidAccess ? creditSnapshot.monthlyTotal : 0,
-        credits_monthly_balance: creditSnapshot?.hasPaidAccess ? creditSnapshot.monthlyBalance : 0,
-        credits_other_balance: creditSnapshot?.otherBalance ?? Math.max(0, creditsRemaining),
-        credits_last_reset_date: creditSnapshot?.hasPaidAccess ? creditSnapshot.lastResetAt : null,
-        credits_next_reset_at: creditSnapshot?.hasPaidAccess ? creditSnapshot.nextResetAt : null,
+        credits_monthly_total: hasBucketSnapshot && creditSnapshot?.hasPaidAccess ? creditSnapshot.monthlyTotal : (effectiveUser.credits_monthly_total ?? 0),
+        credits_monthly_balance: hasBucketSnapshot && creditSnapshot?.hasPaidAccess ? creditSnapshot.monthlyBalance : undefined,
+        credits_other_balance: hasBucketSnapshot ? creditSnapshot?.otherBalance : undefined,
+        credits_last_reset_date: hasBucketSnapshot && creditSnapshot?.hasPaidAccess ? creditSnapshot.lastResetAt : (effectiveUser.credits_last_reset_date || null),
+        credits_next_reset_at: hasBucketSnapshot && creditSnapshot?.hasPaidAccess ? creditSnapshot.nextResetAt : null,
         period_start: effectiveUser.created_at,
         period_end: effectiveUser.subscription_period_end || effectiveUser.updated_at || new Date().toISOString(),
         stripe_subscription_id: effectiveUser.subscription_stripe_id,
@@ -821,11 +852,22 @@ export class SubscriptionService {
       const { getIsoTimestr } = await import('@/lib/time');
 
       // 🔍 步骤1: 获取当前用户状态
-      const { data: user, error: fetchError } = await supabaseAdmin
+      let { data: user, error: fetchError } = await supabaseAdmin
         .from(TABLES.USERS)
         .select('subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_balance, credits_other_balance')
         .eq('uuid', userUuid)
         .single();
+
+      if (isMissingColumnError(fetchError)) {
+        const legacyFetch = await supabaseAdmin
+          .from(TABLES.USERS)
+          .select('subscription_plan, subscription_status, subscription_stripe_id, credits_remaining')
+          .eq('uuid', userUuid)
+          .single();
+
+        user = legacyFetch.data as any;
+        fetchError = legacyFetch.error;
+      }
 
       if (fetchError) {
         console.error(`❌ [CLEANUP] Failed to fetch user:`, fetchError);
@@ -863,17 +905,45 @@ export class SubscriptionService {
         .eq('uuid', userUuid)
         .select(); // ✅ 添加 select() 以返回更新后的数据
 
-      if (updateError) {
+      if (isMissingColumnError(updateError)) {
+        const fallbackUpdate = omitCreditBucketFields({
+          subscription_plan: 'free',
+          subscription_status: 'cancelled',
+          subscription_stripe_id: null,
+          credits_monthly_total: 0,
+          credits_remaining: retainedCredits,
+          updated_at: getIsoTimestr(),
+        });
+
+        const fallbackResult = await supabaseAdmin
+          .from(TABLES.USERS)
+          .update(fallbackUpdate as any)
+          .eq('uuid', userUuid)
+          .select();
+
+        if (fallbackResult.error) {
+          console.error(`❌ [CLEANUP] Failed fallback user update:`, fallbackResult.error);
+          throw fallbackResult.error;
+        }
+
+        console.log(`✅ [CLEANUP] User updated successfully with legacy credit schema:`, fallbackResult.data?.[0]);
+      } else if (updateError) {
         console.error(`❌ [CLEANUP] Failed to update user:`, updateError);
         throw updateError;
       }
 
-      if (!updateResult || updateResult.length === 0) {
+      if (updateError && !isMissingColumnError(updateError)) {
+        throw updateError;
+      }
+
+      if (!updateError && (!updateResult || updateResult.length === 0)) {
         console.error(`❌ [CLEANUP] Update returned no rows for user: ${userUuid}`);
         throw new Error(`Failed to update user ${userUuid}`);
       }
 
-      console.log(`✅ [CLEANUP] User updated successfully:`, updateResult[0]);
+      if (!updateError) {
+        console.log(`✅ [CLEANUP] User updated successfully:`, updateResult[0]);
+      }
 
       // 🔍 步骤3: 记录变更到 subscription_changes 表
       try {

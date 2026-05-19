@@ -5,6 +5,7 @@
 
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
 import { calculateRequiredCredits, type VideoModel } from "@/lib/credits-calculator"
+import { isMissingColumnError } from "@/lib/supabase-schema-compat"
 
 // 图片生成固定消耗 3 积分
 export const IMAGE_GENERATION_CREDITS = 3
@@ -42,20 +43,33 @@ async function deductUserCreditsFallback(
   creditsToDeduct: number
 ): Promise<{ success: boolean; newBalance?: number; error?: string }> {
   // 先获取当前积分
-  const { data: user, error: fetchError } = await supabaseAdmin
+  let hasCreditBucketColumns = true
+  let { data: user, error: fetchError } = await supabaseAdmin
     .from(TABLES.USERS)
     .select('credits_remaining, credits_monthly_balance, credits_other_balance')
     .eq('uuid', userUuid)
     .single()
+
+  if (isMissingColumnError(fetchError)) {
+    hasCreditBucketColumns = false
+    const legacyResult = await supabaseAdmin
+      .from(TABLES.USERS)
+      .select('credits_remaining')
+      .eq('uuid', userUuid)
+      .single()
+
+    user = legacyResult.data as any
+    fetchError = legacyResult.error
+  }
 
   if (fetchError) {
     console.error('❌ Failed to fetch user credits for deduction:', fetchError)
     return { success: false, error: 'Failed to fetch user credits' }
   }
 
-  const currentMonthly = Math.max(0, user?.credits_monthly_balance || 0)
-  const currentOther = Math.max(0, user?.credits_other_balance || 0)
-  const currentCredits = user?.credits_remaining ?? currentMonthly + currentOther
+  const currentCredits = user?.credits_remaining || 0
+  const currentMonthly = hasCreditBucketColumns ? Math.max(0, user?.credits_monthly_balance || 0) : 0
+  const currentOther = hasCreditBucketColumns ? Math.max(0, user?.credits_other_balance || 0) : currentCredits
 
   // 检查积分是否足够
   if (currentCredits < creditsToDeduct) {
@@ -73,14 +87,21 @@ async function deductUserCreditsFallback(
   const newBalance = newMonthly + newOther
 
   // 更新用户积分
+  const updatePayload = hasCreditBucketColumns
+    ? {
+        credits_monthly_balance: newMonthly,
+        credits_other_balance: newOther,
+        credits_remaining: newBalance,
+        updated_at: new Date().toISOString(),
+      }
+    : {
+        credits_remaining: newBalance,
+        updated_at: new Date().toISOString(),
+      }
+
   const { error: updateError } = await supabaseAdmin
     .from(TABLES.USERS)
-    .update({
-      credits_monthly_balance: newMonthly,
-      credits_other_balance: newOther,
-      credits_remaining: newBalance,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('uuid', userUuid)
 
   if (updateError) {
@@ -242,35 +263,55 @@ export async function refundUserCredits(
 
     if (error) {
       console.warn('⚠️ add_user_credits_atomic RPC unavailable or failed, using fallback:', error.message)
-      const { data: user, error: fetchError } = await supabaseAdmin
+      let hasCreditBucketColumns = true
+      let { data: user, error: fetchError } = await supabaseAdmin
         .from(TABLES.USERS)
         .select('credits_remaining, credits_monthly_balance, credits_monthly_total, credits_other_balance')
         .eq('uuid', userUuid)
         .single()
+
+      if (isMissingColumnError(fetchError)) {
+        hasCreditBucketColumns = false
+        const legacyResult = await supabaseAdmin
+          .from(TABLES.USERS)
+          .select('credits_remaining')
+          .eq('uuid', userUuid)
+          .single()
+
+        user = legacyResult.data as any
+        fetchError = legacyResult.error
+      }
 
       if (fetchError) {
         console.error('❌ Failed to fetch user credits for refund:', fetchError)
         return { success: false, error: 'Failed to fetch user credits' }
       }
 
-      const currentMonthly = Math.max(0, user?.credits_monthly_balance || 0)
-      const monthlyTotal = Math.max(0, user?.credits_monthly_total || 0)
-      const currentOther = Math.max(0, user?.credits_other_balance || 0)
-      const currentCredits = user?.credits_remaining ?? currentMonthly + currentOther
+      const currentCredits = user?.credits_remaining || 0
+      const currentMonthly = hasCreditBucketColumns ? Math.max(0, user?.credits_monthly_balance || 0) : 0
+      const monthlyTotal = hasCreditBucketColumns ? Math.max(0, user?.credits_monthly_total || 0) : 0
+      const currentOther = hasCreditBucketColumns ? Math.max(0, user?.credits_other_balance || 0) : currentCredits
       const monthlySpace = Math.max(0, monthlyTotal - currentMonthly)
       const toMonthly = Math.min(monthlySpace, creditsToRefund)
       const newMonthly = currentMonthly + toMonthly
       const newOther = currentOther + (creditsToRefund - toMonthly)
       const newBalance = newMonthly + newOther
 
+      const updatePayload = hasCreditBucketColumns
+        ? {
+            credits_monthly_balance: newMonthly,
+            credits_other_balance: newOther,
+            credits_remaining: newBalance,
+            updated_at: new Date().toISOString(),
+          }
+        : {
+            credits_remaining: newBalance,
+            updated_at: new Date().toISOString(),
+          }
+
       const { error: updateError } = await supabaseAdmin
         .from(TABLES.USERS)
-        .update({
-          credits_monthly_balance: newMonthly,
-          credits_other_balance: newOther,
-          credits_remaining: newBalance,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('uuid', userUuid)
 
       if (updateError) {

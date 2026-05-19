@@ -9,6 +9,7 @@ import { authConfig } from "@/auth/config"
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
 import { ensureMonthlyCreditsCurrent } from "@/lib/subscription/credit-buckets"
 import { getEffectiveEntitlements } from "@/lib/subscription/entitlements"
+import { isMissingColumnError } from "@/lib/supabase-schema-compat"
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,11 +46,22 @@ export async function GET(request: NextRequest) {
     }
 
     // 🔥 强制刷新查询用户积分信息（避免缓存问题）
-    const { data: user, error } = await supabaseAdmin
+    let { data: user, error } = await supabaseAdmin
       .from(TABLES.USERS)
       .select('credits_remaining, credits_monthly_total, credits_monthly_balance, credits_other_balance, credits_last_reset_date, credits_next_reset_at, subscription_plan, subscription_status, subscription_stripe_id, subscription_period_end, updated_at')
       .eq('uuid', userId)
       .single()
+
+    if (isMissingColumnError(error)) {
+      const legacyResult = await supabaseAdmin
+        .from(TABLES.USERS)
+        .select('credits_remaining, credits_monthly_total, credits_last_reset_date, subscription_plan, subscription_status, subscription_stripe_id, subscription_period_end, updated_at')
+        .eq('uuid', userId)
+        .single()
+
+      user = legacyResult.data as any
+      error = legacyResult.error
+    }
 
     if (error && error.code !== 'PGRST116') {
       console.error('Database error:', error)

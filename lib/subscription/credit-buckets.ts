@@ -3,6 +3,7 @@ import { getIsoTimestr } from '@/lib/time';
 import { SUBSCRIPTION_PLANS } from './pricing-config';
 import { isPeriodCurrent, normalizePlanId } from './entitlements';
 import type { PlanId } from './types';
+import { isMissingColumnError } from '../supabase-schema-compat';
 
 const PAID_ACCESS_STATUSES = new Set(['active', 'cancelled']);
 
@@ -17,6 +18,7 @@ interface CreditBucketUser {
   credits_other_balance?: number | null;
   credits_last_reset_date?: string | null;
   credits_next_reset_at?: string | null;
+  hasBucketColumns?: boolean;
 }
 
 export interface CreditBucketSnapshot {
@@ -122,13 +124,32 @@ async function fetchCreditUser(userUuid: string): Promise<CreditBucketUser | nul
     .single();
 
   if (error || !data) {
+    if (isMissingColumnError(error)) {
+      const { data: legacyData, error: legacyError } = await supabaseAdmin
+        .from(TABLES.USERS)
+        .select(
+          'uuid, subscription_plan, subscription_status, subscription_period_end, credits_remaining, credits_monthly_total, credits_last_reset_date'
+        )
+        .eq('uuid', userUuid)
+        .single();
+
+      if (legacyError || !legacyData) {
+        if (legacyError?.code !== 'PGRST116') {
+          console.error('[credits] Failed to fetch legacy user credits:', legacyError);
+        }
+        return null;
+      }
+
+      return { ...legacyData, hasBucketColumns: false };
+    }
+
     if (error?.code !== 'PGRST116') {
       console.error('[credits] Failed to fetch user credit buckets:', error);
     }
     return null;
   }
 
-  return data;
+  return { ...data, hasBucketColumns: true };
 }
 
 export async function ensureMonthlyCreditsCurrent(userUuid: string): Promise<CreditBucketSnapshot | null> {
@@ -137,6 +158,10 @@ export async function ensureMonthlyCreditsCurrent(userUuid: string): Promise<Cre
 
   const paidAccess = hasPaidCreditAccess(user);
   const currentSnapshot = toSnapshot(user, paidAccess);
+
+  if (user.hasBucketColumns === false) {
+    return currentSnapshot;
+  }
 
   if (!paidAccess) {
     if (

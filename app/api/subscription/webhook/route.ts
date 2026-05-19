@@ -367,12 +367,24 @@ async function handleSubscriptionCanceled(subscriptionId: string): Promise<void>
     const { updateUser } = await import('@/services/user');
     const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
     const { getIsoTimestr } = await import('@/lib/time');
+    const { isMissingColumnError } = await import('@/lib/supabase-schema-compat');
 
-    const { data: user, error } = await supabaseAdmin
+    let { data: user, error } = await supabaseAdmin
       .from(TABLES.USERS)
       .select('uuid, email, subscription_plan, subscription_status, credits_remaining, credits_other_balance, credits_monthly_balance')
       .eq('subscription_stripe_id', subscriptionId)
       .single();
+
+    if (isMissingColumnError(error)) {
+      const legacyResult = await supabaseAdmin
+        .from(TABLES.USERS)
+        .select('uuid, email, subscription_plan, subscription_status, credits_remaining')
+        .eq('subscription_stripe_id', subscriptionId)
+        .single();
+
+      user = legacyResult.data as any;
+      error = legacyResult.error;
+    }
 
     if (error) {
       if (error.code === 'PGRST116') {
