@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import type { CSSProperties } from "react"
 import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { useSubscription } from "@/hooks/use-subscription"
@@ -16,6 +17,16 @@ import toast from "react-hot-toast"
 import { format } from "date-fns"
 
 export const dynamic = 'force-dynamic'
+
+function PlanSkeletonLine({ className, style }: { className: string; style?: CSSProperties }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`animate-pulse rounded-md bg-white/15 ${className}`}
+      style={style}
+    />
+  )
+}
 
 export default function PlansPage() {
   const { data: session } = useSession()
@@ -141,117 +152,155 @@ export default function PlansPage() {
 
             <div className="relative px-6 py-6">
               <p className="text-sm mb-2" style={{ color: '#c7bfe4' }}>Current Plan</p>
-              <div className="flex items-center gap-2.5 mb-4">
-                <h3 className="text-2xl font-bold text-white">{currentPlanConfig?.name || 'Free'} Plan</h3>
-                {subscription?.plan_id !== 'free' && (
-                  <Crown className="h-5 w-5 flex-shrink-0" style={{ color: '#ffc863' }} />
-                )}
-                {planId === 'free' ? (
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    style={{ background: 'rgba(255,127,48,0.15)', color: '#ff7f30' }}
-                  >
-                    Expired
-                  </span>
-                ) : subscription?.status === 'active' ? (
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    style={{ background: 'rgba(26,176,94,0.25)', color: '#30ff8d' }}
-                  >
-                    Active
-                  </span>
-                ) : isCancellationScheduled ? (
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    style={{ background: 'rgba(255,200,99,0.18)', color: '#ffc863' }}
-                  >
-                    Cancels soon
-                  </span>
-                ) : null}
-              </div>
+              {isLoading ? (
+                <div aria-hidden="true">
+                  <div className="flex items-center gap-2.5 mb-4 h-8">
+                    <PlanSkeletonLine className="h-8 w-40" />
+                    <PlanSkeletonLine className="h-6 w-24 rounded-full" />
+                  </div>
 
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-sm">
-                  <span style={{ color: '#c7bfe4' }}>
-                    {isCancellationScheduled ? 'Access until :' : 'Next billing :'}
-                  </span>
-                  <span style={{ color: '#c7bfe4' }}>
-                    {planId === 'free' ? 'No active subscription' : nextBillingDate}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span style={{ color: '#c7bfe4' }}>Auto-renew :</span>
-                  <span style={{ color: subscription?.auto_renew ? '#30ff8d' : '#c7bfe4' }}>
-                    {planId === 'free' ? 'Closure' : subscription?.auto_renew ? 'Enabled' : 'Disabled'}
-                  </span>
-                </div>
-              </div>
+                  <div className="space-y-3 mb-6">
+                    <PlanSkeletonLine className="h-5 w-64 max-w-full" />
+                    <PlanSkeletonLine className="h-5 w-52 max-w-full" />
+                  </div>
 
-              <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                <Button
-                  onClick={() => setShowUpgrade(true)}
-                  className="h-10 px-5 text-sm font-medium !text-white rounded-lg hover:opacity-90"
-                  style={{ background: 'linear-gradient(90deg, #5b7fff 0%, #7b4fff 100%)' }}
-                >
-                  <Image src="/icons/plans/upgrade-plan-icon.png" width={16} height={16} alt="" className="mr-1.5" />
-                  Upgrade Plan
-                </Button>
-                {subscription?.plan_id !== 'free' && subscription?.status === 'active' && subscription.auto_renew && (
-                  <Button
-                    onClick={() => setShowCancelDialog(true)}
-                    disabled={cancelling}
-                    variant="ghost"
-                    className="h-10 px-5 text-sm font-medium rounded-lg !border !border-white/10"
-                    style={{ background: '#1c1042', color: '#c7bfe4' }}
-                  >
-                    {cancelling ? 'Cancelling...' : (
-                      <><Image src="/icons/plans/cancel-icon.png" width={16} height={16} alt="" className="mr-1.5 inline-block" />Cancel Subscription</>
+                  <PlanSkeletonLine className="h-10 w-44 rounded-lg" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <h3 className="text-2xl font-bold text-white">{currentPlanConfig?.name || 'Free'} Plan</h3>
+                    {subscription?.plan_id !== 'free' && (
+                      <Crown className="h-5 w-5 flex-shrink-0" style={{ color: '#ffc863' }} />
                     )}
-                  </Button>
-                )}
-              </div>
+                    {planId === 'free' ? (
+                      <span
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        style={{ background: 'rgba(255,127,48,0.15)', color: '#ff7f30' }}
+                      >
+                        Expired
+                      </span>
+                    ) : subscription?.status === 'active' ? (
+                      <span
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        style={{ background: 'rgba(26,176,94,0.25)', color: '#30ff8d' }}
+                      >
+                        Active
+                      </span>
+                    ) : isCancellationScheduled ? (
+                      <span
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        style={{ background: 'rgba(255,200,99,0.18)', color: '#ffc863' }}
+                      >
+                        Cancels soon
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span style={{ color: '#c7bfe4' }}>
+                        {isCancellationScheduled ? 'Access until :' : 'Next billing :'}
+                      </span>
+                      <span style={{ color: '#c7bfe4' }}>
+                        {planId === 'free' ? 'No active subscription' : nextBillingDate}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span style={{ color: '#c7bfe4' }}>Auto-renew :</span>
+                      <span style={{ color: subscription?.auto_renew ? '#30ff8d' : '#c7bfe4' }}>
+                        {planId === 'free' ? 'Closure' : subscription?.auto_renew ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    <Button
+                      onClick={() => setShowUpgrade(true)}
+                      className="h-10 px-5 text-sm font-medium !text-white rounded-lg hover:opacity-90"
+                      style={{ background: 'linear-gradient(90deg, #5b7fff 0%, #7b4fff 100%)' }}
+                    >
+                      <Image src="/icons/plans/upgrade-plan-icon.png" width={16} height={16} alt="" className="mr-1.5" />
+                      Upgrade Plan
+                    </Button>
+                    {subscription?.plan_id !== 'free' && subscription?.status === 'active' && subscription.auto_renew && (
+                      <Button
+                        onClick={() => setShowCancelDialog(true)}
+                        disabled={cancelling}
+                        variant="ghost"
+                        className="h-10 px-5 text-sm font-medium rounded-lg !border !border-white/10"
+                        style={{ background: '#1c1042', color: '#c7bfe4' }}
+                      >
+                        {cancelling ? 'Cancelling...' : (
+                          <><Image src="/icons/plans/cancel-icon.png" width={16} height={16} alt="" className="mr-1.5 inline-block" />Cancel Subscription</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           {/* Credits Balance Card */}
           <div className="rounded-2xl p-6" style={{ background: '#1a1539', minHeight: 236 }}>
             <p className="text-sm font-medium" style={{ color: '#eaeaea' }}>Credits Balance</p>
-            <div className="flex items-baseline gap-2 mt-2 mb-5">
-              <span className="text-3xl font-bold text-white">{creditsRemaining.toLocaleString()}</span>
-              <span className="text-sm" style={{ color: '#c7bfe4' }}>Credits Available</span>
-            </div>
-
-            <div className="space-y-2.5 text-sm">
-              {hasPaidCredits ? (
-                <>
-                  <div className="flex items-center justify-between gap-4">
-                    <span style={{ color: '#c7bfe4' }}>Monthly Credits Available:</span>
-                    <span className="font-medium text-white">{monthlyAvailable.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span style={{ color: '#c7bfe4' }}>Monthly Credits Used:</span>
-                    <span className="font-medium text-white">{monthlyUsed.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span style={{ color: '#c7bfe4' }}>Last Reset on:</span>
-                    <span style={{ color: '#c7bfe4' }}>{lastResetDate}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span style={{ color: '#c7bfe4' }}>Next Reset on:</span>
-                    <span style={{ color: '#c7bfe4' }}>{nextResetDate}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span style={{ color: '#c7bfe4' }}>Other Credits Available:</span>
-                    <span className="font-medium text-white">{otherCredits.toLocaleString()}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-between gap-4">
-                  <span style={{ color: '#c7bfe4' }}>Other Credits Available:</span>
-                  <span className="font-medium text-white">{creditsRemaining.toLocaleString()}</span>
+            {isLoading ? (
+              <div aria-hidden="true">
+                <div className="flex items-baseline gap-2 mt-2 mb-5 h-10">
+                  <PlanSkeletonLine className="h-10 w-32" />
+                  <PlanSkeletonLine className="h-5 w-36" />
                 </div>
-              )}
-            </div>
+
+                <div className="space-y-3 text-sm">
+                  {[220, 190, 170, 160, 210].map((width, index) => (
+                    <div key={index} className="flex items-center justify-between gap-4 h-5">
+                      <PlanSkeletonLine className="h-5 max-w-[65%]" style={{ width }} />
+                      <PlanSkeletonLine className="h-5 w-16" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-baseline gap-2 mt-2 mb-5">
+                  <span className="text-3xl font-bold text-white">{creditsRemaining.toLocaleString()}</span>
+                  <span className="text-sm" style={{ color: '#c7bfe4' }}>Credits Available</span>
+                </div>
+
+                <div className="space-y-2.5 text-sm">
+                  {hasPaidCredits ? (
+                    <>
+                      <div className="flex items-center justify-between gap-4">
+                        <span style={{ color: '#c7bfe4' }}>Monthly Credits Available:</span>
+                        <span className="font-medium text-white">{monthlyAvailable.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span style={{ color: '#c7bfe4' }}>Monthly Credits Used:</span>
+                        <span className="font-medium text-white">{monthlyUsed.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span style={{ color: '#c7bfe4' }}>Last Reset on:</span>
+                        <span style={{ color: '#c7bfe4' }}>{lastResetDate}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span style={{ color: '#c7bfe4' }}>Next Reset on:</span>
+                        <span style={{ color: '#c7bfe4' }}>{nextResetDate}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span style={{ color: '#c7bfe4' }}>Other Credits Available:</span>
+                        <span className="font-medium text-white">{otherCredits.toLocaleString()}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between gap-4">
+                      <span style={{ color: '#c7bfe4' }}>Other Credits Available:</span>
+                      <span className="font-medium text-white">{creditsRemaining.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
