@@ -13,6 +13,25 @@ import { getCategoryDisplayName } from '@/lib/discover/categorize'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
+async function readApiResponse(response: Response) {
+  const text = await response.text()
+  let data: { success?: boolean; error?: string; message?: string; assetCleanupErrors?: string[] } | null = null
+
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = { error: text }
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || `${response.status} ${response.statusText}`)
+  }
+
+  return data || {}
+}
+
 export default function DiscoverListClient() {
   const [category, setCategory] = useState<string>('all')
   const [status, setStatus] = useState<string>('all')
@@ -42,10 +61,10 @@ export default function DiscoverListClient() {
 
     try {
       const res = await fetch(`/api/admin/discover/${id}`, { method: 'DELETE' })
-      const result = await res.json()
+      const result = await readApiResponse(res)
 
       if (result.success) {
-        alert('删除成功')
+        alert(result.assetCleanupErrors?.length ? result.message || '记录已删除，但部分素材清理失败' : '删除成功')
         mutate()
       } else {
         alert(`删除失败: ${result.error}`)

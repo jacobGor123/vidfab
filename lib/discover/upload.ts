@@ -3,7 +3,7 @@
  * 基于用户提供的 S3 上传代码示例
  */
 
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import crypto from 'crypto'
 
 // S3 客户端配置
@@ -14,11 +14,74 @@ const s3Client = new S3Client({
 })
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'static.vidfab.ai'
+const DISCOVER_UPLOAD_PREFIXES = ['discover-new/videos/', 'discover-new/images/']
 
 interface UploadResult {
   success: boolean
   url?: string
   error?: string
+}
+
+/**
+ * 从 Discover CDN/S3 URL 中解析可删除的 S3 object key。
+ * 只允许删除 Discover 上传前缀下的对象，避免误删 bucket 里的其他文件。
+ */
+export function getDiscoverS3ObjectKey(fileUrl: string | null | undefined): string | null {
+  if (!fileUrl) return null
+
+  try {
+    const url = new URL(fileUrl)
+    let key = ''
+
+    if (url.hostname === BUCKET_NAME) {
+      key = url.pathname.replace(/^\/+/, '')
+    } else if (url.hostname === `${BUCKET_NAME}.s3.amazonaws.com` || url.hostname.startsWith(`${BUCKET_NAME}.s3.`)) {
+      key = url.pathname.replace(/^\/+/, '')
+    }
+
+    if (!key || !DISCOVER_UPLOAD_PREFIXES.some(prefix => key.startsWith(prefix))) {
+      return null
+    }
+
+    return decodeURIComponent(key)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 删除 Discover 上传到 S3 的视频/图片。外部 URL 会被跳过并视为成功。
+ */
+export async function deleteDiscoverAssetFromS3(fileUrl: string | null | undefined): Promise<UploadResult> {
+  const key = getDiscoverS3ObjectKey(fileUrl)
+
+  if (!key) {
+    return { success: true }
+  }
+
+  try {
+    await s3Client.send(new DeleteObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key
+    }))
+
+    return { success: true }
+  } catch (error) {
+    console.error('S3 素材删除失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '删除失败'
+    }
+  }
+}
+
+export async function deleteDiscoverAssetsFromS3(urls: Array<string | null | undefined>) {
+  const uniqueUrls = Array.from(new Set(urls.filter(Boolean))) as string[]
+  const results = await Promise.all(uniqueUrls.map(url => deleteDiscoverAssetFromS3(url)))
+
+  return results
+    .map((result, index) => result.success ? null : `${uniqueUrls[index]}: ${result.error}`)
+    .filter((error): error is string => Boolean(error))
 }
 
 /**

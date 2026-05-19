@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { categorizePrompt } from '@/lib/discover/categorize'
-import { uploadVideoToS3, uploadImageToS3 } from '@/lib/discover/upload'
+import { uploadVideoToS3, uploadImageToS3, deleteDiscoverAssetsFromS3 } from '@/lib/discover/upload'
 import { compressVideo } from '@/lib/discover/compress-video'
 import { compressImage } from '@/lib/discover/compress-image'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
@@ -221,10 +221,18 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
+    const assetCleanupErrors = await deleteDiscoverAssetsFromS3([
+      finalVideoUrl !== existing.video_url ? existing.video_url : null,
+      finalImageUrl !== existing.image_url ? existing.image_url : null
+    ])
+
     return NextResponse.json({
       success: true,
       data,
-      message: '更新成功'
+      message: assetCleanupErrors.length > 0
+        ? '更新成功，但旧 S3 素材清理失败'
+        : '更新成功',
+      assetCleanupErrors
     })
   } catch (error: any) {
     console.error('PUT /api/admin/discover/[id] 错误:', error)
@@ -245,6 +253,16 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     const { id } = params
 
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('discover_videos')
+      .select('video_url, image_url')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ success: false, error: '记录不存在' }, { status: 404 })
+    }
+
     const { error } = await supabaseAdmin.from('discover_videos').delete().eq('id', id)
 
     if (error) {
@@ -252,7 +270,18 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: '删除成功' })
+    const assetCleanupErrors = await deleteDiscoverAssetsFromS3([
+      existing.video_url,
+      existing.image_url
+    ])
+
+    return NextResponse.json({
+      success: true,
+      message: assetCleanupErrors.length > 0
+        ? '记录已删除，但部分 S3 素材清理失败'
+        : '删除成功',
+      assetCleanupErrors
+    })
   } catch (error: any) {
     console.error('DELETE /api/admin/discover/[id] 错误:', error)
     return NextResponse.json(

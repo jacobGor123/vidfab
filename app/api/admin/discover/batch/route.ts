@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
-import { downloadToBuffer, uploadImageToS3 } from '@/lib/discover/upload'
+import { downloadToBuffer, uploadImageToS3, deleteDiscoverAssetsFromS3 } from '@/lib/discover/upload'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
 import type { DiscoverBatchRequest } from '@/types/discover'
 
@@ -26,12 +26,32 @@ export async function POST(request: NextRequest) {
     }
 
     let result
+    let assetCleanupErrors: string[] = []
 
     switch (action) {
-      case 'delete':
+      case 'delete': {
         // 批量删除
+        const { data: records, error: fetchError } = await supabaseAdmin
+          .from('discover_videos')
+          .select('id, video_url, image_url')
+          .in('id', ids)
+
+        if (fetchError) {
+          return NextResponse.json(
+            { success: false, error: `获取待删除记录失败: ${fetchError.message}` },
+            { status: 500 }
+          )
+        }
+
         result = await supabaseAdmin.from('discover_videos').delete().in('id', ids)
+
+        if (!result.error) {
+          assetCleanupErrors = await deleteDiscoverAssetsFromS3(
+            (records || []).flatMap(record => [record.video_url, record.image_url])
+          )
+        }
         break
+      }
 
       case 'updateStatus':
         // 批量更新状态
@@ -69,8 +89,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `批量${action === 'delete' ? '删除' : '更新'}成功`,
-      affected: ids.length
+      message: assetCleanupErrors.length > 0
+        ? `批量${action === 'delete' ? '删除' : '更新'}成功，但部分 S3 素材清理失败`
+        : `批量${action === 'delete' ? '删除' : '更新'}成功`,
+      affected: ids.length,
+      assetCleanupErrors
     })
   } catch (error: any) {
     console.error('POST /api/admin/discover/batch 错误:', error)

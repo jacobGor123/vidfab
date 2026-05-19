@@ -10,6 +10,69 @@ import { useRouter } from 'next/navigation'
 import { DiscoverCategory, DiscoverContentTab, DiscoverMediaType, DiscoverStatus } from '@/types/discover'
 import { getAllCategories } from '@/lib/discover/categorize'
 
+type ApiResponse<T = Record<string, unknown>> = T & {
+  success?: boolean
+  error?: string
+  message?: string
+}
+
+type UploadKind = 'video' | 'image'
+
+async function readApiResponse<T = Record<string, unknown>>(response: Response): Promise<ApiResponse<T>> {
+  const text = await response.text()
+  let data: ApiResponse<T> | null = null
+
+  if (text) {
+    try {
+      data = JSON.parse(text) as ApiResponse<T>
+    } catch {
+      data = { error: text } as ApiResponse<T>
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || `${response.status} ${response.statusText}`)
+  }
+
+  return data || ({} as ApiResponse<T>)
+}
+
+async function uploadDiscoverAsset(file: File, kind: UploadKind) {
+  const contentType = file.type || (kind === 'video' ? 'video/mp4' : 'image/jpeg')
+
+  const signResponse = await fetch('/api/admin/discover/upload-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      kind,
+      fileName: file.name,
+      contentType
+    })
+  })
+
+  const signed = await readApiResponse<{
+    uploadUrl?: string
+    publicUrl?: string
+  }>(signResponse)
+
+  if (!signed.uploadUrl || !signed.publicUrl) {
+    throw new Error('上传链接创建失败')
+  }
+
+  const uploadResponse = await fetch(signed.uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
+    body: file
+  })
+
+  if (!uploadResponse.ok) {
+    const errorText = await uploadResponse.text().catch(() => '')
+    throw new Error(`${kind === 'video' ? '视频' : '图片'}上传失败: ${errorText || uploadResponse.statusText}`)
+  }
+
+  return signed.publicUrl
+}
+
 interface DiscoverFormProps {
   initialData?: any
   isEdit?: boolean
@@ -19,6 +82,7 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [progressMessage, setProgressMessage] = useState('')
 
   const [formData, setFormData] = useState({
     prompt: initialData?.prompt || '',
@@ -39,8 +103,24 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
     e.preventDefault()
     setLoading(true)
     setError('')
+    setProgressMessage('')
 
     try {
+      let uploadedVideoUrl = ''
+      let uploadedImageUrl = ''
+
+      if (videoFile) {
+        setProgressMessage('Uploading video...')
+        uploadedVideoUrl = await uploadDiscoverAsset(videoFile, 'video')
+      }
+
+      if (imageFile) {
+        setProgressMessage('Uploading thumbnail...')
+        uploadedImageUrl = await uploadDiscoverAsset(imageFile, 'image')
+      }
+
+      setProgressMessage(isEdit ? 'Updating...' : 'Creating...')
+
       const formDataToSend = new FormData()
       formDataToSend.append('prompt', formData.prompt)
       formDataToSend.append('status', formData.status)
@@ -54,15 +134,15 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
       }
 
       // 视频处理
-      if (videoFile) {
-        formDataToSend.append('videoFile', videoFile)
+      if (uploadedVideoUrl) {
+        formDataToSend.append('videoUrl', uploadedVideoUrl)
       } else if (formData.videoUrl) {
         formDataToSend.append('videoUrl', formData.videoUrl)
       }
 
       // 图片处理
-      if (imageFile) {
-        formDataToSend.append('imageFile', imageFile)
+      if (uploadedImageUrl) {
+        formDataToSend.append('imageUrl', uploadedImageUrl)
       } else if (formData.imageUrl) {
         formDataToSend.append('imageUrl', formData.imageUrl)
       }
@@ -75,10 +155,10 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
         body: formDataToSend
       })
 
-      const result = await res.json()
+      const result = await readApiResponse(res)
 
       if (result.success) {
-        alert(isEdit ? '更新成功' : '创建成功')
+        alert(typeof result.message === 'string' ? result.message : (isEdit ? '更新成功' : '创建成功'))
         router.push('/admin/discover')
       } else {
         setError(result.error || '操作失败')
@@ -87,6 +167,7 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
       setError(err.message || '操作失败')
     } finally {
       setLoading(false)
+      setProgressMessage('')
     }
   }
 
@@ -286,7 +367,7 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
           disabled={loading}
           className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Saving...' : (isEdit ? 'Update' : 'Create')}
+          {loading ? (progressMessage || 'Saving...') : (isEdit ? 'Update' : 'Create')}
         </button>
         <button
           type="button"

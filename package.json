@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.921.0",
+    "@aws-sdk/s3-request-presigner": "^3.921.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@google/genai": "^1.33.0",
