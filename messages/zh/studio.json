@@ -269,7 +269,7 @@
     "aiImage": "AI 图片",
     "myWorks": "我的作品",
     "account": "账户",
-    "starryTalezTagline": "会对话的 AI 角色",
+    "starryTalezTagline": "Personalized AI Bedtime Stories",
     "starryTalezNew": "新",
     "starryTalezAria": "了解 StarryTalez"
   },
@@ -313,7 +313,6 @@
     "storageRuleFreeRetention": "免费用户：视频和图片在创建 24 小时后自动删除。",
     "storageRulePro": "Pro 用户：订阅有效期内永久保留。",
     "storageRuleQuota": "所有用户共享 1GB 存储上限，存储满时优先删除最早的内容。",
-    "storageRuleSoftDelete": "已删除内容会保留 7 天回收期，之后永久移除。",
     "storageFullChip": "存储已满",
     "expiresIn": "{time} 后到期",
     "expiringSoon": "即将到期",

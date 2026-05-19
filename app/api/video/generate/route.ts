@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    body.prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
 
     // 验证请求参数
     const validationErrors = validateVideoRequest(body)

@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    body.prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
+
     // 确保这是图生图请求
     if (!body.images || body.images.length === 0) {
       return NextResponse.json(

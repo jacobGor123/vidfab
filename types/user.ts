@@ -10,7 +10,7 @@ export interface User {
   nickname: string;
   avatar_url?: string;
   signin_type: 'oauth' | 'credentials';
-  signin_provider: 'google' | 'verification-code' | 'google-one-tap';
+  signin_provider: string;
   signin_openid?: string;
   created_at: string;
   updated_at?: string;
@@ -19,9 +19,14 @@ export interface User {
   last_login?: string;
   is_active: boolean;
   // AI Video Platform specific fields
-  subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due';
-  subscription_plan?: 'free' | 'pro' | 'premium';
+  subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'expired';
+  subscription_plan?: 'free' | 'lite' | 'pro' | 'premium';
   credits_remaining?: number;
+  credits_monthly_total?: number;
+  credits_monthly_balance?: number;
+  credits_other_balance?: number;
+  credits_last_reset_date?: string | null;
+  credits_next_reset_at?: string | null;
   total_videos_processed?: number;
 }
 
@@ -58,6 +63,10 @@ export interface UpdateUserData {
   subscription_period_end?: string | null;
   credits_remaining?: number;
   credits_monthly_total?: number;
+  credits_monthly_balance?: number;
+  credits_other_balance?: number;
+  credits_last_reset_date?: string | null;
+  credits_next_reset_at?: string | null;
   total_videos_processed?: number;
 }
 

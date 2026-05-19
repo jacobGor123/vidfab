@@ -51,7 +51,7 @@ export default function PlansPage() {
     if (!session?.user) return
     try {
       setOrdersLoading(true)
-      const res = await fetch('/api/subscription/orders?limit=20')
+      const res = await fetch('/api/subscription/orders?limit=20&status=completed')
       const data = await res.json()
       if (data.success) setOrders(data.orders || [])
     } finally {
@@ -84,9 +84,6 @@ export default function PlansPage() {
   }
 
   const currentPlanConfig = subscription ? SUBSCRIPTION_PLANS[subscription.plan_id] : SUBSCRIPTION_PLANS.free
-  const planCredits = currentPlanConfig?.credits ?? 0
-  const creditsPercent = planCredits > 0 ? Math.min((creditsRemaining / planCredits) * 100, 100) : 0
-  const creditsPercentDisplay = planCredits > 0 ? ((creditsRemaining / planCredits) * 100).toFixed(1) : '0'
   const nextBillingDate = subscription?.period_end
     ? format(new Date(subscription.period_end), 'MMM dd, yyyy')
     : '—'
@@ -96,6 +93,18 @@ export default function PlansPage() {
 
   const planId = subscription?.plan_id || 'free'
   const isCancellationScheduled = planId !== 'free' && subscription?.status === 'cancelled' && subscription.auto_renew === false
+  const hasPaidCredits = planId !== 'free' && (subscription?.status === 'active' || subscription?.status === 'cancelled')
+  const monthlyTotal = subscription?.credits_monthly_total ?? 0
+  const monthlyAvailable = subscription?.credits_monthly_balance ?? 0
+  const monthlyUsed = Math.max(0, monthlyTotal - monthlyAvailable)
+  const otherCredits = subscription?.credits_other_balance ?? Math.max(0, creditsRemaining - monthlyAvailable)
+  const lastResetDate = hasPaidCredits && subscription?.credits_last_reset_date
+    ? formatDate(subscription.credits_last_reset_date)
+    : '/'
+  const nextResetDate = hasPaidCredits && !isCancellationScheduled && subscription?.credits_next_reset_at
+    ? formatDate(subscription.credits_next_reset_at)
+    : '/'
+  const successfulOrders = orders.filter(order => order.status === 'completed')
   const cardBgImage = planId === 'premium'
     ? '/images/plans-card-bg-premium.png'
     : planId === 'pro'
@@ -207,25 +216,41 @@ export default function PlansPage() {
           {/* Credits Balance Card */}
           <div className="rounded-2xl p-6" style={{ background: '#1a1539', minHeight: 236 }}>
             <p className="text-sm font-medium" style={{ color: '#eaeaea' }}>Credits Balance</p>
-            <div className="flex items-baseline gap-2 mt-2 mb-3">
+            <div className="flex items-baseline gap-2 mt-2 mb-5">
               <span className="text-3xl font-bold text-white">{creditsRemaining.toLocaleString()}</span>
               <span className="text-sm" style={{ color: '#c7bfe4' }}>Credits Available</span>
             </div>
 
-            <div className="w-full h-2 rounded-full mb-1" style={{ background: '#3c3966' }}>
-              <div
-                className="h-2 rounded-full transition-all duration-500"
-                style={{ width: `${creditsPercent}%`, background: '#5c64ff' }}
-              />
-            </div>
-            <div className="flex justify-between text-xs mb-5" style={{ color: '#c7bfe4' }}>
-              <span>{creditsPercentDisplay}% remaining</span>
-              <span>{planCredits.toLocaleString()} credits/month</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm">
-              <span style={{ color: '#c7bfe4' }}>Resets on :</span>
-              <span style={{ color: '#c7bfe4' }}>{nextBillingDate}</span>
+            <div className="space-y-2.5 text-sm">
+              {hasPaidCredits ? (
+                <>
+                  <div className="flex items-center justify-between gap-4">
+                    <span style={{ color: '#c7bfe4' }}>Monthly Credits Available:</span>
+                    <span className="font-medium text-white">{monthlyAvailable.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span style={{ color: '#c7bfe4' }}>Monthly Credits Used:</span>
+                    <span className="font-medium text-white">{monthlyUsed.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span style={{ color: '#c7bfe4' }}>Last Reset on:</span>
+                    <span style={{ color: '#c7bfe4' }}>{lastResetDate}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span style={{ color: '#c7bfe4' }}>Next Reset on:</span>
+                    <span style={{ color: '#c7bfe4' }}>{nextResetDate}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span style={{ color: '#c7bfe4' }}>Other Credits Available:</span>
+                    <span className="font-medium text-white">{otherCredits.toLocaleString()}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-between gap-4">
+                  <span style={{ color: '#c7bfe4' }}>Other Credits Available:</span>
+                  <span className="font-medium text-white">{creditsRemaining.toLocaleString()}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -239,45 +264,22 @@ export default function PlansPage() {
         <div className="rounded-lg overflow-hidden" style={{ background: '#0b081f', border: '1px solid #625f75' }}>
           {ordersLoading ? (
             <div className="py-14 text-center text-sm" style={{ color: '#c7bfe4' }}>Loading orders...</div>
-          ) : orders.length === 0 ? (
+          ) : successfulOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Image src="/images/plans-empty-orders.png" width={200} height={160} alt="" className="mb-4" />
               <p className="text-sm" style={{ color: '#c7bfe4' }}>You don&apos;t have a bill yet.</p>
             </div>
           ) : (
-            orders.map((order, i) => (
+            successfulOrders.map((order, i) => (
               <div key={order.id}>
                 {i > 0 && <div className="h-px mx-6" style={{ background: '#625f75' }} />}
                 <div className="px-4 py-4 md:px-6 md:py-5">
-                  {/* Row 1: plan name + badge (left) / price (right) */}
+                  {/* Row 1: plan name (left) / price (right) */}
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex flex-wrap items-center gap-2 md:gap-3">
                       <span className="text-base md:text-xl font-semibold text-white">
                         {SUBSCRIPTION_PLANS[order.plan_id]?.name ?? order.plan_id} Plan
                       </span>
-                      {order.status === 'completed' ? (
-                        <span
-                          className="inline-flex items-center px-3 py-0.5 rounded-full text-xs"
-                          style={{
-                            background: 'rgba(26,176,94,0.26)',
-                            border: '1px solid #30ff8e',
-                            color: '#2fff8d',
-                          }}
-                        >
-                          Active
-                        </span>
-                      ) : order.status === 'cancelled' ? (
-                        <span
-                          className="inline-flex items-center px-3 py-0.5 rounded-full text-xs"
-                          style={{
-                            background: 'rgba(255,255,255,0.10)',
-                            border: '1px solid rgba(255,255,255,0.35)',
-                            color: 'rgba(255,255,255,0.45)',
-                          }}
-                        >
-                          Cancelled
-                        </span>
-                      ) : null}
                     </div>
                     <span className="text-base md:text-xl font-semibold text-white flex-shrink-0">{formatPrice(order.amount_cents)}</span>
                   </div>

@@ -8,6 +8,7 @@ import { getUserByUuid, updateUser } from '@/services/user';
 import { getIsoTimestr } from '@/lib/time';
 import { supabaseAdmin } from '@/lib/supabase';
 import stripe from './stripe-config';
+import { resetSubscriptionMonthlyCredits } from './credit-buckets';
 
 // 简化的套餐积分配置（参考iMideo）
 const PLAN_CREDITS: Record<string, number> = {
@@ -188,14 +189,14 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
       throw new Error(`Unknown plan: ${orderPlanId}`);
     }
 
-    const creditsToAdd = order.credits_included || (orderBillingCycle === 'annual' ? baseCredits * 12 : baseCredits);
-
-    const { data: newBalance, error: creditsError } = await supabaseAdmin.rpc('update_user_credits_balance', {
-      p_user_uuid: userUuid,
-      p_credits_change: creditsToAdd,
-      p_transaction_type: 'earned',
-      p_description: `Credits granted for ${orderPlanId} ${orderBillingCycle} subscription`,
-      p_metadata: {
+    const creditsToGrant = baseCredits;
+    const creditSnapshot = await resetSubscriptionMonthlyCredits({
+      userUuid,
+      planId: orderPlanId,
+      periodStart,
+      periodEnd,
+      description: `Monthly credits reset for ${orderPlanId} ${orderBillingCycle} subscription`,
+      metadata: {
         checkout_session_id: session.id,
         subscription_id: subscriptionId,
         order_id: order.id,
@@ -204,17 +205,11 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
       },
     });
 
-    if (creditsError) {
-      console.error('[CHECKOUT] Failed to grant subscription credits:', creditsError);
-      throw creditsError;
-    }
-
     await updateUser(userUuid, {
       subscription_plan: orderPlanId,
       subscription_status: 'active',
       subscription_stripe_id: subscriptionId,
       subscription_period_end: periodEnd,
-      credits_monthly_total: typeof newBalance === 'number' ? newBalance : undefined,
     });
 
     await supabaseAdmin
@@ -234,8 +229,8 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
         to_plan: orderPlanId,
         change_type: 'new_subscription',
         credits_before: user.credits_remaining || 0,
-        credits_after: typeof newBalance === 'number' ? newBalance : (user.credits_remaining || 0) + creditsToAdd,
-        credits_adjustment: creditsToAdd,
+        credits_after: creditSnapshot.total,
+        credits_adjustment: creditsToGrant,
         order_id: order.id,
         reason: `New ${orderPlanId} ${orderBillingCycle} subscription`,
         metadata: {
@@ -245,7 +240,7 @@ export async function handleCheckoutSession(session: Stripe.Checkout.Session): P
         },
       });
 
-    console.log(`✅ [CHECKOUT] User updated: ${userUuid}, +${creditsToAdd} credits, new balance: ${newBalance}`);
+    console.log(`✅ [CHECKOUT] User updated: ${userUuid}, monthly credits reset to ${creditsToGrant}, new balance: ${creditSnapshot.total}`);
 
     return;
 

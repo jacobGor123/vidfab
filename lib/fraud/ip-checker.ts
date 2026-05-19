@@ -5,8 +5,7 @@
 import { headers } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase'
 
-const IP_WINDOW_DAYS = 7
-const IP_GRANT_LIMIT = 2 // 同一 IP N 天内最多发放 N 次积分
+const IP_GRANT_LIMIT = 1 // 同一 IP 仅发放一次新用户初始积分
 
 /**
  * 读取客户端真实 IP，优先使用 Cloudflare 设置的 cf-connecting-ip
@@ -44,15 +43,11 @@ export async function getAntifraudIp(): Promise<string> {
 export async function checkIpCreditLimit(ip: string): Promise<boolean> {
   if (!ip || ip === 'unknown') return false // 未知 IP 时放行
 
-  const windowStart = new Date()
-  windowStart.setDate(windowStart.getDate() - IP_WINDOW_DAYS)
-
-  const { count, error } = await supabaseAdmin
+  const { count, error } = await (supabaseAdmin as any)
     .from('new_user_ip_grants')
     .select('*', { count: 'exact', head: true })
     .eq('ip_address', ip)
     .eq('granted', true)
-    .gte('granted_at', windowStart.toISOString())
 
   if (error) {
     console.error('[fraud/ip] 查询 new_user_ip_grants 失败:', error)
@@ -71,7 +66,7 @@ export async function recordIpGrant(
   userEmail: string,
   granted: boolean
 ): Promise<void> {
-  const { error } = await supabaseAdmin
+  const { error } = await (supabaseAdmin as any)
     .from('new_user_ip_grants')
     .insert({
       ip_address: ip,

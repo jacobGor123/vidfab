@@ -47,11 +47,13 @@ export function CreditsBalanceCard({
     )
   }
 
-  const monthlyTotal = subscription?.credits_monthly_total
+  const hasPaidCredits = subscription?.plan_id !== 'free' && (subscription?.status === 'active' || subscription?.status === 'cancelled')
+  const monthlyTotal = subscription?.credits_monthly_total ?? 0
+  const monthlyBalance = subscription?.credits_monthly_balance ?? 0
   const hasMonthlyData =
-    typeof monthlyTotal === 'number' && monthlyTotal > 0
+    hasPaidCredits && monthlyTotal > 0
   const creditsUsed = hasMonthlyData
-    ? Math.max(0, monthlyTotal - creditsRemaining)
+    ? Math.max(0, monthlyTotal - monthlyBalance)
     : null
 
   return (

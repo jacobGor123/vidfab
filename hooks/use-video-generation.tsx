@@ -78,7 +78,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         optionsRef.current.delete(job.id)
       } else if (job.status === 'generating') {
         const options = optionsRef.current.get(job.id)
-        options?.onProgress?.(job.id, job.progress)
+        options?.onProgress?.(job.id, job.progress ?? 0)
       }
     })
   }, [videoContext.activeJobs])
@@ -102,12 +102,14 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     setState(prev => ({ ...prev, isGenerating: true }))
 
     let job: VideoJob | undefined
+    const safePrompt = prompt.trim()
+
     try {
       // 创建新任务
       job = videoContext.addJob({
         requestId: '', // 将在API调用后设置
         userId: session.user.uuid,
-        prompt,
+        prompt: safePrompt,
         generationType: 'text-to-video',  // 🔥 明确设置顶层 generationType
         settings: {
           generationType: 'text-to-video',
@@ -133,7 +135,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         },
         credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
-          prompt,
+          prompt: safePrompt,
           model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
@@ -219,13 +221,16 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     setState(prev => ({ ...prev, isGenerating: true }))
 
     let job: VideoJob | undefined
+    const fallbackPrompt = 'Convert image to video'
+    const safePrompt = (prompt || fallbackPrompt).trim() || fallbackPrompt
+
     try {
       console.log('[DEBUG] Creating job via videoContext.addJob')
 
       job = videoContext.addJob({
         requestId: '',
         userId: session.user.uuid,
-        prompt: prompt || 'Convert image to video',
+        prompt: safePrompt,
         sourceImage: imageUrl,  // 🔥 添加 sourceImage 以触发正确的 generationType 推断
         generationType: 'image-to-video',  // 🔥 明确设置顶层 generationType
         settings: {
@@ -256,7 +261,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           image: imageUrl,
-          prompt: prompt || 'Convert image to video',
+          prompt: safePrompt,
           model: settings.model || 'vidfab-q1',
           duration: settings.duration || 5,
           resolution: settings.resolution || '720p',
@@ -371,6 +376,10 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
         prompt: `${effectNameFinal || effectIdFinal} Effect`,
         settings: {
           generationType: 'video-effects',
+          model: 'video-effects',
+          duration: '5s',
+          resolution: '720p',
+          aspectRatio: '16:9',
           image: imageUrl,
           effectId: effectIdFinal,
           effectName: effectNameFinal || 'Unknown Effect'
@@ -521,13 +530,12 @@ export function useVideoPolling() {
   const generation = useVideoGeneration()
 
   return {
+    ...generation,
     isPolling: generation.isGenerating,
     activeJobsCount: generation.activeJobs,
     error: generation.error,
 
     startPolling: () => {},
-    stopPolling: generation.cancelGeneration,
-
-    ...generation
+    stopPolling: generation.cancelGeneration
   }
 }

@@ -175,7 +175,7 @@ export async function submitVideoEffectsGeneration(
     generationType: 'video-effects',
     model: 'video-effects', // 固定模型
     resolution: '720p', // Pixverse V5 Effects 默认分辨率
-    duration: '5s', // 视频特效固定5秒
+    duration: 5, // 视频特效固定5秒
     aspectRatio: '16:9' // 默认宽高比
   }
 
@@ -191,6 +191,7 @@ async function submitGeneralVideoGeneration(
 ): Promise<VideoGenerationResponse> {
   // 检测生成类型
   const generationType = getGenerationType(request)
+  const safePrompt = (request.prompt || "").trim()
 
   // Map UI settings to API format
   const modelKey = getModelKey(request.model, request.resolution, generationType)
@@ -213,7 +214,7 @@ async function submitGeneralVideoGeneration(
     if (generationType === "image-to-video") {
       // i2v：带 image，不传 aspect_ratio（由图片决定）
       apiRequest = {
-        prompt: request.prompt,
+        prompt: safePrompt,
         image: request.image,
         duration: kling3Duration,
         cfg_scale: 0.5,
@@ -223,7 +224,7 @@ async function submitGeneralVideoGeneration(
     } else {
       // t2v：带 aspect_ratio，无 image
       apiRequest = {
-        prompt: request.prompt,
+        prompt: safePrompt,
         aspect_ratio: request.aspectRatio || "16:9",
         duration: kling3Duration,
         cfg_scale: 0.5,
@@ -237,14 +238,14 @@ async function submitGeneralVideoGeneration(
     // Sora 2 API 参数格式
     if (generationType === "image-to-video") {
       apiRequest = {
-        prompt: request.prompt,
+        prompt: safePrompt,
         duration: DURATION_MAP[`${request.duration}s`] || request.duration,
         image: request.image,
       }
       endpoint = "/openai/sora-2/image-to-video"
     } else {
       apiRequest = {
-        prompt: request.prompt,
+        prompt: safePrompt,
         duration: DURATION_MAP[`${request.duration}s`] || request.duration,
         size: request.size || "1280*720",
       }
@@ -269,7 +270,7 @@ async function submitGeneralVideoGeneration(
   } else if (isVeo3Model) {
     // veo3 API 参数格式
     apiRequest = {
-      prompt: request.prompt,
+      prompt: safePrompt,
       aspect_ratio: request.aspectRatio,
       duration: DURATION_MAP[`${request.duration}s`] || request.duration,
       resolution: request.resolution,
@@ -290,7 +291,7 @@ async function submitGeneralVideoGeneration(
   } else {
     // 原有 bytedance API 参数格式
     apiRequest = {
-      prompt: request.prompt,
+      prompt: safePrompt,
       duration: DURATION_MAP[`${request.duration}s`] || request.duration,
       camera_fixed: request.cameraFixed ?? false,
       seed: request.seed ?? -1,
@@ -364,10 +365,6 @@ export function validateVideoRequest(request: VideoGenerationRequest): string[] 
   // 通用验证
   if (!request.prompt?.trim()) {
     errors.push("Prompt is required")
-  }
-
-  if (request.prompt && request.prompt.length > 1000) {
-    errors.push("Prompt must be 1000 characters or less")
   }
 
   if (!request.model) {

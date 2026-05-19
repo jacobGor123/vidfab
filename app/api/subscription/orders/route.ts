@@ -88,11 +88,17 @@ export async function GET(req: NextRequest) {
         console.log(`🔄 Found different UUID for email ${session.user.email}: ${userByEmail.uuid}`)
 
         // 尝试用邮箱对应的UUID查询订单
-        const { data: ordersForEmailUuid, count: emailCount } = await supabaseAdmin
+        let emailQuery = supabaseAdmin
           .from('subscription_orders')
           .select('*', { count: 'exact' })
           .eq('user_uuid', userByEmail.uuid)
           .order('created_at', { ascending: false })
+
+        if (status && status !== 'all') {
+          emailQuery = emailQuery.eq('status', status)
+        }
+
+        const { data: ordersForEmailUuid, count: emailCount } = await emailQuery
           .range(offset, offset + limit - 1)
 
         if (ordersForEmailUuid && ordersForEmailUuid.length > 0) {

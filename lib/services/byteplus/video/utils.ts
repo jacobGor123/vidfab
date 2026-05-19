@@ -21,11 +21,12 @@ export function convertToBytePlusRequest(
   options?: { callbackUrl?: string; returnLastFrame?: boolean; generateAudio?: boolean }
 ): BytePlusVideoRequest {
   const content: BytePlusContent[] = []
+  const safePrompt = (request.prompt || "").trim()
 
   // 纯文本 prompt，不附加 --command 参数
   content.push({
     type: 'text',
-    text: request.prompt,
+    text: safePrompt,
   })
 
   if (request.image) {

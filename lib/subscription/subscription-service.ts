@@ -28,6 +28,7 @@ import type {
   SubscriptionStatusResponse,
 } from './types';
 import { getEffectiveEntitlements, normalizePlanId as normalizeEntitlementPlanId } from './entitlements';
+import { ensureMonthlyCreditsCurrent, resetSubscriptionMonthlyCredits } from './credit-buckets';
 
 export class SubscriptionService {
   private creditsManager: CreditsManager;
@@ -133,7 +134,7 @@ export class SubscriptionService {
           plan_id,
           billing_cycle,
           amount_cents: amount,
-          credits_included: billing_cycle === 'annual' ? planConfig.credits * 12 : planConfig.credits,
+          credits_included: planConfig.credits,
           status: 'pending',
           stripe_customer_id: stripeCustomer.id,
           metadata: {
@@ -240,7 +241,7 @@ export class SubscriptionService {
   ): Promise<void> {
     try {
       const planConfig = getPlanConfig(planId);
-      const creditsToGrant = billingCycle === 'annual' ? planConfig.credits * 12 : planConfig.credits;
+      const creditsToGrant = planConfig.credits;
 
       // ✅ 修复1: 先获取用户当前积分和状态（参考iMideo设计）
       const { data: currentUser, error: userError } = await supabaseAdmin
@@ -257,13 +258,9 @@ export class SubscriptionService {
       const currentCredits = currentUser.credits_remaining || 0;
       const currentPlan = currentUser.subscription_plan || 'free';
 
-      // ✅ 修复2: 累加积分而不是覆盖（关键修复）
-      const newCreditsBalance = currentCredits + creditsToGrant;
-
       console.log(`💰 Credits calculation for user ${userUuid}:`, {
         currentCredits,
         creditsToGrant,
-        newCreditsBalance,
         planId,
         billingCycle
       });
@@ -320,33 +317,20 @@ export class SubscriptionService {
         .eq('stripe_customer_id', stripeCustomerId)
         .eq('status', 'pending');
 
-      // ✅ 修复4: 使用准确的积分变更记录（参考iMideo的increaseCredits）
-      const { data: balanceAfterGrant, error: creditsError } = await supabaseAdmin.rpc('update_user_credits_balance', {
-        p_user_uuid: userUuid,
-        p_credits_change: creditsToGrant,
-        p_transaction_type: 'earned',
-        p_description: `Credits granted for ${planId} ${billingCycle} subscription`,
-        p_metadata: {
+      const creditSnapshot = await resetSubscriptionMonthlyCredits({
+        userUuid,
+        planId,
+        periodStart: new Date(subscription.current_period_start * 1000).toISOString(),
+        periodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        description: `Monthly credits reset for ${planId} ${billingCycle} subscription`,
+        metadata: {
           subscription_id: stripeSubscriptionId,
           plan_id: planId,
           billing_cycle: billingCycle,
           credits_granted: creditsToGrant,
           previous_credits: currentCredits,
-          new_total_credits: newCreditsBalance,
         },
       });
-
-      if (creditsError) {
-        throw creditsError;
-      }
-
-      await supabaseAdmin
-        .from(TABLES.USERS)
-        .update({
-          credits_monthly_total: typeof balanceAfterGrant === 'number' ? balanceAfterGrant : newCreditsBalance,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('uuid', userUuid);
 
       // ✅ 修复5: 记录准确的积分变更（使用实际的before/after值）
       await supabaseAdmin
@@ -357,7 +341,7 @@ export class SubscriptionService {
           to_plan: planId,
           change_type: 'new_subscription',
           credits_before: currentCredits, // ✅ 使用实际的原有积分
-          credits_after: newCreditsBalance, // ✅ 使用累加后的积分
+          credits_after: creditSnapshot.total,
           credits_adjustment: creditsToGrant,
           reason: `New ${planId} ${billingCycle} subscription`,
           metadata: {
@@ -370,7 +354,7 @@ export class SubscriptionService {
       console.log(`✅ Subscription created successfully for user ${userUuid}:`, {
         plan: planId,
         billingCycle,
-        creditsChange: `${currentCredits} → ${newCreditsBalance} (+${creditsToGrant})`,
+        creditsChange: `${currentCredits} → ${creditSnapshot.total} (monthly reset ${creditsToGrant})`,
         subscriptionId: stripeSubscriptionId
       });
 
@@ -399,14 +383,20 @@ export class SubscriptionService {
       }
 
       const currentCredits = user.credits_remaining || 0;
+      const retainedCredits = user.credits_other_balance ?? Math.max(0, currentCredits - (user.credits_monthly_balance || 0));
 
-      // ✅ 修复：只更新订阅状态，保留用户已购买的积分
+      // 订阅结束后月度积分过期，只保留其他积分（如新用户赠送/额外发放）。
       await supabaseAdmin
         .from(TABLES.USERS)
         .update({
           subscription_plan: 'free',
           subscription_status: 'cancelled',
           subscription_stripe_id: null,
+          credits_monthly_total: 0,
+          credits_monthly_balance: 0,
+          credits_other_balance: retainedCredits,
+          credits_next_reset_at: null,
+          credits_remaining: retainedCredits,
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', user.uuid);
@@ -420,16 +410,17 @@ export class SubscriptionService {
           to_plan: 'free',
           change_type: 'cancellation',
           credits_before: currentCredits,
-          credits_after: currentCredits, // ✅ 积分保持不变
-          credits_adjustment: 0, // ✅ 没有积分调整
-          reason: 'Subscription canceled - credits retained',
+          credits_after: retainedCredits,
+          credits_adjustment: retainedCredits - currentCredits,
+          reason: 'Subscription canceled - monthly credits expired, other credits retained',
           metadata: {
             canceled_subscription_id: stripeSubscriptionId,
-            credits_retained: currentCredits,
+            monthly_credits_expired: Math.max(0, currentCredits - retainedCredits),
+            credits_retained: retainedCredits,
           },
         });
 
-      console.log(`✅ Subscription canceled for user ${user.uuid} - Credits retained: ${currentCredits}`);
+      console.log(`✅ Subscription canceled for user ${user.uuid} - Credits retained: ${retainedCredits}`);
 
     } catch (error: any) {
       console.error('Error handling subscription cancellation:', error);
@@ -467,29 +458,31 @@ export class SubscriptionService {
       }
 
       const oldPlan = user.subscription_plan as PlanId;
-      const creditsToGrant = billingCycle === 'annual' ? planConfig.credits * 12 : planConfig.credits;
-
-      // 累加积分（按用户要求）
-      const newCreditsBalance = (user.credits_remaining || 0) + creditsToGrant;
+      const creditsToGrant = planConfig.credits;
+      const subscription = await getSubscriptionDetails(stripeSubscriptionId);
 
       // 更新用户订阅
       await supabaseAdmin
         .from(TABLES.USERS)
         .update({
           subscription_plan: planId,
-          credits_remaining: newCreditsBalance,
-          credits_monthly_total: newCreditsBalance, // ✅ 更新本月总积分
+          subscription_status: subscription.status === 'active'
+            ? 'active'
+            : subscription.status === 'past_due'
+              ? 'past_due'
+              : 'inactive',
+          subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq('uuid', user.uuid);
 
-      // 记录积分发放
-      await supabaseAdmin.rpc('update_user_credits_balance', {
-        p_user_uuid: user.uuid,
-        p_credits_change: creditsToGrant,
-        p_transaction_type: 'earned',
-        p_description: `Credits granted for subscription upgrade to ${planId}`,
-        p_metadata: {
+      const creditSnapshot = await resetSubscriptionMonthlyCredits({
+        userUuid: user.uuid,
+        planId,
+        periodStart: new Date(subscription.current_period_start * 1000).toISOString(),
+        periodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        description: `Monthly credits reset for subscription update to ${planId}`,
+        metadata: {
           subscription_id: stripeSubscriptionId,
           old_plan: oldPlan,
           new_plan: planId,
@@ -506,7 +499,7 @@ export class SubscriptionService {
           to_plan: planId,
           change_type: oldPlan === 'free' ? 'new_subscription' : (planId > oldPlan ? 'upgrade' : 'downgrade'),
           credits_before: user.credits_remaining,
-          credits_after: newCreditsBalance,
+          credits_after: creditSnapshot.total,
           credits_adjustment: creditsToGrant,
           reason: `Subscription updated from ${oldPlan} to ${planId}`,
           metadata: {
@@ -531,7 +524,7 @@ export class SubscriptionService {
       // ✅ 简化1: 直接获取用户完整信息（参考iMideo设计）
       const { data: user, error } = await supabaseAdmin
         .from(TABLES.USERS)
-        .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_total, subscription_period_end')
+        .select('uuid, email, created_at, updated_at, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_total, credits_monthly_balance, credits_other_balance, credits_last_reset_date, credits_next_reset_at, subscription_period_end')
         .eq('uuid', userUuid)
         .single();
 
@@ -579,9 +572,10 @@ export class SubscriptionService {
 
       // ✅ 简化2: 使用iMideo风格的状态判断
       const normalizedPlan = normalizeEntitlementPlanId(effectiveUser.subscription_plan || 'free');
-      const creditsRemaining = effectiveUser.credits_remaining || 0;
       const entitlements = getEffectiveEntitlements(effectiveUser);
       const displayPlan = entitlements.hasPaidAccess ? normalizedPlan : 'free';
+      const creditSnapshot = await ensureMonthlyCreditsCurrent(userUuid);
+      const creditsRemaining = creditSnapshot?.total ?? (effectiveUser.credits_remaining || 0);
 
       // ✅ 简化4: 构建响应（参考iMideo的getUserCurrentPlan）
       const planConfig = getPlanConfig(displayPlan);
@@ -592,7 +586,11 @@ export class SubscriptionService {
         billing_cycle: 'monthly', // 简化：默认月付，可以从Stripe获取详细信息
         credits_remaining: creditsRemaining,
         credits_total: planConfig.credits,
-        credits_monthly_total: effectiveUser.credits_monthly_total ?? undefined, // 本月可用总积分
+        credits_monthly_total: creditSnapshot?.hasPaidAccess ? creditSnapshot.monthlyTotal : 0,
+        credits_monthly_balance: creditSnapshot?.hasPaidAccess ? creditSnapshot.monthlyBalance : 0,
+        credits_other_balance: creditSnapshot?.otherBalance ?? Math.max(0, creditsRemaining),
+        credits_last_reset_date: creditSnapshot?.hasPaidAccess ? creditSnapshot.lastResetAt : null,
+        credits_next_reset_at: creditSnapshot?.hasPaidAccess ? creditSnapshot.nextResetAt : null,
         period_start: effectiveUser.created_at,
         period_end: effectiveUser.subscription_period_end || effectiveUser.updated_at || new Date().toISOString(),
         stripe_subscription_id: effectiveUser.subscription_stripe_id,
@@ -632,6 +630,11 @@ export class SubscriptionService {
       billing_cycle: 'monthly',
       credits_remaining: planConfig.credits,
       credits_total: planConfig.credits,
+      credits_monthly_total: 0,
+      credits_monthly_balance: 0,
+      credits_other_balance: planConfig.credits,
+      credits_last_reset_date: null,
+      credits_next_reset_at: null,
       period_start: new Date().toISOString(),
       period_end: new Date().toISOString(),
       stripe_subscription_id: null,
@@ -820,7 +823,7 @@ export class SubscriptionService {
       // 🔍 步骤1: 获取当前用户状态
       const { data: user, error: fetchError } = await supabaseAdmin
         .from(TABLES.USERS)
-        .select('subscription_plan, subscription_status, subscription_stripe_id, credits_remaining')
+        .select('subscription_plan, subscription_status, subscription_stripe_id, credits_remaining, credits_monthly_balance, credits_other_balance')
         .eq('uuid', userUuid)
         .single();
 
@@ -841,6 +844,8 @@ export class SubscriptionService {
         credits: user.credits_remaining,
       });
 
+      const retainedCredits = user.credits_other_balance ?? Math.max(0, (user.credits_remaining || 0) - (user.credits_monthly_balance || 0));
+
       // 🔍 步骤2: 更新用户状态为免费计划
       const { data: updateResult, error: updateError } = await supabaseAdmin
         .from(TABLES.USERS)
@@ -848,6 +853,11 @@ export class SubscriptionService {
           subscription_plan: 'free',
           subscription_status: 'cancelled', // ✅ 修复：使用 'cancelled' (双L) 以匹配数据库约束
           subscription_stripe_id: null,
+          credits_monthly_total: 0,
+          credits_monthly_balance: 0,
+          credits_other_balance: retainedCredits,
+          credits_next_reset_at: null,
+          credits_remaining: retainedCredits,
           updated_at: getIsoTimestr(),
         })
         .eq('uuid', userUuid)
@@ -875,12 +885,13 @@ export class SubscriptionService {
             to_plan: 'free',
             change_type: 'cancellation', // ✅ 修复：使用 'cancellation' 以匹配数据库约束
             credits_before: user.credits_remaining || 0,
-            credits_after: user.credits_remaining || 0,
-            credits_adjustment: 0,
+            credits_after: retainedCredits,
+            credits_adjustment: retainedCredits - (user.credits_remaining || 0),
             reason: 'Cleaned up orphaned subscription data (not found in Stripe)',
             metadata: {
               cleanup_reason: 'stripe_subscription_not_found',
               previous_stripe_id: user.subscription_stripe_id,
+              monthly_credits_expired: Math.max(0, (user.credits_remaining || 0) - retainedCredits),
             },
           });
 

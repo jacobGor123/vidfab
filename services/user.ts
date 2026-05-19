@@ -7,6 +7,34 @@ import { getIsoTimestr } from '@/lib/time';
 import { getUuid, getUserUuidFromEmail } from '@/lib/hash';
 import { normalizeEmail, isDuplicateNormalizedEmail } from '@/lib/fraud/email-normalizer'
 import { getAntifraudIp, checkIpCreditLimit, recordIpGrant } from '@/lib/fraud/ip-checker'
+import { deductUserCredits } from '@/lib/simple-credits-check'
+
+function mapDatabaseUser(data: any): User {
+  return {
+    uuid: data.uuid,
+    email: data.email,
+    nickname: data.nickname,
+    avatar_url: data.avatar_url ?? undefined,
+    signin_type: data.signin_type,
+    signin_provider: data.signin_provider,
+    signin_openid: data.signin_openid ?? undefined,
+    created_at: data.created_at,
+    updated_at: data.updated_at ?? undefined,
+    signin_ip: data.signin_ip ?? undefined,
+    email_verified: data.email_verified,
+    last_login: data.last_login ?? undefined,
+    is_active: data.is_active,
+    subscription_status: data.subscription_status ?? undefined,
+    subscription_plan: data.subscription_plan ?? undefined,
+    credits_remaining: data.credits_remaining ?? undefined,
+    credits_monthly_total: data.credits_monthly_total ?? undefined,
+    credits_monthly_balance: data.credits_monthly_balance ?? undefined,
+    credits_other_balance: data.credits_other_balance ?? undefined,
+    credits_last_reset_date: data.credits_last_reset_date ?? undefined,
+    credits_next_reset_at: data.credits_next_reset_at ?? undefined,
+    total_videos_processed: data.total_videos_processed ?? undefined,
+  };
+}
 
 /**
  * Save or update a user in the database
@@ -20,7 +48,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     // ✅ 关键修复：先检查用户是否已存在
     const { data: existingUser } = await supabaseAdmin
       .from(TABLES.USERS)
-      .select('uuid, subscription_plan, subscription_status, credits_remaining, total_videos_processed, storage_used_mb')
+      .select('uuid, subscription_plan, subscription_status, credits_remaining, credits_monthly_total, credits_monthly_balance, credits_other_balance, credits_last_reset_date, credits_next_reset_at, total_videos_processed, storage_used_mb')
       .eq('uuid', userUuid)
       .single();
 
@@ -46,11 +74,16 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         updated_at: now,
         is_active: true,
         // ✅ 保留现有的订阅和积分信息（不覆盖）
-        subscription_plan: existingUser.subscription_plan,
-        subscription_status: existingUser.subscription_status,
-        credits_remaining: existingUser.credits_remaining,
-        total_videos_processed: existingUser.total_videos_processed,
-        storage_used_mb: existingUser.storage_used_mb,
+        subscription_plan: existingUser.subscription_plan || 'free',
+        subscription_status: existingUser.subscription_status || 'active',
+        credits_remaining: existingUser.credits_remaining ?? 0,
+        credits_monthly_total: existingUser.credits_monthly_total,
+        credits_monthly_balance: existingUser.credits_monthly_balance,
+        credits_other_balance: existingUser.credits_other_balance,
+        credits_last_reset_date: existingUser.credits_last_reset_date,
+        credits_next_reset_at: existingUser.credits_next_reset_at,
+        total_videos_processed: existingUser.total_videos_processed ?? 0,
+        storage_used_mb: existingUser.storage_used_mb ?? 0,
       };
     } else {
       // ✅ 新用户：使用默认值
@@ -73,7 +106,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       }
 
       // 🎁 检查是否有待领取的积分
-      const { data: pendingCredits } = await supabaseAdmin
+      const { data: pendingCredits } = await (supabaseAdmin as any)
         .from('pending_credits')
         .select('id, credits_amount, source')
         .eq('email', userData.email.toLowerCase().trim())
@@ -82,12 +115,14 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
       let totalCredits = 100; // 默认初始积分
       const pendingCreditIds: string[] = [];
 
-      if (pendingCredits && pendingCredits.length > 0) {
+      const pendingCreditRows = (pendingCredits || []) as Array<{ id: string; credits_amount: number }>
+
+      if (pendingCreditRows.length > 0) {
         // 累加所有待领取积分
-        const bonusCredits = pendingCredits.reduce((sum, pc) => sum + pc.credits_amount, 0);
+        const bonusCredits = pendingCreditRows.reduce((sum, pc) => sum + pc.credits_amount, 0);
         totalCredits += bonusCredits;
-        pendingCreditIds.push(...pendingCredits.map(pc => pc.id));
-        console.log(`🎁 检测到 ${pendingCredits.length} 条待领取积分，额外获得: ${bonusCredits} 积分`);
+        pendingCreditIds.push(...pendingCreditRows.map(pc => pc.id));
+        console.log(`🎁 检测到 ${pendingCreditRows.length} 条待领取积分，额外获得: ${bonusCredits} 积分`);
       }
 
       userToSave = {
@@ -108,6 +143,11 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         subscription_status: 'active',
         subscription_plan: 'free',
         credits_remaining: isFraud ? 0 : totalCredits, // 🛡️ 强制覆盖，pending_credits 加成无法绕过
+        credits_monthly_total: 0,
+        credits_monthly_balance: 0,
+        credits_other_balance: isFraud ? 0 : totalCredits,
+        credits_last_reset_date: null,
+        credits_next_reset_at: null,
         total_videos_processed: 0,
         storage_used_mb: 0,
         max_storage_mb: 1024, // 1GB default
@@ -136,7 +176,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     // 使用upsert操作
     const { data, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .upsert(userToSave, {
+      .upsert(userToSave as any, {
         onConflict: 'uuid',
         ignoreDuplicates: false
       })
@@ -191,25 +231,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
         // 成功获取现有用户,返回
         console.log(`✅ Successfully resolved constraint conflict for email: ${userData.email}`);
         return {
-          user: {
-            uuid: existingData.uuid,
-            email: existingData.email,
-            nickname: existingData.nickname,
-            avatar_url: existingData.avatar_url,
-            signin_type: existingData.signin_type,
-            signin_provider: existingData.signin_provider,
-            signin_openid: existingData.signin_openid,
-            created_at: existingData.created_at,
-            updated_at: existingData.updated_at,
-            signin_ip: existingData.signin_ip,
-            email_verified: existingData.email_verified,
-            last_login: existingData.last_login,
-            is_active: existingData.is_active,
-            subscription_status: existingData.subscription_status,
-            subscription_plan: existingData.subscription_plan,
-            credits_remaining: existingData.credits_remaining,
-            total_videos_processed: existingData.total_videos_processed,
-          },
+          user: mapDatabaseUser(existingData),
           isNewUser: false, // 约束冲突说明用户已存在
         };
       }
@@ -229,7 +251,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
 
     // 🎁 标记 pending_credits 为已领取
     if (pendingCreditIdsToProcess && pendingCreditIdsToProcess.length > 0) {
-      const { error: claimError } = await supabaseAdmin
+      const { error: claimError } = await (supabaseAdmin as any)
         .from('pending_credits')
         .update({
           is_claimed: true,
@@ -247,25 +269,7 @@ export async function saveUser(userData: CreateUserData & { uuid?: string }): Pr
     }
 
     return {
-      user: {
-        uuid: data.uuid,
-        email: data.email,
-        nickname: data.nickname,
-        avatar_url: data.avatar_url,
-        signin_type: data.signin_type,
-        signin_provider: data.signin_provider,
-        signin_openid: data.signin_openid,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-        signin_ip: data.signin_ip,
-        email_verified: data.email_verified,
-        last_login: data.last_login,
-        is_active: data.is_active,
-        subscription_status: data.subscription_status,
-        subscription_plan: data.subscription_plan,
-        credits_remaining: data.credits_remaining,
-        total_videos_processed: data.total_videos_processed,
-      },
+      user: mapDatabaseUser(data),
       isNewUser: !existingUser,
     };
   } catch (error: any) {
@@ -292,25 +296,7 @@ export async function getUserByUuid(uuid: string): Promise<User | null> {
       handleSupabaseError(error);
     }
 
-    return data ? {
-      uuid: data.uuid,
-      email: data.email,
-      nickname: data.nickname,
-      avatar_url: data.avatar_url,
-      signin_type: data.signin_type,
-      signin_provider: data.signin_provider,
-      signin_openid: data.signin_openid,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      signin_ip: data.signin_ip,
-      email_verified: data.email_verified,
-      last_login: data.last_login,
-      is_active: data.is_active,
-      subscription_status: data.subscription_status,
-      subscription_plan: data.subscription_plan,
-      credits_remaining: data.credits_remaining,
-      total_videos_processed: data.total_videos_processed,
-    } : null;
+    return data ? mapDatabaseUser(data) : null;
   } catch (error: any) {
     console.error('Error in getUserByUuid:', error);
     throw error;
@@ -335,25 +321,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
       handleSupabaseError(error);
     }
 
-    return data ? {
-      uuid: data.uuid,
-      email: data.email,
-      nickname: data.nickname,
-      avatar_url: data.avatar_url,
-      signin_type: data.signin_type,
-      signin_provider: data.signin_provider,
-      signin_openid: data.signin_openid,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      signin_ip: data.signin_ip,
-      email_verified: data.email_verified,
-      last_login: data.last_login,
-      is_active: data.is_active,
-      subscription_status: data.subscription_status,
-      subscription_plan: data.subscription_plan,
-      credits_remaining: data.credits_remaining,
-      total_videos_processed: data.total_videos_processed,
-    } : null;
+    return data ? mapDatabaseUser(data) : null;
   } catch (error: any) {
     console.error('Error in getUserByEmail:', error);
     throw error;
@@ -372,7 +340,7 @@ export async function updateUser(uuid: string, updateData: UpdateUserData): Prom
 
     const { data, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .update(updates)
+      .update(updates as any)
       .eq('uuid', uuid)
       .select()
       .single();
@@ -387,25 +355,7 @@ export async function updateUser(uuid: string, updateData: UpdateUserData): Prom
     }
 
     
-    return {
-      uuid: data.uuid,
-      email: data.email,
-      nickname: data.nickname,
-      avatar_url: data.avatar_url,
-      signin_type: data.signin_type,
-      signin_provider: data.signin_provider,
-      signin_openid: data.signin_openid,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      signin_ip: data.signin_ip,
-      email_verified: data.email_verified,
-      last_login: data.last_login,
-      is_active: data.is_active,
-      subscription_status: data.subscription_status,
-      subscription_plan: data.subscription_plan,
-      credits_remaining: data.credits_remaining,
-      total_videos_processed: data.total_videos_processed,
-    };
+    return mapDatabaseUser(data);
   } catch (error: any) {
     console.error('Error in updateUser:', error);
     throw error;
@@ -464,7 +414,7 @@ export async function getUserProfile(uuid: string): Promise<UserProfile | null> 
     if (!data) return null;
 
     // 🔥 安全地读取订阅字段
-    let subscription_plan = data.subscription_plan || 'free'; // 🔥 修复：默认为free套餐
+    let subscription_plan: string = data.subscription_plan || 'free'; // 🔥 修复：默认为free套餐
     const subscription_status = data.subscription_status || 'active';
     const credits_remaining = data.credits_remaining ?? 0;
 
@@ -479,7 +429,7 @@ export async function getUserProfile(uuid: string): Promise<UserProfile | null> 
       uuid: data.uuid,
       email: data.email,
       nickname: data.nickname,
-      avatar_url: data.avatar_url,
+      avatar_url: data.avatar_url ?? undefined,
       created_at: data.created_at,
       subscription_status,
       subscription_plan,
@@ -519,32 +469,12 @@ export async function deactivateUser(uuid: string): Promise<void> {
  */
 export async function updateUserCredits(uuid: string, creditsUsed: number): Promise<number> {
   try {
-    const { data, error } = await supabaseAdmin
-      .from(TABLES.USERS)
-      .select('credits_remaining')
-      .eq('uuid', uuid)
-      .single();
-
-    if (error) {
-      handleSupabaseError(error);
+    const result = await deductUserCredits(uuid, creditsUsed);
+    if (!result.success || typeof result.newBalance !== 'number') {
+      throw new Error(result.error || 'Failed to update user credits');
     }
 
-    const currentCredits = data.credits_remaining || 0;
-    const newCredits = Math.max(0, currentCredits - creditsUsed);
-
-    const { error: updateError } = await supabaseAdmin
-      .from(TABLES.USERS)
-      .update({
-        credits_remaining: newCredits,
-        updated_at: getIsoTimestr(),
-      })
-      .eq('uuid', uuid);
-
-    if (updateError) {
-      handleSupabaseError(updateError);
-    }
-
-    return newCredits;
+    return result.newBalance;
   } catch (error: any) {
     console.error('Error in updateUserCredits:', error);
     throw error;
@@ -556,32 +486,19 @@ export async function updateUserCredits(uuid: string, creditsUsed: number): Prom
  */
 export async function addUserCredits(uuid: string, creditsToAdd: number): Promise<number> {
   try {
-    const { data, error } = await supabaseAdmin
-      .from(TABLES.USERS)
-      .select('credits_remaining')
-      .eq('uuid', uuid)
-      .single();
+    const { data: newBalance, error } = await supabaseAdmin.rpc('update_user_credits_balance', {
+      p_user_uuid: uuid,
+      p_credits_change: creditsToAdd,
+      p_transaction_type: 'bonus',
+      p_description: 'Credits added to user account',
+      p_metadata: {},
+    });
 
     if (error) {
       handleSupabaseError(error);
     }
 
-    const currentCredits = data.credits_remaining || 0;
-    const newCredits = currentCredits + creditsToAdd;
-
-    const { error: updateError } = await supabaseAdmin
-      .from(TABLES.USERS)
-      .update({
-        credits_remaining: newCredits,
-        updated_at: getIsoTimestr(),
-      })
-      .eq('uuid', uuid);
-
-    if (updateError) {
-      handleSupabaseError(updateError);
-    }
-
-    return newCredits;
+    return typeof newBalance === 'number' ? newBalance : 0;
   } catch (error: any) {
     console.error('Error in addUserCredits:', error);
     throw error;

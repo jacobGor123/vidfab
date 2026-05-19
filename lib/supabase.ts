@@ -79,6 +79,10 @@ export interface DatabaseUser {
   subscription_period_end?: string | null;
   credits_remaining?: number;
   credits_monthly_total?: number | null;
+  credits_monthly_balance?: number | null;
+  credits_other_balance?: number | null;
+  credits_last_reset_date?: string | null;
+  credits_next_reset_at?: string | null;
   concurrent_jobs_running?: number | null;
   total_credits_earned?: number | null;
   total_credits_spent?: number | null;

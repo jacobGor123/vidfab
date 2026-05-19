@@ -22,6 +22,7 @@ import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"  // �
 import { IMAGE_GENERATION_CREDITS } from "@/lib/simple-credits-check"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { GenerationAnalytics } from "@/lib/analytics/generation-events"
+import { getGenerationPromptLength } from "@/lib/prompt-limits"
 
 export function TextToImagePanel() {
   const t = useTranslations('studio')
@@ -82,22 +83,24 @@ export function TextToImagePanel() {
 
   // 生成图片 - 使用 requireAuth 包装
   const handleGenerate = async () => {
+    const promptForSubmit = prompt.trim()
+
     // 🔥 事件1: 点击生成按钮
     GenerationAnalytics.trackClickGenerate({
       generationType: 'text-to-image',
       modelType: model,
       aspectRatio: aspectRatio,
-      hasPrompt: !!prompt.trim(),
-      promptLength: prompt.trim().length,
+      hasPrompt: !!promptForSubmit,
+      promptLength: getGenerationPromptLength(promptForSubmit),
       creditsRequired: IMAGE_GENERATION_CREDITS,
     })
 
     await authModal.requireAuth(async () => {
-      const result = await generateTextToImage(prompt, model, aspectRatio)
+      const result = await generateTextToImage(promptForSubmit, model, aspectRatio)
 
       // 🔥 事件2: 后端开始生成 (仅在API成功返回时触发)
       // useImageGenerationManager 返回 { success, requestId, localId }
-      if (result?.success && result.requestId && result.localId) {
+      if (result && result.success && result.requestId && result.localId) {
         GenerationAnalytics.trackGenerationStarted({
           generationType: 'text-to-image',
           jobId: result.localId,
@@ -109,6 +112,8 @@ export function TextToImagePanel() {
       }
     })
   }
+
+  const promptLength = getGenerationPromptLength(prompt)
 
   return (
     <div className={`h-screen flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
@@ -135,14 +140,13 @@ export function TextToImagePanel() {
                   onChange={(e) => {
                     setPrompt(e.target.value)
                   }}
-                  className="min-h-[120px] bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-none focus:border-purple-500 focus:ring-purple-500"
-                  maxLength={1000}
+                  className="h-40 max-h-72 overflow-y-auto custom-scrollbar bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-y focus:border-purple-500 focus:ring-purple-500"
                   disabled={isGenerating}
                 />
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">{t('textToImage.detailedDescriptions')}</span>
-                  <span className={`${prompt.length > 900 ? 'text-yellow-400' : 'text-gray-400'}`}>
-                    {prompt.length}/1000
+                  <span className="text-gray-400">
+                    {promptLength}
                   </span>
                 </div>
               </CardContent>

@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    body.prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
+
     // 确保这是image-to-video请求
     if (!body.image) {
       return NextResponse.json(

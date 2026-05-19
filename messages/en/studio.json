@@ -269,7 +269,7 @@
     "aiImage": "AI Image",
     "myWorks": "My Works",
     "account": "Account",
-    "starryTalezTagline": "AI characters that talk back",
+    "starryTalezTagline": "Personalized AI Bedtime Stories",
     "starryTalezNew": "new",
     "starryTalezAria": "Discover StarryTalez"
   },
@@ -313,7 +313,6 @@
     "storageRuleFreeRetention": "Free Users: Videos and images are auto-deleted 24 hours after creation.",
     "storageRulePro": "Pro Users: Stored permanently while your subscription is active.",
     "storageRuleQuota": "Universal 1GB storage cap. When storage is full, the oldest items are removed first.",
-    "storageRuleSoftDelete": "Deleted items stay in a 7-day recycle window before permanent removal.",
     "storageFullChip": "Storage Full",
     "expiresIn": "Expires in {time}",
     "expiringSoon": "Expiring soon",

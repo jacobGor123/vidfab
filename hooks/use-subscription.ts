@@ -288,6 +288,8 @@ export function useSubscription(): UseSubscriptionReturn {
           ...prev,
           credits_remaining: newCreditsRemaining
         } : null)
+
+        fetchSubscriptionStatus()
       } else {
         // 如果没有具体数值，触发完整刷新
         fetchSubscriptionStatus()

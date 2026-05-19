@@ -7,19 +7,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authConfig } from "@/auth/config"
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
+import { ensureMonthlyCreditsCurrent } from "@/lib/subscription/credit-buckets"
+import { getEffectiveEntitlements } from "@/lib/subscription/entitlements"
 
 export async function GET(request: NextRequest) {
   try {
     // 认证检查
     const session = await getServerSession(authConfig)
-
-    console.log('🔍 Session Debug:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userUuid: session?.user?.uuid,
-      userId: session?.user?.id,
-      userEmail: session?.user?.email
-    })
 
     if (!session?.user) {
       console.error('❌ Authentication failed: No session or user')
@@ -29,8 +23,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const sessionUser = session.user as typeof session.user & { id?: string }
+
+    console.log('🔍 Session Debug:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userUuid: sessionUser.uuid,
+      userId: sessionUser.id,
+      userEmail: sessionUser.email
+    })
+
     // 获取用户ID
-    let userId = session.user.uuid || session.user.id
+    let userId = sessionUser.uuid || sessionUser.id
 
     if (!userId) {
       console.error('❌ Authentication failed: User UUID/ID missing')
@@ -43,7 +47,7 @@ export async function GET(request: NextRequest) {
     // 🔥 强制刷新查询用户积分信息（避免缓存问题）
     const { data: user, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .select('credits_remaining, credits_monthly_total, subscription_plan, subscription_status, updated_at')
+      .select('credits_remaining, credits_monthly_total, credits_monthly_balance, credits_other_balance, credits_last_reset_date, credits_next_reset_at, subscription_plan, subscription_status, subscription_stripe_id, subscription_period_end, updated_at')
       .eq('uuid', userId)
       .single()
 
@@ -66,16 +70,17 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 🎯 简单的积分信息响应（参考iMideo格式）
-    const credits = user.credits_remaining || 0
-    const monthlyTotal = user.credits_monthly_total ?? null
-    // 本月已消耗 = 月初拿到的总额 - 当前余额（非负）；累积场景下 monthlyTotal 可能含上月剩余
+    const refreshedCredits = await ensureMonthlyCreditsCurrent(userId)
+    const entitlements = getEffectiveEntitlements(user)
+    const credits = refreshedCredits?.total ?? (user.credits_remaining || 0)
+    const monthlyTotal = refreshedCredits?.hasPaidAccess ? refreshedCredits.monthlyTotal : null
+    const monthlyAvailable = refreshedCredits?.hasPaidAccess ? refreshedCredits.monthlyBalance : null
     const monthlyUsed =
-      typeof monthlyTotal === 'number' ? Math.max(0, monthlyTotal - credits) : null
+      refreshedCredits?.hasPaidAccess ? refreshedCredits.monthlyUsed : null
+    const otherCredits = refreshedCredits?.otherBalance ?? Math.max(0, credits - (monthlyAvailable || 0))
     const plan = user.subscription_plan || 'free'
     const status = user.subscription_status || 'inactive'
-    // 🔥 修复：有积分且非free计划的用户都认为是Pro用户
-    const is_pro = plan !== 'free' && credits > 0
+    const is_pro = entitlements.hasPaidAccess
 
     // 🔥 Debug用户订阅状态
     console.log('🔍 User Subscription Debug:', {
@@ -93,7 +98,11 @@ export async function GET(request: NextRequest) {
       data: {
         credits: credits,
         monthly_total: monthlyTotal,
+        monthly_available: monthlyAvailable,
         monthly_used: monthlyUsed,
+        other_credits: otherCredits,
+        last_reset_on: refreshedCredits?.hasPaidAccess ? refreshedCredits.lastResetAt : null,
+        next_reset_on: refreshedCredits?.hasPaidAccess ? refreshedCredits.nextResetAt : null,
         is_pro: is_pro,
         is_recharged: credits > 0,
         plan_type: plan,

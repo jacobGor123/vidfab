@@ -52,6 +52,7 @@ export function useImageGeneration(options: UseImageGenerationOptions = {}) {
     }
 
     setState(prev => ({ ...prev, isGenerating: true, error: null }))
+    const safePrompt = prompt.trim()
 
     try {
       const response = await fetch('/api/image/generate-text-to-image', {
@@ -61,7 +62,7 @@ export function useImageGeneration(options: UseImageGenerationOptions = {}) {
         },
         credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
-          prompt,
+          prompt: safePrompt,
           model: settings.model,
           aspectRatio: settings.aspectRatio
         })
@@ -122,6 +123,7 @@ export function useImageGeneration(options: UseImageGenerationOptions = {}) {
     }
 
     setState(prev => ({ ...prev, isGenerating: true, error: null }))
+    const safePrompt = prompt.trim()
 
     try {
       const response = await fetch('/api/image/generate-image-to-image', {
@@ -132,7 +134,7 @@ export function useImageGeneration(options: UseImageGenerationOptions = {}) {
         credentials: 'include', // 🔥 包含认证 cookie
         body: JSON.stringify({
           images,
-          prompt,
+          prompt: safePrompt,
           model: settings.model
         })
       })

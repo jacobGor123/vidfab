@@ -60,7 +60,6 @@ export function StorageBar() {
                   <li className="flex gap-2"><span>•</span><span>{t('storageRuleFreeRetention')}</span></li>
                   <li className="flex gap-2"><span>•</span><span>{t('storageRulePro')}</span></li>
                   <li className="flex gap-2"><span>•</span><span>{t('storageRuleQuota')}</span></li>
-                  <li className="flex gap-2"><span>•</span><span>{t('storageRuleSoftDelete')}</span></li>
                 </ul>
               </div>
             </div>

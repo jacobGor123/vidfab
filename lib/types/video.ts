@@ -21,6 +21,9 @@ export interface VideoGenerationRequest extends BaseVideoGenerationRequest {
   imageStrength?: number  // 图片影响强度 0.1-1.0，默认0.8
   generateAudio?: boolean  // 是否生成音频（仅 veo3 模型支持）
   size?: string  // 合并尺寸参数，如 "1280*720"（Sora 2 使用）
+  generationType?: VideoGenerationType
+  effectId?: string
+  effectName?: string
 }
 
 // 生成类型枚举
@@ -78,7 +81,7 @@ export interface VideoJob {
   requestId: string  // Wavespeed request ID
   prompt: string
   settings: VideoGenerationSettings
-  status: "pending" | "generating" | "processing" | "completed" | "failed" | "storing"
+  status: "pending" | "queued" | "generating" | "processing" | "completed" | "failed" | "storing"
   progress?: number
   resultUrl?: string
   videoId?: string  // Database video ID for storing jobs
@@ -98,12 +101,14 @@ export interface VideoJob {
 
 export interface VideoGenerationSettings {
   model: string
-  duration: string
+  duration: string | number
   resolution: string
   aspectRatio: string
   style?: string
   seed?: number
   // Image-to-video 特有设置
+  image?: string
+  imageUrl?: string
   imageStrength?: number  // 图片影响强度
   generationType?: VideoGenerationType  // 生成类型
   // Video-effects 特有设置

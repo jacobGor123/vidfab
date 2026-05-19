@@ -11,10 +11,14 @@ import { onCreditsUpdated } from '@/lib/events/credits-events'
 // 简化的用户积分信息
 interface UserCreditsInfo {
   credits: number
-  /** 月初分配的总额（含累积逻辑下的上月剩余）；free 用户为 null */
+  /** 当前订阅周期的月度配额；free 用户为 null */
   monthly_total?: number | null
-  /** 本月已消耗 = monthly_total - credits（截断到非负）；free 用户为 null */
+  monthly_available?: number | null
+  /** 本月已消耗 = 月度配额 - 当前月度订阅积分；free 用户为 null */
   monthly_used?: number | null
+  other_credits?: number | null
+  last_reset_on?: string | null
+  next_reset_on?: string | null
   is_pro: boolean
   is_recharged: boolean
   plan_type: string

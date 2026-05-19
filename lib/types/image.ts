@@ -148,7 +148,7 @@ export function buildImageAPIRequest(request: ImageGenerationRequest): any {
 
   const generationType = getImageGenerationType(request)
   const apiRequest: any = {
-    prompt: request.prompt,
+    prompt: (request.prompt || "").trim(),
     enable_sync_mode: false,
     enable_base64_output: false
   }
@@ -210,10 +210,6 @@ export function validateImageRequest(request: ImageGenerationRequest): string[] 
   // 通用验证
   if (!request.prompt?.trim()) {
     errors.push("Prompt is required")
-  }
-
-  if (request.prompt && request.prompt.length > 1000) {
-    errors.push("Prompt must be 1000 characters or less")
   }
 
   if (!request.model) {

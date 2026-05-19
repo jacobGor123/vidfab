@@ -10,6 +10,7 @@ import stripe, { verifyWebhookSignature } from '@/lib/subscription/stripe-config
 import { handleCheckoutSession } from '@/lib/subscription/checkout-handler';
 import { SUBSCRIPTION_PLANS } from '@/lib/subscription/pricing-config';
 import { normalizePlanId } from '@/lib/subscription/entitlements';
+import { resetSubscriptionMonthlyCredits } from '@/lib/subscription/credit-buckets';
 
 export async function POST(req: NextRequest) {
   try {
@@ -156,16 +157,17 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<v
 
   const billingCycle = (subscription.metadata?.billing_cycle as 'monthly' | 'annual' | undefined) || inferBillingCycle(subscription);
   const planConfig = SUBSCRIPTION_PLANS[planId];
-  const creditsToGrant = billingCycle === 'annual' ? planConfig.credits * 12 : planConfig.credits;
+  const creditsToGrant = planConfig.credits;
   const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
   const periodStart = new Date(subscription.current_period_start * 1000).toISOString();
 
-  const { data: newBalance, error: creditsError } = await supabaseAdmin.rpc('update_user_credits_balance', {
-    p_user_uuid: user.uuid,
-    p_credits_change: creditsToGrant,
-    p_transaction_type: 'earned',
-    p_description: `Credits granted for ${planId} ${billingCycle} subscription renewal`,
-    p_metadata: {
+  const creditSnapshot = await resetSubscriptionMonthlyCredits({
+    userUuid: user.uuid,
+    planId,
+    periodStart,
+    periodEnd,
+    description: `Monthly credits reset for ${planId} ${billingCycle} subscription renewal`,
+    metadata: {
       invoice_id: invoice.id,
       subscription_id: subscriptionId,
       plan_id: planId,
@@ -174,10 +176,6 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<v
     },
   });
 
-  if (creditsError) {
-    throw creditsError;
-  }
-
   await supabaseAdmin
     .from(TABLES.USERS)
     .update({
@@ -185,7 +183,6 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<v
       subscription_status: 'active',
       subscription_stripe_id: subscriptionId,
       subscription_period_end: periodEnd,
-      credits_monthly_total: typeof newBalance === 'number' ? newBalance : undefined,
       updated_at: new Date().toISOString(),
     })
     .eq('uuid', user.uuid);
@@ -223,7 +220,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<v
       to_plan: planId,
       change_type: 'renewal',
       credits_before: user.credits_remaining || 0,
-      credits_after: typeof newBalance === 'number' ? newBalance : (user.credits_remaining || 0) + creditsToGrant,
+      credits_after: creditSnapshot.total,
       credits_adjustment: creditsToGrant,
       reason: `Subscription renewed for ${planId} ${billingCycle}`,
       metadata: {
@@ -373,7 +370,7 @@ async function handleSubscriptionCanceled(subscriptionId: string): Promise<void>
 
     const { data: user, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .select('uuid, email, subscription_plan, subscription_status, credits_remaining')
+      .select('uuid, email, subscription_plan, subscription_status, credits_remaining, credits_other_balance, credits_monthly_balance')
       .eq('subscription_stripe_id', subscriptionId)
       .single();
 
@@ -389,12 +386,18 @@ async function handleSubscriptionCanceled(subscriptionId: string): Promise<void>
     }
 
     const currentCredits = user.credits_remaining || 0;
+    const retainedCredits = user.credits_other_balance ?? Math.max(0, currentCredits - (user.credits_monthly_balance || 0));
     const currentPlan = user.subscription_plan;
 
     await updateUser(user.uuid, {
       subscription_status: 'cancelled',
       subscription_plan: 'free',
       subscription_stripe_id: null,
+      credits_monthly_total: 0,
+      credits_monthly_balance: 0,
+      credits_other_balance: retainedCredits,
+      credits_next_reset_at: null,
+      credits_remaining: retainedCredits,
       updated_at: getIsoTimestr(),
     });
 
@@ -406,12 +409,13 @@ async function handleSubscriptionCanceled(subscriptionId: string): Promise<void>
         to_plan: 'free',
         change_type: 'cancellation',
         credits_before: currentCredits,
-        credits_after: currentCredits,
-        credits_adjustment: 0,
-        reason: 'Subscription canceled - credits retained',
+        credits_after: retainedCredits,
+        credits_adjustment: retainedCredits - currentCredits,
+        reason: 'Subscription canceled - monthly credits expired, other credits retained',
         metadata: {
           canceled_subscription_id: subscriptionId,
-          credits_retained: currentCredits,
+          monthly_credits_expired: Math.max(0, currentCredits - retainedCredits),
+          credits_retained: retainedCredits,
         },
       });
 

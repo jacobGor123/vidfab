@@ -269,7 +269,7 @@
     "aiImage": "AI画像",
     "myWorks": "マイワーク",
     "account": "アカウント",
-    "starryTalezTagline": "返事するAIキャラクター",
+    "starryTalezTagline": "Personalized AI Bedtime Stories",
     "starryTalezNew": "新規",
     "starryTalezAria": "StarryTalezを見る"
   },
@@ -313,7 +313,6 @@
     "storageRuleFreeRetention": "無料ユーザー：動画と画像は作成から24時間後に自動削除されます。",
     "storageRulePro": "Proユーザー：サブスクリプション有効期間中は永久保存。",
     "storageRuleQuota": "全ユーザー1GBの上限。容量がいっぱいになると古いものから削除されます。",
-    "storageRuleSoftDelete": "削除した項目は7日間の復元期間後に完全削除されます。",
     "storageFullChip": "容量満杯",
     "expiresIn": "{time}で期限切れ",
     "expiringSoon": "まもなく期限切れ",

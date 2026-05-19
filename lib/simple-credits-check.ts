@@ -44,7 +44,7 @@ async function deductUserCreditsFallback(
   // 先获取当前积分
   const { data: user, error: fetchError } = await supabaseAdmin
     .from(TABLES.USERS)
-    .select('credits_remaining')
+    .select('credits_remaining, credits_monthly_balance, credits_other_balance')
     .eq('uuid', userUuid)
     .single()
 
@@ -53,7 +53,9 @@ async function deductUserCreditsFallback(
     return { success: false, error: 'Failed to fetch user credits' }
   }
 
-  const currentCredits = user?.credits_remaining || 0
+  const currentMonthly = Math.max(0, user?.credits_monthly_balance || 0)
+  const currentOther = Math.max(0, user?.credits_other_balance || 0)
+  const currentCredits = user?.credits_remaining ?? currentMonthly + currentOther
 
   // 检查积分是否足够
   if (currentCredits < creditsToDeduct) {
@@ -64,12 +66,21 @@ async function deductUserCreditsFallback(
     }
   }
 
-  const newBalance = currentCredits - creditsToDeduct
+  const monthlySpent = Math.min(currentMonthly, creditsToDeduct)
+  const otherSpent = creditsToDeduct - monthlySpent
+  const newMonthly = currentMonthly - monthlySpent
+  const newOther = Math.max(0, currentOther - otherSpent)
+  const newBalance = newMonthly + newOther
 
   // 更新用户积分
   const { error: updateError } = await supabaseAdmin
     .from(TABLES.USERS)
-    .update({ credits_remaining: newBalance })
+    .update({
+      credits_monthly_balance: newMonthly,
+      credits_other_balance: newOther,
+      credits_remaining: newBalance,
+      updated_at: new Date().toISOString(),
+    })
     .eq('uuid', userUuid)
 
   if (updateError) {
@@ -233,7 +244,7 @@ export async function refundUserCredits(
       console.warn('⚠️ add_user_credits_atomic RPC unavailable or failed, using fallback:', error.message)
       const { data: user, error: fetchError } = await supabaseAdmin
         .from(TABLES.USERS)
-        .select('credits_remaining')
+        .select('credits_remaining, credits_monthly_balance, credits_monthly_total, credits_other_balance')
         .eq('uuid', userUuid)
         .single()
 
@@ -242,12 +253,24 @@ export async function refundUserCredits(
         return { success: false, error: 'Failed to fetch user credits' }
       }
 
-      const currentCredits = user?.credits_remaining || 0
-      const newBalance = currentCredits + creditsToRefund
+      const currentMonthly = Math.max(0, user?.credits_monthly_balance || 0)
+      const monthlyTotal = Math.max(0, user?.credits_monthly_total || 0)
+      const currentOther = Math.max(0, user?.credits_other_balance || 0)
+      const currentCredits = user?.credits_remaining ?? currentMonthly + currentOther
+      const monthlySpace = Math.max(0, monthlyTotal - currentMonthly)
+      const toMonthly = Math.min(monthlySpace, creditsToRefund)
+      const newMonthly = currentMonthly + toMonthly
+      const newOther = currentOther + (creditsToRefund - toMonthly)
+      const newBalance = newMonthly + newOther
 
       const { error: updateError } = await supabaseAdmin
         .from(TABLES.USERS)
-        .update({ credits_remaining: newBalance })
+        .update({
+          credits_monthly_balance: newMonthly,
+          credits_other_balance: newOther,
+          credits_remaining: newBalance,
+          updated_at: new Date().toISOString(),
+        })
         .eq('uuid', userUuid)
 
       if (updateError) {

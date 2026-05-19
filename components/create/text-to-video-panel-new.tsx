@@ -32,9 +32,11 @@ import { calculateCreditsRequired } from "@/lib/subscription/pricing-config"
 import { UpgradeDialog } from "@/components/subscription/upgrade-dialog"
 import { GenerationAnalytics } from "@/lib/analytics/generation-events"
 import { AspectRatioSelector } from "./aspect-ratio-selector"
+import type { VideoModel } from "@/lib/credits-calculator"
+import { getGenerationPromptLength } from "@/lib/prompt-limits"
 
 // Types
-import { VideoGenerationRequest, DURATION_MAP } from "@/lib/types/video"
+import { DURATION_MAP } from "@/lib/types/video"
 
 interface VideoGenerationParams {
   prompt: string
@@ -147,7 +149,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     : []
 
   const userVideos = currentUserId
-    ? videoContext.completedVideos.filter(video => video.userId === currentUserId)
+    ? videoContext.completedVideos.filter(video => video.user_id === currentUserId)
     : []
 
   const userTemporaryVideos = currentUserId
@@ -194,10 +196,6 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
     if (!params.prompt?.trim()) {
       errors.push(t('validation.enterVideoDescription'))
-    }
-
-    if (params.prompt && params.prompt.length > 1000) {
-      errors.push(t('validation.descriptionTooLong'))
     }
 
     if (!params.model) {
@@ -262,14 +260,16 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
       return
     }
 
+    const promptForSubmit = params.prompt.trim()
+
     GenerationAnalytics.trackClickGenerate({
       generationType: 'text-to-video',
       modelType: params.model,
       duration: params.duration,
       aspectRatio: params.aspectRatio,
       resolution: params.resolution,
-      hasPrompt: !!params.prompt.trim(),
-      promptLength: params.prompt.trim().length,
+      hasPrompt: !!promptForSubmit,
+      promptLength: getGenerationPromptLength(promptForSubmit),
       creditsRequired: getCreditsRequired(),
     })
 
@@ -277,9 +277,10 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     if (session?.user?.uuid) {
       try {
         const audioForCheck = params.model === 'vidfab-q1' ? generateAudio : false
+        const modelForAccess = params.model as VideoModel
         const [modelAccess, budgetInfo] = await Promise.all([
-          canAccessModel(params.model, params.resolution),
-          checkCreditsAvailability(params.model, params.resolution, params.duration, audioForCheck)
+          canAccessModel(modelForAccess, params.resolution),
+          checkCreditsAvailability(modelForAccess, params.resolution, params.duration, audioForCheck)
         ])
 
         if (!modelAccess.can_access) {
@@ -302,21 +303,10 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
     setValidationErrors([])
 
-    // Build request
-    const request: VideoGenerationRequest = {
-      prompt: params.prompt.trim(),
-      model: params.model,
-      duration: DURATION_MAP[params.duration] || 5,
-      resolution: params.resolution,
-      aspectRatio: params.aspectRatio,
-      seed: -1,
-      cameraFixed: false
-    }
-
     // Use auth hook to ensure user is logged in
     const isAuthenticated = await authModal.requireAuth(async () => {
       await videoGeneration.generateTextToVideo(
-        params.prompt.trim(),
+        promptForSubmit,
         {
           model: params.model,
           duration: DURATION_MAP[params.duration] || 5,
@@ -336,34 +326,36 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
 
   // Update form parameters
   const updateParam = useCallback((key: keyof VideoGenerationParams, value: string) => {
+    const nextValue = value
+
     setParams(prev => {
       const oldValue = prev[key]
 
-      if (oldValue !== value) {
+      if (oldValue !== nextValue) {
         if (key === 'model') {
           GenerationAnalytics.trackChangeModel({
             generationType: 'text-to-video',
             oldValue: oldValue as string,
-            newValue: value,
+            newValue: nextValue,
           })
         } else if (key === 'duration') {
           GenerationAnalytics.trackChangeDuration({
             generationType: 'text-to-video',
             oldValue: oldValue as string,
-            newValue: value,
+            newValue: nextValue,
             modelType: prev.model,
           })
         } else if (key === 'aspectRatio') {
           GenerationAnalytics.trackChangeRatio({
             generationType: 'text-to-video',
             oldValue: oldValue as string,
-            newValue: value,
+            newValue: nextValue,
             modelType: prev.model,
           })
         }
       }
 
-      return { ...prev, [key]: value }
+      return { ...prev, [key]: nextValue }
     })
 
     // Clear related validation errors
@@ -385,7 +377,7 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
     return calculateCreditsRequired(modelForCredits, params.resolution, params.duration, audioForCredits)
   }
 
-
+  const promptLength = getGenerationPromptLength(params.prompt)
 
   return (
     <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>
@@ -418,14 +410,13 @@ export function TextToVideoPanelEnhanced({ initialPrompt }: TextToVideoPanelEnha
                     placeholder={t('textToVideo.promptPlaceholder')}
                     value={params.prompt}
                     onChange={(e) => updateParam("prompt", e.target.value)}
-                    className="min-h-[120px] bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-none focus:border-purple-500 focus:ring-purple-500"
-                    maxLength={1000}
+                    className="h-40 max-h-72 overflow-y-auto custom-scrollbar bg-gray-900 border-gray-700 text-white placeholder-gray-500 resize-y focus:border-purple-500 focus:ring-purple-500"
                     disabled={videoGeneration.isGenerating}
                   />
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">{t('common.detailedDescriptions')}</span>
-                    <span className={`${params.prompt.length > 900 ? 'text-yellow-400' : 'text-gray-400'}`}>
-                      {params.prompt.length}/1000
+                    <span className="text-gray-400">
+                      {promptLength}
                     </span>
                   </div>
                 </CardContent>

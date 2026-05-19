@@ -83,7 +83,7 @@ export async function checkAndRecordDevice(
       .maybeSingle()
 
     const consumed = currentUser
-      ? 200 - (currentUser.credits_remaining ?? 200)
+      ? 100 - (currentUser.credits_remaining ?? 100)
       : 0
 
     const fraudReason = consumed > 0
@@ -94,6 +94,10 @@ export async function checkAndRecordDevice(
       .from('users')
       .update({
         credits_remaining: 0,
+        credits_monthly_total: 0,
+        credits_monthly_balance: 0,
+        credits_other_balance: 0,
+        credits_next_reset_at: null,
         is_credit_limited: true,
         fraud_reason: fraudReason,
         updated_at: getIsoTimestr(),

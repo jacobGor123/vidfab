@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    body.prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
+
     // 确保这是文生图请求
     const generationType = getImageGenerationType(body)
     if (generationType !== "text-to-image") {

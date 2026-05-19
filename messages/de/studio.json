@@ -269,7 +269,7 @@
     "aiImage": "KI-Bild",
     "myWorks": "Meine Werke",
     "account": "Konto",
-    "starryTalezTagline": "KI-Charaktere, die zurücksprechen",
+    "starryTalezTagline": "Personalized AI Bedtime Stories",
     "starryTalezNew": "neu",
     "starryTalezAria": "StarryTalez entdecken"
   },
@@ -313,7 +313,6 @@
     "storageRuleFreeRetention": "Free-Nutzer: Videos und Bilder werden 24 Stunden nach Erstellung automatisch gelöscht.",
     "storageRulePro": "Pro-Nutzer: Dauerhaft gespeichert während des Abos.",
     "storageRuleQuota": "Einheitliches 1-GB-Limit. Bei vollem Speicher werden zuerst die ältesten Objekte entfernt.",
-    "storageRuleSoftDelete": "Gelöschte Objekte bleiben 7 Tage im Papierkorb, bevor sie endgültig entfernt werden.",
     "storageFullChip": "Speicher voll",
     "expiresIn": "Läuft ab in {time}",
     "expiringSoon": "Läuft bald ab",

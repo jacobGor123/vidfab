@@ -56,8 +56,10 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
     model: string,
     aspectRatio: string
   ) => {
+    const safePrompt = prompt.trim()
+
     // 验证（不检查登录状态，由 requireAuth 处理）
-    if (!prompt.trim()) {
+    if (!safePrompt) {
       handleError("Please enter a description")
       return false
     }
@@ -65,7 +67,7 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
     setError(null)
 
     try {
-      const { requestId, localId } = await imageGeneration.generateTextToImage(prompt, {
+      const { requestId, localId } = await imageGeneration.generateTextToImage(safePrompt, {
         model,
         aspectRatio
       })
@@ -74,7 +76,7 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
       const newTask: ImageTask = {
         id: localId,
         requestId,
-        prompt,
+        prompt: safePrompt,
         model,
         aspectRatio,
         status: "processing",
@@ -112,8 +114,10 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
     prompt: string,
     model: string
   ) => {
+    const safePrompt = prompt.trim()
+
     // 验证（不检查登录状态，由 requireAuth 处理）
-    if (!prompt.trim()) {
+    if (!safePrompt) {
       handleError("Please enter a description")
       return false
     }
@@ -128,7 +132,7 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
     try {
       const { requestId, localId } = await imageGeneration.generateImageToImage(
         images,
-        prompt,
+        safePrompt,
         { model }
       )
 
@@ -136,7 +140,7 @@ export function useImageGenerationManager(options: UseImageGenerationManagerOpti
       const newTask: ImageTask = {
         id: localId,
         requestId,
-        prompt,
+        prompt: safePrompt,
         model,
         status: "processing",
         sourceImages: images,

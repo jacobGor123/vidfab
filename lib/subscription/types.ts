@@ -38,7 +38,11 @@ export interface UserSubscription {
   billing_cycle: BillingCycle;
   credits_remaining: number;
   credits_total: number;
-  credits_monthly_total?: number; // 本月可用总积分（包含上月剩余）
+  credits_monthly_total?: number; // 当前订阅周期月度配额
+  credits_monthly_balance?: number; // 当前剩余的月度订阅积分
+  credits_other_balance?: number; // 不随月度重置过期的其他积分
+  credits_last_reset_date?: string | null;
+  credits_next_reset_at?: string | null;
   period_start: string;
   period_end: string;
   stripe_subscription_id?: string | null;
@@ -247,6 +251,11 @@ export type DatabaseUser = {
   subscription_plan: PlanId;
   subscription_status: SubscriptionStatus;
   credits_remaining: number;
+  credits_monthly_total?: number;
+  credits_monthly_balance?: number;
+  credits_other_balance?: number;
+  credits_last_reset_date?: string | null;
+  credits_next_reset_at?: string | null;
   concurrent_jobs_running: number;
   created_at: string;
   updated_at: string;
