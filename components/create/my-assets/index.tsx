@@ -58,6 +58,7 @@ function isStoryVideo(asset: UnifiedAsset): boolean {
 export function MyAssets() {
   const t = useTranslations('studio')
   const videoContext = useVideoContext()
+  const isPro = videoContext.quotaInfo?.is_subscribed ?? false
   const { data: session, status: sessionStatus } = useSession()
   const router = useRouter()
   const [assets, setAssets] = useState<UnifiedAsset[]>([])
@@ -260,6 +261,7 @@ export function MyAssets() {
                             key={asset.id}
                             asset={asset}
                             isDeleting={isDeleting}
+                            isPro={isPro}
                             onOpen={() => handleOpen(asset)}
                             onDelete={() => openDelete(asset.id, 'image')}
                             onDownload={() => handleDownload(asset)}
@@ -274,6 +276,7 @@ export function MyAssets() {
                           asset={asset}
                           isStory={isStoryVideo(asset)}
                           isDeleting={isDeleting}
+                          isPro={isPro}
                           onDelete={() => openDelete(asset.id, 'video')}
                           onDownload={() => handleDownload(asset)}
                           onOpen={() => handleOpen(asset)}

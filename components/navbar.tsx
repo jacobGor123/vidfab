@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { usePathname } from "@/i18n/routing"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { StarryTalezCta } from "@/components/create/starrytalez-cta"
 import { Button } from "@/components/ui/button"
 import { Menu, X, LogIn, ChevronDown } from "lucide-react"
 import { Link } from "@/i18n/routing"
@@ -523,6 +524,11 @@ export function Navbar({ scrolled }: NavbarProps) {
                   </Button>
                 </>
               )}
+
+              {/* StarryTalez CTA — 移动端也露出（sidebar 在 mobile 隐藏） */}
+              <div className="pt-2 -mx-3">
+                <StarryTalezCta isOpen={true} />
+              </div>
             </div>
           </div>
         </div>

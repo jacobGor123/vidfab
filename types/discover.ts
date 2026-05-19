@@ -21,6 +21,18 @@ export enum DiscoverStatus {
   DRAFT = 'draft'
 }
 
+// 资源类型：image 走 image_url，video 走 video_url
+export enum DiscoverMediaType {
+  IMAGE = 'image',
+  VIDEO = 'video',
+}
+
+// 内容专区 tab —— 前端 Discover 页顶部切换
+export enum DiscoverContentTab {
+  ENTERTAINMENT = 'entertainment',
+  PRODUCT_DEMO = 'product_demo',
+}
+
 // 数据库表数据结构
 export interface DiscoverVideo {
   id: string
@@ -31,6 +43,8 @@ export interface DiscoverVideo {
   display_order: number
   status: DiscoverStatus
   is_featured: boolean
+  media_type: DiscoverMediaType
+  content_tab: DiscoverContentTab
   created_by: string | null
   created_at: string
   updated_at: string
@@ -45,6 +59,8 @@ export interface DiscoverVideoFormData {
   status?: DiscoverStatus
   is_featured?: boolean
   display_order?: number
+  media_type?: DiscoverMediaType
+  content_tab?: DiscoverContentTab
 }
 
 // API 响应 - 列表
@@ -113,4 +129,6 @@ export interface DiscoverQueryParams {
   search?: string
   sortBy?: 'created_at' | 'display_order' | 'updated_at'
   sortOrder?: 'asc' | 'desc'
+  media?: DiscoverMediaType | 'all'
+  tab?: DiscoverContentTab | 'all'
 }

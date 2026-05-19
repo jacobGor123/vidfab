@@ -99,15 +99,33 @@ export async function POST(request: NextRequest) {
     const status = (formData.get('status') as string) || DiscoverStatus.DRAFT
     const isFeatured = formData.get('is_featured') === 'true'
     const displayOrder = parseInt(formData.get('display_order') as string) || 0
+    const mediaType = (formData.get('media_type') as string) || 'video'
+    const contentTab = (formData.get('content_tab') as string) || 'entertainment'
 
     // 验证必填字段
     if (!prompt) {
       return NextResponse.json({ success: false, error: 'prompt 不能为空' }, { status: 400 })
     }
 
-    if (!videoFile && !videoUrl) {
+    if (!['image', 'video'].includes(mediaType)) {
+      return NextResponse.json({ success: false, error: '非法的 media_type' }, { status: 400 })
+    }
+
+    if (!['entertainment', 'product_demo'].includes(contentTab)) {
+      return NextResponse.json({ success: false, error: '非法的 content_tab' }, { status: 400 })
+    }
+
+    // image 类型必须有 image_url 或 imageFile；video 类型必须有 video_url 或 videoFile
+    if (mediaType === 'video' && !videoFile && !videoUrl) {
       return NextResponse.json(
-        { success: false, error: '必须提供视频文件或视频 URL' },
+        { success: false, error: 'Video 类型必须提供视频文件或视频 URL' },
+        { status: 400 }
+      )
+    }
+
+    if (mediaType === 'image' && !imageFile && !imageUrl) {
+      return NextResponse.json(
+        { success: false, error: 'Image 类型必须提供图片文件或图片 URL' },
         { status: 400 }
       )
     }
@@ -239,6 +257,8 @@ export async function POST(request: NextRequest) {
         status,
         is_featured: isFeatured,
         display_order: finalDisplayOrder,
+        media_type: mediaType,
+        content_tab: contentTab,
         created_by: admin.uuid
       })
       .select()

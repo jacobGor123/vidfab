@@ -2,11 +2,13 @@
 
 import { Play, Film, Loader2 } from "lucide-react"
 import { UnifiedAsset } from "@/lib/types/asset"
+import { ExpiresChip } from "./expires-chip"
 
 interface VideoCardProps {
   asset: UnifiedAsset
   isStory: boolean
   isDeleting: boolean
+  isPro: boolean
   onDelete: () => void
   onDownload: () => void
   onOpen: () => void
@@ -42,6 +44,7 @@ export function VideoCard({
   asset,
   isStory,
   isDeleting,
+  isPro,
   onDelete,
   onDownload,
   onOpen,
@@ -108,7 +111,7 @@ export function VideoCard({
 
       {/* Action buttons — right side, appear on hover */}
       <div
-        className="absolute top-2 right-2 flex flex-col gap-1.5 z-10 opacity-0 group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 transition-all duration-200"
+        className="absolute top-2 right-2 flex flex-col gap-1.5 z-10 opacity-100 sm:opacity-0 sm:translate-x-1 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 transition-all duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {asset.downloadUrl && (
@@ -131,6 +134,16 @@ export function VideoCard({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/my-assets/icon-delete.svg" alt="Delete" width={22} height={22} />
         </button>
+      </div>
+
+      {/* Expires chip + Upgrade link — bottom-left, only shown for Free users
+          桌面 hover 让位给 actions；移动端永远显示（actions 也永远显示，互不干扰） */}
+      <div className="absolute bottom-2 left-2 z-10 sm:group-hover:opacity-0 transition-opacity duration-200">
+        <ExpiresChip
+          updatedAt={asset.updatedAt}
+          status={asset.status}
+          isPro={isPro}
+        />
       </div>
 
       {/* Prompt at bottom */}

@@ -6,7 +6,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Volume2, VolumeX } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
+import { ChevronDown, Loader2, Volume2, VolumeX, BookOpen } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -25,34 +27,41 @@ import { emitCreditsUpdated } from '@/lib/events/credits-events'
 import { useVideoAnalysis } from '../VideoUploadDialog/hooks/useVideoAnalysis'
 import { IMAGE_STYLES, type ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
 
-const TIPS = [
-  'Only public YouTube videos are supported',
-  'Video analysis may take 1-2 minutes depending on video length',
-  'The generated script will be editable before creating the project',
-] as const
-
 interface ReferencePanelProps {
   duration: number
   storyStyle: string
   aspectRatio: '16:9' | '9:16'
+  youtubeUrl: string
+  onYoutubeUrlChange: (url: string) => void
   onCancel: () => void
 }
 
-export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCancel }: ReferencePanelProps) {
+export default function ReferencePanel({
+  duration,
+  storyStyle,
+  aspectRatio,
+  youtubeUrl,
+  onYoutubeUrlChange,
+  onCancel,
+}: ReferencePanelProps) {
+  const t = useTranslations('studio.storyToVideo')
   const authModal = useVideoGenerationAuth()
   const { creditsRemaining } = useSimpleSubscription()
 
-  const [youtubeUrl, setYoutubeUrl] = useState('')
   const [imageStyle, setImageStyle] = useState<ImageStyle>('realistic')
   const [muteBgm, setMuteBgm] = useState(true)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const [tipsOpen, setTipsOpen] = useState(false)
+
+  // i18n tips list（数组通过 .raw 取出后 cast）
+  const tips = (t.raw('tipsList') as string[]) || []
 
   const { isAnalyzing, analyzeYouTubeVideo } = useVideoAnalysis({
     duration,
     storyStyle,
     aspectRatio,
     muteBgm,
-    onComplete: () => setYoutubeUrl('')
+    onComplete: () => onYoutubeUrlChange('')
   })
 
   const handleAnalyze = async () => {
@@ -84,21 +93,34 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-5">
+    <div className="p-5 md:p-6 space-y-3.5">
+
+      {/* 顶部：How it works 入口 */}
+      <div className="flex justify-end -mb-1">
+        <Link
+          href="/help/video-agent"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs text-purple-300/80 hover:text-purple-200 transition-colors"
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>{t('howItWorks')}</span>
+        </Link>
+      </div>
 
       {/* YouTube Video URL */}
-      <div className="space-y-2">
-        <label className="block text-base font-medium text-white">
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium text-white">
           YouTube Shorts Video URL (&lt;1 min)
         </label>
         <input
           type="url"
           value={youtubeUrl}
-          onChange={(e) => setYoutubeUrl(e.target.value)}
+          onChange={(e) => onYoutubeUrlChange(e.target.value)}
           placeholder="Paste a non-dialogue video link, and AI will analyze the plot to generate a similar story script"
           disabled={isAnalyzing}
           className={cn(
-            "w-full h-11 px-4 rounded-md text-sm text-white outline-none transition-all",
+            "w-full h-10 px-4 rounded-md text-sm text-white outline-none transition-all",
             "border border-transparent focus:border-purple-500/50",
             "placeholder:text-[#a8adbd] disabled:opacity-50"
           )}
@@ -107,8 +129,8 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
       </div>
 
       {/* Visual Style */}
-      <div className="space-y-2">
-        <label className="block text-base font-medium text-white">
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium text-white">
           Visual Style
         </label>
         <Select
@@ -118,7 +140,7 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
         >
           <SelectTrigger
             className={cn(
-              "w-full h-11 px-4 rounded-md text-sm text-white",
+              "w-full h-10 px-4 rounded-md text-sm text-white",
               "border border-transparent focus:ring-0 focus:ring-offset-0 focus:border-purple-500/50",
               "hover:border-purple-500/30 disabled:opacity-50 transition-all"
             )}
@@ -140,29 +162,29 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
         </Select>
       </div>
 
-      {/* Background Music */}
+      {/* Background Music — 单行紧凑版 */}
       <button
         type="button"
         onClick={() => setMuteBgm(v => !v)}
         disabled={isAnalyzing}
         className={cn(
-          "w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all",
+          "w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all",
           muteBgm
             ? "bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-600"
             : "bg-blue-600/15 border-blue-500/40 text-white hover:border-blue-400/60"
         )}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {muteBgm
             ? <VolumeX className="w-4 h-4 text-slate-400" />
             : <Volume2 className="w-4 h-4 text-blue-400" />
           }
-          <div className="text-left">
-            <div className="text-sm font-medium">Background Music</div>
-            <div className="text-xs text-slate-500 mt-0.5">
-              {muteBgm ? 'Muted — no audio generated' : 'Enabled — Seedance native audio (2× credits)'}
-            </div>
-          </div>
+          <span className="text-sm font-medium">
+            Background Music
+            <span className="ml-2 text-xs text-slate-500 font-normal">
+              {muteBgm ? 'Muted' : 'Enabled — Seedance native audio (2× credits)'}
+            </span>
+          </span>
         </div>
         <div style={{
           width: 36, height: 20, borderRadius: 999,
@@ -179,11 +201,11 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
       </button>
 
       {/* Action Buttons — right aligned */}
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex items-center justify-end gap-3 pt-1">
         <button
           onClick={onCancel}
           disabled={isAnalyzing}
-          className="h-11 px-6 rounded-lg text-sm font-medium transition-all disabled:opacity-50 hover:opacity-80"
+          className="h-10 px-5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 hover:opacity-80"
           style={{ background: '#121420', color: '#aaa9b4' }}
         >
           Cancel
@@ -192,7 +214,7 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
           onClick={handleAnalyze}
           disabled={isAnalyzing || !youtubeUrl.trim()}
           className={cn(
-            "h-11 px-6 rounded-lg text-sm font-medium text-white transition-all duration-300 flex items-center gap-2",
+            "h-10 px-5 rounded-lg text-sm font-medium text-white transition-all duration-300 flex items-center gap-2",
             isAnalyzing || !youtubeUrl.trim()
               ? "bg-gradient-disabled cursor-not-allowed opacity-50"
               : "bg-gradient-primary shadow-glow-primary"
@@ -209,24 +231,45 @@ export default function ReferencePanel({ duration, storyStyle, aspectRatio, onCa
         </button>
       </div>
 
-      {/* Tips */}
-      <div className="rounded-lg px-4 py-4" style={{ background: '#11131e' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <WarningIcon />
-          <span className="text-sm font-semibold text-white">Tips:</span>
-        </div>
-        <ul className="space-y-1.5 pl-1">
-          {TIPS.map((tip, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm" style={{ color: '#aaa9b4' }}>
-              <span className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={{ background: '#aaa9b4' }} />
-              <span>{tip}</span>
-            </li>
-          ))}
-          <li className="flex items-start gap-2 text-sm" style={{ color: '#aaa9b4' }}>
-            <span className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={{ background: '#aaa9b4' }} />
-            <span>Current settings (duration: {duration}s, style: {storyStyle}) will be used</span>
-          </li>
-        </ul>
+      {/* 当前设置回显 — 始终可见，避免被折叠后看不到 */}
+      <div className="text-xs text-slate-500 pt-0.5">
+        {t('currentSettingsPrefix')}: <span className="text-slate-400">{duration}s · {storyStyle}</span>
+      </div>
+
+      {/* Tips — 默认折叠 */}
+      <div className="rounded-lg" style={{ background: '#11131e' }}>
+        <button
+          type="button"
+          onClick={() => setTipsOpen(v => !v)}
+          className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-left hover:bg-white/[0.02] rounded-lg transition-colors"
+          aria-expanded={tipsOpen}
+        >
+          <div className="flex items-center gap-2">
+            <WarningIcon />
+            <span className="text-sm font-semibold text-white">
+              {t('tipsLabel')}
+              <span className="ml-2 text-xs text-slate-500 font-normal">
+                ({tips.length})
+              </span>
+            </span>
+          </div>
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-slate-400 transition-transform duration-200",
+              tipsOpen && "rotate-180"
+            )}
+          />
+        </button>
+        {tipsOpen && (
+          <ul className="space-y-1.5 px-4 pb-3 pl-6 pt-0.5">
+            {tips.map((tip: string, i: number) => (
+              <li key={i} className="flex items-start gap-2 text-sm" style={{ color: '#aaa9b4' }}>
+                <span className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={{ background: '#aaa9b4' }} />
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <UpgradeDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} />

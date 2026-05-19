@@ -2,10 +2,12 @@
 
 import { Loader2 } from "lucide-react"
 import { UnifiedAsset } from "@/lib/types/asset"
+import { ExpiresChip } from "./expires-chip"
 
 interface ImageCardProps {
   asset: UnifiedAsset
   isDeleting: boolean
+  isPro: boolean
   onOpen: () => void
   onDelete: () => void
   onDownload: () => void
@@ -23,6 +25,7 @@ const ACTION_BUTTONS = [
 export function ImageCard({
   asset,
   isDeleting,
+  isPro,
   onOpen,
   onDelete,
   onDownload,
@@ -78,7 +81,7 @@ export function ImageCard({
 
       {/* Action buttons — right side vertical stack, appear on hover */}
       <div
-        className="absolute top-2 right-2 flex flex-col gap-1.5 z-10 opacity-0 group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 transition-all duration-200"
+        className="absolute top-2 right-2 flex flex-col gap-1.5 z-10 opacity-100 sm:opacity-0 sm:translate-x-1 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 transition-all duration-200"
         onClick={e => e.stopPropagation()}
       >
         {ACTION_BUTTONS.map(({ key, icon, label }) => (
@@ -93,6 +96,15 @@ export function ImageCard({
             <img src={icon} alt={label} width={22} height={22} />
           </button>
         ))}
+      </div>
+
+      {/* Expires chip + Upgrade link — bottom-left, only shown for Free users */}
+      <div className="absolute bottom-2 left-2 z-10 sm:group-hover:opacity-0 transition-opacity duration-200">
+        <ExpiresChip
+          updatedAt={asset.updatedAt}
+          status={asset.status}
+          isPro={isPro}
+        />
       </div>
 
       {/* Prompt at bottom */}

@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
@@ -36,15 +36,18 @@ interface InputStageProps {
     aspectRatio: '16:9' | '9:16'
     muteBgm: boolean
   }) => Promise<void>
+  /** 外部传入的 YouTube URL（用户点击 Remix 缩略图时填充），消费后通过 onRemixConsumed 通知清空 */
+  remixYoutubeUrl?: string | null
+  onRemixConsumed?: () => void
 }
 
-export default function InputStage({ onStart }: InputStageProps) {
+export default function InputStage({ onStart, remixYoutubeUrl, onRemixConsumed }: InputStageProps) {
   const t = useTranslations('studio')
   const { getInspirations } = useVideoAgentAPI()
   const { creditsRemaining } = useSimpleSubscription()
   const authModal = useVideoGenerationAuth()
 
-  const [mode, setMode] = useState<Mode>('myself')
+  const [mode, setMode] = useState<Mode>('reference')
   const [duration, setDuration] = useState(30)
   const [storyStyle, setStoryStyle] = useState('auto')
   const [script, setScript] = useState('')
@@ -56,6 +59,21 @@ export default function InputStage({ onStart }: InputStageProps) {
   const [inspirations, setInspirations] = useState<ScriptInspiration[]>([])
   const [showOptionsDrawer, setShowOptionsDrawer] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // 接收外部 Remix 触发：切到 reference tab + 填充 URL + 滚到自身，然后通知父组件清空触发态
+  useEffect(() => {
+    if (remixYoutubeUrl) {
+      setMode('reference')
+      setYoutubeUrl(remixYoutubeUrl)
+      // 在下一帧滚动，等 DOM 切到 reference 面板后再定位
+      requestAnimationFrame(() => {
+        rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+      onRemixConsumed?.()
+    }
+  }, [remixYoutubeUrl, onRemixConsumed])
 
   const handleSubmit = async () => {
     if (!script.trim()) {
@@ -99,7 +117,7 @@ export default function InputStage({ onStart }: InputStageProps) {
   }
 
   return (
-    <div className="w-full mx-auto px-4 space-y-4 md:px-0 md:space-y-5 md:max-w-4xl">
+    <div ref={rootRef} className="w-full mx-auto px-4 space-y-4 md:px-0 md:space-y-5 md:max-w-4xl scroll-mt-24">
 
       {/* Tab 切换器 — 比卡片稍窄，居中；Figma: #2B2049, active 紫色渐变 */}
       <div className="max-w-[72%] mx-auto">
@@ -151,6 +169,8 @@ export default function InputStage({ onStart }: InputStageProps) {
             duration={duration}
             storyStyle={storyStyle}
             aspectRatio={aspectRatio}
+            youtubeUrl={youtubeUrl}
+            onYoutubeUrlChange={setYoutubeUrl}
             onCancel={() => setMode('myself')}
           />
         </Card>

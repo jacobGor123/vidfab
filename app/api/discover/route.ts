@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category') || 'all'
+    const media = searchParams.get('media') || 'all'      // image | video | all
+    const tab = searchParams.get('tab') || 'all'           // entertainment | product_demo | all
     const limitParam = searchParams.get('limit')
 
     // 如果没有指定 limit，则不限制；否则最多 1000 条
@@ -35,6 +37,16 @@ export async function GET(request: NextRequest) {
     // 分类筛选
     if (category && category !== 'all') {
       query = query.eq('category', category)
+    }
+
+    // 资源类型筛选
+    if (media === 'image' || media === 'video') {
+      query = query.eq('media_type', media)
+    }
+
+    // 内容专区筛选
+    if (tab === 'entertainment' || tab === 'product_demo') {
+      query = query.eq('content_tab', tab)
     }
 
     const { data, error } = await query

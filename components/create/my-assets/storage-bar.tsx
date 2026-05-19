@@ -1,8 +1,10 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useVideoContext } from "@/lib/contexts/video-context"
 
 export function StorageBar() {
+  const t = useTranslations('studio.myAssets')
   const { quotaInfo, quotaLoading } = useVideoContext()
 
   const currentMB = quotaInfo?.current_size_mb ?? 0
@@ -10,6 +12,13 @@ export function StorageBar() {
   const percentage = Math.min(quotaInfo?.storage_percentage ?? 0, 100)
   const isPro = quotaInfo?.is_subscribed ?? false
   const planLabel = isPro ? '(Pro)' : '(Free)'
+
+  // 进度条颜色分级（80% 黄 / 95% 红 / 满置灰）
+  const fillGradient =
+    percentage >= 100 ? 'linear-gradient(90deg, #6b7280 0%, #6b7280 100%)' :
+    percentage >= 95  ? 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)' :
+    percentage >= 80  ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)' :
+                        'linear-gradient(90deg, #7b5cff 0%, #419aff 100%)'
 
   const currentDisplay = quotaLoading ? '...' : `${currentMB.toFixed(1)} MB`
   const limitDisplay = `${maxMB.toFixed(0)} MB`
@@ -28,7 +37,7 @@ export function StorageBar() {
         {/* Decorative purple glow ellipse (Figma Ellipse 8, opacity 0.7) */}
         {/* Row 1: text info */}
         <div className="relative flex items-center flex-wrap gap-x-1 gap-y-0.5 mb-3 text-sm md:text-base font-medium" style={{ color: '#8e8ea2' }}>
-          <span>Storage Used：</span>
+          <span>{t('storageUsed')}：</span>
           <span className="text-white font-semibold">{currentDisplay}</span>
           <span>&nbsp;/ {limitDisplay} {planLabel}</span>
           {/* Info icon — with tooltip on hover */}
@@ -46,11 +55,12 @@ export function StorageBar() {
                 className="rounded-xl p-4 text-sm"
                 style={{ background: '#1a1d2e', border: '1px solid rgba(255,255,255,0.08)' }}
               >
-                <p className="font-semibold text-white mb-2">Storage Rules:</p>
+                <p className="font-semibold text-white mb-2">{t('storageRulesTitle')}:</p>
                 <ul className="space-y-1.5" style={{ color: '#9090a8' }}>
-                  <li className="flex gap-2 whitespace-nowrap"><span>•</span><span>All Users: 1GB Maximum Storage Limit</span></li>
-                  <li className="flex gap-2 whitespace-nowrap"><span>•</span><span>Pro Users: Videos Stored Permanently During Subscription</span></li>
-                  <li className="flex gap-2 whitespace-nowrap"><span>•</span><span>When Storage Exceeds 1GB: Oldest Videos Deleted Automatically</span></li>
+                  <li className="flex gap-2"><span>•</span><span>{t('storageRuleFreeRetention')}</span></li>
+                  <li className="flex gap-2"><span>•</span><span>{t('storageRulePro')}</span></li>
+                  <li className="flex gap-2"><span>•</span><span>{t('storageRuleQuota')}</span></li>
+                  <li className="flex gap-2"><span>•</span><span>{t('storageRuleSoftDelete')}</span></li>
                 </ul>
               </div>
             </div>
@@ -70,7 +80,7 @@ export function StorageBar() {
               style={{
                 width: `${percentage}%`,
                 borderRadius: 10,
-                background: 'linear-gradient(90deg, #7b5cff 0%, #419aff 100%)',
+                background: fillGradient,
               }}
             />
           </div>

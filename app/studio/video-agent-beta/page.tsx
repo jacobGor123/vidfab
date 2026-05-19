@@ -6,15 +6,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useVideoAgentAPI } from '@/lib/hooks/useVideoAgentAPI'
 import { useAuthModal } from '@/hooks/use-auth-modal'
 import { UnifiedAuthModal } from '@/components/auth/unified-auth-modal'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { useVideoAgentStore } from '@/lib/stores/video-agent'
+import { useVideoAgentStore, type VideoAgentProject } from '@/lib/stores/video-agent'
 import InputStage from './components/InputStage'
 import StepDialog from './components/StepDialog'
-import ProjectList from './components/ProjectList'
+import YouTubeInspirations from './components/YouTubeInspirations'
 
 // 🔥 禁用静态生成（页面已隐藏，无需预渲染）
 export const dynamic = 'force-dynamic'
@@ -22,7 +23,9 @@ export const dynamic = 'force-dynamic'
 export default function VideoAgentBetaPage() {
   const t = useTranslations('studio')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const authModal = useAuthModal()
+  const { getProject } = useVideoAgentAPI()
 
   const {
     currentProject,
@@ -38,6 +41,9 @@ export default function VideoAgentBetaPage() {
   // 🔥 新增：控制弹框是否打开的本地状态
   // 刷新页面后默认不打开弹框，只有用户主动点击草稿时才打开
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  // YouTube Remix 联动：用户点击 inspiration 卡片的 Remix → 切到 reference tab + 填充 URL
+  const [remixYoutubeUrl, setRemixYoutubeUrl] = useState<string | null>(null)
 
   // 使用项目中的 current_step，如果项目不存在则使用默认值 1
   const currentStep = currentProject?.current_step || 1
@@ -67,6 +73,32 @@ export default function VideoAgentBetaPage() {
     }
   }, [resumeProject])
 
+  // 处理来自 /drafts 页面的 ?resume=<projectId> 参数
+  useEffect(() => {
+    const resumeId = searchParams.get('resume')
+    if (!resumeId) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const project = await getProject(resumeId)
+        if (cancelled || !project) return
+        // ProjectData 与 VideoAgentProject 是同源数据的两套类型定义（项目历史遗留）
+        await resumeProject(project as unknown as VideoAgentProject)
+        setIsDialogOpen(true)
+      } catch (error) {
+        console.error('Failed to resume project:', error)
+      } finally {
+        // 移除 URL 参数避免重复触发
+        if (!cancelled) router.replace('/studio/video-agent-beta')
+      }
+    })()
+
+    return () => { cancelled = true }
+    // 仅在 resume 参数变化时重新执行
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get('resume')])
+
   const handleStart = async (data: {
     duration: number
     storyStyle: string
@@ -92,10 +124,9 @@ export default function VideoAgentBetaPage() {
     }
   }
 
-  const handleResumeProject = async (project: any) => {
-    // 🔥 用户点击草稿时，恢复项目并打开弹框
-    await resumeProject(project)
-    setIsDialogOpen(true)
+  const handleRemix = (url: string) => {
+    setRemixYoutubeUrl(url)
+    // 滚动由 InputStage 在收到 prefill 时自行 scrollIntoView 处理
   }
 
   const handleCloseDialog = () => {
@@ -165,19 +196,14 @@ export default function VideoAgentBetaPage() {
           )}
 
           {/* Main Content Area */}
-          <div className="space-y-12 sm:space-y-16">
-            <InputStage onStart={handleStart} />
+          <div className="space-y-10 sm:space-y-14">
+            <InputStage
+              onStart={handleStart}
+              remixYoutubeUrl={remixYoutubeUrl}
+              onRemixConsumed={() => setRemixYoutubeUrl(null)}
+            />
 
-            <div className="border-t border-white/5 pt-12 sm:pt-16">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-2">
-                <h2 className="text-xl sm:text-2xl font-bold text-white/90">{t('storyToVideo.yourDrafts')}</h2>
-                <div className="text-xs sm:text-sm text-slate-500">
-                  {t('storyToVideo.autoSaved')}
-                </div>
-              </div>
-              {/* 🔥 修改：使用新的 handleResumeProject */}
-              <ProjectList onResume={handleResumeProject} />
-            </div>
+            <YouTubeInspirations onRemix={handleRemix} />
           </div>
 
           {/* 🔥 弹框始终存在，但只在 isDialogOpen 为 true 时显示 */}

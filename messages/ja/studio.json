@@ -125,7 +125,57 @@
     "checkBackLater": "後で新しいクリエイティブコンテンツをチェックしてください",
     "videoPreview": "動画プレビュー",
     "remix": "リミックス",
-    "showing": "{count} / {total} 本の動画を表示中"
+    "showing": "{count} / {total} 本の動画を表示中",
+    "inspirationsTitle": "インスピレーション",
+    "tabEntertainment": "エンタメ",
+    "tabProductDemo": "製品デモ",
+    "mediaAll": "すべて",
+    "mediaVideo": "動画",
+    "mediaImage": "画像",
+    "heroTitle": "何を",
+    "heroAccent": "作りたい",
+    "heroSuffix": "ですか？",
+    "heroSubtitle": "ツールを選んで、インスピレーションをリミックスするか、ストーリーから始めましょう。",
+    "suiteTitle": "VidFab ツール",
+    "latestModelsTitle": "最新 AI モデル",
+    "inspirationsHint": "Remixをタップして、自分なりのアレンジで再現しましょう。",
+    "previewUnavailable": "プレビュー不可",
+    "suite": {
+      "storyToVideo": {
+        "label": "ストーリーから動画",
+        "description": "台本やYouTube動画を完成した動画に変換。"
+      },
+      "textToVideo": {
+        "label": "テキストから動画",
+        "description": "1つのプロンプトから動画を生成。"
+      },
+      "imageToVideo": {
+        "label": "画像から動画",
+        "description": "静止画にモーションを加えます。"
+      },
+      "videoEffects": {
+        "label": "動画エフェクト",
+        "description": "ワンクリックでシネマ風エフェクトを適用。"
+      },
+      "textToImage": {
+        "label": "テキストから画像",
+        "description": "説明文から画像を作成。"
+      },
+      "imageToImage": {
+        "label": "画像から画像",
+        "description": "既存の画像をリスタイル、編集、変換。"
+      }
+    },
+    "models": {
+      "veo3": {
+        "tagline": "Googleの旗艦シネマ動画モデル、ネイティブ音声付き。",
+        "badge": "新"
+      },
+      "kling3": {
+        "tagline": "鋭いモーションとプロンプト忠実度、ショート動画に最適。",
+        "badge": "人気"
+      }
+    }
   },
   "myProfile": {
     "pleaseSignIn": "サインインしてください",
@@ -179,7 +229,22 @@
     "styleTwist": "どんでん返し",
     "styleSuspense": "サスペンス",
     "styleWarmth": "ほっこり",
-    "styleInspire": "インスパイア"
+    "styleInspire": "インスパイア",
+    "howItWorks": "使い方",
+    "tipsLabel": "ヒント",
+    "tipsList": [
+      "公開されているYouTube動画のみサポート",
+      "動画の解析には動画の長さに応じて1〜2分かかります",
+      "生成された台本はプロジェクト作成前に編集可能"
+    ],
+    "currentSettingsPrefix": "現在の設定",
+    "inspirationsTitle": "インスピレーション",
+    "inspirationsHint": "Remixをタップして、自分なりのアレンジで再現しましょう。",
+    "youtubeRemixAria": "リミックス",
+    "viewDrafts": "ドラフトを見る",
+    "draftsPageTitle": "あなたのドラフト",
+    "draftsPageHint": "ドラフトは作業中に自動保存されます。カードをタップして続行。",
+    "backToVideoAgent": "Video Agent に戻る"
   },
   "effectSelector": {
     "title": "動画エフェクト",
@@ -203,7 +268,10 @@
     "aiVideo": "AI動画",
     "aiImage": "AI画像",
     "myWorks": "マイワーク",
-    "account": "アカウント"
+    "account": "アカウント",
+    "starryTalezTagline": "返事するAIキャラクター",
+    "starryTalezNew": "新規",
+    "starryTalezAria": "StarryTalezを見る"
   },
   "myAssets": {
     "failedToLoad": "アセットの読み込みに失敗しました",
@@ -239,6 +307,82 @@
       "creationTime": "作成日時",
       "newest": "新しい順",
       "oldest": "古い順"
-    }
+    },
+    "storageUsed": "使用容量",
+    "storageRulesTitle": "ストレージルール",
+    "storageRuleFreeRetention": "無料ユーザー：動画と画像は作成から24時間後に自動削除されます。",
+    "storageRulePro": "Proユーザー：サブスクリプション有効期間中は永久保存。",
+    "storageRuleQuota": "全ユーザー1GBの上限。容量がいっぱいになると古いものから削除されます。",
+    "storageRuleSoftDelete": "削除した項目は7日間の復元期間後に完全削除されます。",
+    "storageFullChip": "容量満杯",
+    "expiresIn": "{time}で期限切れ",
+    "expiringSoon": "まもなく期限切れ",
+    "upgradeToKeep": "保存するにはアップグレード →",
+    "hoursShort": "時間",
+    "minutesShort": "分"
+  },
+  "guide": {
+    "title": "Video Agent ガイド",
+    "subtitle": "アイデアを数分で完成した動画にする方法を学びましょう。",
+    "introHeading": "Video Agent とは？",
+    "introBody": "Video Agent は VidFab のエンドツーエンド AI ワークフローです。ストーリーのアイデアを入力するか YouTube Shorts からリミックスすると、キャラクター・絵コンテ・モーション・音楽を含む完成動画が返ってきます。タイムライン編集は不要です。",
+    "twoWaysHeading": "2 つの始め方",
+    "twoWaysSubhead": "好みに合う方法を選んでください — どちらも同じ生成パイプラインに入ります。",
+    "referencePathTitle": "参考から作成",
+    "referencePathBadge": "おすすめ",
+    "referenceStep1Title": "YouTube Shorts のリンクを貼り付け",
+    "referenceStep1Body": "1 分以内の公開 Shorts を使ってください。セリフが少なく場面が明確な動画が最適です。",
+    "referenceStep2Title": "ビジュアルスタイルを選択",
+    "referenceStep2Body": "リアル/アニメ/3D/シネマ風など、スタイルがすべてのキャラと画面の見た目を決めます。",
+    "referenceStep3Title": "BGM を切り替え",
+    "referenceStep3Body": "オフ = 無音（デフォルト、クレジット節約）。オン = Seedance ネイティブ音声（クレジット 2 倍）。",
+    "referenceStep4Title": "Analyze Video をクリック",
+    "referenceStep4Body": "AI がストーリーの流れを抽出し、台本レビュー用エディタに移動します。",
+    "myselfPathTitle": "自分で作成",
+    "myselfStep1Title": "ストーリーを書く（または AI Inspiration を押す）",
+    "myselfStep1Body": "自由に入力するか、編集可能なストーリーの種を AI Inspiration から取得。",
+    "myselfStep2Title": "長さ、スタイル、アスペクト比、音楽を調整",
+    "myselfStep2Body": "長さによってショット数とクレジットが決まります。9:16 は Shorts、16:9 は横向き。",
+    "myselfStep3Title": "Generate Video をクリック",
+    "myselfStep3Body": "プロジェクトは下記の自動パイプラインに入ります。",
+    "behindHeading": "裏側の仕組み",
+    "behindSubhead": "4 つの自動ステージが順番に実行されます。各ステージはレビューと再生成が可能。",
+    "stageScriptTitle": "台本分析",
+    "stageScriptBody": "AI がストーリーをショット、キャラ、テンポに分解。次に進む前に編集できます。",
+    "stageCharacterTitle": "キャラクター生成",
+    "stageCharacterBody": "各キャラに一貫したビジュアルが付与され、全ショットで統一されます。",
+    "stageStoryboardTitle": "絵コンテ",
+    "stageStoryboardBody": "ショットごとに静止画、ムード、カメラアングル、キャラ配置を確認。気に入らないショットは再生成可能。",
+    "stageCompositionTitle": "動画合成",
+    "stageCompositionBody": "各絵コンテが動画クリップになり、選んだ音楽と共に最終動画にまとめられます。",
+    "tipsHeading": "知っておきたいこと",
+    "tip1": "作業中ドラフトは自動保存。クレジット行から「ドラフトを見る」で再開。",
+    "tip2": "無料プラン：月 5 件まで無料。それ以降は 1 件あたり 3 クレジット。",
+    "tip3": "完成動画の生成は通常 5〜15 分。ページを離れても状態は保持されます。",
+    "tip4": "分析後・キャラ生成開始前なら台本を編集可能。",
+    "faqHeading": "よくある質問",
+    "faq1Q": "どんな YouTube 動画が最適ですか？",
+    "faq1A": "1 分以内のセリフのない Shorts、場面が明確でキャラが識別しやすいもの。",
+    "faq2Q": "生成後にキャラやショットを変更できますか？",
+    "faq2A": "可能です — 最終合成ステップ前なら、各キャラカードや絵コンテを個別に再生成できます。",
+    "faq3Q": "ブラウザを閉じたらドラフトはどうなりますか？",
+    "faq3A": "ドラフトはサーバー側で自動保存。ドラフトページからいつでも再開可能。",
+    "footerCtaTitle": "最初の動画を作る準備はできましたか？",
+    "footerCtaButton": "Video Agent を開く"
+  },
+  "creditsDialog": {
+    "title": "クレジット",
+    "subtitle": "今月の利用状況のスナップショット。",
+    "currentCredits": "現在のクレジット",
+    "usedThisMonth": "今月の使用量",
+    "proMember": "Pro 会員",
+    "freePlan": "無料プラン",
+    "usedOfMonthly": "今月{total}のうち",
+    "subscribePrompt": "月間クレジットを取得するには登録してください"
+  },
+  "creditsBalanceCard": {
+    "title": "クレジット残高",
+    "available": "クレジット利用可能",
+    "usedThisMonth": "今月の使用量"
   }
 }

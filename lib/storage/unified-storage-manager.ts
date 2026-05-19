@@ -113,68 +113,63 @@ export class UnifiedStorageManager {
   }
 
   /**
-   * Clean up expired videos for free users (24h after completion)
+   * Clean up expired assets (videos / images) for free users (24h after completion)
+   * 视频 + 图片共用同一套软删逻辑，按 table 名分发，避免重复代码。
    */
-  static async cleanupExpiredVideos(userId: string, isSubscribed: boolean): Promise<{
-    deletedCount: number
-    freedSizeMB: number
-  }> {
-    if (isSubscribed) {
-      return { deletedCount: 0, freedSizeMB: 0 }
-    }
+  private static async cleanupExpiredByTable(
+    userId: string,
+    isSubscribed: boolean,
+    table: typeof TABLES.USER_VIDEOS | typeof TABLES.USER_IMAGES,
+    label: string,
+  ): Promise<{ deletedCount: number; freedSizeMB: number }> {
+    if (isSubscribed) return { deletedCount: 0, freedSizeMB: 0 }
 
     try {
       const cutoffTime = new Date(Date.now() - this.FREE_USER_RETENTION_HOURS * 60 * 60 * 1000)
 
-      // Find expired videos (completed more than 24h ago)
-      const { data: expiredVideos, error: fetchError } = await supabaseAdmin
-        .from(TABLES.USER_VIDEOS)
+      const { data: rows, error: fetchError } = await supabaseAdmin
+        .from(table)
         .select('id, file_size, updated_at')
         .eq('user_id', userId)
         .eq('status', 'completed')
         .lt('updated_at', cutoffTime.toISOString())
 
       if (fetchError) {
-        console.error('Error fetching expired videos:', fetchError)
+        console.error(`Error fetching expired ${label}:`, fetchError)
         return { deletedCount: 0, freedSizeMB: 0 }
       }
 
-      if (!expiredVideos || expiredVideos.length === 0) {
-        return { deletedCount: 0, freedSizeMB: 0 }
-      }
+      if (!rows || rows.length === 0) return { deletedCount: 0, freedSizeMB: 0 }
 
-      console.log(`🗑️ Found ${expiredVideos.length} expired videos for free user ${userId}`)
-
-      // Calculate freed space
-      const freedBytes = expiredVideos.reduce((sum, video) => sum + (video.file_size || 0), 0)
+      const freedBytes = rows.reduce((sum, r) => sum + (r.file_size || 0), 0)
       const freedSizeMB = Math.round(freedBytes / (1024 * 1024) * 100) / 100
+      const ids = rows.map(r => r.id)
 
-      // Soft delete expired videos
-      const videoIds = expiredVideos.map(v => v.id)
-      const { error: deleteError } = await supabaseAdmin
-        .from(TABLES.USER_VIDEOS)
-        .update({
-          status: 'deleted',
-          updated_at: new Date().toISOString()
-        })
-        .in('id', videoIds)
+      const now = new Date().toISOString()
+      const { error: updateError } = await supabaseAdmin
+        .from(table)
+        .update({ status: 'deleted', deleted_at: now, updated_at: now })
+        .in('id', ids)
 
-      if (deleteError) {
-        console.error('Error deleting expired videos:', deleteError)
+      if (updateError) {
+        console.error(`Error soft-deleting expired ${label}:`, updateError)
         return { deletedCount: 0, freedSizeMB: 0 }
       }
 
-      console.log(`✅ Deleted ${videoIds.length} expired videos, freed ${freedSizeMB}MB`)
-
-      return {
-        deletedCount: videoIds.length,
-        freedSizeMB
-      }
-
+      console.log(`✅ Soft-deleted ${ids.length} expired ${label}, freed ${freedSizeMB}MB`)
+      return { deletedCount: ids.length, freedSizeMB }
     } catch (error) {
-      console.error('Error in cleanupExpiredVideos:', error)
+      console.error(`Error in cleanupExpired ${label}:`, error)
       return { deletedCount: 0, freedSizeMB: 0 }
     }
+  }
+
+  static cleanupExpiredVideos(userId: string, isSubscribed: boolean) {
+    return this.cleanupExpiredByTable(userId, isSubscribed, TABLES.USER_VIDEOS, 'videos')
+  }
+
+  static cleanupExpiredImages(userId: string, isSubscribed: boolean) {
+    return this.cleanupExpiredByTable(userId, isSubscribed, TABLES.USER_IMAGES, 'images')
   }
 
   /**
@@ -233,6 +228,7 @@ export class UnifiedStorageManager {
         .from(TABLES.USER_VIDEOS)
         .update({
           status: 'deleted',
+          deleted_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .in('id', deletedVideos)
@@ -276,6 +272,7 @@ export class UnifiedStorageManager {
         .from(TABLES.USER_VIDEOS)
         .update({
           status: 'deleted',
+          deleted_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .in('id', failedVideos.map(v => v.id))
@@ -299,6 +296,7 @@ export class UnifiedStorageManager {
    */
   static async performStorageCleanup(userId: string, isSubscribed: boolean): Promise<{
     expiredDeleted: number
+    expiredImagesDeleted: number
     limitDeleted: number
     failedDeleted: number
     totalFreedMB: number
@@ -309,17 +307,21 @@ export class UnifiedStorageManager {
     const failedDeleted = await this.cleanupFailedVideos(userId)
 
     // 2. Clean up expired videos for free users (24h rule)
-    const expiredResult = await this.cleanupExpiredVideos(userId, isSubscribed)
+    const expiredVideos = await this.cleanupExpiredVideos(userId, isSubscribed)
+
+    // 2b. Clean up expired images for free users (24h rule)
+    const expiredImages = await this.cleanupExpiredImages(userId, isSubscribed)
 
     // 3. Enforce 1GB storage limit (universal)
     const limitResult = await this.enforceStorageLimit(userId)
 
-    const totalFreedMB = expiredResult.freedSizeMB + limitResult.freedSizeMB
+    const totalFreedMB = expiredVideos.freedSizeMB + expiredImages.freedSizeMB + limitResult.freedSizeMB
 
-    console.log(`✅ Storage cleanup completed: ${expiredResult.deletedCount} expired, ${limitResult.deletedCount} over-limit, ${failedDeleted} failed, ${totalFreedMB}MB freed`)
+    console.log(`✅ Storage cleanup completed: ${expiredVideos.deletedCount} expired videos, ${expiredImages.deletedCount} expired images, ${limitResult.deletedCount} over-limit, ${failedDeleted} failed, ${totalFreedMB}MB freed`)
 
     return {
-      expiredDeleted: expiredResult.deletedCount,
+      expiredDeleted: expiredVideos.deletedCount,
+      expiredImagesDeleted: expiredImages.deletedCount,
       limitDeleted: limitResult.deletedCount,
       failedDeleted,
       totalFreedMB

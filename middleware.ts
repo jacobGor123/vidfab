@@ -84,7 +84,7 @@ export default async function middleware(req: NextRequest) {
     // Special pages have real page.tsx files at app/studio/plans and app/studio/video-agent-beta.
     // Rewrite locale-prefixed requests to the unprefixed versions so they match the file system.
     // Inject x-next-intl-locale so getLocale() in app/studio/layout.tsx returns the correct locale.
-    const specialPaths = ['/studio/video-agent-beta', '/studio/plans'];
+    const specialPaths = ['/studio/video-agent-beta', '/studio/plans', '/studio/discover'];
     if (specialPaths.some(p => studioSegment.startsWith(p))) {
       const rewriteTarget = studioSegment + (nextUrl.search || '');
       const reqHeaders = new Headers(req.headers);

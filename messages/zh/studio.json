@@ -125,7 +125,57 @@
     "checkBackLater": "稍后查看最新创意内容",
     "videoPreview": "视频预览",
     "remix": "Remix",
-    "showing": "显示 {count} / {total} 个视频"
+    "showing": "显示 {count} / {total} 个视频",
+    "inspirationsTitle": "灵感",
+    "tabEntertainment": "娱乐",
+    "tabProductDemo": "产品演示",
+    "mediaAll": "全部",
+    "mediaVideo": "视频",
+    "mediaImage": "图片",
+    "heroTitle": "你想",
+    "heroAccent": "创作",
+    "heroSuffix": "什么？",
+    "heroSubtitle": "选一个工具、复刻一个灵感，或从故事开始。",
+    "suiteTitle": "VidFab 工具集",
+    "latestModelsTitle": "最新 AI 模型",
+    "inspirationsHint": "点击 Remix 用你的方式重新创作这些故事。",
+    "previewUnavailable": "预览不可用",
+    "suite": {
+      "storyToVideo": {
+        "label": "故事转视频",
+        "description": "把脚本或 YouTube 片段变成完整视频。"
+      },
+      "textToVideo": {
+        "label": "文字转视频",
+        "description": "用一句提示词生成视频。"
+      },
+      "imageToVideo": {
+        "label": "图片转视频",
+        "description": "让任何静态图片动起来。"
+      },
+      "videoEffects": {
+        "label": "视频特效",
+        "description": "一键应用电影级特效。"
+      },
+      "textToImage": {
+        "label": "文字转图片",
+        "description": "根据描述创作图片。"
+      },
+      "imageToImage": {
+        "label": "图片转图片",
+        "description": "重塑、编辑或转换已有图片。"
+      }
+    },
+    "models": {
+      "veo3": {
+        "tagline": "Google 旗舰电影级视频模型，自带原生音频。",
+        "badge": "新"
+      },
+      "kling3": {
+        "tagline": "锐利动态与高度还原的提示词理解，专为短视频。",
+        "badge": "热"
+      }
+    }
   },
   "myProfile": {
     "pleaseSignIn": "请先登录",
@@ -179,7 +229,22 @@
     "styleTwist": "反转",
     "styleSuspense": "惊悚",
     "styleWarmth": "温情",
-    "styleInspire": "励志"
+    "styleInspire": "励志",
+    "howItWorks": "使用说明",
+    "tipsLabel": "提示",
+    "tipsList": [
+      "仅支持公开的 YouTube 视频",
+      "视频解析需 1-2 分钟，取决于视频长度",
+      "生成的脚本在创建项目前可编辑"
+    ],
+    "currentSettingsPrefix": "当前设置",
+    "inspirationsTitle": "获取灵感",
+    "inspirationsHint": "点击 Remix 用你的方式重新创作这些故事。",
+    "youtubeRemixAria": "复用",
+    "viewDrafts": "查看你的草稿",
+    "draftsPageTitle": "你的草稿",
+    "draftsPageHint": "草稿在编辑过程中自动保存，点击任意卡片继续。",
+    "backToVideoAgent": "返回 Video Agent"
   },
   "effectSelector": {
     "title": "视频特效",
@@ -203,7 +268,10 @@
     "aiVideo": "AI 视频",
     "aiImage": "AI 图片",
     "myWorks": "我的作品",
-    "account": "账户"
+    "account": "账户",
+    "starryTalezTagline": "会对话的 AI 角色",
+    "starryTalezNew": "新",
+    "starryTalezAria": "了解 StarryTalez"
   },
   "myAssets": {
     "failedToLoad": "加载资产失败",
@@ -239,6 +307,82 @@
       "creationTime": "创建时间",
       "newest": "最新",
       "oldest": "最旧"
-    }
+    },
+    "storageUsed": "存储已用",
+    "storageRulesTitle": "存储规则",
+    "storageRuleFreeRetention": "免费用户：视频和图片在创建 24 小时后自动删除。",
+    "storageRulePro": "Pro 用户：订阅有效期内永久保留。",
+    "storageRuleQuota": "所有用户共享 1GB 存储上限，存储满时优先删除最早的内容。",
+    "storageRuleSoftDelete": "已删除内容会保留 7 天回收期，之后永久移除。",
+    "storageFullChip": "存储已满",
+    "expiresIn": "{time} 后到期",
+    "expiringSoon": "即将到期",
+    "upgradeToKeep": "升级以保留 →",
+    "hoursShort": "小时",
+    "minutesShort": "分钟"
+  },
+  "guide": {
+    "title": "Video Agent 使用指南",
+    "subtitle": "了解如何在几分钟内把想法变成完整视频。",
+    "introHeading": "什么是 Video Agent？",
+    "introBody": "Video Agent 是 VidFab 的端到端 AI 创作流水线。你给一个故事（自己写或从 YouTube Shorts 复刻），它会自动生成包含角色、分镜、动态和音乐的完整视频。无需手动剪辑。",
+    "twoWaysHeading": "两种创作方式",
+    "twoWaysSubhead": "挑一个合适的方式 — 两条路径最终都进入相同的生成流水线。",
+    "referencePathTitle": "参考创作",
+    "referencePathBadge": "推荐",
+    "referenceStep1Title": "粘贴 YouTube Shorts 链接",
+    "referenceStep1Body": "链接必须公开、时长 ≤ 1 分钟。无对白、场景清晰的视频效果最好。",
+    "referenceStep2Title": "选择视觉风格",
+    "referenceStep2Body": "写实、动漫、3D、电影感等 — 风格会决定所有角色和镜头的统一视觉。",
+    "referenceStep3Title": "决定背景音乐",
+    "referenceStep3Body": "关闭 = 无声（默认、省积分）。开启 = Seedance 原生音轨（2 倍积分消耗）。",
+    "referenceStep4Title": "点击 Analyze Video",
+    "referenceStep4Body": "AI 提取故事节奏，把你带到脚本编辑器进一步审阅。",
+    "myselfPathTitle": "自主创作",
+    "myselfStep1Title": "写下你的故事（或点 AI Inspiration）",
+    "myselfStep1Body": "自由输入故事，或点击 AI Inspiration 获取可编辑的故事种子。",
+    "myselfStep2Title": "调整时长、风格、画幅、音乐",
+    "myselfStep2Body": "时长决定镜头数和积分消耗。9:16 适合 Shorts，16:9 适合横屏。",
+    "myselfStep3Title": "点击 Generate Video",
+    "myselfStep3Body": "项目进入下面的自动化流水线。",
+    "behindHeading": "幕后流程",
+    "behindSubhead": "4 个自动阶段依次执行。每个阶段都可以审查和重新生成。",
+    "stageScriptTitle": "脚本分析",
+    "stageScriptBody": "AI 把故事拆成镜头、角色和节奏。继续前你可以编辑任何细节。",
+    "stageCharacterTitle": "角色生成",
+    "stageCharacterBody": "每个角色获得一致的视觉形象，贯穿所有镜头。",
+    "stageStoryboardTitle": "分镜",
+    "stageStoryboardBody": "每个镜头一张静态分镜图，含氛围、机位、角色。不满意可单独重做。",
+    "stageCompositionTitle": "视频合成",
+    "stageCompositionBody": "每个分镜变成动态片段，所有片段拼接成带音乐的最终视频。",
+    "tipsHeading": "使用须知",
+    "tip1": "草稿在编辑过程中自动保存。从配额行点击「查看你的草稿」继续。",
+    "tip2": "免费用户每月 5 条脚本免费，超出后每条 3 积分。",
+    "tip3": "生成一个完整视频通常需要 5–15 分钟。可以离开页面，状态会保留。",
+    "tip4": "分析完成后、角色生成开始前，脚本仍可编辑。",
+    "faqHeading": "常见问题",
+    "faq1Q": "什么样的 YouTube 视频效果最好？",
+    "faq1A": "无对白、≤ 1 分钟的 Shorts，场景清晰且角色辨识度高。",
+    "faq2Q": "生成后能修改角色或单个镜头吗？",
+    "faq2A": "可以 — 在最终视频合成步骤前，任意角色卡或分镜都可单独重新生成。",
+    "faq3Q": "关掉浏览器后草稿会丢吗？",
+    "faq3A": "草稿在服务端自动保存。随时从草稿页继续。",
+    "footerCtaTitle": "准备好做你的第一个视频了吗？",
+    "footerCtaButton": "打开 Video Agent"
+  },
+  "creditsDialog": {
+    "title": "积分",
+    "subtitle": "本月使用情况一览。",
+    "currentCredits": "当前积分",
+    "usedThisMonth": "本月已消耗",
+    "proMember": "Pro 会员",
+    "freePlan": "免费版",
+    "usedOfMonthly": "本月共 {total}",
+    "subscribePrompt": "订阅以获得每月积分额度"
+  },
+  "creditsBalanceCard": {
+    "title": "积分余额",
+    "available": "积分可用",
+    "usedThisMonth": "本月已消耗"
   }
 }

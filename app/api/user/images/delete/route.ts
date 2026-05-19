@@ -68,15 +68,20 @@ export async function DELETE(request: NextRequest) {
       prompt: existingImage.prompt?.substring(0, 50) + '...'
     })
 
-    // Delete the image record (hard delete for images, unlike soft delete for videos)
+    // Soft delete (deleted_at 用于 7 天回收站期 + cron 物理删 S3，与视频一致)
+    const nowIso = new Date().toISOString()
     const { error: deleteError } = await supabaseAdmin
       .from(TABLES.USER_IMAGES)
-      .delete()
+      .update({
+        status: 'deleted',
+        deleted_at: nowIso,
+        updated_at: nowIso,
+      })
       .eq('id', imageId)
       .eq('user_id', userId)
 
     if (deleteError) {
-      console.error('❌ Error deleting image:', deleteError)
+      console.error('❌ Error soft-deleting image:', deleteError)
       return NextResponse.json(
         { success: false, error: `Delete failed: ${deleteError.message}` },
         { status: 500 }

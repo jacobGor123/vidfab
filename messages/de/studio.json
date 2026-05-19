@@ -125,7 +125,57 @@
     "checkBackLater": "Schauen Sie später für neue kreative Inhalte vorbei",
     "videoPreview": "Videovorschau",
     "remix": "Remix",
-    "showing": "{count} / {total} Videos werden angezeigt"
+    "showing": "{count} / {total} Videos werden angezeigt",
+    "inspirationsTitle": "Inspirationen",
+    "tabEntertainment": "Unterhaltung",
+    "tabProductDemo": "Produktdemo",
+    "mediaAll": "Alle",
+    "mediaVideo": "Video",
+    "mediaImage": "Bild",
+    "heroTitle": "Was möchtest du",
+    "heroAccent": "erstellen",
+    "heroSuffix": "in VidFab?",
+    "heroSubtitle": "Wähle ein Tool, remixe eine Inspiration oder beginne mit einer Geschichte.",
+    "suiteTitle": "VidFab Suite",
+    "latestModelsTitle": "Neueste KI-Modelle",
+    "inspirationsHint": "Tippe auf Remix, um eine dieser Geschichten neu zu interpretieren.",
+    "previewUnavailable": "Vorschau nicht verfügbar",
+    "suite": {
+      "storyToVideo": {
+        "label": "Story zu Video",
+        "description": "Mach aus einem Skript oder YouTube-Clip ein komplettes Video."
+      },
+      "textToVideo": {
+        "label": "Text zu Video",
+        "description": "Erzeuge Videos aus einem einzigen Prompt."
+      },
+      "imageToVideo": {
+        "label": "Bild zu Video",
+        "description": "Erwecke jedes Standbild zum Leben."
+      },
+      "videoEffects": {
+        "label": "Video-Effekte",
+        "description": "Cinematische Effekte mit einem Klick anwenden."
+      },
+      "textToImage": {
+        "label": "Text zu Bild",
+        "description": "Erstelle Bilder aus beschreibenden Prompts."
+      },
+      "imageToImage": {
+        "label": "Bild zu Bild",
+        "description": "Bestehende Bilder umstylen, bearbeiten oder transformieren."
+      }
+    },
+    "models": {
+      "veo3": {
+        "tagline": "Googles Flaggschiff-Modell für kinoreife Videos mit nativem Audio.",
+        "badge": "Neu"
+      },
+      "kling3": {
+        "tagline": "Gestochen scharfe Bewegung und präzise Prompt-Treue für Kurzvideos.",
+        "badge": "Hot"
+      }
+    }
   },
   "myProfile": {
     "pleaseSignIn": "Bitte anmelden",
@@ -179,7 +229,22 @@
     "styleTwist": "Wendung",
     "styleSuspense": "Spannung",
     "styleWarmth": "Herzlich",
-    "styleInspire": "Inspirierend"
+    "styleInspire": "Inspirierend",
+    "howItWorks": "So funktioniert es",
+    "tipsLabel": "Tipps",
+    "tipsList": [
+      "Nur öffentliche YouTube-Videos werden unterstützt",
+      "Die Videoanalyse dauert 1–2 Minuten, je nach Videolänge",
+      "Das generierte Skript ist vor der Projekterstellung bearbeitbar"
+    ],
+    "currentSettingsPrefix": "Aktuelle Einstellungen",
+    "inspirationsTitle": "Inspiration holen",
+    "inspirationsHint": "Tippe auf Remix, um eine dieser Geschichten neu zu interpretieren.",
+    "youtubeRemixAria": "Remix",
+    "viewDrafts": "Entwürfe ansehen",
+    "draftsPageTitle": "Deine Entwürfe",
+    "draftsPageHint": "Entwürfe werden automatisch gespeichert. Tippe auf eine Karte, um fortzufahren.",
+    "backToVideoAgent": "Zurück zu Video Agent"
   },
   "effectSelector": {
     "title": "Videoeffekte",
@@ -203,7 +268,10 @@
     "aiVideo": "KI-Video",
     "aiImage": "KI-Bild",
     "myWorks": "Meine Werke",
-    "account": "Konto"
+    "account": "Konto",
+    "starryTalezTagline": "KI-Charaktere, die zurücksprechen",
+    "starryTalezNew": "neu",
+    "starryTalezAria": "StarryTalez entdecken"
   },
   "myAssets": {
     "failedToLoad": "Assets konnten nicht geladen werden",
@@ -239,6 +307,82 @@
       "creationTime": "Erstellungszeit",
       "newest": "Neueste",
       "oldest": "Älteste"
-    }
+    },
+    "storageUsed": "Speicher belegt",
+    "storageRulesTitle": "Speicherregeln",
+    "storageRuleFreeRetention": "Free-Nutzer: Videos und Bilder werden 24 Stunden nach Erstellung automatisch gelöscht.",
+    "storageRulePro": "Pro-Nutzer: Dauerhaft gespeichert während des Abos.",
+    "storageRuleQuota": "Einheitliches 1-GB-Limit. Bei vollem Speicher werden zuerst die ältesten Objekte entfernt.",
+    "storageRuleSoftDelete": "Gelöschte Objekte bleiben 7 Tage im Papierkorb, bevor sie endgültig entfernt werden.",
+    "storageFullChip": "Speicher voll",
+    "expiresIn": "Läuft ab in {time}",
+    "expiringSoon": "Läuft bald ab",
+    "upgradeToKeep": "Upgrade zum Behalten →",
+    "hoursShort": "h",
+    "minutesShort": "min"
+  },
+  "guide": {
+    "title": "Video Agent Anleitung",
+    "subtitle": "Erfahre, wie du eine Idee in wenigen Minuten zu einem vollständigen Video machst.",
+    "introHeading": "Was ist Video Agent?",
+    "introBody": "Video Agent ist VidFabs durchgängiger KI-Workflow. Gib eine Story-Idee ein — selbst geschrieben oder aus einem YouTube-Shorts-Clip geremixt — und du bekommst ein fertiges Video mit Charakteren, Storyboards, Animation und Musik zurück. Kein Timeline-Editing nötig.",
+    "twoWaysHeading": "Zwei Möglichkeiten zum Start",
+    "twoWaysSubhead": "Wähle, was zu dir passt — beide Wege münden in dieselbe Generierungs-Pipeline.",
+    "referencePathTitle": "Per Referenz erstellen",
+    "referencePathBadge": "Empfohlen",
+    "referenceStep1Title": "YouTube-Shorts-Link einfügen",
+    "referenceStep1Body": "Verwende ein öffentliches Shorts-Video unter 1 Minute. Dialogarme Clips mit klaren Szenen funktionieren am besten.",
+    "referenceStep2Title": "Visuellen Stil wählen",
+    "referenceStep2Body": "Realistic, Anime, 3D, Cinematic — der Stil bestimmt das Aussehen aller Charaktere und Shots.",
+    "referenceStep3Title": "Hintergrundmusik umschalten",
+    "referenceStep3Body": "Aus = stumm (Standard, spart Credits). An = Seedance Native Audio (kostet 2× Credits).",
+    "referenceStep4Title": "Auf Analyze Video klicken",
+    "referenceStep4Body": "KI extrahiert die Story-Beats und bringt dich in den Editor zur Skript-Überprüfung.",
+    "myselfPathTitle": "Selbst erstellen",
+    "myselfStep1Title": "Story schreiben (oder AI Inspiration klicken)",
+    "myselfStep1Body": "Frei tippen oder AI Inspiration für fertige, anpassbare Story-Ideen klicken.",
+    "myselfStep2Title": "Dauer, Stil, Format, Musik einstellen",
+    "myselfStep2Body": "Dauer beeinflusst Shot-Anzahl und Credits. 9:16 für Shorts, 16:9 für Querformat.",
+    "myselfStep3Title": "Auf Generate Video klicken",
+    "myselfStep3Body": "Dein Projekt geht in die automatisierte Pipeline unten.",
+    "behindHeading": "Hinter den Kulissen",
+    "behindSubhead": "4 automatisierte Stufen laufen nacheinander. Jede Stufe lässt sich prüfen und neu generieren.",
+    "stageScriptTitle": "Skript-Analyse",
+    "stageScriptBody": "KI zerlegt deine Story in Shots, Charaktere und Pacing. Alles vor dem Weitermachen editierbar.",
+    "stageCharacterTitle": "Charakter-Generierung",
+    "stageCharacterBody": "Jeder Charakter bekommt eine konsistente Optik, die sich durch alle Shots zieht.",
+    "stageStoryboardTitle": "Storyboard",
+    "stageStoryboardBody": "Standbilder pro Shot mit Stimmung, Kameraperspektive und Charakteren. Unzufriedene Shots einzeln neu generieren.",
+    "stageCompositionTitle": "Video-Komposition",
+    "stageCompositionBody": "Jedes Storyboard wird zum bewegten Clip; Clips werden mit der gewählten Musik zum Final-Video zusammengefügt.",
+    "tipsHeading": "Wissenswertes",
+    "tip1": "Entwürfe werden während der Arbeit automatisch gespeichert. „Entwürfe ansehen\" aus der Quota-Zeile zum Fortsetzen.",
+    "tip2": "Free-Plan: 5 Skripte pro Monat gratis. Danach 3 Credits pro Skript.",
+    "tip3": "Ein vollständiges Video braucht typischerweise 5–15 Minuten. Du kannst die Seite verlassen; Status bleibt erhalten.",
+    "tip4": "Skript ist nach der Analyse, aber vor Beginn der Charakter-Generierung noch editierbar.",
+    "faqHeading": "Häufige Fragen",
+    "faq1Q": "Welche YouTube-Videos funktionieren am besten?",
+    "faq1A": "Dialogarme Shorts unter 1 Minute mit klaren Szenen und erkennbaren Charakteren.",
+    "faq2Q": "Kann ich einen Charakter oder Shot nach der Generierung ändern?",
+    "faq2A": "Ja — vor dem finalen Compositing-Schritt lassen sich einzelne Charakter-Karten oder Storyboards neu generieren.",
+    "faq3Q": "Was passiert mit meinem Entwurf, wenn ich den Browser schließe?",
+    "faq3A": "Entwürfe werden serverseitig automatisch gespeichert. Jederzeit von der Entwürfe-Seite fortsetzbar.",
+    "footerCtaTitle": "Bereit, dein erstes Video zu erstellen?",
+    "footerCtaButton": "Video Agent öffnen"
+  },
+  "creditsDialog": {
+    "title": "Credits",
+    "subtitle": "Überblick über deine Nutzung in diesem Monat.",
+    "currentCredits": "Aktuelle Credits",
+    "usedThisMonth": "Diesen Monat verbraucht",
+    "proMember": "Pro-Mitglied",
+    "freePlan": "Free-Plan",
+    "usedOfMonthly": "von {total} diesen Monat",
+    "subscribePrompt": "Abonniere für ein monatliches Credit-Budget"
+  },
+  "creditsBalanceCard": {
+    "title": "Credit-Guthaben",
+    "available": "Credits verfügbar",
+    "usedThisMonth": "Diesen Monat verbraucht"
   }
 }

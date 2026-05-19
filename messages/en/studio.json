@@ -119,13 +119,63 @@
     "promptPlaceholder": "Transform the image into a watercolor painting style with vibrant colors..."
   },
   "discover": {
+    "inspirationsTitle": "Inspirations",
+    "tabEntertainment": "Entertainment",
+    "tabProductDemo": "Product Demo",
+    "mediaAll": "All",
+    "mediaVideo": "Video",
+    "mediaImage": "Image",
     "loading": "Loading Discover...",
     "fetchingInspirations": "Fetching creative inspirations",
     "noVideos": "No videos found",
     "checkBackLater": "Check back later for new creative content",
     "videoPreview": "Video Preview",
     "remix": "Remix",
-    "showing": "Showing {count} / {total} videos"
+    "showing": "Showing {count} / {total} videos",
+    "heroTitle": "What would you like to",
+    "heroAccent": "create",
+    "heroSuffix": "in VidFab?",
+    "heroSubtitle": "Pick a tool, remix an inspiration, or start from a story.",
+    "suiteTitle": "VidFab Suite",
+    "latestModelsTitle": "Latest AI Models",
+    "inspirationsHint": "Tap Remix to recreate any of these stories with your own twist.",
+    "previewUnavailable": "Preview unavailable",
+    "suite": {
+      "storyToVideo": {
+        "label": "Story to Video",
+        "description": "Turn a script or YouTube clip into a full video."
+      },
+      "textToVideo": {
+        "label": "Text to Video",
+        "description": "Generate video from a single prompt."
+      },
+      "imageToVideo": {
+        "label": "Image to Video",
+        "description": "Animate any still image into motion."
+      },
+      "videoEffects": {
+        "label": "Video Effects",
+        "description": "Apply cinematic effects in one click."
+      },
+      "textToImage": {
+        "label": "Text to Image",
+        "description": "Create images from descriptive prompts."
+      },
+      "imageToImage": {
+        "label": "Image to Image",
+        "description": "Restyle, edit, or transform existing images."
+      }
+    },
+    "models": {
+      "veo3": {
+        "tagline": "Google's flagship cinematic video model with native audio.",
+        "badge": "New"
+      },
+      "kling3": {
+        "tagline": "Razor-sharp motion and prompt fidelity for short-form clips.",
+        "badge": "Hot"
+      }
+    }
   },
   "myProfile": {
     "pleaseSignIn": "Please Sign In",
@@ -179,7 +229,22 @@
     "styleTwist": "Twist",
     "styleSuspense": "Suspense",
     "styleWarmth": "Warmth",
-    "styleInspire": "Inspire"
+    "styleInspire": "Inspire",
+    "howItWorks": "How it works",
+    "tipsLabel": "Tips",
+    "tipsList": [
+      "Only public YouTube videos are supported",
+      "Video analysis may take 1-2 minutes depending on video length",
+      "The generated script will be editable before creating the project"
+    ],
+    "currentSettingsPrefix": "Current settings",
+    "inspirationsTitle": "Get inspired",
+    "inspirationsHint": "Tap Remix to recreate any of these stories with your own twist.",
+    "youtubeRemixAria": "Remix",
+    "viewDrafts": "View your drafts here",
+    "draftsPageTitle": "Your Drafts",
+    "draftsPageHint": "Drafts are auto-saved while you work. Tap any card to resume.",
+    "backToVideoAgent": "Back to Video Agent"
   },
   "effectSelector": {
     "title": "Video Effects",
@@ -203,7 +268,10 @@
     "aiVideo": "AI Video",
     "aiImage": "AI Image",
     "myWorks": "My Works",
-    "account": "Account"
+    "account": "Account",
+    "starryTalezTagline": "AI characters that talk back",
+    "starryTalezNew": "new",
+    "starryTalezAria": "Discover StarryTalez"
   },
   "myAssets": {
     "failedToLoad": "Failed to load assets",
@@ -239,6 +307,82 @@
       "creationTime": "Creation Time",
       "newest": "Newest",
       "oldest": "Oldest"
-    }
+    },
+    "storageUsed": "Storage Used",
+    "storageRulesTitle": "Storage Rules",
+    "storageRuleFreeRetention": "Free Users: Videos and images are auto-deleted 24 hours after creation.",
+    "storageRulePro": "Pro Users: Stored permanently while your subscription is active.",
+    "storageRuleQuota": "Universal 1GB storage cap. When storage is full, the oldest items are removed first.",
+    "storageRuleSoftDelete": "Deleted items stay in a 7-day recycle window before permanent removal.",
+    "storageFullChip": "Storage Full",
+    "expiresIn": "Expires in {time}",
+    "expiringSoon": "Expiring soon",
+    "upgradeToKeep": "Upgrade to keep →",
+    "hoursShort": "h",
+    "minutesShort": "m"
+  },
+  "guide": {
+    "title": "Video Agent Guide",
+    "subtitle": "Learn how to turn an idea into a fully produced video in minutes.",
+    "introHeading": "What is Video Agent?",
+    "introBody": "Video Agent is VidFab's end-to-end AI workflow. Give it a story idea — typed from scratch or remixed from a YouTube Shorts clip — and it returns a finished video with characters, storyboards, motion, and music. No timeline editing required.",
+    "twoWaysHeading": "Two ways to start",
+    "twoWaysSubhead": "Pick whichever fits — both end up in the same generation pipeline.",
+    "referencePathTitle": "Create by reference",
+    "referencePathBadge": "Recommended",
+    "referenceStep1Title": "Paste a YouTube Shorts link",
+    "referenceStep1Body": "Use a public Shorts video under 1 minute. Non-dialogue clips with clear scenes work best.",
+    "referenceStep2Title": "Pick a visual style",
+    "referenceStep2Body": "Realistic, Anime, 3D Animation, Cinematic — your style sets the look of every character and shot.",
+    "referenceStep3Title": "Toggle background music",
+    "referenceStep3Body": "Off = silent (default, saves credits). On = Seedance native audio (costs 2× credits).",
+    "referenceStep4Title": "Click Analyze Video",
+    "referenceStep4Body": "AI extracts the story beats and drops you into the editor for script review.",
+    "myselfPathTitle": "Create by myself",
+    "myselfStep1Title": "Write your story (or hit AI Inspiration)",
+    "myselfStep1Body": "Type freely or click AI Inspiration for ready-made story seeds you can edit.",
+    "myselfStep2Title": "Tune duration, style, aspect ratio, music",
+    "myselfStep2Body": "Duration impacts shot count and credits. Aspect 9:16 fits Shorts, 16:9 fits landscape.",
+    "myselfStep3Title": "Click Generate Video",
+    "myselfStep3Body": "Your project enters the same automated pipeline below.",
+    "behindHeading": "Behind the scenes",
+    "behindSubhead": "4 automated stages run sequentially. You can review and regenerate any stage.",
+    "stageScriptTitle": "Script Analysis",
+    "stageScriptBody": "AI breaks your story into shots, characters, and pacing. Edit anything before moving on.",
+    "stageCharacterTitle": "Character Generation",
+    "stageCharacterBody": "Each character gets a consistent visual identity that carries through every shot.",
+    "stageStoryboardTitle": "Storyboard",
+    "stageStoryboardBody": "Per-shot still images with mood, camera angle, and characters in place. Regenerate any shot you don't like.",
+    "stageCompositionTitle": "Video Composition",
+    "stageCompositionBody": "Each storyboard becomes a moving clip; clips are stitched into a final video with the music you chose.",
+    "tipsHeading": "Good to know",
+    "tip1": "Drafts auto-save while you work. Open \"Your Drafts\" from the quota row to resume.",
+    "tip2": "Free plan: 5 scripts per month. After that, each script costs 3 credits.",
+    "tip3": "A full video typically takes 5–15 minutes to generate. You can leave the page; status persists.",
+    "tip4": "You can edit the script after analysis but before character generation starts.",
+    "faqHeading": "FAQ",
+    "faq1Q": "What kind of YouTube videos work best?",
+    "faq1A": "Non-dialogue Shorts under 1 minute, with clear scenes and recognizable characters.",
+    "faq2Q": "Can I change a character or shot after generation?",
+    "faq2A": "Yes — regenerate any character card or storyboard individually before the final video composition step.",
+    "faq3Q": "What happens to my draft if I close the browser?",
+    "faq3A": "Drafts auto-save server-side. Resume them anytime from the Drafts page.",
+    "footerCtaTitle": "Ready to make your first video?",
+    "footerCtaButton": "Open Video Agent"
+  },
+  "creditsDialog": {
+    "title": "Credits",
+    "subtitle": "Snapshot of your usage this month.",
+    "currentCredits": "Current credits",
+    "usedThisMonth": "Used this month",
+    "proMember": "Pro member",
+    "freePlan": "Free plan",
+    "usedOfMonthly": "of {total} this month",
+    "subscribePrompt": "Subscribe for a monthly credit budget"
+  },
+  "creditsBalanceCard": {
+    "title": "Credits Balance",
+    "available": "credits available",
+    "usedThisMonth": "Used this month"
   }
 }

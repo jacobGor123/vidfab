@@ -20,6 +20,7 @@ import {
   toolToUrlMap,
   getToolFromPath
 } from "@/lib/config/studio-tools"
+import { StarryTalezCta } from "./starrytalez-cta"
 
 // 需要登录才显示的工具 ID
 const AUTH_REQUIRED_TOOLS = new Set<ToolType>(['my-assets', 'my-profile'])
@@ -208,6 +209,9 @@ export function CreateSidebar({ isOpen, onToggle }: CreateSidebarProps) {
             )
           })}
         </div>
+
+        {/* StarryTalez CTA — sister-app 曝光入口（PDF 第 3 部分需求） */}
+        <StarryTalezCta isOpen={isOpen} />
 
         {/* Footer */}
         {isOpen && (

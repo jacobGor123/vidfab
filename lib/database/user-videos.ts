@@ -8,6 +8,36 @@ import type { UserVideo, UserStorageQuota, UserQuotaInfo } from '../supabase'
 import { resilientDbOperation, ErrorReporter } from '@/lib/utils/error-handling'
 import { UnifiedStorageManager } from '../storage/unified-storage-manager'
 
+/**
+ * 订阅状态判定（含暂停 7 天宽限期）
+ *
+ * Stripe 失败重试 / 用户暂停时，status 可能短暂变为 past_due / paused / canceled，
+ * 但 subscription_period_end 仍在未来 → 7 天内仍按 Pro 处理，避免误清资产。
+ */
+const SUBSCRIPTION_GRACE_DAYS = 7
+
+function computeIsSubscribedWithGrace(user: {
+  subscription_plan?: string | null
+  subscription_status?: string | null
+  subscription_period_end?: string | null
+}): boolean {
+  const plan = user.subscription_plan || 'free'
+  const status = user.subscription_status || 'inactive'
+
+  if (plan === 'free') return false
+
+  if (status === 'active') return true
+
+  // 非 active 状态：检查是否还在宽限期内
+  // 触发条件：plan 不是 free（至少曾订阅过），且 period_end 在 N 天宽限期内
+  if (!user.subscription_period_end) return false
+
+  const periodEnd = new Date(user.subscription_period_end).getTime()
+  const graceUntil = periodEnd + SUBSCRIPTION_GRACE_DAYS * 24 * 60 * 60 * 1000
+
+  return Date.now() <= graceUntil
+}
+
 export class UserVideosDB {
 
   // Cache quota info to prevent excessive database calls
@@ -638,18 +668,16 @@ export class UserVideosDB {
         return cached.data
       }
 
-      // Get user subscription status
+      // Get user subscription status (含暂停 7 天宽限期)
       const { data: user, error: userError } = await supabaseAdmin
         .from('users')
-        .select('subscription_plan, subscription_status')
+        .select('subscription_plan, subscription_status, subscription_period_end')
         .eq('uuid', userId)
         .single()
 
       let isSubscribed = false
       if (!userError && user) {
-        const plan = user.subscription_plan || 'free'
-        const status = user.subscription_status || 'inactive'
-        isSubscribed = plan !== 'free' && status === 'active'
+        isSubscribed = computeIsSubscribedWithGrace(user)
       }
 
       // Get unified storage status
@@ -707,18 +735,16 @@ export class UserVideosDB {
     remainingSizeMB: number
   }> {
     try {
-      // Get user subscription status
+      // Get user subscription status (含暂停 7 天宽限期)
       const { data: user } = await supabaseAdmin
         .from('users')
-        .select('subscription_plan, subscription_status')
+        .select('subscription_plan, subscription_status, subscription_period_end')
         .eq('uuid', userId)
         .single()
 
       let isSubscribed = false
       if (user) {
-        const plan = user.subscription_plan || 'free'
-        const status = user.subscription_status || 'inactive'
-        isSubscribed = plan !== 'free' && status === 'active'
+        isSubscribed = computeIsSubscribedWithGrace(user)
       }
 
       // Use unified storage manager for cleanup

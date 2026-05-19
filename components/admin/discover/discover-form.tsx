@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { DiscoverCategory, DiscoverStatus } from '@/types/discover'
+import { DiscoverCategory, DiscoverContentTab, DiscoverMediaType, DiscoverStatus } from '@/types/discover'
 import { getAllCategories } from '@/lib/discover/categorize'
 
 interface DiscoverFormProps {
@@ -27,7 +27,9 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
     category: initialData?.category || '',
     status: initialData?.status || DiscoverStatus.DRAFT,
     is_featured: initialData?.is_featured || false,
-    display_order: initialData?.display_order || 0
+    display_order: initialData?.display_order || 0,
+    media_type: initialData?.media_type || DiscoverMediaType.VIDEO,
+    content_tab: initialData?.content_tab || DiscoverContentTab.ENTERTAINMENT,
   })
 
   const [videoFile, setVideoFile] = useState<File | null>(null)
@@ -44,6 +46,8 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
       formDataToSend.append('status', formData.status)
       formDataToSend.append('is_featured', formData.is_featured.toString())
       formDataToSend.append('display_order', formData.display_order.toString())
+      formDataToSend.append('media_type', formData.media_type)
+      formDataToSend.append('content_tab', formData.content_tab)
 
       if (formData.category) {
         formDataToSend.append('category', formData.category)
@@ -193,6 +197,42 @@ export default function DiscoverForm({ initialData, isEdit = false }: DiscoverFo
         </datalist>
         <p className="mt-1 text-xs text-gray-500">
           Suggestions: {getAllCategories().map(c => c.label).join(', ')}
+        </p>
+      </div>
+
+      {/* Media Type */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Media Type
+        </label>
+        <select
+          value={formData.media_type}
+          onChange={(e) => setFormData({ ...formData, media_type: e.target.value as DiscoverMediaType })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+        >
+          <option value={DiscoverMediaType.VIDEO}>Video</option>
+          <option value={DiscoverMediaType.IMAGE}>Image</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          Decides which URL drives the card preview (image_url for image, video_url for video).
+        </p>
+      </div>
+
+      {/* Content Tab */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Content Tab
+        </label>
+        <select
+          value={formData.content_tab}
+          onChange={(e) => setFormData({ ...formData, content_tab: e.target.value as DiscoverContentTab })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+        >
+          <option value={DiscoverContentTab.ENTERTAINMENT}>Entertainment</option>
+          <option value={DiscoverContentTab.PRODUCT_DEMO}>Product Demo</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          Front-end Discover page groups inspirations by this tab.
         </p>
       </div>
 

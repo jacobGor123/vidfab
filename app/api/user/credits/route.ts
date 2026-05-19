@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     // 🔥 强制刷新查询用户积分信息（避免缓存问题）
     const { data: user, error } = await supabaseAdmin
       .from(TABLES.USERS)
-      .select('credits_remaining, subscription_plan, subscription_status, updated_at')
+      .select('credits_remaining, credits_monthly_total, subscription_plan, subscription_status, updated_at')
       .eq('uuid', userId)
       .single()
 
@@ -68,6 +68,10 @@ export async function GET(request: NextRequest) {
 
     // 🎯 简单的积分信息响应（参考iMideo格式）
     const credits = user.credits_remaining || 0
+    const monthlyTotal = user.credits_monthly_total ?? null
+    // 本月已消耗 = 月初拿到的总额 - 当前余额（非负）；累积场景下 monthlyTotal 可能含上月剩余
+    const monthlyUsed =
+      typeof monthlyTotal === 'number' ? Math.max(0, monthlyTotal - credits) : null
     const plan = user.subscription_plan || 'free'
     const status = user.subscription_status || 'inactive'
     // 🔥 修复：有积分且非free计划的用户都认为是Pro用户
@@ -88,6 +92,8 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         credits: credits,
+        monthly_total: monthlyTotal,
+        monthly_used: monthlyUsed,
         is_pro: is_pro,
         is_recharged: credits > 0,
         plan_type: plan,

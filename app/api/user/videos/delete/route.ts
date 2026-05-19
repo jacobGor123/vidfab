@@ -69,12 +69,14 @@ export async function DELETE(request: NextRequest) {
       prompt: existingVideo.prompt?.substring(0, 50) + '...'
     })
 
-    // Perform soft delete
+    // Perform soft delete (deleted_at 用于 7 天回收站期 + cron 物理删 S3)
+    const nowIso = new Date().toISOString()
     const { data: updateResult, error: updateError } = await supabaseAdmin
       .from(TABLES.USER_VIDEOS)
       .update({
         status: 'deleted',
-        updated_at: new Date().toISOString()
+        deleted_at: nowIso,
+        updated_at: nowIso
       })
       .eq('id', videoId)
       .eq('user_id', userId)

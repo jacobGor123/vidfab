@@ -87,6 +87,19 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     const displayOrder = formData.has('display_order')
       ? parseInt(formData.get('display_order') as string)
       : existing.display_order
+    const mediaType = formData.has('media_type')
+      ? (formData.get('media_type') as string)
+      : existing.media_type
+    const contentTab = formData.has('content_tab')
+      ? (formData.get('content_tab') as string)
+      : existing.content_tab
+
+    if (!['image', 'video'].includes(mediaType)) {
+      return NextResponse.json({ success: false, error: '非法的 media_type' }, { status: 400 })
+    }
+    if (!['entertainment', 'product_demo'].includes(contentTab)) {
+      return NextResponse.json({ success: false, error: '非法的 content_tab' }, { status: 400 })
+    }
 
     // 处理视频上传
     let finalVideoUrl = existing.video_url
@@ -195,7 +208,9 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         category: finalCategory,
         status,
         is_featured: isFeatured,
-        display_order: displayOrder
+        display_order: displayOrder,
+        media_type: mediaType,
+        content_tab: contentTab,
       })
       .eq('id', id)
       .select()
