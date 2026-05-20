@@ -57,6 +57,8 @@ export async function POST(request: NextRequest) {
 
     return discoverJson({
       success: true,
+      // Keep uploadUrl for already-open admin pages that still run the old client bundle.
+      uploadUrl: signedUpload.signedUrl,
       bucket: signedUpload.bucket,
       path: signedUpload.path,
       token: signedUpload.token,
