@@ -138,6 +138,16 @@ export interface ScriptAnalysisResult {
   characters: string[]          // 角色列表
   shots: Shot[]                 // 分镜列表
   music_generation_prompt?: string  // Suno 音乐生成 prompt
+  source_metadata?: {
+    platform: 'youtube' | 'tiktok' | 'local'
+    original_url: string
+    canonical_url?: string
+    post_id?: string
+    title?: string
+    author_name?: string
+    author_url?: string
+    thumbnail_url?: string
+  }
 }
 
 /**

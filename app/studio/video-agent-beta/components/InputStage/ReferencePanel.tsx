@@ -27,6 +27,16 @@ import { emitCreditsUpdated } from '@/lib/events/credits-events'
 import { useVideoAnalysis } from '../VideoUploadDialog/hooks/useVideoAnalysis'
 import { IMAGE_STYLES, type ImageStyle } from '@/lib/services/video-agent/character-prompt-generator'
 
+function detectReferenceSource(url: string): 'youtube' | 'tiktok' | null {
+  const trimmed = url.trim()
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[\w-]+/i
+  const tiktokRegex = /^(https?:\/\/)?((www|m|vm|vt)\.)?tiktok\.com\/.+/i
+
+  if (youtubeRegex.test(trimmed)) return 'youtube'
+  if (tiktokRegex.test(trimmed)) return 'tiktok'
+  return null
+}
+
 interface ReferencePanelProps {
   duration: number
   storyStyle: string
@@ -56,7 +66,7 @@ export default function ReferencePanel({
   // i18n tips list（数组通过 .raw 取出后 cast）
   const tips = (t.raw('tipsList') as string[]) || []
 
-  const { isAnalyzing, analyzeYouTubeVideo } = useVideoAnalysis({
+  const { isAnalyzing, analyzeReferenceVideo } = useVideoAnalysis({
     duration,
     storyStyle,
     aspectRatio,
@@ -66,12 +76,12 @@ export default function ReferencePanel({
 
   const handleAnalyze = async () => {
     if (!youtubeUrl.trim()) {
-      showError('Please enter a YouTube URL')
+      showError('Please enter a YouTube or TikTok URL')
       return
     }
-    const isValidUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[\w-]+/.test(youtubeUrl)
-    if (!isValidUrl) {
-      showError('Invalid YouTube URL format')
+    const sourceType = detectReferenceSource(youtubeUrl)
+    if (!sourceType) {
+      showError('Invalid YouTube or TikTok URL format')
       return
     }
     if (creditsRemaining < 10) {
@@ -80,8 +90,8 @@ export default function ReferencePanel({
     }
     await authModal.requireAuth(async () => {
       try {
-        await analyzeYouTubeVideo(youtubeUrl, imageStyle)
-        emitCreditsUpdated('video-agent-youtube-analyzed')
+        await analyzeReferenceVideo(youtubeUrl, imageStyle, sourceType)
+        emitCreditsUpdated(`video-agent-${sourceType}-analyzed`)
       } catch (error: any) {
         if (error.status === 402 || error.code === 'INSUFFICIENT_CREDITS') {
           setShowUpgradeDialog(true)
@@ -108,16 +118,16 @@ export default function ReferencePanel({
         </Link>
       </div>
 
-      {/* YouTube Video URL */}
+      {/* Reference Video URL */}
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-white">
-          YouTube Shorts Video URL (&lt;1 min)
+          Reference Video URL (YouTube Shorts or TikTok, &lt;1 min)
         </label>
         <input
           type="url"
           value={youtubeUrl}
           onChange={(e) => onYoutubeUrlChange(e.target.value)}
-          placeholder="Paste a non-dialogue video link, and AI will analyze the plot to generate a similar story script"
+          placeholder="Paste a YouTube Shorts or TikTok link, and AI will analyze the plot to generate a similar story script"
           disabled={isAnalyzing}
           className={cn(
             "w-full h-10 px-4 rounded-md text-sm text-white outline-none transition-all",

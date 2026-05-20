@@ -60,15 +60,17 @@ export async function analyzeVideoToScript(
         promptLength: prompt.length
       })
 
+      const videoMimeType = 'mimeType' in videoSource ? (videoSource.mimeType || 'video/mp4') : 'video/mp4'
+
       // 🔥 根据 Google Gemini API 文档，YouTube 视频可以直接使用 fileUri
       // 参考：https://ai.google.dev/gemini-api/docs/video-understanding
       // 关键：mimeType 必须是 "video/mp4"（不能用 "video/*"）
       // YouTube URL 必须是标准格式：https://www.youtube.com/watch?v=VIDEO_ID
-      const parts = [
+      const parts: any[] = [
         { text: prompt },
         {
           fileData: {
-            mimeType: 'video/mp4',  // 🔥 YouTube 和本地视频都使用 video/mp4
+            mimeType: videoMimeType,  // 🔥 YouTube 和大多数上传视频使用 video/mp4
             fileUri: videoSource.url
           }
         }
@@ -77,7 +79,7 @@ export async function analyzeVideoToScript(
       console.log('[Video Analyzer Core] Gemini request structure:', {
         partsCount: parts.length,
         videoType: videoSource.type,
-        mimeType: 'video/mp4',
+        mimeType: videoMimeType,
         fileUri: videoSource.url,
         promptLength: prompt.length
       })

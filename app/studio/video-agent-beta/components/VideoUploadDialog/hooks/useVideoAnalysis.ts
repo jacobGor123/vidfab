@@ -47,7 +47,11 @@ export function useVideoAnalysis({
     return scriptParts.join('\n\n')
   }
 
-  const analyzeYouTubeVideo = async (youtubeUrl: string, imageStyle: ImageStyle) => {
+  const analyzeReferenceVideo = async (
+    referenceUrl: string,
+    imageStyle: ImageStyle,
+    sourceType: 'youtube' | 'tiktok'
+  ) => {
     setIsAnalyzing(true)
     setProgress('Analyzing video content...')
 
@@ -55,10 +59,10 @@ export function useVideoAnalysis({
       // 🔥 步骤1: 调用视频分析 API（现在会直接创建项目，避免重复扣配额）
       const response = await analyzeVideo({
         videoSource: {
-          type: 'youtube',
-          url: youtubeUrl
+          type: sourceType,
+          url: referenceUrl
         },
-        duration,  // YouTube 模式下会被实际时长覆盖
+        duration,  // Reference 模式下会被实际时长覆盖
         storyStyle,
         aspectRatio: '9:16',  // 复刻视频模式强制竖屏
         imageStyle,  // 🔥 直接传递图片风格，API 创建项目时设置
@@ -70,11 +74,11 @@ export function useVideoAnalysis({
       const project = response.project
 
       if (!project || !analysisData) {
-        console.error('[YouTube Mode] Invalid API response:', response)
+        console.error('[Reference Video Mode] Invalid API response:', response)
         throw new Error('Invalid response from analyze API')
       }
 
-      console.log('[YouTube Mode] Project created with image style:', {
+      console.log('[Reference Video Mode] Project created with image style:', {
         projectId: project.id,
         shotsCount: analysisData?.shots?.length || 0,
         duration: project.duration,
@@ -113,14 +117,14 @@ export function useVideoAnalysis({
               })
 
               if (!updateCharsResponse.ok) {
-                console.warn('[YouTube Mode] Failed to save character prompts, but continuing...')
+                console.warn('[Reference Video Mode] Failed to save character prompts, but continuing...')
               }
             }
           } else {
-            console.warn('[YouTube Mode] Failed to generate character prompts, but continuing...')
+            console.warn('[Reference Video Mode] Failed to generate character prompts, but continuing...')
           }
         } catch (charError) {
-          console.warn('[YouTube Mode] Character prompt generation failed (non-critical):', charError)
+          console.warn('[Reference Video Mode] Character prompt generation failed (non-critical):', charError)
           // 角色 prompt 生成失败不影响主流程，继续执行
         }
       }
@@ -155,6 +159,8 @@ export function useVideoAnalysis({
   return {
     isAnalyzing,
     progress,
-    analyzeYouTubeVideo
+    analyzeReferenceVideo,
+    analyzeYouTubeVideo: (youtubeUrl: string, imageStyle: ImageStyle) =>
+      analyzeReferenceVideo(youtubeUrl, imageStyle, 'youtube')
   }
 }

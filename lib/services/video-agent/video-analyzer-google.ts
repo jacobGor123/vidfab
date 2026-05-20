@@ -21,6 +21,7 @@ export { buildVideoAnalysisPrompt } from './processors/video/video-prompt-builde
 // 导出 YouTube 工具函数
 export {
   isValidYouTubeUrl,
+  isValidTikTokUrl,
   extractYouTubeVideoId,
   normalizeYouTubeUrl,
   convertToStandardYouTubeUrl,

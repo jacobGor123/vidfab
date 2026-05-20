@@ -140,12 +140,13 @@ interface ComposeVideoParams {
 
 interface AnalyzeVideoParams {
   videoSource: {
-    type: 'youtube' | 'local'
+    type: 'youtube' | 'tiktok' | 'local'
     url: string
   }
   duration: number
   storyStyle: string
   aspectRatio?: '16:9' | '9:16'
+  imageStyle?: string
   muteBgm?: boolean
 }
 

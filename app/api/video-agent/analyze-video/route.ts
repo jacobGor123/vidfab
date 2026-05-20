@@ -3,17 +3,19 @@
  * POST /api/video-agent/analyze-video
  *
  * 功能：
- * - 接收 YouTube URL 或本地视频 URL
+ * - 接收 YouTube URL、TikTok URL 或本地视频 URL
  * - 调用 Gemini 2.5 Flash 分析视频内容
  * - 返回结构化脚本（与文本脚本分析相同格式）
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware/auth'
-import { analyzeVideoToScript, isValidYouTubeUrl, getYouTubeDuration, convertToStandardYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
-import { deductUserCredits } from '@/lib/simple-credits-check'
+import { analyzeVideoToScript, isValidYouTubeUrl, isValidTikTokUrl, getYouTubeDuration, convertToStandardYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 import { checkAndDeductScriptCreation } from '@/lib/video-agent/script-creation-quota'
+import { prepareTikTokVideo, type TikTokSourceMetadata } from '@/lib/services/video-agent/processors/video/tiktok-source'
+import { deleteGeminiFile, uploadVideoFileToGemini } from '@/lib/services/video-agent/processors/video/gemini-file-uploader'
+import type { VideoSource } from '@/lib/services/video-agent/processors/video/youtube-utils'
 
 export const maxDuration = 300 // 最长 5 分钟（视频分析可能较慢）
 
@@ -23,8 +25,8 @@ export const maxDuration = 300 // 最长 5 分钟（视频分析可能较慢）
  * Request Body:
  * {
  *   "videoSource": {
- *     "type": "youtube" | "local",
- *     "url": "https://www.youtube.com/watch?v=xxxxx" | "https://your-storage.com/video.mp4"
+ *     "type": "youtube" | "tiktok" | "local",
+ *     "url": "https://www.youtube.com/watch?v=xxxxx" | "https://www.tiktok.com/@user/video/xxxxx" | "https://your-storage.com/video.mp4"
  *   },
  *   "duration": 15 | 30 | 45 | 60,
  *   "storyStyle": "auto" | "comedy" | "mystery" | ...,
@@ -58,16 +60,16 @@ export const POST = withAuth(async (req, { params, userId }) => {
       )
     }
 
-    if (!['youtube', 'local'].includes(videoSource.type)) {
+    if (!['youtube', 'tiktok', 'local'].includes(videoSource.type)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid video source type. Must be "youtube" or "local"' },
+        { success: false, error: 'Invalid video source type. Must be "youtube", "tiktok", or "local"' },
         { status: 400 }
       )
     }
 
     // 🔥 对于 YouTube 视频，duration 参数仅作为备用（如果获取真实时长失败）
     // 对于本地视频，仍然需要验证 duration
-    if (videoSource.type !== 'youtube' && ![15, 30, 45, 60].includes(duration)) {
+    if (videoSource.type === 'local' && ![15, 30, 45, 60].includes(duration)) {
       return NextResponse.json(
         { success: false, error: 'Duration must be 15, 30, 45, or 60 seconds for local videos' },
         { status: 400 }
@@ -86,6 +88,14 @@ export const POST = withAuth(async (req, { params, userId }) => {
     if (videoSource.type === 'youtube' && !isValidYouTubeUrl(videoSource.url)) {
       return NextResponse.json(
         { success: false, error: 'Invalid YouTube URL format' },
+        { status: 400 }
+      )
+    }
+
+    // 4b. 验证 TikTok URL 格式（如果是 TikTok 视频）
+    if (videoSource.type === 'tiktok' && !isValidTikTokUrl(videoSource.url)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid TikTok URL format' },
         { status: 400 }
       )
     }
@@ -135,7 +145,13 @@ export const POST = withAuth(async (req, { params, userId }) => {
       )
     }
 
-    // 5. 🔥 获取 YouTube 视频真实时长（如果是 YouTube 视频）
+    const originalVideoSource = { ...videoSource } as VideoSource
+    let analysisVideoSource = videoSource as VideoSource
+    let sourceMetadata: TikTokSourceMetadata | undefined
+    let cleanupPreparedVideo: (() => Promise<void>) | null = null
+    let uploadedGeminiFileName: string | undefined
+
+    // 5. 🔥 获取 YouTube/TikTok 视频真实时长
     let actualDuration = duration // 默认使用用户选择的时长
 
     if (videoSource.type === 'youtube') {
@@ -173,6 +189,66 @@ export const POST = withAuth(async (req, { params, userId }) => {
       }
     }
 
+    if (videoSource.type === 'tiktok') {
+      try {
+        console.log('[API /analyze-video] Preparing TikTok video for Gemini analysis...')
+        const preparedTikTok = await prepareTikTokVideo(videoSource.url)
+        cleanupPreparedVideo = preparedTikTok.cleanup
+        sourceMetadata = preparedTikTok.metadata
+
+        if (preparedTikTok.duration) {
+          actualDuration = Math.round(preparedTikTok.duration)
+        }
+
+        if (actualDuration > 60) {
+          if (cleanupPreparedVideo) {
+            await cleanupPreparedVideo()
+            cleanupPreparedVideo = null
+          }
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Video is too long (${actualDuration}s). Maximum supported duration is 60 seconds (1 minute). Please use a shorter video.`,
+              code: 'VIDEO_TOO_LONG',
+              actualDuration
+            },
+            { status: 400 }
+          )
+        }
+
+        const uploaded = await uploadVideoFileToGemini(preparedTikTok.filePath, preparedTikTok.mimeType)
+        uploadedGeminiFileName = uploaded.name
+        analysisVideoSource = {
+          type: 'local',
+          url: uploaded.uri,
+          mimeType: uploaded.mimeType
+        }
+
+        console.log('[API /analyze-video] TikTok video uploaded to Gemini:', {
+          actualDuration,
+          mimeType: uploaded.mimeType,
+          canonicalUrl: sourceMetadata?.canonical_url,
+          postId: sourceMetadata?.post_id
+        })
+      } catch (error: any) {
+        console.error('[API /analyze-video] Failed to prepare TikTok video:', error)
+        if (uploadedGeminiFileName) {
+          await deleteGeminiFile(uploadedGeminiFileName)
+        }
+        if (cleanupPreparedVideo) {
+          await cleanupPreparedVideo()
+        }
+        return NextResponse.json(
+          {
+            success: false,
+            error: error.message || 'Unable to prepare TikTok video. Please check the URL and try again.',
+            code: 'TIKTOK_PREPARE_FAILED'
+          },
+          { status: 400 }
+        )
+      }
+    }
+
     // 6. 🔥 转换 YouTube URL 为标准 watch 格式
     // Gemini API 可能只支持标准的 watch?v= 格式，不支持 Shorts
     if (videoSource.type === 'youtube') {
@@ -183,29 +259,62 @@ export const POST = withAuth(async (req, { params, userId }) => {
         isShorts: videoSource.url.includes('/shorts/'),
         videoId: standardUrl.split('v=')[1]
       })
-      videoSource.url = standardUrl
+      analysisVideoSource = {
+        type: 'youtube',
+        url: standardUrl
+      }
     }
 
     // 7. 调用视频分析服务（使用实际时长）
     console.log('[API /analyze-video] Calling video analyzer...', {
       userSelectedDuration: duration,
       actualDuration,
-      isYouTube: videoSource.type === 'youtube'
+      sourceType: originalVideoSource.type
     })
 
     const startTime = Date.now()
 
-    const analysis = await analyzeVideoToScript(
-      videoSource,
-      actualDuration,  // 🔥 使用实际时长，而不是用户选择的时长
-      storyStyle
-    )
+    let analysis
+    try {
+      analysis = await analyzeVideoToScript(
+        analysisVideoSource,
+        actualDuration,  // 🔥 使用实际时长，而不是用户选择的时长
+        storyStyle
+      )
+    } finally {
+      if (uploadedGeminiFileName) {
+        await deleteGeminiFile(uploadedGeminiFileName)
+      }
+      if (cleanupPreparedVideo) {
+        await cleanupPreparedVideo()
+      }
+    }
+
+    if (originalVideoSource.type === 'tiktok' && analysis.duration > 60) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Video is too long (${analysis.duration}s). Maximum supported duration is 60 seconds (1 minute). Please use a shorter video.`,
+          code: 'VIDEO_TOO_LONG',
+          actualDuration: analysis.duration
+        },
+        { status: 400 }
+      )
+    }
+
+    actualDuration = Math.round(analysis.duration || actualDuration)
+
+    analysis.source_metadata = sourceMetadata || {
+      platform: originalVideoSource.type,
+      original_url: originalVideoSource.url,
+      canonical_url: analysisVideoSource.url
+    }
 
     const analysisTime = Date.now() - startTime
 
     console.log('[API /analyze-video] Video analysis completed', {
       userId,
-      videoType: videoSource.type,
+      videoType: originalVideoSource.type,
       actualDuration,
       shotCount: analysis.shots.length,
       characters: analysis.characters,
@@ -223,20 +332,22 @@ export const POST = withAuth(async (req, { params, userId }) => {
     const scriptContent = scriptParts.join('\n\n')
 
     // 创建项目记录
+    const projectInsert = {
+      user_id: userId,
+      duration: actualDuration,
+      story_style: storyStyle,
+      original_script: scriptContent,
+      aspect_ratio: aspectRatio,
+      mute_bgm: muteBgm,
+      image_style_id: imageStyle || null,  // 🔥 直接设置图片风格
+      status: 'draft',
+      current_step: 1,
+      script_analysis: analysis  // 保存分析结果
+    } as any
+
     const { data: project, error: projectError } = await supabaseAdmin
       .from('video_agent_projects')
-      .insert({
-        user_id: userId,
-        duration: actualDuration,
-        story_style: storyStyle,
-        original_script: scriptContent,
-        aspect_ratio: aspectRatio,
-        mute_bgm: muteBgm,
-        image_style_id: imageStyle || null,  // 🔥 直接设置图片风格
-        status: 'draft',
-        current_step: 1,
-        script_analysis: analysis  // 保存分析结果
-      })
+      .insert(projectInsert)
       .select()
       .single()
 
@@ -263,7 +374,7 @@ export const POST = withAuth(async (req, { params, userId }) => {
         project: project,
         meta: {
           analysisTimeMs: analysisTime,
-          videoSource: videoSource.type,
+          videoSource: originalVideoSource.type,
           actualDuration,
           userSelectedDuration: duration
         }
