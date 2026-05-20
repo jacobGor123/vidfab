@@ -3,10 +3,15 @@
  * GET: 获取各分类的数量统计
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { DiscoverCategory } from '@/types/discover'
 import { getCategoryDisplayName } from '@/lib/discover/categorize'
+import { discoverJson } from '@/lib/discover/cache-control'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 /**
  * GET /api/discover/categories
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (totalError) {
       console.error('获取总数失败:', totalError)
-      return NextResponse.json({ success: false, error: totalError.message }, { status: 500 })
+      return discoverJson({ success: false, error: totalError.message }, { status: 500 })
     }
 
     // 按分类统计
@@ -52,13 +57,13 @@ export async function GET(request: NextRequest) {
       ...categoriesData.filter(cat => cat.count > 0) // 仅返回有数据的分类
     ]
 
-    return NextResponse.json({
+    return discoverJson({
       success: true,
       data: result
     })
   } catch (error: any) {
     console.error('GET /api/discover/categories 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '获取分类统计失败' },
       { status: 500 }
     )

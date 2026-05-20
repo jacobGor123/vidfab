@@ -3,12 +3,17 @@
  * POST: 批量删除、批量更新状态、批量更新排序、批量生成缩略图
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { downloadToBuffer, uploadImageToS3, deleteDiscoverAssetsFromS3 } from '@/lib/discover/upload'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
 import type { DiscoverBatchRequest } from '@/types/discover'
+import { discoverJson, revalidateDiscoverContent } from '@/lib/discover/cache-control'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 /**
  * POST /api/admin/discover/batch
@@ -22,7 +27,7 @@ export async function POST(request: NextRequest) {
     const { action, ids, payload } = body
 
     if (!ids || ids.length === 0) {
-      return NextResponse.json({ success: false, error: 'ids 不能为空' }, { status: 400 })
+      return discoverJson({ success: false, error: 'ids 不能为空' }, { status: 400 })
     }
 
     let result
@@ -37,7 +42,7 @@ export async function POST(request: NextRequest) {
           .in('id', ids)
 
         if (fetchError) {
-          return NextResponse.json(
+          return discoverJson(
             { success: false, error: `获取待删除记录失败: ${fetchError.message}` },
             { status: 500 }
           )
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest) {
       case 'updateStatus':
         // 批量更新状态
         if (!payload || !payload.status) {
-          return NextResponse.json(
+          return discoverJson(
             { success: false, error: '缺少 status 参数' },
             { status: 400 }
           )
@@ -69,7 +74,7 @@ export async function POST(request: NextRequest) {
 
       case 'updateOrder':
         // 批量更新排序（暂不支持，需要前端提供每条的 display_order）
-        return NextResponse.json(
+        return discoverJson(
           { success: false, error: '批量更新排序暂不支持，请使用拖拽排序' },
           { status: 400 }
         )
@@ -79,15 +84,17 @@ export async function POST(request: NextRequest) {
         return await handleGenerateThumbnails(ids)
 
       default:
-        return NextResponse.json({ success: false, error: '无效的操作类型' }, { status: 400 })
+        return discoverJson({ success: false, error: '无效的操作类型' }, { status: 400 })
     }
 
     if (result.error) {
       console.error('批量操作失败:', result.error)
-      return NextResponse.json({ success: false, error: result.error.message }, { status: 500 })
+      return discoverJson({ success: false, error: result.error.message }, { status: 500 })
     }
 
-    return NextResponse.json({
+    revalidateDiscoverContent()
+
+    return discoverJson({
       success: true,
       message: assetCleanupErrors.length > 0
         ? `批量${action === 'delete' ? '删除' : '更新'}成功，但部分 S3 素材清理失败`
@@ -97,7 +104,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('POST /api/admin/discover/batch 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '批量操作失败' },
       { status: error.status || 500 }
     )
@@ -117,21 +124,21 @@ async function handleGenerateThumbnails(ids: number[]) {
       .in('id', ids)
 
     if (fetchError) {
-      return NextResponse.json(
+      return discoverJson(
         { success: false, error: `获取记录失败: ${fetchError.message}` },
         { status: 500 }
       )
     }
 
     if (!records || records.length === 0) {
-      return NextResponse.json({ success: false, error: '未找到任何记录' }, { status: 404 })
+      return discoverJson({ success: false, error: '未找到任何记录' }, { status: 404 })
     }
 
     // 筛选出没有 image_url 且有 video_url 的记录
     const recordsToProcess = records.filter((r) => !r.image_url && r.video_url)
 
     if (recordsToProcess.length === 0) {
-      return NextResponse.json({
+      return discoverJson({
         success: true,
         message: '所有记录都已有缩略图',
         processed: 0,
@@ -213,7 +220,11 @@ async function handleGenerateThumbnails(ids: number[]) {
       }
     }
 
-    return NextResponse.json({
+    if (results.processed > 0) {
+      revalidateDiscoverContent()
+    }
+
+    return discoverJson({
       success: true,
       message: `批量生成缩略图完成，成功 ${results.processed} 条，失败 ${results.failed} 条`,
       processed: results.processed,
@@ -222,7 +233,7 @@ async function handleGenerateThumbnails(ids: number[]) {
     })
   } catch (error: any) {
     console.error('批量生成缩略图错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '批量生成缩略图失败' },
       { status: 500 }
     )

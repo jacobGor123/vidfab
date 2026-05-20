@@ -4,11 +4,14 @@
  * 供前端 /create 页面使用，无需认证
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { discoverJson } from '@/lib/discover/cache-control'
 
 // 标记为动态路由（使用 request.url 和 searchParams）
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 /**
  * GET /api/discover
@@ -53,16 +56,16 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('查询 discover_videos 失败:', error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      return discoverJson({ success: false, error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({
+    return discoverJson({
       success: true,
       data: data || []
     })
   } catch (error: any) {
     console.error('GET /api/discover 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '获取列表失败' },
       { status: 500 }
     )

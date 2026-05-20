@@ -5,7 +5,7 @@
  * DELETE: 删除记录
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { categorizePrompt } from '@/lib/discover/categorize'
@@ -13,7 +13,11 @@ import { uploadVideoToS3, uploadImageToS3, deleteDiscoverAssetsFromS3 } from '@/
 import { compressVideo } from '@/lib/discover/compress-video'
 import { compressImage } from '@/lib/discover/compress-image'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
-import { DiscoverStatus } from '@/types/discover'
+import { discoverJson, revalidateDiscoverContent } from '@/lib/discover/cache-control'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 interface RouteContext {
   params: {
@@ -38,13 +42,13 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       .single()
 
     if (error || !data) {
-      return NextResponse.json({ success: false, error: '记录不存在' }, { status: 404 })
+      return discoverJson({ success: false, error: '记录不存在' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data })
+    return discoverJson({ success: true, data })
   } catch (error: any) {
     console.error('GET /api/admin/discover/[id] 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '获取记录失败' },
       { status: error.status || 500 }
     )
@@ -70,7 +74,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       .single()
 
     if (fetchError || !existing) {
-      return NextResponse.json({ success: false, error: '记录不存在' }, { status: 404 })
+      return discoverJson({ success: false, error: '记录不存在' }, { status: 404 })
     }
 
     // 提取字段
@@ -95,10 +99,10 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       : existing.content_tab
 
     if (!['image', 'video'].includes(mediaType)) {
-      return NextResponse.json({ success: false, error: '非法的 media_type' }, { status: 400 })
+      return discoverJson({ success: false, error: '非法的 media_type' }, { status: 400 })
     }
     if (!['entertainment', 'product_demo'].includes(contentTab)) {
-      return NextResponse.json({ success: false, error: '非法的 content_tab' }, { status: 400 })
+      return discoverJson({ success: false, error: '非法的 content_tab' }, { status: 400 })
     }
 
     // 处理视频上传
@@ -115,7 +119,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         const compressResult = await compressVideo(buffer, { targetSizeMB: 1 })
 
         if (!compressResult.success) {
-          return NextResponse.json(
+          return discoverJson(
             { success: false, error: `视频压缩失败: ${compressResult.error}` },
             { status: 500 }
           )
@@ -127,7 +131,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       const uploadResult = await uploadVideoToS3(buffer, 'video/mp4')
 
       if (!uploadResult.success) {
-        return NextResponse.json(
+        return discoverJson(
           { success: false, error: `视频上传失败: ${uploadResult.error}` },
           { status: 500 }
         )
@@ -155,7 +159,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       })
 
       if (!compressResult.success) {
-        return NextResponse.json(
+        return discoverJson(
           { success: false, error: `图片压缩失败: ${compressResult.error}` },
           { status: 500 }
         )
@@ -166,7 +170,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       const uploadResult = await uploadImageToS3(buffer, 'image/webp')
 
       if (!uploadResult.success) {
-        return NextResponse.json(
+        return discoverJson(
           { success: false, error: `图片上传失败: ${uploadResult.error}` },
           { status: 500 }
         )
@@ -218,7 +222,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     if (error) {
       console.error('更新 discover_videos 失败:', error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      return discoverJson({ success: false, error: error.message }, { status: 500 })
     }
 
     const assetCleanupErrors = await deleteDiscoverAssetsFromS3([
@@ -226,7 +230,9 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       finalImageUrl !== existing.image_url ? existing.image_url : null
     ])
 
-    return NextResponse.json({
+    revalidateDiscoverContent()
+
+    return discoverJson({
       success: true,
       data,
       message: assetCleanupErrors.length > 0
@@ -236,7 +242,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     })
   } catch (error: any) {
     console.error('PUT /api/admin/discover/[id] 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '更新失败' },
       { status: error.status || 500 }
     )
@@ -260,14 +266,14 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       .single()
 
     if (fetchError || !existing) {
-      return NextResponse.json({ success: false, error: '记录不存在' }, { status: 404 })
+      return discoverJson({ success: false, error: '记录不存在' }, { status: 404 })
     }
 
     const { error } = await supabaseAdmin.from('discover_videos').delete().eq('id', id)
 
     if (error) {
       console.error('删除 discover_videos 失败:', error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      return discoverJson({ success: false, error: error.message }, { status: 500 })
     }
 
     const assetCleanupErrors = await deleteDiscoverAssetsFromS3([
@@ -275,7 +281,9 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       existing.image_url
     ])
 
-    return NextResponse.json({
+    revalidateDiscoverContent()
+
+    return discoverJson({
       success: true,
       message: assetCleanupErrors.length > 0
         ? '记录已删除，但部分 S3 素材清理失败'
@@ -284,7 +292,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     })
   } catch (error: any) {
     console.error('DELETE /api/admin/discover/[id] 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '删除失败' },
       { status: error.status || 500 }
     )

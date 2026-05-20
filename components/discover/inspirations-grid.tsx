@@ -18,7 +18,12 @@ import { useRemix } from '@/hooks/use-remix'
 import { DiscoverContentTab, DiscoverMediaType, type DiscoverVideo } from '@/types/discover'
 import { InspirationCard } from './inspiration-card'
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = (url: string) => fetch(url, {
+  cache: 'no-store',
+  headers: {
+    'Cache-Control': 'no-cache',
+  },
+}).then(r => r.json())
 
 const TABS: Array<{ key: DiscoverContentTab; labelKey: string; fallback: string }> = [
   { key: DiscoverContentTab.ENTERTAINMENT, labelKey: 'discover.tabEntertainment', fallback: 'Entertainment' },
@@ -34,7 +39,11 @@ export function InspirationsGrid() {
   const query = new URLSearchParams({ tab: activeTab })
   if (media !== 'all') query.set('media', media)
 
-  const { data, isLoading } = useSWR(`/api/discover?${query.toString()}`, fetcher)
+  const { data, isLoading } = useSWR(`/api/discover?${query.toString()}`, fetcher, {
+    revalidateOnMount: true,
+    revalidateIfStale: true,
+    revalidateOnFocus: true,
+  })
   const items: DiscoverVideo[] = data?.success ? data.data : []
 
   const handleRemix = async (item: DiscoverVideo) => {

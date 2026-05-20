@@ -4,15 +4,20 @@
  * POST: 创建新的 Discover 视频
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { categorizePrompt } from '@/lib/discover/categorize'
-import { uploadVideoToS3, uploadImageToS3, downloadAndUploadToS3 } from '@/lib/discover/upload'
+import { uploadVideoToS3, uploadImageToS3 } from '@/lib/discover/upload'
 import { compressImage } from '@/lib/discover/compress-image'
-import { compressVideo, checkFfmpegInstalled } from '@/lib/discover/compress-video'
+import { compressVideo } from '@/lib/discover/compress-video'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
-import { DiscoverStatus, type DiscoverQueryParams } from '@/types/discover'
+import { DiscoverStatus } from '@/types/discover'
+import { discoverJson, revalidateDiscoverContent } from '@/lib/discover/cache-control'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 /**
  * GET /api/admin/discover
@@ -57,10 +62,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('查询 discover_videos 失败:', error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      return discoverJson({ success: false, error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({
+    return discoverJson({
       success: true,
       data: data || [],
       pagination: {
@@ -72,7 +77,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('GET /api/admin/discover 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '获取列表失败' },
       { status: error.status || 500 }
     )
@@ -104,27 +109,27 @@ export async function POST(request: NextRequest) {
 
     // 验证必填字段
     if (!prompt) {
-      return NextResponse.json({ success: false, error: 'prompt 不能为空' }, { status: 400 })
+      return discoverJson({ success: false, error: 'prompt 不能为空' }, { status: 400 })
     }
 
     if (!['image', 'video'].includes(mediaType)) {
-      return NextResponse.json({ success: false, error: '非法的 media_type' }, { status: 400 })
+      return discoverJson({ success: false, error: '非法的 media_type' }, { status: 400 })
     }
 
     if (!['entertainment', 'product_demo'].includes(contentTab)) {
-      return NextResponse.json({ success: false, error: '非法的 content_tab' }, { status: 400 })
+      return discoverJson({ success: false, error: '非法的 content_tab' }, { status: 400 })
     }
 
     // image 类型必须有 image_url 或 imageFile；video 类型必须有 video_url 或 videoFile
     if (mediaType === 'video' && !videoFile && !videoUrl) {
-      return NextResponse.json(
+      return discoverJson(
         { success: false, error: 'Video 类型必须提供视频文件或视频 URL' },
         { status: 400 }
       )
     }
 
     if (mediaType === 'image' && !imageFile && !imageUrl) {
-      return NextResponse.json(
+      return discoverJson(
         { success: false, error: 'Image 类型必须提供图片文件或图片 URL' },
         { status: 400 }
       )
@@ -145,7 +150,7 @@ export async function POST(request: NextRequest) {
 
         if (!compressResult.success) {
           // 如果压缩失败（比如 ffmpeg 未安装），返回错误
-          return NextResponse.json(
+          return discoverJson(
             { success: false, error: `视频压缩失败: ${compressResult.error}` },
             { status: 500 }
           )
@@ -158,7 +163,7 @@ export async function POST(request: NextRequest) {
       const uploadResult = await uploadVideoToS3(buffer, 'video/mp4')
 
       if (!uploadResult.success) {
-        return NextResponse.json(
+        return discoverJson(
           { success: false, error: `视频上传失败: ${uploadResult.error}` },
           { status: 500 }
         )
@@ -188,7 +193,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (!compressResult.success) {
-        return NextResponse.json(
+        return discoverJson(
           { success: false, error: `图片压缩失败: ${compressResult.error}` },
           { status: 500 }
         )
@@ -200,7 +205,7 @@ export async function POST(request: NextRequest) {
       const uploadResult = await uploadImageToS3(buffer, 'image/webp')
 
       if (!uploadResult.success) {
-        return NextResponse.json(
+        return discoverJson(
           { success: false, error: `图片上传失败: ${uploadResult.error}` },
           { status: 500 }
         )
@@ -266,17 +271,19 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('插入 discover_videos 失败:', error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      return discoverJson({ success: false, error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({
+    revalidateDiscoverContent()
+
+    return discoverJson({
       success: true,
       data,
       message: '创建成功'
     })
   } catch (error: any) {
     console.error('POST /api/admin/discover 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '创建失败' },
       { status: error.status || 500 }
     )

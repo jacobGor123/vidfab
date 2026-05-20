@@ -3,13 +3,16 @@
  * GET: 获取各种统计数据
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { DiscoverCategory, DiscoverStatus } from '@/types/discover'
+import { discoverJson } from '@/lib/discover/cache-control'
 
 // 标记为动态路由（使用 requireAdmin 需要 headers）
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 /**
  * GET /api/admin/discover/stats
@@ -26,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     if (totalError) {
       console.error('获取总数失败:', totalError)
-      return NextResponse.json({ success: false, error: totalError.message }, { status: 500 })
+      return discoverJson({ success: false, error: totalError.message }, { status: 500 })
     }
 
     // 按分类统计
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
       console.error('获取精选数量失败:', featuredError)
     }
 
-    return NextResponse.json({
+    return discoverJson({
       success: true,
       data: {
         total: total || 0,
@@ -82,7 +85,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('GET /api/admin/discover/stats 错误:', error)
-    return NextResponse.json(
+    return discoverJson(
       { success: false, error: error.message || '获取统计失败' },
       { status: error.status || 500 }
     )
