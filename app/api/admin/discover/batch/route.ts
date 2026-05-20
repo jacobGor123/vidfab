@@ -6,7 +6,11 @@
 import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
-import { downloadToBuffer, uploadImageToS3, deleteDiscoverAssetsFromS3 } from '@/lib/discover/upload'
+import {
+  downloadToBuffer,
+  uploadImageToDiscoverStorage,
+  deleteDiscoverAssetsFromStorage
+} from '@/lib/discover/upload'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
 import type { DiscoverBatchRequest } from '@/types/discover'
 import { discoverJson, revalidateDiscoverContent } from '@/lib/discover/cache-control'
@@ -51,7 +55,7 @@ export async function POST(request: NextRequest) {
         result = await supabaseAdmin.from('discover_videos').delete().in('id', ids)
 
         if (!result.error) {
-          assetCleanupErrors = await deleteDiscoverAssetsFromS3(
+          assetCleanupErrors = await deleteDiscoverAssetsFromStorage(
             (records || []).flatMap(record => [record.video_url, record.image_url])
           )
         }
@@ -97,7 +101,7 @@ export async function POST(request: NextRequest) {
     return discoverJson({
       success: true,
       message: assetCleanupErrors.length > 0
-        ? `批量${action === 'delete' ? '删除' : '更新'}成功，但部分 S3 素材清理失败`
+        ? `批量${action === 'delete' ? '删除' : '更新'}成功，但部分素材清理失败`
         : `批量${action === 'delete' ? '删除' : '更新'}成功`,
       affected: ids.length,
       assetCleanupErrors
@@ -115,7 +119,7 @@ export async function POST(request: NextRequest) {
  * 批量生成缩略图
  * 对于指定的 discover 记录，如果没有 image_url，则从 video_url 提取第一帧作为缩略图
  */
-async function handleGenerateThumbnails(ids: number[]) {
+async function handleGenerateThumbnails(ids: string[]) {
   try {
     // 获取指定 ids 的记录
     const { data: records, error: fetchError } = await supabaseAdmin
@@ -150,7 +154,7 @@ async function handleGenerateThumbnails(ids: number[]) {
     const results = {
       processed: 0,
       failed: 0,
-      errors: [] as Array<{ id: number; error: string }>
+      errors: [] as Array<{ id: string; error: string }>
     }
 
     for (const record of recordsToProcess) {
@@ -183,8 +187,7 @@ async function handleGenerateThumbnails(ids: number[]) {
           continue
         }
 
-        // 上传到 S3
-        const uploadResult = await uploadImageToS3(thumbnailResult.buffer!, 'image/webp')
+        const uploadResult = await uploadImageToDiscoverStorage(thumbnailResult.buffer!, 'image/webp')
 
         if (!uploadResult.success) {
           results.failed++

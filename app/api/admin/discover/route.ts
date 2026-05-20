@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { categorizePrompt } from '@/lib/discover/categorize'
-import { uploadVideoToS3, uploadImageToS3 } from '@/lib/discover/upload'
+import { uploadVideoToDiscoverStorage, uploadImageToDiscoverStorage } from '@/lib/discover/upload'
 import { compressImage } from '@/lib/discover/compress-image'
 import { compressVideo } from '@/lib/discover/compress-video'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     // 处理视频上传
     let finalVideoUrl = videoUrl
-    let videoBuffer: Buffer | null = null // 保存视频 buffer 供后续提取缩略图使用
+    let videoBuffer: Buffer<ArrayBufferLike> | null = null // 保存视频 buffer 供后续提取缩略图使用
 
     if (videoFile) {
       let buffer = Buffer.from(await videoFile.arrayBuffer())
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         buffer = compressResult.buffer!
       }
 
-      const uploadResult = await uploadVideoToS3(buffer, 'video/mp4')
+      const uploadResult = await uploadVideoToDiscoverStorage(buffer, 'video/mp4')
 
       if (!uploadResult.success) {
         return discoverJson(
@@ -172,8 +172,7 @@ export async function POST(request: NextRequest) {
       finalVideoUrl = uploadResult.url!
       videoBuffer = buffer // 保存 buffer 供后续提取缩略图使用
     } else if (videoUrl) {
-      // 如果提供的是 URL，可选择下载后上传到自己的 S3（更可控）
-      // 这里暂时直接使用提供的 URL
+      // 如果提供的是 URL，暂时直接使用提供的 URL。
       finalVideoUrl = videoUrl
     }
 
@@ -202,7 +201,7 @@ export async function POST(request: NextRequest) {
       // 使用压缩后的 buffer
       buffer = compressResult.buffer!
 
-      const uploadResult = await uploadImageToS3(buffer, 'image/webp')
+      const uploadResult = await uploadImageToDiscoverStorage(buffer, 'image/webp')
 
       if (!uploadResult.success) {
         return discoverJson(
@@ -226,8 +225,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (thumbnailResult.success) {
-        // 上传缩略图到 S3
-        const uploadResult = await uploadImageToS3(thumbnailResult.buffer!, 'image/webp')
+        const uploadResult = await uploadImageToDiscoverStorage(thumbnailResult.buffer!, 'image/webp')
 
         if (uploadResult.success) {
           finalImageUrl = uploadResult.url!

@@ -9,7 +9,11 @@ import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { categorizePrompt } from '@/lib/discover/categorize'
-import { uploadVideoToS3, uploadImageToS3, deleteDiscoverAssetsFromS3 } from '@/lib/discover/upload'
+import {
+  uploadVideoToDiscoverStorage,
+  uploadImageToDiscoverStorage,
+  deleteDiscoverAssetsFromStorage
+} from '@/lib/discover/upload'
 import { compressVideo } from '@/lib/discover/compress-video'
 import { compressImage } from '@/lib/discover/compress-image'
 import { extractVideoThumbnail } from '@/lib/discover/extract-thumbnail'
@@ -107,7 +111,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     // 处理视频上传
     let finalVideoUrl = existing.video_url
-    let videoBuffer: Buffer | null = null // 保存视频 buffer 供后续提取缩略图使用
+    let videoBuffer: Buffer<ArrayBufferLike> | null = null // 保存视频 buffer 供后续提取缩略图使用
 
     if (videoFile) {
       let buffer = Buffer.from(await videoFile.arrayBuffer())
@@ -128,7 +132,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         buffer = compressResult.buffer!
       }
 
-      const uploadResult = await uploadVideoToS3(buffer, 'video/mp4')
+      const uploadResult = await uploadVideoToDiscoverStorage(buffer, 'video/mp4')
 
       if (!uploadResult.success) {
         return discoverJson(
@@ -167,7 +171,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
       buffer = compressResult.buffer!
 
-      const uploadResult = await uploadImageToS3(buffer, 'image/webp')
+      const uploadResult = await uploadImageToDiscoverStorage(buffer, 'image/webp')
 
       if (!uploadResult.success) {
         return discoverJson(
@@ -191,7 +195,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       })
 
       if (thumbnailResult.success) {
-        const uploadResult = await uploadImageToS3(thumbnailResult.buffer!, 'image/webp')
+        const uploadResult = await uploadImageToDiscoverStorage(thumbnailResult.buffer!, 'image/webp')
 
         if (uploadResult.success) {
           finalImageUrl = uploadResult.url!
@@ -225,7 +229,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       return discoverJson({ success: false, error: error.message }, { status: 500 })
     }
 
-    const assetCleanupErrors = await deleteDiscoverAssetsFromS3([
+    const assetCleanupErrors = await deleteDiscoverAssetsFromStorage([
       finalVideoUrl !== existing.video_url ? existing.video_url : null,
       finalImageUrl !== existing.image_url ? existing.image_url : null
     ])
@@ -236,7 +240,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       success: true,
       data,
       message: assetCleanupErrors.length > 0
-        ? '更新成功，但旧 S3 素材清理失败'
+        ? '更新成功，但旧素材清理失败'
         : '更新成功',
       assetCleanupErrors
     })
@@ -276,7 +280,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       return discoverJson({ success: false, error: error.message }, { status: 500 })
     }
 
-    const assetCleanupErrors = await deleteDiscoverAssetsFromS3([
+    const assetCleanupErrors = await deleteDiscoverAssetsFromStorage([
       existing.video_url,
       existing.image_url
     ])
@@ -286,7 +290,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     return discoverJson({
       success: true,
       message: assetCleanupErrors.length > 0
-        ? '记录已删除，但部分 S3 素材清理失败'
+        ? '记录已删除，但部分素材清理失败'
         : '删除成功',
       assetCleanupErrors
     })

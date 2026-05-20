@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
 import { DiscoverCategory, DiscoverContentTab, DiscoverMediaType, DiscoverStatus } from '@/types/discover'
 import { getAllCategories } from '@/lib/discover/categorize'
 
@@ -17,6 +18,11 @@ type ApiResponse<T = Record<string, unknown>> = T & {
 }
 
 type UploadKind = 'video' | 'image'
+
+const supabaseBrowser = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 async function readApiResponse<T = Record<string, unknown>>(response: Response): Promise<ApiResponse<T>> {
   const text = await response.text()
@@ -51,23 +57,25 @@ async function uploadDiscoverAsset(file: File, kind: UploadKind) {
   })
 
   const signed = await readApiResponse<{
-    uploadUrl?: string
+    bucket?: string
+    path?: string
+    token?: string
     publicUrl?: string
   }>(signResponse)
 
-  if (!signed.uploadUrl || !signed.publicUrl) {
+  if (!signed.bucket || !signed.path || !signed.token || !signed.publicUrl) {
     throw new Error('上传链接创建失败')
   }
 
-  const uploadResponse = await fetch(signed.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': contentType },
-    body: file
-  })
+  const { error } = await supabaseBrowser.storage
+    .from(signed.bucket)
+    .uploadToSignedUrl(signed.path, signed.token, file, {
+      cacheControl: '3600',
+      contentType
+    })
 
-  if (!uploadResponse.ok) {
-    const errorText = await uploadResponse.text().catch(() => '')
-    throw new Error(`${kind === 'video' ? '视频' : '图片'}上传失败: ${errorText || uploadResponse.statusText}`)
+  if (error) {
+    throw new Error(`${kind === 'video' ? '视频' : '图片'}上传失败: ${error.message}`)
   }
 
   return signed.publicUrl

@@ -117,7 +117,7 @@ export interface DiscoverBatchResponse {
   affected?: number
   processed?: number
   failed?: number
-  errors?: Array<{ id: number; error: string }>
+  errors?: Array<{ id: string; error: string }>
 }
 
 // 查询参数

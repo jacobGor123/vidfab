@@ -1,73 +1,129 @@
 /**
- * Discover 视频/图片上传到 S3
- * 基于用户提供的 S3 上传代码示例
+ * Discover video/image storage helpers.
+ *
+ * Admin uploads use Supabase Storage so the app does not depend on AWS
+ * instance credentials in Vercel.
  */
 
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import crypto from 'crypto'
+import { supabaseAdmin } from '@/lib/supabase'
+import { STORAGE_CONFIG } from '@/lib/storage'
 
-// S3 客户端配置
-// 使用 EC2 Instance Profile，不需要显式配置 credentials
-// AWS SDK 会自动从 EC2 实例元数据服务获取临时凭证
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-west-1'
-})
+type UploadKind = 'video' | 'image'
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'static.vidfab.ai'
-const DISCOVER_UPLOAD_PREFIXES = ['discover-new/videos/', 'discover-new/images/']
+const DISCOVER_STORAGE = {
+  video: {
+    bucket: STORAGE_CONFIG.buckets.videos,
+    prefix: 'discover/videos',
+    base: 'discover-video',
+  },
+  image: {
+    bucket: STORAGE_CONFIG.buckets.images,
+    prefix: 'discover/images',
+    base: 'discover-image',
+  },
+} as const
+
+const MIME_TO_EXT: Record<string, string> = {
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
+  'video/quicktime': 'mov',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
 
 interface UploadResult {
   success: boolean
   url?: string
   error?: string
+  bucket?: string
+  path?: string
+  token?: string
+  signedUrl?: string
 }
 
-/**
- * 从 Discover CDN/S3 URL 中解析可删除的 S3 object key。
- * 只允许删除 Discover 上传前缀下的对象，避免误删 bucket 里的其他文件。
- */
-export function getDiscoverS3ObjectKey(fileUrl: string | null | undefined): string | null {
+function getExtension(contentType: string, fileName: string, kind: UploadKind) {
+  const fromMime = MIME_TO_EXT[contentType.toLowerCase()]
+  if (fromMime) return fromMime
+
+  const fromName = fileName.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1]
+  if (fromName && /^[a-z0-9]{2,5}$/.test(fromName)) return fromName
+
+  return kind === 'video' ? 'mp4' : 'jpg'
+}
+
+function createDiscoverStoragePath(kind: UploadKind, contentType: string, fileName: string) {
+  const target = DISCOVER_STORAGE[kind]
+  const ext = getExtension(contentType, fileName, kind)
+  return `${target.prefix}/${target.base}-${crypto.randomUUID()}-${Date.now()}.${ext}`
+}
+
+function getPublicUrl(bucket: string, path: string) {
+  const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path)
+  return data.publicUrl
+}
+
+export function getDiscoverStorageObject(
+  fileUrl: string | null | undefined
+): { bucket: string; path: string } | null {
   if (!fileUrl) return null
 
   try {
     const url = new URL(fileUrl)
-    let key = ''
-
-    if (url.hostname === BUCKET_NAME) {
-      key = url.pathname.replace(/^\/+/, '')
-    } else if (url.hostname === `${BUCKET_NAME}.s3.amazonaws.com` || url.hostname.startsWith(`${BUCKET_NAME}.s3.`)) {
-      key = url.pathname.replace(/^\/+/, '')
-    }
-
-    if (!key || !DISCOVER_UPLOAD_PREFIXES.some(prefix => key.startsWith(prefix))) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl || url.origin !== new URL(supabaseUrl).origin) {
       return null
     }
 
-    return decodeURIComponent(key)
+    const marker = '/storage/v1/object/public/'
+    const markerIndex = url.pathname.indexOf(marker)
+    if (markerIndex === -1) return null
+
+    const objectPath = decodeURIComponent(url.pathname.slice(markerIndex + marker.length))
+    const slashIndex = objectPath.indexOf('/')
+    if (slashIndex === -1) return null
+
+    const bucket = objectPath.slice(0, slashIndex)
+    const path = objectPath.slice(slashIndex + 1)
+
+    const validDiscoverObject =
+      (bucket === DISCOVER_STORAGE.video.bucket && path.startsWith(`${DISCOVER_STORAGE.video.prefix}/`)) ||
+      (bucket === DISCOVER_STORAGE.image.bucket && path.startsWith(`${DISCOVER_STORAGE.image.prefix}/`))
+
+    if (!validDiscoverObject) {
+      return null
+    }
+
+    return { bucket, path }
   } catch {
     return null
   }
 }
 
 /**
- * 删除 Discover 上传到 S3 的视频/图片。外部 URL 会被跳过并视为成功。
+ * 删除 Discover 上传到 Supabase Storage 的视频/图片。
+ * 外部 URL 和历史 S3 URL 会被跳过并视为成功。
  */
-export async function deleteDiscoverAssetFromS3(fileUrl: string | null | undefined): Promise<UploadResult> {
-  const key = getDiscoverS3ObjectKey(fileUrl)
+export async function deleteDiscoverAssetFromStorage(fileUrl: string | null | undefined): Promise<UploadResult> {
+  const target = getDiscoverStorageObject(fileUrl)
 
-  if (!key) {
+  if (!target) {
     return { success: true }
   }
 
   try {
-    await s3Client.send(new DeleteObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key
-    }))
+    const { error } = await supabaseAdmin.storage.from(target.bucket).remove([target.path])
+
+    if (error) {
+      throw error
+    }
 
     return { success: true }
   } catch (error) {
-    console.error('S3 素材删除失败:', error)
+    console.error('Discover 素材删除失败:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '删除失败'
@@ -75,104 +131,122 @@ export async function deleteDiscoverAssetFromS3(fileUrl: string | null | undefin
   }
 }
 
-export async function deleteDiscoverAssetsFromS3(urls: Array<string | null | undefined>) {
+export async function deleteDiscoverAssetsFromStorage(urls: Array<string | null | undefined>) {
   const uniqueUrls = Array.from(new Set(urls.filter(Boolean))) as string[]
-  const results = await Promise.all(uniqueUrls.map(url => deleteDiscoverAssetFromS3(url)))
+  const results = await Promise.all(uniqueUrls.map(url => deleteDiscoverAssetFromStorage(url)))
 
   return results
     .map((result, index) => result.success ? null : `${uniqueUrls[index]}: ${result.error}`)
     .filter((error): error is string => Boolean(error))
 }
 
+export async function createDiscoverSignedUploadUrl(
+  kind: UploadKind,
+  fileName: string,
+  contentType: string
+): Promise<UploadResult> {
+  try {
+    if (!contentType.startsWith(`${kind}/`)) {
+      return { success: false, error: `Invalid ${kind} content type` }
+    }
+
+    const target = DISCOVER_STORAGE[kind]
+    const path = createDiscoverStoragePath(kind, contentType, fileName || 'discover-upload')
+    const { data, error } = await supabaseAdmin.storage
+      .from(target.bucket)
+      .createSignedUploadUrl(path)
+
+    if (error || !data?.token) {
+      throw error || new Error('No upload token returned')
+    }
+
+    return {
+      success: true,
+      bucket: target.bucket,
+      path,
+      token: data.token,
+      signedUrl: data.signedUrl,
+      url: getPublicUrl(target.bucket, path),
+    }
+  } catch (error) {
+    console.error('Discover 上传链接创建失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '创建上传链接失败'
+    }
+  }
+}
+
+async function uploadToDiscoverStorage(
+  kind: UploadKind,
+  file: Buffer | Uint8Array,
+  contentType: string
+): Promise<UploadResult> {
+  try {
+    const target = DISCOVER_STORAGE[kind]
+    const path = createDiscoverStoragePath(kind, contentType, 'discover-upload')
+
+    const { data, error } = await supabaseAdmin.storage
+      .from(target.bucket)
+      .upload(path, file, {
+        cacheControl: '3600',
+        contentType,
+        upsert: false,
+      })
+
+    if (error) {
+      throw error
+    }
+
+    const finalPath = data?.path || path
+    return {
+      success: true,
+      bucket: target.bucket,
+      path: finalPath,
+      url: getPublicUrl(target.bucket, finalPath),
+    }
+  } catch (error) {
+    console.error('Discover 素材上传失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '上传失败'
+    }
+  }
+}
+
 /**
- * 上传视频到 S3
+ * 上传视频到 Supabase Storage
  * @param file 视频文件 Buffer 或 Blob
  * @param contentType MIME 类型
  * @returns CDN URL
  */
-export async function uploadVideoToS3(
+export async function uploadVideoToDiscoverStorage(
   file: Buffer | Uint8Array,
   contentType: string = 'video/mp4'
 ): Promise<UploadResult> {
-  try {
-    const uuid = crypto.randomUUID()
-    const timestamp = Date.now()
-    const fileName = `discover-video-${uuid}-${timestamp}.mp4`
-    const key = `discover-new/videos/${fileName}`
-
-    const command = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: file,
-      ContentType: contentType
-    })
-
-    await s3Client.send(command)
-
-    const url = `https://${BUCKET_NAME}/${key}`
-    return { success: true, url }
-  } catch (error) {
-    console.error('S3 视频上传失败:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : '上传失败'
-    }
-  }
+  return uploadToDiscoverStorage('video', file, contentType)
 }
 
 /**
- * 上传图片到 S3
+ * 上传图片到 Supabase Storage
  * @param file 图片文件 Buffer 或 Blob
  * @param contentType MIME 类型
  * @returns CDN URL
  */
-export async function uploadImageToS3(
+export async function uploadImageToDiscoverStorage(
   file: Buffer | Uint8Array,
   contentType: string = 'image/png'
 ): Promise<UploadResult> {
-  try {
-    const uuid = crypto.randomUUID()
-    const timestamp = Date.now()
-
-    // 根据 contentType 确定文件扩展名
-    const ext = contentType.includes('jpeg') || contentType.includes('jpg')
-      ? 'jpg'
-      : contentType.includes('png')
-      ? 'png'
-      : contentType.includes('webp')
-      ? 'webp'
-      : 'jpg' // 默认
-
-    const fileName = `discover-image-${uuid}-${timestamp}.${ext}`
-    const key = `discover-new/images/${fileName}`
-
-    const command = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: file,
-      ContentType: contentType
-    })
-
-    await s3Client.send(command)
-
-    const url = `https://${BUCKET_NAME}/${key}`
-    return { success: true, url }
-  } catch (error) {
-    console.error('S3 图片上传失败:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : '上传失败'
-    }
-  }
+  return uploadToDiscoverStorage('image', file, contentType)
 }
 
 /**
- * 从 URL 下载文件并上传到 S3
+ * 从 URL 下载文件并上传到 Supabase Storage
  * @param fileUrl 源文件 URL
  * @param type 文件类型 'video' | 'image'
  * @returns CDN URL
  */
-export async function downloadAndUploadToS3(
+export async function downloadAndUploadToDiscoverStorage(
   fileUrl: string,
   type: 'video' | 'image'
 ): Promise<UploadResult> {
@@ -187,11 +261,11 @@ export async function downloadAndUploadToS3(
     const buffer = Buffer.from(arrayBuffer)
     const contentType = response.headers.get('content-type') || ''
 
-    // 上传到 S3
+    // 上传到 Supabase Storage
     if (type === 'video') {
-      return await uploadVideoToS3(buffer, contentType || 'video/mp4')
+      return await uploadVideoToDiscoverStorage(buffer, contentType || 'video/mp4')
     } else {
-      return await uploadImageToS3(buffer, contentType || 'image/png')
+      return await uploadImageToDiscoverStorage(buffer, contentType || 'image/png')
     }
   } catch (error) {
     console.error('下载并上传失败:', error)
