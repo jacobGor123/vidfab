@@ -14,7 +14,7 @@ import { withAuth } from '@/lib/middleware/auth'
 import { analyzeVideoToScript, isValidYouTubeUrl, isValidTikTokUrl, getYouTubeDuration, convertToStandardYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 import { checkAndDeductScriptCreation } from '@/lib/video-agent/script-creation-quota'
-import { prepareTikTokVideo, type TikTokSourceMetadata } from '@/lib/services/video-agent/processors/video/tiktok-source'
+import { prepareTikTokVideo, trimPreparedTikTokVideo, type TikTokSourceMetadata } from '@/lib/services/video-agent/processors/video/tiktok-source'
 import { deleteGeminiFile, uploadVideoFileToGemini } from '@/lib/services/video-agent/processors/video/gemini-file-uploader'
 import type { VideoSource } from '@/lib/services/video-agent/processors/video/youtube-utils'
 
@@ -77,6 +77,13 @@ export const POST = withAuth(async (req, { params, userId }) => {
     if (videoSource.type === 'local' && ![15, 30, 45, 60].includes(duration)) {
       return NextResponse.json(
         { success: false, error: 'Duration must be 15, 30, 45, or 60 seconds for local videos' },
+        { status: 400 }
+      )
+    }
+
+    if (videoSource.type === 'tiktok' && ![15, 30, 45, 60].includes(duration)) {
+      return NextResponse.json(
+        { success: false, error: 'Duration must be 15, 30, 45, or 60 seconds for TikTok videos' },
         { status: 400 }
       )
     }
@@ -197,16 +204,21 @@ export const POST = withAuth(async (req, { params, userId }) => {
     if (videoSource.type === 'tiktok') {
       try {
         console.log('[API /analyze-video] Preparing TikTok video for Gemini analysis...')
-        const preparedTikTok = await prepareTikTokVideo(videoSource.url)
+        let preparedTikTok = await prepareTikTokVideo(videoSource.url)
         cleanupPreparedVideo = preparedTikTok.cleanup
         sourceMetadata = preparedTikTok.metadata
+        const sourceDuration = preparedTikTok.duration
+
+        preparedTikTok = await trimPreparedTikTokVideo(preparedTikTok, duration)
         const preparedSizeBytes = preparedTikTok.sizeBytes ?? (await stat(preparedTikTok.filePath)).size
 
         console.log('[API /analyze-video] TikTok video prepared:', {
           mimeType: preparedTikTok.mimeType,
           sizeBytes: preparedSizeBytes,
           sizeMB: Math.round((preparedSizeBytes / 1024 / 1024) * 10) / 10,
-          duration: preparedTikTok.duration,
+          sourceDuration,
+          analysisDuration: preparedTikTok.duration,
+          requestedDuration: duration,
           canonicalUrl: sourceMetadata?.canonical_url,
           postId: sourceMetadata?.post_id
         })

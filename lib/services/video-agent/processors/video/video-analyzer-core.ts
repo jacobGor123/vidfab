@@ -139,6 +139,17 @@ export async function analyzeVideoToScript(
         throw new Error('No shots generated in analysis result')
       }
 
+      const reportedShotCount = Number(analysis.shot_count)
+      if (
+        Number.isFinite(reportedShotCount) &&
+        reportedShotCount > analysis.shots.length &&
+        analysis.shots.length < Math.max(2, Math.floor(reportedShotCount * 0.7))
+      ) {
+        throw new Error(
+          `Incomplete Gemini shot list: reported ${reportedShotCount}, returned ${analysis.shots.length}`
+        )
+      }
+
       // 🔥 数据规范化：确保所有 duration_seconds 都是整数，且 >= 2 秒（BytePlus 最小值）
       // 这很重要，因为数据库 schema 中 duration_seconds 字段是 integer 类型
       // 同时，Gemini 可能返回过小的时长（如 0.5秒），需要强制最小值
@@ -269,12 +280,20 @@ export async function analyzeVideoToScript(
 
     } catch (error: any) {
       const isRateLimit = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')
+      const isIncompleteOutput = error.message?.includes('Incomplete Gemini shot list')
+      const status = Number(error?.status)
+      const isTransientServiceError =
+        [408, 500, 502, 503, 504].includes(status) ||
+        /Bad Gateway|Service Unavailable|Gateway Timeout|timeout/i.test(error?.message || '')
 
-      // 检查是否是 429 限流错误
-      if (isRateLimit) {
-        const waitTime = 10
+      // 检查是否是可重试错误
+      if (isRateLimit || isIncompleteOutput || isTransientServiceError) {
+        const waitTime = isRateLimit ? 10 : (isTransientServiceError ? 5 : 2)
+        const retryReason = isRateLimit
+          ? 'Rate limited'
+          : (isTransientServiceError ? 'Transient Gemini service error' : 'Incomplete Gemini output')
 
-        console.warn(`[Video Analyzer Core] Rate limited. Retry ${retries + 1}/${maxRetries} after ${waitTime}s`, {
+        console.warn(`[Video Analyzer Core] ${retryReason}. Retry ${retries + 1}/${maxRetries} after ${waitTime}s`, {
           retries,
           waitTime,
           error: error.message
@@ -287,7 +306,15 @@ export async function analyzeVideoToScript(
           continue // 重试
         } else {
           console.error('[Video Analyzer Core] Max retries reached')
-          throw new Error(`Rate limit exceeded. Please wait a moment and try again. (Retried ${maxRetries} times)`)
+          throw new Error(
+            isRateLimit
+              ? `Rate limit exceeded. Please wait a moment and try again. (Retried ${maxRetries} times)`
+              : (
+                isTransientServiceError
+                  ? `Video analysis service is temporarily unavailable. Please retry. (Retried ${maxRetries} times)`
+                  : `Video analysis returned incomplete shot data. Please retry with this video. (Retried ${maxRetries} times)`
+              )
+          )
         }
       }
 

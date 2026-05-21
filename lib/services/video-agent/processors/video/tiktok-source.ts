@@ -7,6 +7,7 @@ import { Readable, Transform } from 'stream'
 import { pipeline } from 'stream/promises'
 import { promisify } from 'util'
 import { assertSafeExternalUrl } from '@/lib/services/video-agent/security/url-guard'
+import { ensureFFmpegAvailable } from '../ffmpeg/ffmpeg-utils'
 import { isValidTikTokUrl } from './youtube-utils'
 
 const execFileAsync = promisify(execFile)
@@ -357,6 +358,90 @@ async function resolveWithYtDlp(url: string, tempDir: string): Promise<PreparedT
     duration: toNumber(info.duration),
     metadata,
     cleanup: () => rm(tempDir, { recursive: true, force: true })
+  }
+}
+
+export async function trimPreparedTikTokVideo(
+  prepared: PreparedTikTokVideo,
+  durationSeconds: number
+): Promise<PreparedTikTokVideo> {
+  const requestedDuration = Number.isFinite(durationSeconds) ? durationSeconds : 30
+  const targetDuration = Math.max(1, Math.min(60, Math.round(requestedDuration)))
+  const sourceDuration = prepared.duration ? Math.round(prepared.duration) : undefined
+
+  if (sourceDuration && sourceDuration <= targetDuration) {
+    return prepared
+  }
+
+  const ffmpegPath = await ensureFFmpegAvailable()
+  const outputPath = path.join(
+    path.dirname(prepared.filePath),
+    `source-${targetDuration}s${path.extname(prepared.filePath) || getExtensionFromMimeType(prepared.mimeType)}`
+  )
+
+  const copyArgs = [
+    '-y',
+    '-i',
+    prepared.filePath,
+    '-t',
+    String(targetDuration),
+    '-map',
+    '0',
+    '-c',
+    'copy',
+    '-movflags',
+    '+faststart',
+    outputPath
+  ]
+
+  const transcodeArgs = [
+    '-y',
+    '-i',
+    prepared.filePath,
+    '-t',
+    String(targetDuration),
+    '-map',
+    '0:v:0?',
+    '-map',
+    '0:a:0?',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'veryfast',
+    '-crf',
+    '24',
+    '-c:a',
+    'aac',
+    '-b:a',
+    '96k',
+    '-movflags',
+    '+faststart',
+    outputPath
+  ]
+
+  try {
+    await execFileAsync(ffmpegPath, copyArgs, {
+      timeout: 120000,
+      maxBuffer: 8 * 1024 * 1024
+    })
+  } catch (copyError) {
+    console.warn('[TikTok Source] Stream-copy trim failed, retrying with transcode:', copyError)
+    await execFileAsync(ffmpegPath, transcodeArgs, {
+      timeout: 180000,
+      maxBuffer: 8 * 1024 * 1024
+    })
+  }
+
+  const trimmedStat = await stat(outputPath)
+  if (trimmedStat.size === 0) {
+    throw new Error('TikTok video trim produced an empty file')
+  }
+
+  return {
+    ...prepared,
+    filePath: outputPath,
+    sizeBytes: trimmedStat.size,
+    duration: sourceDuration ? Math.min(sourceDuration, targetDuration) : targetDuration
   }
 }
 
