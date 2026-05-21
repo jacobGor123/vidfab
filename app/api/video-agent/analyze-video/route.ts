@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { readFile, stat } from 'fs/promises'
 import { withAuth } from '@/lib/middleware/auth'
 import { analyzeVideoToScript, isValidYouTubeUrl, isValidTikTokUrl, getYouTubeDuration, convertToStandardYouTubeUrl } from '@/lib/services/video-agent/video-analyzer-google'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
@@ -18,6 +19,10 @@ import { deleteGeminiFile, uploadVideoFileToGemini } from '@/lib/services/video-
 import type { VideoSource } from '@/lib/services/video-agent/processors/video/youtube-utils'
 
 export const maxDuration = 300 // 最长 5 分钟（视频分析可能较慢）
+const GEMINI_INLINE_VIDEO_MAX_BYTES = parseInt(
+  process.env.GEMINI_INLINE_VIDEO_MAX_BYTES || `${18 * 1024 * 1024}`,
+  10
+)
 
 /**
  * POST /api/video-agent/analyze-video
@@ -195,6 +200,16 @@ export const POST = withAuth(async (req, { params, userId }) => {
         const preparedTikTok = await prepareTikTokVideo(videoSource.url)
         cleanupPreparedVideo = preparedTikTok.cleanup
         sourceMetadata = preparedTikTok.metadata
+        const preparedSizeBytes = preparedTikTok.sizeBytes ?? (await stat(preparedTikTok.filePath)).size
+
+        console.log('[API /analyze-video] TikTok video prepared:', {
+          mimeType: preparedTikTok.mimeType,
+          sizeBytes: preparedSizeBytes,
+          sizeMB: Math.round((preparedSizeBytes / 1024 / 1024) * 10) / 10,
+          duration: preparedTikTok.duration,
+          canonicalUrl: sourceMetadata?.canonical_url,
+          postId: sourceMetadata?.post_id
+        })
 
         if (preparedTikTok.duration) {
           actualDuration = Math.round(preparedTikTok.duration)
@@ -216,22 +231,45 @@ export const POST = withAuth(async (req, { params, userId }) => {
           )
         }
 
-        const uploaded = await uploadVideoFileToGemini(preparedTikTok.filePath, preparedTikTok.mimeType)
-        uploadedGeminiFileName = uploaded.name
-        analysisVideoSource = {
-          type: 'local',
-          url: uploaded.uri,
-          mimeType: uploaded.mimeType
-        }
+        if (preparedSizeBytes <= GEMINI_INLINE_VIDEO_MAX_BYTES) {
+          const videoBuffer = await readFile(preparedTikTok.filePath)
+          analysisVideoSource = {
+            type: 'local',
+            url: 'inline:tiktok-reference-video',
+            mimeType: preparedTikTok.mimeType,
+            inlineData: videoBuffer.toString('base64')
+          }
 
-        console.log('[API /analyze-video] TikTok video uploaded to Gemini:', {
-          actualDuration,
-          mimeType: uploaded.mimeType,
-          canonicalUrl: sourceMetadata?.canonical_url,
-          postId: sourceMetadata?.post_id
-        })
+          console.log('[API /analyze-video] TikTok video will be sent to Gemini inline:', {
+            actualDuration,
+            mimeType: preparedTikTok.mimeType,
+            sizeBytes: preparedSizeBytes,
+            inlineLimitBytes: GEMINI_INLINE_VIDEO_MAX_BYTES
+          })
+        } else {
+          const uploaded = await uploadVideoFileToGemini(preparedTikTok.filePath, preparedTikTok.mimeType)
+          uploadedGeminiFileName = uploaded.name
+          analysisVideoSource = {
+            type: 'local',
+            url: uploaded.uri,
+            mimeType: uploaded.mimeType
+          }
+
+          console.log('[API /analyze-video] TikTok video uploaded to Gemini:', {
+            actualDuration,
+            mimeType: uploaded.mimeType,
+            canonicalUrl: sourceMetadata?.canonical_url,
+            postId: sourceMetadata?.post_id
+          })
+        }
       } catch (error: any) {
-        console.error('[API /analyze-video] Failed to prepare TikTok video:', error)
+        const isUploadFailure = String(error?.message || '').includes('Gemini File API upload failed')
+        console.error(
+          isUploadFailure
+            ? '[API /analyze-video] Failed to upload TikTok video to Gemini:'
+            : '[API /analyze-video] Failed to prepare TikTok video:',
+          error
+        )
         if (uploadedGeminiFileName) {
           await deleteGeminiFile(uploadedGeminiFileName)
         }
@@ -241,8 +279,11 @@ export const POST = withAuth(async (req, { params, userId }) => {
         return NextResponse.json(
           {
             success: false,
-            error: error.message || 'Unable to prepare TikTok video. Please check the URL and try again.',
-            code: 'TIKTOK_PREPARE_FAILED'
+            error: isUploadFailure
+              ? 'Unable to upload the TikTok video for AI analysis. Please retry, or try a shorter/lower-motion video.'
+              : error.message || 'Unable to prepare TikTok video. Please check the URL and try again.',
+            code: isUploadFailure ? 'TIKTOK_UPLOAD_FAILED' : 'TIKTOK_PREPARE_FAILED',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
           },
           { status: 400 }
         )

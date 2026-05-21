@@ -12,6 +12,8 @@ import { isValidTikTokUrl } from './youtube-utils'
 const execFileAsync = promisify(execFile)
 const MAX_TIKTOK_VIDEO_BYTES = parseInt(process.env.TIKTOK_MAX_VIDEO_BYTES || `${120 * 1024 * 1024}`, 10)
 const YT_DLP_MAX_FILESIZE = `${Math.ceil(MAX_TIKTOK_VIDEO_BYTES / 1024 / 1024)}M`
+const RESOLVER_VIDEO_QUALITY = process.env.TIKTOK_RESOLVER_VIDEO_QUALITY || '360'
+const RESOLVER_DOWNLOAD_MODE = process.env.TIKTOK_RESOLVER_DOWNLOAD_MODE || 'auto'
 const DEFAULT_USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
 
@@ -29,6 +31,7 @@ export interface TikTokSourceMetadata {
 export interface PreparedTikTokVideo {
   filePath: string
   mimeType: string
+  sizeBytes?: number
   duration?: number
   metadata: TikTokSourceMetadata
   cleanup: () => Promise<void>
@@ -194,6 +197,10 @@ async function downloadRemoteVideo(videoUrl: string, tempDir: string, mimeType =
     createWriteStream(filePath)
   )
 
+  if (downloadedBytes === 0) {
+    throw new Error('TikTok resolver returned an empty video file')
+  }
+
   return {
     filePath,
     mimeType: finalMimeType,
@@ -220,7 +227,14 @@ async function resolveWithExternalService(
   const response = await fetch(endpoint, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({
+      url,
+      videoQuality: RESOLVER_VIDEO_QUALITY,
+      downloadMode: RESOLVER_DOWNLOAD_MODE,
+      filenameStyle: 'basic',
+      disableMetadata: true,
+      alwaysProxy: true
+    }),
     signal: AbortSignal.timeout(60000)
   })
 
@@ -229,6 +243,10 @@ async function resolveWithExternalService(
   }
 
   const payload = await response.json() as ResolverPayload
+  if ((payload as any).status === 'error') {
+    throw new Error(`TikTok resolver failed: ${(payload as any).error?.code || 'unknown_error'}`)
+  }
+
   const mediaUrl =
     payload.videoUrl ||
     payload.downloadUrl ||
@@ -255,6 +273,7 @@ async function resolveWithExternalService(
   return {
     filePath: downloaded.filePath,
     mimeType: downloaded.mimeType,
+    sizeBytes: downloaded.sizeBytes,
     duration: toNumber(payload.durationSeconds) ?? toNumber(payload.duration),
     metadata,
     cleanup: () => rm(tempDir, { recursive: true, force: true })
@@ -311,6 +330,10 @@ async function resolveWithYtDlp(url: string, tempDir: string): Promise<PreparedT
 
   const filePath = path.join(tempDir, videoFile)
   const fileStat = await stat(filePath)
+  if (fileStat.size === 0) {
+    throw new Error('yt-dlp returned an empty TikTok video file')
+  }
+
   if (fileStat.size > MAX_TIKTOK_VIDEO_BYTES) {
     throw new Error('TikTok video file is too large to analyze')
   }
@@ -330,6 +353,7 @@ async function resolveWithYtDlp(url: string, tempDir: string): Promise<PreparedT
   return {
     filePath,
     mimeType: info.ext ? getMimeTypeFromPath(filePath) : 'video/mp4',
+    sizeBytes: fileStat.size,
     duration: toNumber(info.duration),
     metadata,
     cleanup: () => rm(tempDir, { recursive: true, force: true })

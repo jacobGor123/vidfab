@@ -8,7 +8,7 @@
 export type VideoSource =
   | { type: 'youtube'; url: string }
   | { type: 'tiktok'; url: string }
-  | { type: 'local'; url: string; mimeType?: string }
+  | { type: 'local'; url: string; mimeType?: string; inlineData?: string }
 
 /**
  * 验证 YouTube URL 格式（支持普通视频、Shorts、短链接）
