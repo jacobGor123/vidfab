@@ -7,6 +7,25 @@
 
 import Redis from 'ioredis'
 
+type BullMQRedisConfig = {
+  url?: string
+  host?: string
+  port?: number
+  password?: string
+  db?: number
+  tls?: {
+    rejectUnauthorized: boolean
+  }
+  maxRetriesPerRequest: number
+  enableReadyCheck: boolean
+  retryStrategy: (times: number) => number | null
+  enableOfflineQueue: boolean
+  lazyConnect: boolean
+  keepAlive: number
+  connectTimeout: number
+  commandTimeout: number
+}
+
 /**
  * 为 BullMQ 创建 Redis 连接
  *
@@ -18,13 +37,12 @@ import Redis from 'ioredis'
  * - UPSTASH_REDIS_URL: Upstash Redis Protocol URL (rediss://...)
  * - REDIS_URL: 本地或其他 Redis URL (redis://...)
  */
-const getBullMQRedisConfig = () => {
-  // 🔥 调试：打印所有 Redis 相关环境变量
+const getBullMQRedisConfig = (): BullMQRedisConfig => {
   console.log('🔍 [BullMQ Redis] Checking environment variables:')
-  console.log(`  - BULLMQ_REDIS_URL: ${process.env.BULLMQ_REDIS_URL ? `"${process.env.BULLMQ_REDIS_URL}"` : 'NOT SET'}`)
-  console.log(`  - UPSTASH_REDIS_URL: ${process.env.UPSTASH_REDIS_URL ? `"${process.env.UPSTASH_REDIS_URL}"` : 'NOT SET'}`)
-  console.log(`  - REDIS_URL: ${process.env.REDIS_URL ? `"${process.env.REDIS_URL}"` : 'NOT SET'}`)
-  console.log(`  - REDIS_HOST: ${process.env.REDIS_HOST ? `"${process.env.REDIS_HOST}"` : 'NOT SET'}`)
+  console.log(`  - BULLMQ_REDIS_URL: ${process.env.BULLMQ_REDIS_URL ? 'SET' : 'NOT SET'}`)
+  console.log(`  - UPSTASH_REDIS_URL: ${process.env.UPSTASH_REDIS_URL ? 'SET' : 'NOT SET'}`)
+  console.log(`  - REDIS_URL: ${process.env.REDIS_URL ? 'SET' : 'NOT SET'}`)
+  console.log(`  - REDIS_HOST: ${process.env.REDIS_HOST ? 'SET' : 'NOT SET'}`)
   console.log(`  - NODE_ENV: ${process.env.NODE_ENV || 'NOT SET'}`)
 
   // 🔥 BullMQ 推荐配置：防止无限重试导致请求爆炸

@@ -58,6 +58,7 @@ export function StoryboardSection({
     storyboards,
     startGeneration: startStoryboardGeneration,
     retryGeneration: retryStoryboardGeneration,
+    syncStoryboards,
     refresh: refreshStoryboards
   } = useStoryboardAutoGeneration(project, analysis)
 
@@ -128,18 +129,31 @@ export function StoryboardSection({
 
   const storyboardsSyncKey = useMemo(() => {
     if (!Array.isArray(project.storyboards)) return ''
-    return project.storyboards
-      .map((s: any) => `${s.shot_number}-${s.updated_at || ''}-${s.image_url || ''}`)
+    return [...project.storyboards]
+      .sort((a: any, b: any) => Number(a.shot_number || 0) - Number(b.shot_number || 0))
+      .map((s: any) => [
+        s.shot_number,
+        s.id || '',
+        s.version || '',
+        s.is_current ?? '',
+        s.status || '',
+        s.storage_status || '',
+        s.cdn_url || '',
+        s.image_url_external || '',
+        s.image_url || '',
+        s.updated_at || ''
+      ].join(':'))
       .join('|')
   }, [project.storyboards])
 
-  // Ensure storyboard previews are refreshed after a single-shot regenerate.
-  // Regenerate runs through a different API than the batch poll loop, so without this
-  // the preview can stay stale until a full reload.
+  // Keep the outer cards in sync with direct storyboard edits from the dialog.
+  // The cards render from this hook's local map, while regenerate/version-switch updates
+  // arrive through project.storyboards first.
   useEffect(() => {
     if (!project.storyboards || project.storyboards.length === 0) return
+    syncStoryboards(project.storyboards)
     void refreshStoryboards()
-  }, [storyboardsSyncKey, refreshStoryboards, project.storyboards])
+  }, [storyboardsSyncKey, refreshStoryboards, syncStoryboards, project.storyboards])
 
   // 视频生成完成后刷新分镜图状态（获取 CDN URL 替换过期的外部 URL）
   const prevIsVideoGeneratingRef = useRef(false)
@@ -222,10 +236,23 @@ export function StoryboardSection({
       status: sb.status,
       error_message: sb.error_message,
       generation_attempts: sb.generation_attempts || 0,
-      updated_at: sb.updated_at
+      updated_at: sb.updated_at,
+      version: (sb as any).version,
+      is_current: (sb as any).is_current
     }))
 
-    const syncKey = JSON.stringify(projectStoryboards.map(s => `${s.shot_number}-${s.image_url || 'none'}`).sort())
+    const syncKey = JSON.stringify(projectStoryboards.map((s: any) => [
+      s.shot_number,
+      s.id || '',
+      s.version || '',
+      s.is_current ?? '',
+      s.status || '',
+      s.storage_status || '',
+      s.cdn_url || '',
+      s.image_url_external || '',
+      s.image_url || 'none',
+      s.updated_at || ''
+    ].join(':')).sort())
     if (lastSyncedStoryboardsRef.current !== syncKey && projectStoryboards.length > 0) {
       lastSyncedStoryboardsRef.current = syncKey
       onUpdateRef.current({ storyboards: projectStoryboards as any })

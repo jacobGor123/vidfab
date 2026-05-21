@@ -22,7 +22,32 @@ interface UseStoryboardAutoGenerationReturn {
   storyboards: Record<number, Storyboard>
   startGeneration: () => Promise<void>
   retryGeneration: () => Promise<void>
+  syncStoryboards: (items: Storyboard[]) => void
   refresh: () => Promise<void>  // 🔥 新增
+}
+
+function buildStoryboardMap(items: any[]): Record<number, Storyboard> {
+  const storyboardMap: Record<number, Storyboard> = {}
+
+  items.forEach((item: any) => {
+    if (item.shot_number) {
+      storyboardMap[item.shot_number] = {
+        ...item,
+        id: item.id,
+        shot_number: item.shot_number,
+        image_url: item.image_url,
+        image_url_external: item.image_url_external,
+        cdn_url: item.cdn_url,
+        storage_status: item.storage_status,
+        status: item.status,
+        error_message: item.error_message,
+        generation_attempts: item.generation_attempts || 0,
+        updated_at: item.updated_at
+      }
+    }
+  })
+
+  return storyboardMap
 }
 
 export function useStoryboardAutoGeneration(
@@ -82,29 +107,11 @@ export function useStoryboardAutoGeneration(
         return
       }
 
-      // 更新分镜数据 - 构建 Record<number, Storyboard>
-      const storyboardMap: Record<number, Storyboard> = {}
-      statusData.forEach((item: any) => {
-        if (item.shot_number) {
-          storyboardMap[item.shot_number] = {
-            id: item.id,
-            shot_number: item.shot_number,
-            image_url: item.image_url,
-            image_url_external: item.image_url_external,
-            cdn_url: item.cdn_url,
-            storage_status: item.storage_status,
-            status: item.status,
-            error_message: item.error_message,
-            generation_attempts: item.generation_attempts || 0,
-            updated_at: item.updated_at  // 🔥 关键修复：包含 updated_at 字段以支持缓存清除
-          }
-        }
-      })
-      setStoryboards(storyboardMap)
+      setStoryboards(buildStoryboardMap(statusData))
 
       // 计算完成进度 - 检查有多少分镜已经成功生成
       const completed = statusData.filter(
-        (s: any) => s.status === 'success' && s.image_url
+        (s: any) => s.status === 'success' && (s.cdn_url || s.image_url || s.image_url_external)
       ).length
       const failed = statusData.filter(
         (s: any) => s.status === 'failed'
@@ -205,6 +212,16 @@ export function useStoryboardAutoGeneration(
     await pollStoryboards()
   }, [pollStoryboards])
 
+  const syncStoryboards = useCallback((items: Storyboard[]) => {
+    if (!Array.isArray(items) || items.length === 0) return
+
+    const incomingMap = buildStoryboardMap(items)
+    setStoryboards(prev => ({
+      ...prev,
+      ...incomingMap
+    }))
+  }, [])
+
   // 🔥 页面加载时初始化：加载已存在的分镜图数据
   const hasInitializedRef = useRef(false)
 
@@ -221,26 +238,7 @@ export function useStoryboardAutoGeneration(
           return
         }
 
-        // 构建分镜图数据
-        const storyboardMap: Record<number, Storyboard> = {}
-        statusData.forEach((item: any) => {
-          if (item.shot_number) {
-            storyboardMap[item.shot_number] = {
-              id: item.id,
-              shot_number: item.shot_number,
-              image_url: item.image_url,
-              image_url_external: item.image_url_external,
-              cdn_url: item.cdn_url,
-              storage_status: item.storage_status,
-              status: item.status,
-              error_message: item.error_message,
-              generation_attempts: item.generation_attempts || 0,
-              updated_at: item.updated_at
-            }
-          }
-        })
-
-        setStoryboards(storyboardMap)
+        setStoryboards(buildStoryboardMap(statusData))
 
         // 检查是否有正在生成的分镜图
         const generatingCount = statusData.filter((s: any) => s.status === 'generating').length
@@ -278,6 +276,7 @@ export function useStoryboardAutoGeneration(
     storyboards,
     startGeneration,
     retryGeneration,
+    syncStoryboards,
     refresh  // 🔥 新增
   }
 }

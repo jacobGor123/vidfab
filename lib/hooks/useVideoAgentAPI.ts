@@ -468,8 +468,12 @@ export function useVideoAgentAPI() {
       }),
     }) as any
 
-    // 返回新生成的 storyboard 数据，供调用方直接更新状态，避免冗余 GET
-    return result?.data ? { storyboard: result.data.storyboard, imageUrl: result.data.imageUrl } : null
+    // callAPI already unwraps the API envelope and returns response.data.
+    // Keep the older nested shape as a fallback for compatibility.
+    const payload = result?.data || result
+    return payload?.storyboard
+      ? { storyboard: payload.storyboard, imageUrl: payload.imageUrl }
+      : null
   }, [callAPI])
 
   // ==================== Video APIs ====================
