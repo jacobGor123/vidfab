@@ -31,12 +31,18 @@ interface PaidOrdersPageProps {
 export default async function PaidOrdersPage({ searchParams }: PaidOrdersPageProps) {
   const currentPage = Number(searchParams.page) || 1;
   const pageSize = 50;
-  const summary = await getPaidOrdersSummary();
+  const requestedPage = Math.max(1, currentPage);
+  const [summary, requestedOrders] = await Promise.all([
+    getPaidOrdersSummary(),
+    getPaidOrders(requestedPage, pageSize),
+  ]);
   const totalPages = Math.ceil(summary.count / pageSize);
   const validPage = Math.max(1, Math.min(currentPage, totalPages || 1));
 
-  // Fetch paid orders from database
-  const orders = await getPaidOrders(validPage, pageSize);
+  const orders =
+    validPage === requestedPage
+      ? requestedOrders
+      : await getPaidOrders(validPage, pageSize);
 
   if (!orders) {
     return (

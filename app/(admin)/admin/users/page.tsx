@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { getUsers, getUsersCount } from '@/models/user';
+import { getUsersPage } from '@/models/user';
 import TableSlot from '@/components/dashboard/slots/table';
 import { Table as TableSlotType } from '@/types/slots/table';
 import { TableColumn } from '@/types/blocks/table';
@@ -34,15 +34,26 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   const currentPage = Number(searchParams.page) || 1;
   const pageSize = 50; // 每页显示50条
 
-  // 获取总用户数
-  const totalUsers = await getUsersCount();
+  const initialPage = Math.max(1, currentPage);
+  const initialResult = await getUsersPage(initialPage, pageSize);
+
+  if (!initialResult) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Failed to load users. Please try again later.</p>
+      </div>
+    );
+  }
+
+  const totalUsers = initialResult.count;
   const totalPages = Math.ceil(totalUsers / pageSize);
 
   // 确保页码在有效范围内
   const validPage = Math.max(1, Math.min(currentPage, totalPages || 1));
-
-  // Fetch users from database
-  const users = await getUsers(validPage, pageSize);
+  const users =
+    validPage === initialPage
+      ? initialResult.users
+      : (await getUsersPage(validPage, pageSize))?.users;
 
   if (!users) {
     return (

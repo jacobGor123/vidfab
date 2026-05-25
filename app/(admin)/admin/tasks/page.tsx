@@ -28,13 +28,13 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
       ? (searchParams.type as TaskType)
       : undefined;
 
-  // Fetch tasks and statistics
-  const { tasks, nextCursor, hasMore } = await fetchAllTasks({
-    taskType,
-    limit: 50,
-  });
-
-  const stats = await fetchTaskStats(taskType);
+  const [{ tasks, nextCursor, hasMore }, stats] = await Promise.all([
+    fetchAllTasks({
+      taskType,
+      limit: 50,
+    }),
+    fetchTaskStats(taskType),
+  ]);
 
   return (
     <div className="space-y-6">

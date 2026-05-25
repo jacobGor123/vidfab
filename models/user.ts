@@ -33,6 +33,30 @@ export async function getUsers(
   return data as User[];
 }
 
+export async function getUsersPage(
+  page: number = 1,
+  limit: number = 50
+): Promise<{ users: User[]; count: number } | undefined> {
+  const supabase = getSupabaseAdminClient();
+  const offset = (page - 1) * limit;
+
+  const { data, error, count } = await supabase
+    .from('users')
+    .select('*', { count: 'exact' })
+    .range(offset, offset + limit - 1)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching users page:', error);
+    return undefined;
+  }
+
+  return {
+    users: data as User[],
+    count: count || 0,
+  };
+}
+
 /**
  * Find user by email
  * @param email - User email address

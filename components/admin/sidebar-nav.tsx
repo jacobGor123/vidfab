@@ -6,7 +6,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
   Clapperboard,
@@ -61,6 +61,7 @@ interface SidebarNavProps {
 
 export default function SidebarNav({ variant = 'sidebar' }: SidebarNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isMobile = variant === 'mobile';
 
   return (
@@ -79,6 +80,10 @@ export default function SidebarNav({ variant = 'sidebar' }: SidebarNavProps) {
           <Link
             key={item.href}
             href={item.href}
+            prefetch={false}
+            onPointerEnter={() => router.prefetch(item.href)}
+            onTouchStart={() => router.prefetch(item.href)}
+            onFocus={() => router.prefetch(item.href)}
             className={
               isMobile
                 ? `inline-flex h-9 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors ${
