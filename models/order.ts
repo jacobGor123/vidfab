@@ -37,6 +37,13 @@ function mapRow(row: any, emailMap: Map<string, string> = new Map()): Order {
   };
 }
 
+function applyPaidOrderFilters(query: any) {
+  return query
+    .eq('status', 'completed')
+    .not('completed_at', 'is', null)
+    .like('stripe_checkout_session_id', 'cs_live_%');
+}
+
 async function fetchEmailMap(
   supabase: ReturnType<typeof getSupabaseAdminClient>,
   rows: any[]
@@ -64,11 +71,10 @@ export async function getPaidOrders(
   const supabase = getSupabaseAdminClient();
   const offset = (page - 1) * limit;
 
-  const { data, error } = await supabase
-    .from('subscription_orders')
-    .select('*')
-    .eq('status', 'completed')
-    .order('created_at', { ascending: false })
+  const { data, error } = await applyPaidOrderFilters(
+    supabase.from('subscription_orders').select('*')
+  )
+    .order('completed_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) {
@@ -79,7 +85,7 @@ export async function getPaidOrders(
   if (!data || data.length === 0) return [];
 
   const emailMap = await fetchEmailMap(supabase, data);
-  return data.map((row) => mapRow(row, emailMap));
+  return data.map((row: any) => mapRow(row, emailMap));
 }
 
 /**
@@ -225,10 +231,9 @@ export async function getUserCurrentPlan(userUuid: string): Promise<string | und
 export async function getPaidOrdersCount(): Promise<number> {
   const supabase = getSupabaseAdminClient();
 
-  const { count, error } = await supabase
-    .from('subscription_orders')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'completed');
+  const { count, error } = await applyPaidOrderFilters(
+    supabase.from('subscription_orders').select('*', { count: 'exact', head: true })
+  );
 
   if (error) {
     console.error('Error getting paid orders count:', error);
@@ -252,10 +257,11 @@ export async function getPaidOrdersSummary(): Promise<{
   let totalCount = 0;
 
   while (true) {
-    const { data, error, count } = await supabase
-      .from('subscription_orders')
-      .select('amount_cents', { count: offset === 0 ? 'exact' : undefined })
-      .eq('status', 'completed')
+    const { data, error, count } = await applyPaidOrderFilters(
+      supabase
+        .from('subscription_orders')
+        .select('amount_cents', { count: offset === 0 ? 'exact' : undefined })
+    )
       .range(offset, offset + pageSize - 1);
 
     if (error) {
@@ -272,7 +278,7 @@ export async function getPaidOrdersSummary(): Promise<{
 
     const rows = data ?? [];
     totalCents += rows.reduce(
-      (sum, order: any) => sum + (typeof order.amount_cents === 'number' ? order.amount_cents : 0),
+      (sum: number, order: any) => sum + (typeof order.amount_cents === 'number' ? order.amount_cents : 0),
       0
     );
 

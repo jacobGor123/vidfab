@@ -123,7 +123,7 @@ export default async function PaidOrdersPage({ searchParams }: PaidOrdersPagePro
     },
     {
       name: 'paid_at',
-      title: `Paid At (${ADMIN_STATS_TIMEZONE_LABEL})`,
+      title: `Payment Completed (${ADMIN_STATS_TIMEZONE_LABEL})`,
       className: 'w-40',
       callback: (row) => {
         if (!row.paid_at) return <span className="text-gray-400 text-xs">-</span>;
@@ -140,7 +140,7 @@ export default async function PaidOrdersPage({ searchParams }: PaidOrdersPagePro
     },
     {
       name: 'created_at',
-      title: `Created At (${ADMIN_STATS_TIMEZONE_LABEL})`,
+      title: `Order Created (${ADMIN_STATS_TIMEZONE_LABEL})`,
       className: 'w-40',
       callback: (row) => {
         return (
