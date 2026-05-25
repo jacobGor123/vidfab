@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV !== 'development') {
@@ -14,6 +15,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await requireAdmin();
+
     const { email, credits, plan } = await req.json();
 
     if (!email || !credits || !plan) {
@@ -81,15 +84,24 @@ export async function POST(req: NextRequest) {
       success: false,
       error: 'Failed to update credits',
       details: error.message
-    }, { status: 500 });
+    }, { status: error.status || 500 });
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Direct credits update endpoint',
-    usage: 'POST with { email, credits, plan }',
-    environment: process.env.NODE_ENV,
-    available: process.env.NODE_ENV === 'development'
-  });
+  try {
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Direct credits update endpoint',
+      usage: 'POST with { email, credits, plan }',
+      environment: process.env.NODE_ENV,
+      available: process.env.NODE_ENV === 'development'
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
+    );
+  }
 }

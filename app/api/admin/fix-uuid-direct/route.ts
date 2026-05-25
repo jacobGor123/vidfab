@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getUserUuidFromEmail } from '@/lib/hash';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function POST(req: NextRequest) {
   // 安全检查：仅在开发环境运行
@@ -16,6 +17,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await requireAdmin();
+    const db = supabaseAdmin as any;
+
     const { email } = await req.json();
 
     if (!email) {
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
     console.log(`🔄 当前UUID: ${existingUser.uuid} -> 目标UUID: ${correctUuid}`);
 
     // 🔥 方法：使用RPC执行原子操作
-    const { data: result, error: rpcError } = await supabaseAdmin.rpc('fix_user_uuid', {
+    const { data: result, error: rpcError } = await db.rpc('fix_user_uuid', {
       user_email: email,
       old_uuid: existingUser.uuid,
       new_uuid: correctUuid
@@ -69,7 +73,7 @@ export async function POST(req: NextRequest) {
       console.log('🔧 尝试手动修复...');
 
       // 步骤1: 临时禁用约束（仅开发环境）
-      const { error: disableError } = await supabaseAdmin.rpc('exec_sql', {
+      const { error: disableError } = await db.rpc('exec_sql', {
         sql: 'SET session_replication_role = replica;'
       });
 
@@ -81,7 +85,7 @@ export async function POST(req: NextRequest) {
 
       for (const query of updateQueries) {
         try {
-          await supabaseAdmin.rpc('exec_sql', { sql: query });
+          await db.rpc('exec_sql', { sql: query });
           console.log(`✅ 执行SQL: ${query}`);
         } catch (e) {
           console.log(`⚠️ SQL执行失败或表不存在: ${query}`);
@@ -89,12 +93,12 @@ export async function POST(req: NextRequest) {
       }
 
       // 步骤3: 更新用户UUID
-      const { error: updateUserError } = await supabaseAdmin.rpc('exec_sql', {
+      const { error: updateUserError } = await db.rpc('exec_sql', {
         sql: `UPDATE users SET uuid = '${correctUuid}' WHERE email = '${email}';`
       });
 
       // 步骤4: 重新启用约束
-      await supabaseAdmin.rpc('exec_sql', {
+      await db.rpc('exec_sql', {
         sql: 'SET session_replication_role = DEFAULT;'
       });
 
@@ -128,16 +132,25 @@ export async function POST(req: NextRequest) {
       success: false,
       error: 'Failed to fix UUID directly',
       details: error.message
-    }, { status: 500 });
+    }, { status: error.status || 500 });
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Direct UUID fix endpoint',
-    usage: 'POST with { email }',
-    description: '使用SQL直接修复UUID不匹配问题',
-    environment: process.env.NODE_ENV,
-    available: process.env.NODE_ENV === 'development'
-  });
+  try {
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Direct UUID fix endpoint',
+      usage: 'POST with { email }',
+      description: '使用SQL直接修复UUID不匹配问题',
+      environment: process.env.NODE_ENV,
+      available: process.env.NODE_ENV === 'development'
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
+    );
+  }
 }

@@ -95,7 +95,7 @@ export async function GET(
       video_clip: clipMap.get(shot.shot_number) ?? null,
     }));
 
-    const charactersFormatted = (characters as CharacterRow[] ?? []).map(
+    const charactersFormatted = ((characters as unknown as CharacterRow[]) ?? []).map(
       ({ character_reference_images, ...rest }) => ({
         ...rest,
         reference_images: character_reference_images
@@ -111,7 +111,10 @@ export async function GET(
     });
   } catch (error: any) {
     if (error?.message?.includes('Unauthorized')) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.status || 401 }
+      );
     }
     console.error('[Admin] Video agent detail error:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch detail' }, { status: 500 });

@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import { isCurrentUserAdmin } from '@/lib/admin/auth';
 import SidebarNav from '@/components/admin/sidebar-nav';
 import AdminPageTransition from '@/components/admin/admin-page-transition';
+import { ArrowLeft } from 'lucide-react';
 
 // 🔥 Force dynamic rendering - disable caching for admin pages
 export const dynamic = 'force-dynamic';
@@ -27,40 +28,57 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="admin-shell flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 pt-20">
+    <div className="admin-shell min-h-screen bg-slate-50 pt-20 text-slate-950">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex-shrink-0 fixed left-0 top-20 bottom-0 overflow-y-auto shadow-sm">
+      <aside className="fixed left-0 top-20 bottom-0 hidden w-64 flex-shrink-0 overflow-y-auto border-r border-slate-200 bg-white lg:flex">
         <div className="flex flex-col h-full">
-          {/* Logo/Title with brand gradient */}
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500">
-            <h1 className="text-xl font-bold text-white">Admin Dashboard</h1>
-            <p className="text-xs text-white/90 mt-1">Management Console</p>
+          {/* Logo/Title */}
+          <div className="border-b border-slate-200 p-5">
+            <h1 className="text-base font-semibold text-slate-950">VidFab Admin</h1>
+            <p className="mt-1 text-xs text-slate-500">Management Console</p>
           </div>
 
           {/* Navigation */}
           <SidebarNav />
 
           {/* Back to Site */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="border-t border-slate-200 p-4">
             <Link
               href="/"
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950"
             >
-              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
+              <ArrowLeft className="h-4 w-4" />
               Back to Site
             </Link>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto ml-64">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <AdminPageTransition>{children}</AdminPageTransition>
+      <div className="lg:ml-64">
+        <div className="sticky top-20 z-20 border-b border-slate-200 bg-slate-50/95 backdrop-blur lg:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div>
+              <h1 className="text-sm font-semibold text-slate-950">VidFab Admin</h1>
+              <p className="text-xs text-slate-500">Management Console</p>
+            </div>
+            <Link
+              href="/"
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Site
+            </Link>
+          </div>
+          <SidebarNav variant="mobile" />
         </div>
-      </main>
+
+        {/* Main Content */}
+        <main className="overflow-auto">
+          <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <AdminPageTransition>{children}</AdminPageTransition>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

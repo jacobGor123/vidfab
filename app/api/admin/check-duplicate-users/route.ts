@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function GET() {
   // 安全检查：仅在开发环境运行
@@ -15,6 +16,8 @@ export async function GET() {
   }
 
   try {
+    await requireAdmin();
+
     console.log('🔍 检查重复用户账户...');
 
     // 查找所有用户
@@ -72,11 +75,13 @@ export async function GET() {
 
   } catch (error: any) {
     console.error('检查重复用户失败:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to check duplicate users',
-      details: error.message
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message || 'Failed to check duplicate users',
+      },
+      { status: error.status || 500 }
+    );
   }
 }
 
@@ -90,6 +95,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await requireAdmin();
+
     const { action, keepUuid, deleteUuid } = await req.json();
 
     if (action === 'merge' && keepUuid && deleteUuid) {
@@ -124,9 +131,11 @@ export async function POST(req: NextRequest) {
 
       // 保留最高级的订阅计划
       const planPriority = { 'free': 0, 'lite': 1, 'pro': 2, 'premium': 3 };
-      const keepPlan = (planPriority[keepUser.subscription_plan] || 0) >= (planPriority[deleteUser.subscription_plan] || 0)
-        ? keepUser.subscription_plan
-        : deleteUser.subscription_plan;
+      const keepPlanValue = keepUser.subscription_plan || 'free';
+      const deletePlanValue = deleteUser.subscription_plan || 'free';
+      const keepPlan = (planPriority[keepPlanValue] || 0) >= (planPriority[deletePlanValue] || 0)
+        ? keepPlanValue
+        : deletePlanValue;
 
       // 更新保留的用户
       const { error: updateError } = await supabaseAdmin
@@ -180,10 +189,12 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('处理重复用户失败:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to process duplicate users',
-      details: error.message
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message || 'Failed to process duplicate users',
+      },
+      { status: error.status || 500 }
+    );
   }
 }

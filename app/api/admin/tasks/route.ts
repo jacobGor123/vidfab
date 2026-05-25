@@ -11,7 +11,20 @@ import { requireAdmin } from '@/lib/admin/auth';
 // Note: Removed edge runtime - NextAuth requires Node.js runtime
 
 // 标记为动态路由（使用 requireAdmin 需要 headers 和 searchParams）
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
+
+const VALID_TASK_TYPES = new Set<TaskType>([
+  'video_generation',
+  'image_generation',
+]);
+
+function parseLimit(value: string | null): number {
+  const parsed = Number(value || '50');
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 50;
+  }
+  return Math.min(Math.floor(parsed), 100);
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,9 +33,20 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const cursor = searchParams.get('cursor') || undefined;
-    const taskType = searchParams.get('type') as TaskType | undefined;
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const rawTaskType = searchParams.get('type');
+    const taskType = rawTaskType as TaskType | undefined;
+    const limit = parseLimit(searchParams.get('limit'));
     const excludeEmail = searchParams.get('excludeEmail') || undefined;
+
+    if (rawTaskType && !VALID_TASK_TYPES.has(rawTaskType as TaskType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid task type',
+        },
+        { status: 400 }
+      );
+    }
 
     const result = await fetchAllTasks({
       taskType,

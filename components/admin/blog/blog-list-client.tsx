@@ -10,8 +10,18 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { Pencil, Trash2, Plus, Eye } from 'lucide-react';
 import type { BlogPost } from '@/models/blog';
+import { formatAdminDate, formatAdminUtcTitle } from '@/lib/admin/datetime';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!res.ok || data?.success === false) {
+    throw new Error(data?.error || 'Failed to load blog posts');
+  }
+
+  return data;
+};
 
 export default function BlogListClient() {
   const [status, setStatus] = useState<string>('all');
@@ -56,16 +66,6 @@ export default function BlogListClient() {
     }
   };
 
-  // 格式化日期
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
-
   // 状态徽章颜色
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -104,7 +104,10 @@ export default function BlogListClient() {
             </label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">全部状态</option>
@@ -121,7 +124,10 @@ export default function BlogListClient() {
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">全部分类</option>
@@ -140,7 +146,10 @@ export default function BlogListClient() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               placeholder="搜索标题或内容..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -222,8 +231,11 @@ export default function BlogListClient() {
                         {post.view_count || 0}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(post.created_at)}
+                    <td
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                      title={formatAdminUtcTitle(post.created_at)}
+                    >
+                      {formatAdminDate(post.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">

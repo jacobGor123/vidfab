@@ -1,8 +1,9 @@
 import { getSupabaseAdminClient } from "@/models/db";
+import { ADMIN_STATS_TIMEZONE } from "@/lib/admin/datetime";
 
 export const ADMIN_STATS_DAY_OPTIONS = [7, 30, 90, 180, 365] as const;
 export const DEFAULT_ADMIN_STATS_DAYS = 30;
-export const ADMIN_STATS_TIMEZONE = "Asia/Shanghai";
+export { ADMIN_STATS_TIMEZONE };
 const FALLBACK_PAGE_SIZE = 1000;
 
 export type AdminStatsDays = (typeof ADMIN_STATS_DAY_OPTIONS)[number];

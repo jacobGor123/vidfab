@@ -19,6 +19,17 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
+const DISCOVER_SORT_COLUMNS = new Set(['display_order', 'created_at', 'updated_at', 'status', 'category'])
+const DISCOVER_STATUSES = new Set(['all', 'active', 'inactive', 'draft'])
+
+function parsePositiveInt(value: string | null, fallback: number, max: number): number {
+  const parsed = Number(value || fallback)
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback
+  }
+  return Math.min(Math.floor(parsed), max)
+}
+
 /**
  * GET /api/admin/discover
  * 获取 Discover 视频列表（带分页和筛选）
@@ -28,18 +39,20 @@ export async function GET(request: NextRequest) {
     await requireAdmin()
 
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
+    const page = parsePositiveInt(searchParams.get('page'), 1, 10000)
+    const limit = parsePositiveInt(searchParams.get('limit'), 50, 100)
     const category = searchParams.get('category') || ''
-    const status = searchParams.get('status') || 'all'
+    const requestedStatus = searchParams.get('status') || 'all'
+    const status = DISCOVER_STATUSES.has(requestedStatus) ? requestedStatus : 'all'
     const search = searchParams.get('search') || ''
-    const sortBy = searchParams.get('sortBy') || 'display_order'
-    const sortOrder = searchParams.get('sortOrder') || 'desc'
+    const requestedSortBy = searchParams.get('sortBy') || 'display_order'
+    const sortBy = DISCOVER_SORT_COLUMNS.has(requestedSortBy) ? requestedSortBy : 'display_order'
+    const sortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc'
 
     const offset = (page - 1) * limit
 
     // 构建查询
-    let query = supabaseAdmin.from('discover_videos').select('*', { count: 'exact' })
+    let query = (supabaseAdmin as any).from('discover_videos').select('*', { count: 'exact' })
 
     // 筛选条件
     if (category && category !== 'all') {
@@ -137,10 +150,10 @@ export async function POST(request: NextRequest) {
 
     // 处理视频上传
     let finalVideoUrl = videoUrl
-    let videoBuffer: Buffer<ArrayBufferLike> | null = null // 保存视频 buffer 供后续提取缩略图使用
+    let videoBuffer: Buffer | null = null // 保存视频 buffer 供后续提取缩略图使用
 
     if (videoFile) {
-      let buffer = Buffer.from(await videoFile.arrayBuffer())
+      let buffer: Uint8Array = Buffer.from(await videoFile.arrayBuffer())
 
       // 检查视频大小，如果超过 1MB 则压缩
       const videoSizeMB = buffer.length / 1024 / 1024
@@ -170,7 +183,7 @@ export async function POST(request: NextRequest) {
       }
 
       finalVideoUrl = uploadResult.url!
-      videoBuffer = buffer // 保存 buffer 供后续提取缩略图使用
+      videoBuffer = Buffer.from(buffer) // 保存 buffer 供后续提取缩略图使用
     } else if (videoUrl) {
       // 如果提供的是 URL，暂时直接使用提供的 URL。
       finalVideoUrl = videoUrl
@@ -180,7 +193,7 @@ export async function POST(request: NextRequest) {
     let finalImageUrl = imageUrl
 
     if (imageFile) {
-      let buffer = Buffer.from(await imageFile.arrayBuffer())
+      let buffer: Uint8Array = Buffer.from(await imageFile.arrayBuffer())
 
       // 自动压缩图片并转换为 webp 格式
       const compressResult = await compressImage(buffer, {
@@ -239,7 +252,7 @@ export async function POST(request: NextRequest) {
     // 如果 display_order 为 0，自动设置为最大值 + 1（保证新内容排在最前）
     let finalDisplayOrder = displayOrder
     if (finalDisplayOrder === 0) {
-      const { data: maxOrderData } = await supabaseAdmin
+      const { data: maxOrderData } = await (supabaseAdmin as any)
         .from('discover_videos')
         .select('display_order')
         .order('display_order', { ascending: false })
@@ -250,7 +263,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 插入数据库
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from('discover_videos')
       .insert({
         prompt,

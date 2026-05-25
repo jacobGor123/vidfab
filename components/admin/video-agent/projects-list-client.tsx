@@ -7,6 +7,12 @@
 
 import { useState } from 'react';
 import ProjectDetailPanel from './project-detail-panel';
+import { ChevronRight } from 'lucide-react';
+import {
+  ADMIN_STATS_TIMEZONE_LABEL,
+  formatAdminDateTime,
+  formatAdminUtcTitle,
+} from '@/lib/admin/datetime';
 
 type ProjectStatus = 'all' | 'draft' | 'processing' | 'completed' | 'failed';
 type SourceType = 'video_replication' | 'script_creation' | 'unknown';
@@ -105,14 +111,14 @@ export default function ProjectsListClient({ projects }: Props) {
       {/* 项目列表 */}
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
         {/* 表头 */}
-        <div className="grid grid-cols-[1fr_80px_100px_120px_60px_70px_140px_40px] gap-3 px-4 py-3 bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 border-b border-gray-200 font-semibold text-gray-800 text-sm">
+        <div className="grid grid-cols-[1fr_80px_100px_120px_60px_70px_160px_40px] gap-3 px-4 py-3 bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 border-b border-gray-200 font-semibold text-gray-800 text-sm">
           <span>User</span>
           <span>Source</span>
           <span>Status</span>
           <span>Step</span>
           <span>Shots</span>
           <span>Duration</span>
-          <span>Created</span>
+          <span>Created ({ADMIN_STATS_TIMEZONE_LABEL})</span>
           <span></span>
         </div>
 
@@ -137,7 +143,7 @@ export default function ProjectsListClient({ projects }: Props) {
             <div key={project.id} className="border-b border-gray-200 last:border-b-0">
               {/* 行 */}
               <div
-                className={`grid grid-cols-[1fr_80px_100px_120px_60px_70px_140px_40px] gap-3 px-4 py-3 items-center text-sm cursor-pointer hover:bg-purple-50/50 transition-colors ${
+                className={`grid grid-cols-[1fr_80px_100px_120px_60px_70px_160px_40px] gap-3 px-4 py-3 items-center text-sm cursor-pointer hover:bg-purple-50/50 transition-colors ${
                   isExpanded ? 'bg-purple-50/50' : ''
                 }`}
                 onClick={() => toggleExpand(project.id)}
@@ -179,14 +185,16 @@ export default function ProjectsListClient({ projects }: Props) {
                   {project.duration ? `${project.duration}s` : '—'}
                 </span>
 
-                <span className="text-gray-400 text-xs">
-                  {new Date(project.created_at).toLocaleDateString()}{' '}
-                  {new Date(project.created_at).toLocaleTimeString()}
+                <span
+                  className="text-gray-400 text-xs"
+                  title={formatAdminUtcTitle(project.created_at)}
+                >
+                  {formatAdminDateTime(project.created_at)}
                 </span>
 
-                <span className={`text-gray-400 text-sm transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
-                  ▶
-                </span>
+                <ChevronRight
+                  className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                />
               </div>
 
               {/* 展开详情 */}

@@ -5,12 +5,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin/auth';
 
 // 标记为动态路由（使用 searchParams）
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
+
     const searchParams = request.nextUrl.searchParams;
     const email = searchParams.get('email');
 
@@ -62,7 +65,7 @@ export async function GET(request: NextRequest) {
       .limit(10);
 
     // 5. 查询当前订阅信息
-    const { data: subscription, error: subError } = await supabaseAdmin
+    const { data: subscription, error: subError } = await (supabaseAdmin as any)
       .from('subscriptions')
       .select('*')
       .eq('user_uuid', userData.uuid)
@@ -108,8 +111,8 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('查询用户状态失败:', error);
     return NextResponse.json(
-      { error: '查询失败', details: error.message },
-      { status: 500 }
+      { success: false, error: error.message || '查询失败' },
+      { status: error.status || 500 }
     );
   }
 }

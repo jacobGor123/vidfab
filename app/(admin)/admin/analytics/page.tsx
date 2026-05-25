@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminPageHeader from "@/components/admin/admin-page-header";
 import DailyStatsChart from "@/components/admin/daily-stats-chart";
 import {
   ADMIN_STATS_DAY_OPTIONS,
@@ -38,15 +39,11 @@ export default async function AdminAnalyticsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Daily registrations and task volume.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
+      <AdminPageHeader
+        title="Analytics"
+        description="Daily registrations and task volume."
+        actions={
+          <>
           {ADMIN_STATS_DAY_OPTIONS.map((option) => {
             const isActive = option === stats.days;
 
@@ -77,8 +74,9 @@ export default async function AdminAnalyticsPage({
           >
             Video Agent {includeVideoAgent ? "On" : "Off"}
           </Link>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {stats.error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

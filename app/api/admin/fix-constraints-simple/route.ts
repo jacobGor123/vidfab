@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV !== 'development') {
@@ -14,6 +15,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await requireAdmin();
+    const db = supabaseAdmin as any;
+
     console.log('🔧 开始快速修复数据库约束...');
 
     // 🔥 快速修复：直接更新现有的约束值
@@ -26,14 +30,14 @@ export async function POST(req: NextRequest) {
 
     for (const query of updateQueries) {
       try {
-        const { error } = await supabaseAdmin
+        const { error } = await db
           .from('users')
           .select('uuid')
           .limit(1);
 
         if (query.sql.includes('basic')) {
           console.log('🔄 更新basic用户为free...');
-          const { error: updateError } = await supabaseAdmin
+          const { error: updateError } = await db
             .from('users')
             .update({ subscription_plan: 'free' })
             .eq('subscription_plan', 'basic');
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
 
         if (query.sql.includes('enterprise')) {
           console.log('🔄 更新enterprise用户为premium...');
-          const { error: updateError } = await supabaseAdmin
+          const { error: updateError } = await db
             .from('users')
             .update({ subscription_plan: 'premium' })
             .eq('subscription_plan', 'enterprise');
@@ -67,7 +71,7 @@ export async function POST(req: NextRequest) {
     const testEmail = `constraint-test-${Date.now()}@example.com`;
     const testUuid = crypto.randomUUID();
 
-    const { error: testError } = await supabaseAdmin
+    const { error: testError } = await db
       .from('users')
       .insert({
         uuid: testUuid,
@@ -94,7 +98,7 @@ export async function POST(req: NextRequest) {
     } else {
       console.log('✅ 约束测试成功，清理测试数据...');
       // 清理测试数据
-      await supabaseAdmin
+      await db
         .from('users')
         .delete()
         .eq('uuid', testUuid);
@@ -111,15 +115,24 @@ export async function POST(req: NextRequest) {
       success: false,
       error: 'Constraint fix failed',
       details: error.message
-    }, { status: 500 });
+    }, { status: error.status || 500 });
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Simple constraint fix endpoint',
-    usage: 'POST to fix database constraints quickly',
-    environment: process.env.NODE_ENV,
-    available: process.env.NODE_ENV === 'development'
-  });
+  try {
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Simple constraint fix endpoint',
+      usage: 'POST to fix database constraints quickly',
+      environment: process.env.NODE_ENV,
+      available: process.env.NODE_ENV === 'development'
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
+    );
+  }
 }

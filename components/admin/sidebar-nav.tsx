@@ -7,92 +7,93 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  BarChart3,
+  Clapperboard,
+  FileText,
+  Film,
+  ListChecks,
+  ShoppingCart,
+  Users,
+} from 'lucide-react';
 
 const navItems = [
   {
     href: '/admin/analytics',
     label: 'Analytics',
-    icon: (
-      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3v18h18M7 15l4-4 3 3 5-7" />
-      </svg>
-    ),
+    icon: BarChart3,
   },
   {
     href: '/admin/users',
     label: 'Users',
-    icon: (
-      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
+    icon: Users,
   },
   {
     href: '/admin/paid-orders',
     label: 'Orders',
-    icon: (
-      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
+    icon: ShoppingCart,
   },
   {
     href: '/admin/tasks',
     label: 'Tasks',
-    icon: (
-      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-      </svg>
-    ),
+    icon: ListChecks,
   },
   {
     href: '/admin/blog',
     label: 'Blog',
-    icon: (
-      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-      </svg>
-    ),
+    icon: FileText,
   },
   {
     href: '/admin/discover',
     label: 'Discover',
-    icon: (
-      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>
-    ),
+    icon: Clapperboard,
   },
   {
     href: '/admin/video-agent',
     label: 'Video Agent',
-    icon: (
-      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-      </svg>
-    ),
+    icon: Film,
   },
 ];
 
-export default function SidebarNav() {
+interface SidebarNavProps {
+  variant?: 'sidebar' | 'mobile';
+}
+
+export default function SidebarNav({ variant = 'sidebar' }: SidebarNavProps) {
   const pathname = usePathname();
+  const isMobile = variant === 'mobile';
 
   return (
-    <nav className="flex-1 px-4 py-6 space-y-2">
+    <nav
+      className={
+        isMobile
+          ? 'flex gap-2 overflow-x-auto px-4 py-3'
+          : 'flex-1 space-y-1.5 px-3 py-4'
+      }
+    >
       {navItems.map((item) => {
         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+        const Icon = item.icon;
 
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 ${
-              isActive
-                ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white shadow-md transform scale-[1.02]'
-                : 'text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-700'
-            }`}
+            className={
+              isMobile
+                ? `inline-flex h-9 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  }`
+                : `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                  }`
+            }
           >
-            {item.icon}
+            <Icon className="h-4 w-4 shrink-0" />
             {item.label}
           </Link>
         );

@@ -36,10 +36,11 @@ interface RouteContext {
 export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     await requireAdmin()
+    const db = supabaseAdmin as any
 
     const { id } = params
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await db
       .from('discover_videos')
       .select('*')
       .eq('id', id)
@@ -66,12 +67,13 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 export async function PUT(request: NextRequest, { params }: RouteContext) {
   try {
     await requireAdmin()
+    const db = supabaseAdmin as any
 
     const { id } = params
     const formData = await request.formData()
 
     // 检查记录是否存在
-    const { data: existing, error: fetchError } = await supabaseAdmin
+    const { data: existing, error: fetchError } = await db
       .from('discover_videos')
       .select('*')
       .eq('id', id)
@@ -111,10 +113,10 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     // 处理视频上传
     let finalVideoUrl = existing.video_url
-    let videoBuffer: Buffer<ArrayBufferLike> | null = null // 保存视频 buffer 供后续提取缩略图使用
+    let videoBuffer: Buffer | null = null // 保存视频 buffer 供后续提取缩略图使用
 
     if (videoFile) {
-      let buffer = Buffer.from(await videoFile.arrayBuffer())
+      let buffer: Uint8Array = Buffer.from(await videoFile.arrayBuffer())
 
       // 检查视频大小，如果超过 1MB 则压缩
       const videoSizeMB = buffer.length / 1024 / 1024
@@ -142,7 +144,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       }
 
       finalVideoUrl = uploadResult.url!
-      videoBuffer = buffer // 保存 buffer 供后续提取缩略图使用
+      videoBuffer = Buffer.from(buffer) // 保存 buffer 供后续提取缩略图使用
     } else if (videoUrl) {
       finalVideoUrl = videoUrl
     }
@@ -151,7 +153,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     let finalImageUrl = existing.image_url
 
     if (imageFile) {
-      let buffer = Buffer.from(await imageFile.arrayBuffer())
+      let buffer: Uint8Array = Buffer.from(await imageFile.arrayBuffer())
 
       // 自动压缩图片并转换为 webp 格式
       const compressResult = await compressImage(buffer, {
@@ -207,7 +209,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     const finalCategory = category || (prompt !== existing.prompt ? categorizePrompt(prompt) : existing.category)
 
     // 更新数据库
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await db
       .from('discover_videos')
       .update({
         prompt,
@@ -260,10 +262,11 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
   try {
     await requireAdmin()
+    const db = supabaseAdmin as any
 
     const { id } = params
 
-    const { data: existing, error: fetchError } = await supabaseAdmin
+    const { data: existing, error: fetchError } = await db
       .from('discover_videos')
       .select('video_url, image_url')
       .eq('id', id)
@@ -273,7 +276,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       return discoverJson({ success: false, error: '记录不存在' }, { status: 404 })
     }
 
-    const { error } = await supabaseAdmin.from('discover_videos').delete().eq('id', id)
+    const { error } = await db.from('discover_videos').delete().eq('id', id)
 
     if (error) {
       console.error('删除 discover_videos 失败:', error)

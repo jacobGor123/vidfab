@@ -21,9 +21,10 @@ export const fetchCache = 'force-no-store'
 export async function GET(request: NextRequest) {
   try {
     await requireAdmin()
+    const db = supabaseAdmin as any
 
     // 获取总数
-    const { count: total, error: totalError } = await supabaseAdmin
+    const { count: total, error: totalError } = await db
       .from('discover_videos')
       .select('*', { count: 'exact', head: true })
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // 按分类统计
     const byCategoryPromises = Object.values(DiscoverCategory).map(async category => {
-      const { count } = await supabaseAdmin
+      const { count } = await db
         .from('discover_videos')
         .select('*', { count: 'exact', head: true })
         .eq('category', category)
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     // 按状态统计
     const byStatusPromises = Object.values(DiscoverStatus).map(async status => {
-      const { count } = await supabaseAdmin
+      const { count } = await db
         .from('discover_videos')
         .select('*', { count: 'exact', head: true })
         .eq('status', status)
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
     })
 
     // 精选数量
-    const { count: featured, error: featuredError } = await supabaseAdmin
+    const { count: featured, error: featuredError } = await db
       .from('discover_videos')
       .select('*', { count: 'exact', head: true })
       .eq('is_featured', true)

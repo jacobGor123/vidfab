@@ -34,6 +34,8 @@ export interface UnifiedTask {
 
   // 输出数据
   video_url: string | null;        // user_videos.original_url
+  result_url?: string | null;      // optional normalized result URL for future task sources
+  audio_url?: string | null;       // optional audio result URL for future task sources
   image_url?: string | null;       // user_images.storage_url（图片任务特有）
   storage_path: string | null;     // user_videos.storage_path / user_images.storage_path
   thumbnail_path: string | null;   // user_videos.thumbnail_path（图片任务无缩略图）
@@ -80,7 +82,7 @@ export interface TaskStats {
 export interface FetchTasksOptions {
   taskType?: TaskType;
   limit?: number;
-  cursor?: string;  // ISO timestamp for cursor-based pagination
+  cursor?: string;  // ISO timestamp for single-source pagination; JSON source cursors for all tasks
   excludeEmail?: string;  // 排除包含该关键词的邮箱
 }
 

@@ -7,7 +7,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import type { BlogPost } from '@/models/blog';
+
+const BLOG_SORT_COLUMNS = new Set([
+  'created_at',
+  'updated_at',
+  'published_at',
+  'title',
+  'status',
+  'view_count',
+]);
+const BLOG_STATUSES = new Set(['all', 'draft', 'scheduled', 'published']);
+
+function parsePositiveInt(value: string | null, fallback: number, max: number): number {
+  const parsed = Number(value || fallback);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+  return Math.min(Math.floor(parsed), max);
+}
+
+function sanitizeSearchTerm(value: string): string {
+  return value.trim().replace(/[,%()]/g, ' ');
+}
 
 /**
  * GET /api/admin/blog
@@ -18,13 +39,18 @@ export async function GET(request: NextRequest) {
     await requireAdmin();
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
+    const page = parsePositiveInt(searchParams.get('page'), 1, 10000);
+    const limit = parsePositiveInt(searchParams.get('limit'), 20, 100);
     const category = searchParams.get('category') || '';
-    const status = searchParams.get('status') || 'all';
-    const search = searchParams.get('search') || '';
-    const sortBy = searchParams.get('sortBy') || 'created_at';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const status = BLOG_STATUSES.has(searchParams.get('status') || 'all')
+      ? searchParams.get('status') || 'all'
+      : 'all';
+    const search = sanitizeSearchTerm(searchParams.get('search') || '');
+    const requestedSortBy = searchParams.get('sortBy') || 'created_at';
+    const sortBy = BLOG_SORT_COLUMNS.has(requestedSortBy)
+      ? requestedSortBy
+      : 'created_at';
+    const sortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
 
     const offset = (page - 1) * limit;
 
@@ -118,7 +144,7 @@ export async function POST(request: NextRequest) {
     const readTimeMinutes = calculateReadTime(body.content);
 
     // 准备数据
-    const postData: Partial<BlogPost> = {
+    const postData = {
       title: body.title,
       slug,
       content: body.content,
@@ -141,7 +167,7 @@ export async function POST(request: NextRequest) {
     // 插入数据库
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
-      .insert(postData)
+      .insert(postData as any)
       .select()
       .single();
 

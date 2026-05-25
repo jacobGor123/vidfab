@@ -8,10 +8,20 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import useSWR from 'swr'
-import { DiscoverVideo, DiscoverStatus, DiscoverCategory } from '@/types/discover'
+import { DiscoverVideo, DiscoverCategory } from '@/types/discover'
 import { getCategoryDisplayName } from '@/lib/discover/categorize'
+import { formatAdminDate, formatAdminUtcTitle } from '@/lib/admin/datetime'
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  const data = await res.json()
+
+  if (!res.ok || data?.success === false) {
+    throw new Error(data?.error || 'Failed to load discover videos')
+  }
+
+  return data
+}
 
 async function readApiResponse(response: Response) {
   const text = await response.text()
@@ -87,7 +97,10 @@ export default function DiscoverListClient() {
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value)
+                setPage(1)
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
               <option value="all">All Categories</option>
@@ -106,7 +119,10 @@ export default function DiscoverListClient() {
             </label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => {
+                setStatus(e.target.value)
+                setPage(1)
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
               <option value="all">All Status</option>
@@ -124,7 +140,10 @@ export default function DiscoverListClient() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
               placeholder="Search prompt..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
@@ -222,8 +241,11 @@ export default function DiscoverListClient() {
                         {video.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(video.created_at).toLocaleDateString()}
+                    <td
+                      className="px-6 py-4 text-sm text-gray-500"
+                      title={formatAdminUtcTitle(video.created_at)}
+                    >
+                      {formatAdminDate(video.created_at)}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <Link

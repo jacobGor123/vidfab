@@ -18,7 +18,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { Film, ImageIcon, Sparkles, Type, Volume2, Wand2, X } from 'lucide-react';
+import {
+  ADMIN_STATS_TIMEZONE_LABEL,
+  formatAdminDateTime,
+  formatAdminUtcTitle,
+} from '@/lib/admin/datetime';
 
 interface TasksListProps {
   initialTasks: UnifiedTask[];
@@ -39,6 +44,7 @@ export default function TasksListWithPagination({
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // 邮箱排除搜索
   const [excludeEmailInput, setExcludeEmailInput] = useState('');
@@ -73,13 +79,17 @@ export default function TasksListWithPagination({
       const response = await fetch(`/api/admin/tasks?${params.toString()}`);
       const data = await response.json();
 
-      if (data.success) {
-        setTasks(data.tasks);
-        setNextCursor(data.nextCursor);
-        setHasMore(data.hasMore);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to fetch tasks');
       }
+
+      setErrorMessage(null);
+      setTasks(data.tasks);
+      setNextCursor(data.nextCursor);
+      setHasMore(data.hasMore);
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to fetch tasks');
     } finally {
       setLoading(false);
     }
@@ -117,13 +127,17 @@ export default function TasksListWithPagination({
       const response = await fetch(`/api/admin/tasks?${params.toString()}`);
       const data = await response.json();
 
-      if (data.success) {
-        setTasks((prev) => [...prev, ...data.tasks]);
-        setNextCursor(data.nextCursor);
-        setHasMore(data.hasMore);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to load more tasks');
       }
+
+      setErrorMessage(null);
+      setTasks((prev) => [...prev, ...data.tasks]);
+      setNextCursor(data.nextCursor);
+      setHasMore(data.hasMore);
     } catch (error) {
       console.error('Failed to load more tasks:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to load more tasks');
     } finally {
       setLoading(false);
     }
@@ -140,41 +154,41 @@ export default function TasksListWithPagination({
         className: 'w-36',
         callback: (item: UnifiedTask) => {
           let color: string;
-          let icon: string;
+          let Icon = Type;
           let label: string;
 
           switch (item.generation_type) {
             case 'image_to_video':
               color = 'bg-purple-100 text-purple-800 border-purple-200';
-              icon = '🖼️';
+              Icon = Film;
               label = 'Image to Video';
               break;
             case 'video_effects':
               color = 'bg-pink-100 text-pink-800 border-pink-200';
-              icon = '✨';
+              Icon = Sparkles;
               label = 'Video Effects';
               break;
             case 'text_to_image':
               color = 'bg-orange-100 text-orange-800 border-orange-200';
-              icon = '🎨';
+              Icon = ImageIcon;
               label = 'Text to Image';
               break;
             case 'image_to_image':
               color = 'bg-cyan-100 text-cyan-800 border-cyan-200';
-              icon = '🖌️';
+              Icon = Wand2;
               label = 'Image to Image';
               break;
             case 'text_to_video':
             default:
               color = 'bg-blue-100 text-blue-800 border-blue-200';
-              icon = '✍️';
+              Icon = Type;
               label = 'Text to Video';
               break;
           }
 
           return (
             <span className={`px-2 py-1 rounded text-xs font-medium border ${color} whitespace-nowrap inline-flex items-center gap-1`}>
-              <span>{icon}</span>
+              <Icon className="h-3.5 w-3.5" />
               <span>{label}</span>
             </span>
           );
@@ -216,7 +230,7 @@ export default function TasksListWithPagination({
             return (
               <div className="flex items-center gap-2">
                 <span className="text-xs px-2 py-1 rounded bg-pink-50 text-pink-700 border border-pink-200">
-                  ✨ {item.effectName}
+                  {item.effectName}
                 </span>
               </div>
             );
@@ -345,7 +359,8 @@ export default function TasksListWithPagination({
           if (isAudio) {
             return (
               <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
-                🔊 Audio
+                <Volume2 className="mr-1 inline h-3.5 w-3.5" />
+                Audio
               </a>
             );
           }
@@ -359,6 +374,7 @@ export default function TasksListWithPagination({
         className: 'w-28',
         callback: (item: UnifiedTask) => {
           const statusColors = {
+            uploading: 'bg-indigo-100 text-indigo-800 border-indigo-200',
             generating: 'bg-yellow-100 text-yellow-800 border-yellow-200',
             downloading: 'bg-blue-100 text-blue-800 border-blue-200',
             processing: 'bg-purple-100 text-purple-800 border-purple-200',
@@ -398,13 +414,15 @@ export default function TasksListWithPagination({
       },
       {
         name: 'created_at',
-        title: 'Created',
+        title: `Created (${ADMIN_STATS_TIMEZONE_LABEL})`,
         className: 'w-36',
         callback: (item: UnifiedTask) => {
-          const date = new Date(item.created_at);
           return (
-            <span className="text-xs text-gray-600">
-              {date.toLocaleDateString()} {date.toLocaleTimeString()}
+            <span
+              className="text-xs text-gray-600"
+              title={formatAdminUtcTitle(item.created_at)}
+            >
+              {formatAdminDateTime(item.created_at)}
             </span>
           );
         },
@@ -476,6 +494,12 @@ export default function TasksListWithPagination({
           <span className="text-sm text-blue-500">Loading...</span>
         )}
       </div>
+
+      {errorMessage && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {errorMessage}
+        </div>
+      )}
 
       <TableSlot {...table} />
 

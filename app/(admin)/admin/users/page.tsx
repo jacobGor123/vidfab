@@ -10,6 +10,12 @@ import { Table as TableSlotType } from '@/types/slots/table';
 import { TableColumn } from '@/types/blocks/table';
 import Image from 'next/image';
 import UsersPagination from '@/components/admin/users-pagination';
+import AdminPageHeader from '@/components/admin/admin-page-header';
+import {
+  ADMIN_STATS_TIMEZONE_LABEL,
+  formatAdminDateTime,
+  formatAdminUtcTitle,
+} from '@/lib/admin/datetime';
 
 // 🔥 Force dynamic rendering - disable caching for admin pages
 export const dynamic = 'force-dynamic';
@@ -158,13 +164,15 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     },
     {
       name: 'created_at',
-      title: 'Created At',
+      title: `Created At (${ADMIN_STATS_TIMEZONE_LABEL})`,
       className: 'w-40',
       callback: (row) => {
-        const date = new Date(row.created_at);
         return (
-          <span className="text-xs text-gray-600">
-            {date.toLocaleDateString()} {date.toLocaleTimeString()}
+          <span
+            className="text-xs text-gray-600"
+            title={formatAdminUtcTitle(row.created_at)}
+          >
+            {formatAdminDateTime(row.created_at)}
           </span>
         );
       },
@@ -173,7 +181,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
 
   // Assemble table slot
   const table: TableSlotType = {
-    title: `All Users (${totalUsers} total)`,
+    title: 'Registered Users',
     description: `Manage and view all registered users - Page ${validPage} of ${totalPages}`,
     columns,
     data: users,
@@ -181,6 +189,16 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
 
   return (
     <div className="space-y-6">
+      <AdminPageHeader
+        title="Users"
+        description="Registered accounts, login providers, verification state, plans, credits, and signup time."
+        meta={
+          <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600">
+            {totalUsers} total
+          </span>
+        }
+      />
+
       <TableSlot {...table} />
 
       {/* 分页导航 */}

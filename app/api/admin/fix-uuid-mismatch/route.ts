@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getUserUuidFromEmail } from '@/lib/hash';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function POST(req: NextRequest) {
   // 安全检查：仅在开发环境运行
@@ -17,6 +18,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await requireAdmin();
+    const db = supabaseAdmin as any;
+
     const { email } = await req.json();
 
     if (!email) {
@@ -33,9 +37,9 @@ export async function POST(req: NextRequest) {
     console.log(`✅ 确定性UUID: ${correctUuid}`);
 
     // 查找当前数据库中的用户记录
-    const { data: existingUser, error: findError } = await supabaseAdmin
+    const { data: existingUserRow, error: findError } = await db
       .from('users')
-      .select('uuid, email, nickname, subscription_plan, credits_remaining, created_at')
+      .select('*')
       .eq('email', email)
       .single();
 
@@ -47,12 +51,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!existingUser) {
+    if (!existingUserRow) {
       return NextResponse.json(
         { success: false, error: '用户不存在' },
         { status: 404 }
       );
     }
+
+    const existingUser = existingUserRow as any;
 
     console.log('📊 原始用户信息:', {
       oldUuid: existingUser.uuid,
@@ -74,7 +80,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 检查确定性UUID是否已被其他用户使用
-    const { data: conflictUser, error: conflictError } = await supabaseAdmin
+    const { data: conflictUser, error: conflictError } = await db
       .from('users')
       .select('uuid, email')
       .eq('uuid', correctUuid)
@@ -99,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     for (const table of relatedTables) {
       try {
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await db
           .from(table)
           .select('*')
           .eq('user_id', existingUser.uuid);
@@ -114,7 +120,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔥 步骤2: 创建新的用户记录使用确定性UUID
-    const { error: createError } = await supabaseAdmin
+    const { error: createError } = await db
       .from('users')
       .insert({
         uuid: correctUuid,
@@ -130,7 +136,7 @@ export async function POST(req: NextRequest) {
         email_verified: existingUser.email_verified || true,
         is_active: existingUser.is_active !== false,
         signin_ip: existingUser.signin_ip || null,
-        last_login_at: existingUser.last_login_at,
+        last_login: existingUser.last_login,
         created_at: existingUser.created_at,
         updated_at: new Date().toISOString()
       });
@@ -150,7 +156,7 @@ export async function POST(req: NextRequest) {
       if (!records || !Array.isArray(records) || records.length === 0) continue;
 
       try {
-        const { error: updateRelatedError } = await supabaseAdmin
+        const { error: updateRelatedError } = await db
           .from(table)
           .update({ user_id: correctUuid })
           .eq('user_id', existingUser.uuid);
@@ -166,7 +172,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔥 步骤4: 删除旧的用户记录
-    const { error: deleteError } = await supabaseAdmin
+    const { error: deleteError } = await db
       .from('users')
       .delete()
       .eq('uuid', existingUser.uuid);
@@ -182,7 +188,7 @@ export async function POST(req: NextRequest) {
     console.log('✅ 用户UUID修复成功');
 
     // 验证更新结果
-    const { data: updatedUser } = await supabaseAdmin
+    const { data: updatedUser } = await db
       .from('users')
       .select('uuid, email, nickname, subscription_plan, credits_remaining')
       .eq('email', email)
@@ -211,16 +217,25 @@ export async function POST(req: NextRequest) {
       success: false,
       error: 'Failed to fix UUID mismatch',
       details: error.message
-    }, { status: 500 });
+    }, { status: error.status || 500 });
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Fix UUID mismatch endpoint',
-    usage: 'POST with { email }',
-    description: '修复JWT token中的确定性UUID与数据库UUID不匹配的问题',
-    environment: process.env.NODE_ENV,
-    available: process.env.NODE_ENV === 'development'
-  });
+  try {
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Fix UUID mismatch endpoint',
+      usage: 'POST with { email }',
+      description: '修复JWT token中的确定性UUID与数据库UUID不匹配的问题',
+      environment: process.env.NODE_ENV,
+      available: process.env.NODE_ENV === 'development'
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
+    );
+  }
 }

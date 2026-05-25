@@ -27,40 +27,42 @@ export default function TableBlock({
 }: TableBlockProps) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column, index) => (
-              <TableHead key={index} className={column.className}>
-                {column.title || column.name}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.length === 0 ? (
+      <div className="overflow-x-auto">
+        <Table className="min-w-full">
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                {emptyMessage}
-              </TableCell>
+              {columns.map((column, index) => (
+                <TableHead key={index} className={column.className}>
+                  {column.title || column.name}
+                </TableHead>
+              ))}
             </TableRow>
-          ) : (
-            data.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {columns.map((column, colIndex) => (
-                  <TableCell key={colIndex} className={column.className}>
-                    {column.callback
-                      ? column.callback(row)
-                      : column.name
-                      ? row[column.name]
-                      : ''}
-                  </TableCell>
-                ))}
+          </TableHeader>
+          <TableBody>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  {emptyMessage}
+                </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              data.map((row, rowIndex) => (
+                <TableRow key={row.id ?? row.uuid ?? row.order_no ?? rowIndex}>
+                  {columns.map((column, colIndex) => (
+                    <TableCell key={colIndex} className={column.className}>
+                      {column.callback
+                        ? column.callback(row)
+                        : column.name
+                        ? row[column.name]
+                        : ''}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

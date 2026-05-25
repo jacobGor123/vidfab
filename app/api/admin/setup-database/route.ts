@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin/auth';
 
 // 仅在开发环境可用
 export const dynamic = 'force-dynamic';
@@ -19,11 +20,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    await requireAdmin();
+    const db = supabaseAdmin as any;
+
     const results = [];
 
     // 1. 检查并创建 subscription_orders 表
     try {
-      await supabaseAdmin.rpc('exec_sql', {
+      await db.rpc('exec_sql', {
         sql: `
           CREATE TABLE IF NOT EXISTS subscription_orders (
             id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -54,7 +58,7 @@ export async function POST(req: NextRequest) {
     } catch (error: any) {
       // 如果RPC不存在，直接使用SQL执行
       try {
-        const { error } = await supabaseAdmin
+        const { error } = await db
           .from('information_schema.tables')
           .select('table_name')
           .eq('table_name', 'subscription_orders')
@@ -92,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     // 2. 创建 credits_transactions 表
     try {
-      const { error } = await supabaseAdmin
+      const { error } = await db
         .from('information_schema.tables')
         .select('table_name')
         .eq('table_name', 'credits_transactions')
@@ -122,16 +126,25 @@ export async function POST(req: NextRequest) {
         error: error.message,
         instruction: 'Please manually run the SQL from lib/database/subscription-schema.sql in your Supabase SQL editor.'
       },
-      { status: 500 }
+      { status: error.status || 500 }
     );
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Database setup endpoint',
-    method: 'POST',
-    description: 'Initialize subscription system database tables',
-    note: 'Only available in development environment'
-  });
+  try {
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Database setup endpoint',
+      method: 'POST',
+      description: 'Initialize subscription system database tables',
+      note: 'Only available in development environment'
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
+    );
+  }
 }

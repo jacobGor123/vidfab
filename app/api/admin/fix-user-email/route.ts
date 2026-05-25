@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function POST(req: NextRequest) {
   // 安全检查：仅在开发环境运行
@@ -16,6 +17,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await requireAdmin();
+
     const { uuid, correctEmail } = await req.json();
 
     if (!uuid || !correctEmail) {
@@ -59,15 +62,24 @@ export async function POST(req: NextRequest) {
       success: false,
       error: 'Failed to fix user email',
       details: error.message
-    });
+    }, { status: error.status || 500 });
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Fix user email endpoint',
-    usage: 'POST with { uuid, correctEmail }',
-    environment: process.env.NODE_ENV,
-    available: process.env.NODE_ENV === 'development'
-  });
+  try {
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Fix user email endpoint',
+      usage: 'POST with { uuid, correctEmail }',
+      environment: process.env.NODE_ENV,
+      available: process.env.NODE_ENV === 'development'
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
+    );
+  }
 }

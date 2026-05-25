@@ -237,3 +237,54 @@ export async function getPaidOrdersCount(): Promise<number> {
 
   return count ?? 0;
 }
+
+/**
+ * Get total paid order count and revenue across all completed orders.
+ */
+export async function getPaidOrdersSummary(): Promise<{
+  count: number;
+  totalRevenue: number;
+}> {
+  const supabase = getSupabaseAdminClient();
+  const pageSize = 1000;
+  let offset = 0;
+  let totalCents = 0;
+  let totalCount = 0;
+
+  while (true) {
+    const { data, error, count } = await supabase
+      .from('subscription_orders')
+      .select('amount_cents', { count: offset === 0 ? 'exact' : undefined })
+      .eq('status', 'completed')
+      .range(offset, offset + pageSize - 1);
+
+    if (error) {
+      console.error('Error getting paid orders summary:', error);
+      return {
+        count: totalCount,
+        totalRevenue: totalCents / 100,
+      };
+    }
+
+    if (offset === 0) {
+      totalCount = count ?? 0;
+    }
+
+    const rows = data ?? [];
+    totalCents += rows.reduce(
+      (sum, order: any) => sum + (typeof order.amount_cents === 'number' ? order.amount_cents : 0),
+      0
+    );
+
+    if (rows.length < pageSize) {
+      break;
+    }
+
+    offset += pageSize;
+  }
+
+  return {
+    count: totalCount,
+    totalRevenue: totalCents / 100,
+  };
+}

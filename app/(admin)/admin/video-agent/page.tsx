@@ -5,6 +5,7 @@
 
 import { getSupabaseAdminClient } from '@/models/db';
 import ProjectsListClient from '@/components/admin/video-agent/projects-list-client';
+import AdminPageHeader from '@/components/admin/admin-page-header';
 
 type SourceType = 'video_replication' | 'script_creation' | 'unknown';
 
@@ -85,15 +86,25 @@ export default async function VideoAgentAdminPage() {
   const processingCount = projectsWithEmail.filter((p: any) => p.status === 'processing').length;
 
   return (
-    <div>
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Video Agent"
+        description="Story-to-video projects across all users."
+        meta={
+          <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600">
+            Latest 200
+          </span>
+        }
+      />
+
       {/* 统计摘要 */}
-      <div className="flex gap-4 mb-6">
+      <div className="grid gap-4 sm:grid-cols-3">
         {[
           { label: 'Total Projects', value: total, color: 'text-gray-800' },
           { label: 'Completed', value: completedCount, color: 'text-green-600' },
           { label: 'Processing', value: processingCount, color: 'text-blue-600' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white border border-gray-200 rounded-lg shadow-sm px-5 py-3">
+          <div key={stat.label} className="rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm">
             <p className="text-xs text-gray-500">{stat.label}</p>
             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
           </div>

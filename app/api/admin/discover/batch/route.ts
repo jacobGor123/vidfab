@@ -26,6 +26,7 @@ export const fetchCache = 'force-no-store'
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin()
+    const db = supabaseAdmin as any
 
     const body: DiscoverBatchRequest = await request.json()
     const { action, ids, payload } = body
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'delete': {
         // 批量删除
-        const { data: records, error: fetchError } = await supabaseAdmin
+        const { data: records, error: fetchError } = await db
           .from('discover_videos')
           .select('id, video_url, image_url')
           .in('id', ids)
@@ -52,11 +53,11 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        result = await supabaseAdmin.from('discover_videos').delete().in('id', ids)
+        result = await db.from('discover_videos').delete().in('id', ids)
 
         if (!result.error) {
           assetCleanupErrors = await deleteDiscoverAssetsFromStorage(
-            (records || []).flatMap(record => [record.video_url, record.image_url])
+            (records || []).flatMap((record: any) => [record.video_url, record.image_url])
           )
         }
         break
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
-        result = await supabaseAdmin
+        result = await db
           .from('discover_videos')
           .update({ status: payload.status })
           .in('id', ids)
@@ -121,8 +122,10 @@ export async function POST(request: NextRequest) {
  */
 async function handleGenerateThumbnails(ids: string[]) {
   try {
+    const db = supabaseAdmin as any
+
     // 获取指定 ids 的记录
-    const { data: records, error: fetchError } = await supabaseAdmin
+    const { data: records, error: fetchError } = await db
       .from('discover_videos')
       .select('id, video_url, image_url')
       .in('id', ids)
@@ -139,7 +142,7 @@ async function handleGenerateThumbnails(ids: string[]) {
     }
 
     // 筛选出没有 image_url 且有 video_url 的记录
-    const recordsToProcess = records.filter((r) => !r.image_url && r.video_url)
+    const recordsToProcess = records.filter((r: any) => !r.image_url && r.video_url)
 
     if (recordsToProcess.length === 0) {
       return discoverJson({
@@ -199,7 +202,7 @@ async function handleGenerateThumbnails(ids: string[]) {
         }
 
         // 更新数据库
-        const { error: updateError } = await supabaseAdmin
+        const { error: updateError } = await db
           .from('discover_videos')
           .update({ image_url: uploadResult.url })
           .eq('id', record.id)

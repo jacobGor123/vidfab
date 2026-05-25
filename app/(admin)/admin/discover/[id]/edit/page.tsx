@@ -21,7 +21,7 @@ interface PageProps {
 }
 
 async function getDiscoverVideo(id: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('discover_videos')
     .select('*')
     .eq('id', id)

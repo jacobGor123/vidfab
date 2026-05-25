@@ -8,6 +8,7 @@ import { fetchAllTasks, fetchTaskStats } from '@/lib/admin/all-tasks-fetcher';
 import { TaskType } from '@/types/admin/tasks';
 import TasksListWithPagination from '@/components/admin/tasks-list-with-pagination';
 import TaskTypeFilter from '@/components/admin/task-type-filter';
+import AdminPageHeader from '@/components/admin/admin-page-header';
 
 // 🔥 Force dynamic rendering - disable caching for admin pages
 export const dynamic = 'force-dynamic';
@@ -17,12 +18,15 @@ export const revalidate = 0;
 
 interface TasksPageProps {
   searchParams: {
-    type?: TaskType;
+    type?: string;
   };
 }
 
 export default async function TasksPage({ searchParams }: TasksPageProps) {
-  const taskType = searchParams.type;
+  const taskType =
+    searchParams.type === 'video_generation' || searchParams.type === 'image_generation'
+      ? (searchParams.type as TaskType)
+      : undefined;
 
   // Fetch tasks and statistics
   const { tasks, nextCursor, hasMore } = await fetchAllTasks({
@@ -34,6 +38,16 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
 
   return (
     <div className="space-y-6">
+      <AdminPageHeader
+        title="Tasks"
+        description="Unified generation task stream across video and image tables."
+        meta={
+          <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600">
+            {stats.total} total
+          </span>
+        }
+      />
+
       <TaskTypeFilter currentType={taskType || 'all'} />
 
       {/* Tasks List */}

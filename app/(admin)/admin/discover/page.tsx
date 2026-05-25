@@ -4,6 +4,7 @@
  */
 
 import { Metadata } from 'next'
+import AdminPageHeader from '@/components/admin/admin-page-header'
 import DiscoverListClient from '@/components/admin/discover/discover-list-client'
 
 export const metadata: Metadata = {
@@ -15,14 +16,11 @@ export const dynamic = 'force-dynamic'
 
 export default function AdminDiscoverPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Discover Management</h1>
-        <p className="mt-2 text-gray-600">
-          Manage videos displayed on the Discover page
-        </p>
-      </div>
-
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Discover"
+        description="Manage media displayed on the Discover page."
+      />
       <DiscoverListClient />
     </div>
   )

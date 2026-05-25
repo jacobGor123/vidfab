@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +17,9 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
+
+    await requireAdmin();
+    const db = supabaseAdmin as any;
 
     console.log('🔥 开始紧急数据库修复...');
     console.log('⚠️ 注意：此操作会修改数据库约束，请确保了解影响');
@@ -48,7 +52,7 @@ export async function POST(req: NextRequest) {
       $$ LANGUAGE plpgsql;
     `;
 
-    const { error: createFunctionError } = await supabaseAdmin.rpc('query', {
+    const { error: createFunctionError } = await db.rpc('query', {
       query: createFixFunction
     });
 
@@ -58,7 +62,7 @@ export async function POST(req: NextRequest) {
       steps.push('Skipped constraint modification (requires manual Supabase SQL execution)');
     } else {
       // 执行修复函数
-      const { error: executeFunctionError } = await supabaseAdmin.rpc('emergency_fix_subscription_constraints');
+      const { error: executeFunctionError } = await db.rpc('emergency_fix_subscription_constraints');
 
       if (executeFunctionError) {
         console.log('⚠️ 约束修改失败:', executeFunctionError);
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
     console.log('📋 第2步：迁移现有数据...');
 
     // 将 basic -> free
-    const { error: updateBasicError } = await supabaseAdmin
+    const { error: updateBasicError } = await db
       .from('users')
       .update({ subscription_plan: 'free' })
       .eq('subscription_plan', 'basic');
@@ -85,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 将 enterprise -> premium
-    const { error: updateEnterpriseError } = await supabaseAdmin
+    const { error: updateEnterpriseError } = await db
       .from('users')
       .update({ subscription_plan: 'premium' })
       .eq('subscription_plan', 'enterprise');
@@ -99,7 +103,7 @@ export async function POST(req: NextRequest) {
 
     // 第3步：确保免费用户有正确的积分
     console.log('📋 第3步：更新免费用户积分...');
-    const { error: updateCreditsError } = await supabaseAdmin
+    const { error: updateCreditsError } = await db
       .from('users')
       .update({ credits_remaining: 50 })
       .eq('subscription_plan', 'free')
@@ -114,7 +118,7 @@ export async function POST(req: NextRequest) {
 
     // 第4步：验证修复结果
     console.log('📋 第4步：验证修复结果...');
-    const { data: verification, error: verifyError } = await supabaseAdmin
+    const { data: verification, error: verifyError } = await db
       .from('users')
       .select('subscription_plan, subscription_status, credits_remaining')
       .limit(5);
@@ -142,23 +146,32 @@ export async function POST(req: NextRequest) {
     console.error('紧急数据库修复失败:', error);
     return NextResponse.json(
       { success: false, error: 'Database fix failed', details: error.message },
-      { status: 500 }
+      { status: error.status || 500 }
     );
   }
 }
 
 export async function GET() {
-  if (process.env.NODE_ENV !== 'development') {
+  try {
+    if (process.env.NODE_ENV !== 'development') {
+      return NextResponse.json(
+        { error: 'Only available in development environment' },
+        { status: 403 }
+      );
+    }
+
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Emergency database fix endpoint',
+      method: 'POST',
+      description: 'Fixes subscription_plan constraint violations',
+      note: 'Only works in development environment'
+    });
+  } catch (error: any) {
     return NextResponse.json(
-      { error: 'Only available in development environment' },
-      { status: 403 }
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
     );
   }
-
-  return NextResponse.json({
-    message: 'Emergency database fix endpoint',
-    method: 'POST',
-    description: 'Fixes subscription_plan constraint violations',
-    note: 'Only works in development environment'
-  });
 }

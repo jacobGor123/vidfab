@@ -14,6 +14,12 @@ const ADMIN_EMAILS = process.env.ADMIN_EMAILS
   ? process.env.ADMIN_EMAILS.split(',').map((email) => email.trim().toLowerCase())
   : [];
 
+function createAdminAuthError(message: string, status: number) {
+  const error = new Error(message) as Error & { status: number };
+  error.status = status;
+  return error;
+}
+
 /**
  * Check if an email is an admin
  * @param email - Email address to check
@@ -34,7 +40,7 @@ export function isAdminEmail(email: string | null | undefined): boolean {
  */
 export async function getCurrentUser() {
   try {
-    const session = await getServerSession(authConfig as any);
+    const session = (await getServerSession(authConfig as any)) as any;
 
     if (!session || !session.user) {
       return null;
@@ -54,13 +60,6 @@ export async function getCurrentUser() {
 export async function isCurrentUserAdmin(): Promise<boolean> {
   const user = await getCurrentUser();
 
-  console.log('[Admin Auth] isCurrentUserAdmin check:', {
-    hasUser: !!user,
-    email: user?.email,
-    adminEmails: ADMIN_EMAILS,
-    isAdmin: user?.email ? isAdminEmail(user.email) : false
-  });
-
   if (!user || !user.email) {
     return false;
   }
@@ -78,11 +77,11 @@ export async function requireAdmin() {
   const user = await getCurrentUser();
 
   if (!user || !user.email) {
-    throw new Error('Unauthorized: Not authenticated');
+    throw createAdminAuthError('Unauthorized: Not authenticated', 401);
   }
 
   if (!isAdminEmail(user.email)) {
-    throw new Error('Unauthorized: Admin access required');
+    throw createAdminAuthError('Unauthorized: Admin access required', 403);
   }
 
   return user;

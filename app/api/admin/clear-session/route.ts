@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { requireAdmin } from '@/lib/admin/auth';
 
 export async function POST(req: NextRequest) {
   // 安全检查：仅在开发环境运行
@@ -16,6 +16,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await requireAdmin();
+
     console.log('🔧 清除用户session...');
 
     // NextAuth session cookies to clear
@@ -58,16 +60,25 @@ export async function POST(req: NextRequest) {
       success: false,
       error: 'Failed to clear session',
       details: error.message
-    }, { status: 500 });
+    }, { status: error.status || 500 });
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Clear session endpoint',
-    usage: 'POST to clear user session cookies',
-    description: '清除用户session，强制重新登录以修复JWT token不匹配问题',
-    environment: process.env.NODE_ENV,
-    available: process.env.NODE_ENV === 'development'
-  });
+  try {
+    await requireAdmin();
+
+    return NextResponse.json({
+      message: 'Clear session endpoint',
+      usage: 'POST to clear user session cookies',
+      description: '清除用户session，强制重新登录以修复JWT token不匹配问题',
+      environment: process.env.NODE_ENV,
+      available: process.env.NODE_ENV === 'development'
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Unauthorized' },
+      { status: error.status || 500 }
+    );
+  }
 }

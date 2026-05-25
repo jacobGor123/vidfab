@@ -13,16 +13,101 @@ import {
   FetchTasksResult,
   GenerationType,
 } from '@/types/admin/tasks';
+import { parseAdminTimestamp } from '@/lib/admin/datetime';
+
+const MAX_TASK_PAGE_SIZE = 100;
+const DEFAULT_TASK_PAGE_SIZE = 50;
+
+interface SourceTaskCursors {
+  video: string | null;
+  image: string | null;
+}
+
+function normalizeTaskLimit(limit: number | undefined): number {
+  if (!Number.isFinite(limit) || !limit || limit < 1) {
+    return DEFAULT_TASK_PAGE_SIZE;
+  }
+
+  return Math.min(Math.floor(limit), MAX_TASK_PAGE_SIZE);
+}
+
+function parseExcludeEmailKeywords(excludeEmail?: string): string[] {
+  return (excludeEmail || '')
+    .split(',')
+    .map((keyword) => keyword.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function shouldExcludeEmail(email: string | null, keywords: string[]): boolean {
+  if (keywords.length === 0) {
+    return false;
+  }
+
+  const normalizedEmail = (email || '').toLowerCase();
+  return keywords.some((keyword) => normalizedEmail.includes(keyword));
+}
+
+async function fetchUserEmailMap(
+  supabase: ReturnType<typeof getSupabaseAdminClient>,
+  userIds: Array<string | null | undefined>
+): Promise<Map<string, string>> {
+  const ids = [...new Set(userIds.filter(Boolean))] as string[];
+
+  if (ids.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('uuid, email')
+    .in('uuid', ids);
+
+  if (error) {
+    console.error('Failed to fetch task user emails:', error);
+    return new Map();
+  }
+
+  return new Map((data ?? []).map((user: any) => [user.uuid, user.email]));
+}
+
+function getFirstImageUrl(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return value || null;
+  }
+
+  if (Array.isArray(value)) {
+    const firstString = value.find((item) => typeof item === 'string');
+    return firstString || null;
+  }
+
+  return null;
+}
+
+function parseSourceTaskCursors(cursor?: string): SourceTaskCursors {
+  if (!cursor) {
+    return { video: null, image: null };
+  }
+
+  try {
+    const parsed = JSON.parse(cursor);
+    return {
+      video: typeof parsed.video === 'string' ? parsed.video : null,
+      image: typeof parsed.image === 'string' ? parsed.image : null,
+    };
+  } catch {
+    // Backward compatibility for old timestamp-only cursors.
+    return { video: cursor, image: cursor };
+  }
+}
+
+function stringifySourceTaskCursors(cursors: SourceTaskCursors): string {
+  return JSON.stringify(cursors);
+}
 
 /**
  * 判断任务的生成类型
  */
 function determineGenerationType(settings: any): GenerationType {
-  // 🔥 调试：记录 settings 内容（生产环境可以删除）
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[determineGenerationType] settings:', JSON.stringify(settings, null, 2));
-  }
-
   // 优先使用显式的 generationType 字段
   if (settings?.generationType) {
     // 🔥 修复:转换中划线格式为下划线格式
@@ -77,7 +162,9 @@ function normalizeTask(rawTask: any): UnifiedTask {
 
     // 生成类型和输入数据
     generation_type: generationType,
-    input_image_url: settings.image_url || settings.imageUrl || settings.image || settings.inputImage || null,
+    input_image_url: getFirstImageUrl(
+      settings.image_url || settings.imageUrl || settings.image || settings.inputImage || null
+    ),
     prompt: rawTask.prompt || '',
 
     // 输出数据
@@ -133,7 +220,7 @@ function normalizeImageTask(rawTask: any): UnifiedTask {
 
     // 生成类型和输入数据
     generation_type: generationType, // 转换后的下划线格式
-    input_image_url: rawTask.source_images || null, // image_to_image 的源图
+    input_image_url: getFirstImageUrl(rawTask.source_images), // image_to_image 的源图
     prompt: rawTask.prompt || '',
 
     // 输出数据（图片没有 video_url，使用 image_url）
@@ -173,62 +260,67 @@ function normalizeImageTask(rawTask: any): UnifiedTask {
  * 获取视频任务（支持基于游标的分页）
  */
 async function fetchVideoTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
-  const { limit = 50, cursor, excludeEmail } = options;
-  const supabase = getSupabaseAdminClient();
+  const { cursor, excludeEmail } = options;
+  const limit = normalizeTaskLimit(options.limit);
+  const supabase = getSupabaseAdminClient() as any;
+  const excludeKeywords = parseExcludeEmailKeywords(excludeEmail);
+  const batchLimit = excludeKeywords.length > 0 ? Math.min(limit * 5, 500) : limit + 1;
+  const rows: UnifiedTask[] = [];
+  let currentCursor: string | undefined = cursor;
+  let fetchedFullBatch = false;
 
-  // 构建查询 - 从 user_videos 表获取数据并 JOIN users 表获取 email
-  let query = supabase
-    .from('user_videos')
-    .select('*, users!inner(email)')  // 使用 inner join 以便过滤 users 表
-    .neq('status', 'deleted') // 排除已删除的视频
-    .order('created_at', { ascending: false });
+  while (rows.length < limit + 1) {
+    // 构建查询 - 先取任务，再批量映射 users.email，避免 inner join 漏掉孤儿任务
+    let query = supabase
+      .from('user_videos')
+      .select('*')
+      .neq('status', 'deleted') // 排除已删除的视频
+      .order('created_at', { ascending: false });
 
-  // 应用邮箱排除过滤（支持多个关键词，逗号分隔）
-  // 排除所有包含任一关键词的邮箱
-  if (excludeEmail && excludeEmail.trim()) {
-    const keywords = excludeEmail
-      .split(',')
-      .map(k => k.trim())
-      .filter(k => k.length > 0);
+    // 应用游标（只获取早于游标时间的任务）
+    if (currentCursor) {
+      query = query.lt('created_at', currentCursor);
+    }
 
-    // 链式调用 .not() 实现 AND 逻辑
-    // 即：排除包含关键词1的 AND 排除包含关键词2的 ...
-    keywords.forEach(keyword => {
-      query = query.not('users.email', 'ilike', `%${keyword}%`);
-    });
+    // 获取 limit + 1 条数据以判断是否有更多结果
+    const { data, error } = await query.limit(batchLimit);
+
+    if (error) {
+      console.error('Failed to fetch video tasks:', error);
+      return {
+        tasks: [],
+        nextCursor: null,
+        hasMore: false,
+      };
+    }
+
+    const page = data ?? [];
+    fetchedFullBatch = page.length === batchLimit;
+    const emailMap = await fetchUserEmailMap(supabase, page.map((item: any) => item.user_id));
+
+    page
+      .map((item: any) =>
+        normalizeTask({
+          ...item,
+          user_email: item.user_id ? emailMap.get(item.user_id) ?? null : null,
+        })
+      )
+      .filter((task: UnifiedTask) => !shouldExcludeEmail(task.user_email, excludeKeywords))
+      .forEach((task: UnifiedTask) => rows.push(task));
+
+    if (!fetchedFullBatch) {
+      break;
+    }
+
+    currentCursor = page[page.length - 1]?.created_at ?? undefined;
+
+    if (!currentCursor) {
+      break;
+    }
   }
 
-  // 应用游标（只获取早于游标时间的任务）
-  if (cursor) {
-    query = query.lt('created_at', cursor);
-  }
-
-  // 获取 limit + 1 条数据以判断是否有更多结果
-  const { data, error } = await query.limit(limit + 1);
-
-  if (error) {
-    console.error('Failed to fetch video tasks:', error);
-    return {
-      tasks: [],
-      nextCursor: null,
-      hasMore: false,
-    };
-  }
-
-  // 扁平化 users 对象以获取 email
-  const flattenedData = (data || []).map((item: any) => ({
-    ...item,
-    user_email: item.users?.email || null,
-  }));
-
-  // 标准化任务数据
-  const allTasks = flattenedData.map((item) => normalizeTask(item));
-
-  // 判断是否有更多结果
-  const hasMore = allTasks.length > limit;
-  const tasks = hasMore ? allTasks.slice(0, limit) : allTasks;
-
-  // 计算下一个游标（最后一个任务的 created_at）
+  const tasks = rows.slice(0, limit);
+  const hasMore = rows.length > limit || (tasks.length > 0 && fetchedFullBatch);
   const nextCursor = tasks.length > 0 ? tasks[tasks.length - 1].created_at : null;
 
   return {
@@ -242,62 +334,67 @@ async function fetchVideoTasks(options: FetchTasksOptions): Promise<FetchTasksRe
  * 获取图片任务（支持基于游标的分页）
  */
 async function fetchImageTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
-  const { limit = 50, cursor, excludeEmail } = options;
-  const supabase = getSupabaseAdminClient();
+  const { cursor, excludeEmail } = options;
+  const limit = normalizeTaskLimit(options.limit);
+  const supabase = getSupabaseAdminClient() as any;
+  const excludeKeywords = parseExcludeEmailKeywords(excludeEmail);
+  const batchLimit = excludeKeywords.length > 0 ? Math.min(limit * 5, 500) : limit + 1;
+  const rows: UnifiedTask[] = [];
+  let currentCursor: string | undefined = cursor;
+  let fetchedFullBatch = false;
 
-  // 构建查询 - 从 user_images 表获取数据并 JOIN users 表获取 email
-  let query = supabase
-    .from('user_images')
-    .select('*, users!inner(email)')
-    .neq('status', 'deleted') // 排除已删除的图片
-    .order('created_at', { ascending: false });
+  while (rows.length < limit + 1) {
+    // 构建查询 - 先取任务，再批量映射 users.email，避免 inner join 漏掉孤儿任务
+    let query = supabase
+      .from('user_images')
+      .select('*')
+      .neq('status', 'deleted') // 排除已删除的图片
+      .order('created_at', { ascending: false });
 
-  // 应用邮箱排除过滤（支持多个关键词，逗号分隔）
-  // 排除所有包含任一关键词的邮箱
-  if (excludeEmail && excludeEmail.trim()) {
-    const keywords = excludeEmail
-      .split(',')
-      .map(k => k.trim())
-      .filter(k => k.length > 0);
+    // 应用游标（只获取早于游标时间的任务）
+    if (currentCursor) {
+      query = query.lt('created_at', currentCursor);
+    }
 
-    // 链式调用 .not() 实现 AND 逻辑
-    // 即：排除包含关键词1的 AND 排除包含关键词2的 ...
-    keywords.forEach(keyword => {
-      query = query.not('users.email', 'ilike', `%${keyword}%`);
-    });
+    // 获取 limit + 1 条数据以判断是否有更多结果
+    const { data, error } = await query.limit(batchLimit);
+
+    if (error) {
+      console.error('Failed to fetch image tasks:', error);
+      return {
+        tasks: [],
+        nextCursor: null,
+        hasMore: false,
+      };
+    }
+
+    const page = data ?? [];
+    fetchedFullBatch = page.length === batchLimit;
+    const emailMap = await fetchUserEmailMap(supabase, page.map((item: any) => item.user_id));
+
+    page
+      .map((item: any) =>
+        normalizeImageTask({
+          ...item,
+          user_email: item.user_id ? emailMap.get(item.user_id) ?? null : null,
+        })
+      )
+      .filter((task: UnifiedTask) => !shouldExcludeEmail(task.user_email, excludeKeywords))
+      .forEach((task: UnifiedTask) => rows.push(task));
+
+    if (!fetchedFullBatch) {
+      break;
+    }
+
+    currentCursor = page[page.length - 1]?.created_at ?? undefined;
+
+    if (!currentCursor) {
+      break;
+    }
   }
 
-  // 应用游标（只获取早于游标时间的任务）
-  if (cursor) {
-    query = query.lt('created_at', cursor);
-  }
-
-  // 获取 limit + 1 条数据以判断是否有更多结果
-  const { data, error } = await query.limit(limit + 1);
-
-  if (error) {
-    console.error('Failed to fetch image tasks:', error);
-    return {
-      tasks: [],
-      nextCursor: null,
-      hasMore: false,
-    };
-  }
-
-  // 扁平化 users 对象以获取 email
-  const flattenedData = (data || []).map((item: any) => ({
-    ...item,
-    user_email: item.users?.email || null,
-  }));
-
-  // 标准化任务数据
-  const allTasks = flattenedData.map((item) => normalizeImageTask(item));
-
-  // 判断是否有更多结果
-  const hasMore = allTasks.length > limit;
-  const tasks = hasMore ? allTasks.slice(0, limit) : allTasks;
-
-  // 计算下一个游标（最后一个任务的 created_at）
+  const tasks = rows.slice(0, limit);
+  const hasMore = rows.length > limit || (tasks.length > 0 && fetchedFullBatch);
   const nextCursor = tasks.length > 0 ? tasks[tasks.length - 1].created_at : null;
 
   return {
@@ -312,38 +409,47 @@ async function fetchImageTasks(options: FetchTasksOptions): Promise<FetchTasksRe
  */
 export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTasksResult> {
   const { taskType } = options;
+  const limit = normalizeTaskLimit(options.limit);
 
   // 根据 taskType 决定获取哪种任务
   if (taskType === 'video_generation') {
-    return fetchVideoTasks(options);
+    return fetchVideoTasks({ ...options, limit });
   }
 
   if (taskType === 'image_generation') {
-    return fetchImageTasks(options);
+    return fetchImageTasks({ ...options, limit });
   }
 
   // taskType === undefined，获取所有任务（合并两个表）
-  const limit = options.limit || 50;
+  const sourceCursors = parseSourceTaskCursors(options.cursor);
 
   // 并发获取视频和图片任务
   const [videoResult, imageResult] = await Promise.all([
-    fetchVideoTasks({ ...options, limit }),
-    fetchImageTasks({ ...options, limit }),
+    fetchVideoTasks({ ...options, cursor: sourceCursors.video ?? undefined, limit }),
+    fetchImageTasks({ ...options, cursor: sourceCursors.image ?? undefined, limit }),
   ]);
 
   // 合并结果并按时间排序
   const allTasks = [...videoResult.tasks, ...imageResult.tasks].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    (a, b) =>
+      (parseAdminTimestamp(b.created_at)?.getTime() ?? 0) -
+      (parseAdminTimestamp(a.created_at)?.getTime() ?? 0)
   );
 
   // 取前 limit 条
   const tasks = allTasks.slice(0, limit);
+  const lastVideoTask = [...tasks].reverse().find((task) => task.task_type === 'video_generation');
+  const lastImageTask = [...tasks].reverse().find((task) => task.task_type === 'image_generation');
+  const nextSourceCursors = {
+    video: lastVideoTask?.created_at ?? sourceCursors.video,
+    image: lastImageTask?.created_at ?? sourceCursors.image,
+  };
 
   // 判断是否有更多
-  const hasMore = videoResult.hasMore || imageResult.hasMore || allTasks.length > limit;
-
-  // 计算下一个游标
-  const nextCursor = tasks.length > 0 ? tasks[tasks.length - 1].created_at : null;
+  const hasMore =
+    tasks.length === limit &&
+    (videoResult.hasMore || imageResult.hasMore || allTasks.length > limit);
+  const nextCursor = hasMore ? stringifySourceTaskCursors(nextSourceCursors) : null;
 
   return {
     tasks,
@@ -356,7 +462,7 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
  * 获取视频任务统计信息
  */
 async function fetchVideoStats(): Promise<TaskStats> {
-  const supabase = getSupabaseAdminClient();
+  const supabase = getSupabaseAdminClient() as any;
 
   const [totalResult, completedResult, failedResult, processingResult] = await Promise.allSettled([
     // 总数（排除已删除）
@@ -384,7 +490,7 @@ async function fetchVideoStats(): Promise<TaskStats> {
  * 获取图片任务统计信息
  */
 async function fetchImageStats(): Promise<TaskStats> {
-  const supabase = getSupabaseAdminClient();
+  const supabase = getSupabaseAdminClient() as any;
 
   const [totalResult, completedResult, failedResult, processingResult] = await Promise.allSettled([
     // 总数（排除已删除）
