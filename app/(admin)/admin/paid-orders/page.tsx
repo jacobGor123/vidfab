@@ -139,16 +139,18 @@ export default async function PaidOrdersPage({ searchParams }: PaidOrdersPagePro
       },
     },
     {
-      name: 'created_at',
-      title: `Order Created (${ADMIN_STATS_TIMEZONE_LABEL})`,
+      name: 'user_created_at',
+      title: `User Registered (${ADMIN_STATS_TIMEZONE_LABEL})`,
       className: 'w-40',
       callback: (row) => {
+        if (!row.user_created_at) return <span className="text-gray-400 text-xs">-</span>;
+
         return (
           <span
             className="text-xs text-gray-600"
-            title={formatAdminUtcTitle(row.created_at)}
+            title={formatAdminUtcTitle(row.user_created_at)}
           >
-            {formatAdminDateTime(row.created_at)}
+            {formatAdminDateTime(row.user_created_at)}
           </span>
         );
       },

@@ -10,6 +10,7 @@ export interface Order {
   order_no: string;
   user_uuid: string | null;
   user_email: string | null;
+  user_created_at: string | null;
   paid_email: string | null;
   product_name: string | null;
   product_id: string | null;

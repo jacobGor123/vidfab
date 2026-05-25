@@ -15,13 +15,21 @@ function billingCycleToInterval(cycle: string | null): OrderInterval | null {
   return null;
 }
 
-function mapRow(row: any, emailMap: Map<string, string> = new Map()): Order {
-  const email = emailMap.get(row.user_uuid) ?? null;
+interface OrderUserInfo {
+  email: string | null;
+  created_at: string | null;
+}
+
+function mapRow(row: any, userInfoMap: Map<string, OrderUserInfo> = new Map()): Order {
+  const userInfo = userInfoMap.get(row.user_uuid);
+  const email = userInfo?.email ?? null;
+
   return {
     id: row.id,
     order_no: row.stripe_checkout_session_id || row.id,
     user_uuid: row.user_uuid ?? null,
     user_email: email,
+    user_created_at: userInfo?.created_at ?? null,
     paid_email: email,
     product_name: row.metadata?.plan_name || row.plan_id || null,
     product_id: row.plan_id ?? null,
@@ -44,19 +52,27 @@ function applyPaidOrderFilters(query: any) {
     .like('stripe_checkout_session_id', 'cs_live_%');
 }
 
-async function fetchEmailMap(
+async function fetchUserInfoMap(
   supabase: ReturnType<typeof getSupabaseAdminClient>,
   rows: any[]
-): Promise<Map<string, string>> {
+): Promise<Map<string, OrderUserInfo>> {
   const uuids = [...new Set(rows.map((r) => r.user_uuid).filter(Boolean))];
   if (uuids.length === 0) return new Map();
 
   const { data: users } = await supabase
     .from('users')
-    .select('uuid, email')
+    .select('uuid, email, created_at')
     .in('uuid', uuids);
 
-  return new Map((users ?? []).map((u: any) => [u.uuid, u.email]));
+  return new Map(
+    (users ?? []).map((u: any) => [
+      u.uuid,
+      {
+        email: u.email ?? null,
+        created_at: u.created_at ?? null,
+      },
+    ])
+  );
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -84,8 +100,8 @@ export async function getPaidOrders(
 
   if (!data || data.length === 0) return [];
 
-  const emailMap = await fetchEmailMap(supabase, data);
-  return data.map((row: any) => mapRow(row, emailMap));
+  const userInfoMap = await fetchUserInfoMap(supabase, data);
+  return data.map((row: any) => mapRow(row, userInfoMap));
 }
 
 /**
@@ -111,8 +127,8 @@ export async function getOrders(
 
   if (!data || data.length === 0) return [];
 
-  const emailMap = await fetchEmailMap(supabase, data);
-  return data.map((row) => mapRow(row, emailMap));
+  const userInfoMap = await fetchUserInfoMap(supabase, data);
+  return data.map((row) => mapRow(row, userInfoMap));
 }
 
 /**
@@ -132,8 +148,8 @@ export async function findOrderByOrderNo(orderNo: string): Promise<Order | undef
     return undefined;
   }
 
-  const emailMap = await fetchEmailMap(supabase, [data]);
-  return mapRow(data, emailMap);
+  const userInfoMap = await fetchUserInfoMap(supabase, [data]);
+  return mapRow(data, userInfoMap);
 }
 
 /**
@@ -155,8 +171,8 @@ export async function getOrdersByUserUuid(userUuid: string): Promise<Order[] | u
 
   if (!data || data.length === 0) return [];
 
-  const emailMap = await fetchEmailMap(supabase, data);
-  return data.map((row) => mapRow(row, emailMap));
+  const userInfoMap = await fetchUserInfoMap(supabase, data);
+  return data.map((row) => mapRow(row, userInfoMap));
 }
 
 /**
@@ -189,8 +205,16 @@ export async function getOrdersByPaidEmail(paidEmail: string): Promise<Order[] |
 
   if (!data || data.length === 0) return [];
 
-  const emailMap = new Map([[user.uuid, user.email]]);
-  return data.map((row) => mapRow(row, emailMap));
+  const userInfoMap = new Map([
+    [
+      user.uuid,
+      {
+        email: user.email,
+        created_at: null,
+      },
+    ],
+  ]);
+  return data.map((row) => mapRow(row, userInfoMap));
 }
 
 /**
