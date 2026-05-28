@@ -5,7 +5,7 @@
 
 'use client';
 
-import { Link } from '@/i18n/routing';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Calendar, Clock, Eye, ArrowRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';

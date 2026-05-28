@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { usePathname } from "@/i18n/routing"
+import NextLink from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { StarryTalezCta } from "@/components/create/starrytalez-cta"
@@ -259,12 +260,12 @@ export function Navbar({ scrolled }: NavbarProps) {
                   {t('nav.pricing')}
                 </Link>
 
-                <Link
+                <NextLink
                   href="/blog"
                   className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple"
                 >
                   {t('nav.blog')}
-                </Link>
+                </NextLink>
 
                 <NavigationMenu>
                   <NavigationMenuList>
@@ -458,13 +459,13 @@ export function Navbar({ scrolled }: NavbarProps) {
                   {t('nav.pricing')}
                 </Link>
 
-                <Link
+                <NextLink
                   href="/blog"
                   className="block py-2 text-base font-heading text-gray-200 hover:text-white transition-colors duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {t('nav.blog')}
-                </Link>
+                </NextLink>
 
                 {/* Support Section */}
                 <div className="space-y-2">

@@ -1,5 +1,6 @@
 'use client'
 
+import NextLink from 'next/link';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 
@@ -96,9 +97,9 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
+                  <NextLink href="/blog" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     {t('nav.blog')}
-                  </Link>
+                  </NextLink>
                 </li>
                 <li>
                   <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">

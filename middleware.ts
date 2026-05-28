@@ -5,6 +5,7 @@
  * Logic:
  * - Static assets and API routes: skip all middleware
  * - Admin routes (/admin/*): skip locale detection (English-only internal tooling)
+ * - Blog routes: force English-only canonical URLs
  * - Studio routes: rewrite to /create?tool=xxx (before locale detection)
  * - All other routes: run next-intl locale detection/redirect
  * - Auth pages (/login, /signup): redirect to studio if already logged in
@@ -31,12 +32,33 @@ function getStrippedPath(pathname: string): string {
   return pathname.replace(pattern, '/');
 }
 
+function getPathWithoutLocalePrefix(pathname: string): {
+  locale?: string;
+  pathname: string;
+} {
+  const pattern = new RegExp(`^\\/(${routing.locales.join('|')})(\/|$)`);
+  const localeMatch = pathname.match(pattern);
+
+  if (!localeMatch) {
+    return { pathname };
+  }
+
+  return {
+    locale: localeMatch[1],
+    pathname: pathname.replace(pattern, '/'),
+  };
+}
+
 function isAuthPath(stripped: string): boolean {
   return AUTH_ROUTES.some(r => stripped === r || stripped.startsWith(r + '/'));
 }
 
 function isProtectedPath(stripped: string): boolean {
   return PROTECTED_ROUTES.some(r => stripped.startsWith(r));
+}
+
+function isBlogPath(stripped: string): boolean {
+  return stripped === '/blog' || stripped.startsWith('/blog/');
 }
 
 function isStaticAsset(pathname: string): boolean {
@@ -66,7 +88,30 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 4. Studio rewrite (runs before intl, preserves browser URL for GA4 tracking)
+  // 4. Blog routes are English-only. Keep a single canonical URL and avoid
+  // next-intl's automatic hreflang Link header for non-existent translations.
+  const localePath = getPathWithoutLocalePrefix(pathname);
+  if (isBlogPath(localePath.pathname)) {
+    if (localePath.locale) {
+      const canonicalUrl = new URL(localePath.pathname, nextUrl.origin);
+      canonicalUrl.search = nextUrl.search;
+      return NextResponse.redirect(canonicalUrl, 301);
+    }
+
+    const reqHeaders = new Headers(req.headers);
+    reqHeaders.set('x-next-intl-locale', routing.defaultLocale);
+
+    const rewriteUrl = new URL(`/${routing.defaultLocale}${localePath.pathname}`, nextUrl.origin);
+    rewriteUrl.search = nextUrl.search;
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: { headers: reqHeaders },
+    });
+    response.headers.set('x-next-intl-locale', routing.defaultLocale);
+    return response;
+  }
+
+  // 5. Studio rewrite (runs before intl, preserves browser URL for GA4 tracking)
   // Handles both /studio/path and /{locale}/studio/path (e.g. /zh/studio/discover)
   const strippedForStudio = getStrippedPath(pathname);
   const isStudioRoute = pathname.startsWith('/studio/') || strippedForStudio.startsWith('/studio/');
@@ -124,7 +169,7 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.rewrite(rewriteUrl);
   }
 
-  // 5. Run next-intl middleware (locale detection + redirect)
+  // 6. Run next-intl middleware (locale detection + redirect)
   const intlResponse = intlMiddleware(req);
 
   // Determine detected locale for injecting into header
@@ -139,7 +184,7 @@ export default async function middleware(req: NextRequest) {
   // Inject locale into response header for root layout to read
   response.headers.set('x-next-intl-locale', detectedLocale);
 
-  // 6. Auth and protected route logic (after locale detection)
+  // 7. Auth and protected route logic (after locale detection)
   const stripped = getStrippedPath(pathname);
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 

@@ -148,6 +148,7 @@ export async function getBlogPostBySlug(
     .from('blog_posts')
     .select('*')
     .eq('slug', slug)
+    .eq('status', 'published')
     .maybeSingle();
 
   if (error) {
