@@ -35,6 +35,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { route: '/text-to-image',   changeFrequency: 'weekly'  as const, priority: 0.85 },
     { route: '/image-to-image',  changeFrequency: 'weekly'  as const, priority: 0.85 },
     { route: '/ai-video-effects',changeFrequency: 'weekly'  as const, priority: 0.85 },
+    { route: '/tools/veo3',       changeFrequency: 'weekly'  as const, priority: 0.85 },
+    { route: '/tools/sora2',      changeFrequency: 'weekly'  as const, priority: 0.85 },
+    { route: '/tools/kling3',     changeFrequency: 'weekly'  as const, priority: 0.85 },
     { route: '/about',           changeFrequency: 'monthly' as const, priority: 0.7  },
     { route: '/contact',         changeFrequency: 'monthly' as const, priority: 0.7  },
     // /blog 仅英文，单独处理（不加 alternates）
