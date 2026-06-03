@@ -131,10 +131,19 @@ export function BuilderForm({
 }: BuilderFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const modeOptions = config.availableModes ?? [
+    "text-to-video",
+    ...(config.supportsImageToVideo ? ["image-to-video" as const] : []),
+  ]
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    if (!isAuthenticated) {
+      onShowAuth()
+      e.target.value = ""
+      return
+    }
 
     setIsUploading(true)
     try {
@@ -164,17 +173,19 @@ export function BuilderForm({
   return (
     <div className="flex flex-col gap-4 h-full">
       {/* Mode toggle */}
-      <div className="space-y-1.5">
-        <Label className="text-xs text-gray-400 uppercase tracking-wider">Mode</Label>
-        <ToggleGroup
-          options={[
-            { label: "Text to Video", value: "text-to-video" },
-            { label: "Image to Video", value: "image-to-video" },
-          ]}
-          value={state.mode}
-          onChange={(v) => onParamChange("mode", v as "text-to-video" | "image-to-video")}
-        />
-      </div>
+      {modeOptions.length > 1 && (
+        <div className="space-y-1.5">
+          <Label className="text-xs text-gray-400 uppercase tracking-wider">Mode</Label>
+          <ToggleGroup
+            options={modeOptions.map((mode) => ({
+              label: mode === "text-to-video" ? "Text to Video" : "Image to Video",
+              value: mode,
+            }))}
+            value={state.mode}
+            onChange={(v) => onParamChange("mode", v as "text-to-video" | "image-to-video")}
+          />
+        </div>
+      )}
 
       {/* Image upload — only for i2v */}
       {state.mode === "image-to-video" && (

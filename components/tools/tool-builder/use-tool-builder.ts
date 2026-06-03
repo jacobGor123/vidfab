@@ -68,7 +68,7 @@ export function useToolBuilder(config: BuilderConfig) {
   activeJobsRef.current = videoContext.activeJobs
 
   const [state, setState] = useState<ToolBuilderState>({
-    mode: "text-to-video",
+    mode: config.defaultMode ?? "text-to-video",
     prompt: "",
     imageUrl: null,
     aspectRatio: config.defaultParams.aspectRatio,
@@ -137,6 +137,9 @@ export function useToolBuilder(config: BuilderConfig) {
     setState((prev) => ({ ...prev, isSubmitting: true, error: null }))
 
     // 1. 在 context 中创建本地 job
+    const selectedModel =
+      state.mode === "image-to-video" ? config.imageToVideoModel : config.textToVideoModel
+
     const job = videoContext.addJob({
       requestId: "",
       userId: session.user.uuid,
@@ -145,7 +148,7 @@ export function useToolBuilder(config: BuilderConfig) {
       generationType: state.mode,
       settings: {
         generationType: state.mode,
-        model: config.textToVideoModel,
+        model: selectedModel,
         duration: String(state.duration),
         resolution: state.resolution,
         aspectRatio: state.aspectRatio,
@@ -158,11 +161,11 @@ export function useToolBuilder(config: BuilderConfig) {
 
     try {
       // 2. 调用 API（支持 generateAudio 参数）
-      const isSora = config.textToVideoModel === "sora-2"
-      const isKling = config.textToVideoModel === "kling-3"
+      const isSora = selectedModel === "sora-2"
+      const isKling = selectedModel === "kling-3"
       const body: Record<string, unknown> = {
         prompt: state.prompt,
-        model: config.textToVideoModel,
+        model: selectedModel,
         duration: state.duration,
         resolution: (isSora || isKling) ? "720p" : state.resolution,
         aspectRatio: isSora ? "16:9" : state.aspectRatio,

@@ -17,8 +17,11 @@ export interface FeatureItem {
 export interface PromptExample {
   category: string
   prompt: string
-  videoUrl: string
+  videoUrl?: string
+  imageUrl?: string
   posterUrl?: string
+  externalUrl?: string
+  previewAspectRatio?: "video" | "portrait" | "three-four" | "square"
 }
 
 export interface CreatorType {
@@ -37,10 +40,12 @@ export interface BuilderConfig {
   resolutions: string[]
   supportsAudio: boolean
   supportsImageToVideo: boolean
+  defaultMode?: "text-to-video" | "image-to-video"
+  availableModes?: Array<"text-to-video" | "image-to-video">
   /** 合并尺寸选项（如 Sora 2 用 "1280*720"），设置后替代 aspectRatios + resolutions */
   sizes?: string[]
   /** 未生成时右侧轮播的 demo 视频，不填则用全局默认 */
-  demoVideos?: Array<{ videoUrl: string; posterUrl?: string }>
+  demoVideos?: Array<{ videoUrl: string; posterUrl?: string; aspect?: "video" | "portrait" | "three-four" | "square" }>
   /** 用拖动条代替 pill 按钮来选择时长 */
   durationSlider?: { min: number; max: number; step?: number }
   defaultParams: {

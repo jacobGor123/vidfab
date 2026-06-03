@@ -8,6 +8,7 @@
 import { MetadataRoute } from 'next'
 import { getBlogPosts } from '@/models/blog'
 import { routing } from '@/i18n/routing'
+import { seoToolSlugs } from '@/lib/tools/seo-tool-configs'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 const nonDefaultLocales = routing.locales.filter(l => l !== routing.defaultLocale)
@@ -38,6 +39,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { route: '/tools/veo3',       changeFrequency: 'weekly'  as const, priority: 0.85 },
     { route: '/tools/sora2',      changeFrequency: 'weekly'  as const, priority: 0.85 },
     { route: '/tools/kling3',     changeFrequency: 'weekly'  as const, priority: 0.85 },
+    ...seoToolSlugs.map((slug) => ({
+      route: `/tools/${slug}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.82,
+    })),
     { route: '/about',           changeFrequency: 'monthly' as const, priority: 0.7  },
     { route: '/contact',         changeFrequency: 'monthly' as const, priority: 0.7  },
     // /blog 仅英文，单独处理（不加 alternates）

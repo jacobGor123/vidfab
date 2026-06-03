@@ -12,14 +12,16 @@ import type { UserVideo } from "@/lib/supabase"
 
 // ─── Demo placeholder (shown before first generation) ───────────────────────
 
-const DEFAULT_DEMO_VIDEOS: Array<{ videoUrl: string; posterUrl?: string }> = [
+type DemoVideo = { videoUrl: string; posterUrl?: string; aspect?: "video" | "portrait" | "three-four" | "square" }
+
+const DEFAULT_DEMO_VIDEOS: DemoVideo[] = [
   { videoUrl: "https://static.vidfab.ai/discover-new/discover-new-01.mp4" },
   { videoUrl: "https://static.vidfab.ai/discover-new/discover-new-02.mp4" },
   { videoUrl: "https://static.vidfab.ai/discover-new/discover-new-10.mp4" },
   { videoUrl: "https://static.vidfab.ai/discover-new/discover-new-03.mp4" },
 ]
 
-function DemoPlaceholder({ videos }: { videos: Array<{ videoUrl: string; posterUrl?: string }> }) {
+function DemoPlaceholder({ videos }: { videos: DemoVideo[] }) {
   const [index, setIndex] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -40,9 +42,17 @@ function DemoPlaceholder({ videos }: { videos: Array<{ videoUrl: string; posterU
   }, [index])
 
   const current = videos[index]
+  const frameClass =
+    current.aspect === "portrait"
+      ? "mx-auto aspect-[9/16] h-[440px] max-h-[58vh] max-w-full"
+      : current.aspect === "three-four"
+      ? "mx-auto aspect-[3/4] h-[440px] max-h-[58vh] max-w-full"
+      : current.aspect === "square"
+      ? "mx-auto aspect-square h-[440px] max-h-[58vh] max-w-full"
+      : "mx-auto aspect-video w-full max-w-[640px] max-h-[58vh]"
 
   return (
-    <div className="relative w-full rounded-xl overflow-hidden aspect-video bg-black">
+    <div className={cn("relative rounded-xl overflow-hidden bg-black", frameClass)}>
       <video
         ref={videoRef}
         src={current.videoUrl}
@@ -52,7 +62,7 @@ function DemoPlaceholder({ videos }: { videos: Array<{ videoUrl: string; posterU
         preload="metadata"
         onCanPlay={handleCanPlay}
         onEnded={handleEnded}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
       />
       {/* 轮播指示点 */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
@@ -262,7 +272,7 @@ interface BuilderResultProps {
   currentJob: VideoJob | null
   completedVideos: UserVideo[]
   onLoadHistory: () => void
-  demoVideos?: Array<{ videoUrl: string; posterUrl?: string }>
+  demoVideos?: DemoVideo[]
 }
 
 export function BuilderResult({ currentJob, completedVideos, onLoadHistory, demoVideos }: BuilderResultProps) {

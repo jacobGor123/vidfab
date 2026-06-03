@@ -28,6 +28,59 @@ interface NavbarProps {
   scrolled: boolean
 }
 
+const aiVideoToolGroups = [
+  {
+    titleKey: "nav.photoEffects",
+    items: [
+      {
+        labelKey: "nav.aiKissVideoGenerator",
+        descriptionKey: "nav.aiKissVideoGeneratorDesc",
+        href: "/tools/ai-kiss-video-generator",
+      },
+      {
+        labelKey: "nav.aiDanceVideoGenerator",
+        descriptionKey: "nav.aiDanceVideoGeneratorDesc",
+        href: "/tools/ai-dance-video-generator",
+      },
+      {
+        labelKey: "nav.aiHugVideoGenerator",
+        descriptionKey: "nav.aiHugVideoGeneratorDesc",
+        href: "/tools/ai-hug-video-generator",
+      },
+      {
+        labelKey: "nav.photoToVideoAiGenerator",
+        descriptionKey: "nav.photoToVideoAiGeneratorDesc",
+        href: "/tools/photo-to-video-ai-generator",
+      },
+    ],
+  },
+  {
+    titleKey: "nav.promptSocial",
+    items: [
+      {
+        labelKey: "nav.aiVideoPromptGenerator",
+        descriptionKey: "nav.aiVideoPromptGeneratorDesc",
+        href: "/tools/ai-video-prompt-generator",
+      },
+      {
+        labelKey: "nav.aiStoryboardGenerator",
+        descriptionKey: "nav.aiStoryboardGeneratorDesc",
+        href: "/tools/ai-storyboard-generator",
+      },
+      {
+        labelKey: "nav.aiTikTokVideoGenerator",
+        descriptionKey: "nav.aiTikTokVideoGeneratorDesc",
+        href: "/tools/ai-tiktok-video-generator",
+      },
+      {
+        labelKey: "nav.aiYoutubeShortsGenerator",
+        descriptionKey: "nav.aiYoutubeShortsGeneratorDesc",
+        href: "/tools/ai-youtube-shorts-generator",
+      },
+    ],
+  },
+]
+
 export function Navbar({ scrolled }: NavbarProps) {
   const t = useTranslations('common')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -117,7 +170,7 @@ export function Navbar({ scrolled }: NavbarProps) {
              </Link>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-2">
             {!isCreatePage && (
               <>
                 <NavigationMenu>
@@ -211,6 +264,49 @@ export function Navbar({ scrolled }: NavbarProps) {
                     </NavigationMenuItem>
                   </NavigationMenuList>
                 </NavigationMenu>
+
+                <div className="group relative">
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    className="inline-flex h-10 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors duration-300 ease-apple hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus:outline-none group-hover:bg-white/10 group-hover:text-white"
+                  >
+                    {t('nav.aiVideoTools')}
+                    <ChevronDown
+                      className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-hover:rotate-180 group-focus-within:rotate-180"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <div
+                    className="invisible pointer-events-none absolute left-1/2 top-full z-50 w-[500px] max-w-[calc(100vw-2rem)] origin-top -translate-x-1/2 translate-y-1 scale-95 pt-2 opacity-0 transition duration-150 ease-out group-hover:visible group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-within:visible group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:scale-100 group-focus-within:opacity-100"
+                  >
+                    <div className="grid grid-cols-2 gap-3 rounded-lg border border-white/10 bg-black/95 p-3 shadow-lg backdrop-blur-lg">
+                      {aiVideoToolGroups.map((group) => (
+                        <div key={group.titleKey} className="min-w-0">
+                          <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            {t(group.titleKey)}
+                          </div>
+                          <div className="space-y-1">
+                            {group.items.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                              >
+                                <div className="whitespace-nowrap text-sm font-medium leading-none text-white">
+                                  {t(item.labelKey)}
+                                </div>
+                                <p className="mt-1 text-xs leading-snug text-gray-400">
+                                  {t(item.descriptionKey)}
+                                </p>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
                 <NavigationMenu>
                   <NavigationMenuList>
@@ -421,6 +517,30 @@ export function Navbar({ scrolled }: NavbarProps) {
                       </Link>
                     </div>
                   </div>
+                </div>
+
+                {/* AI Video Tools Section */}
+                <div className="space-y-3 border border-white/10 rounded-lg p-3">
+                  <div className="text-base font-heading text-white font-medium">{t('nav.aiVideoTools')}</div>
+                  {aiVideoToolGroups.map((group, groupIndex) => (
+                    <div key={group.titleKey} className="space-y-2">
+                      {groupIndex > 0 && <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>}
+                      <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider">{t(group.titleKey)}</div>
+                      <div className="ml-3 space-y-1">
+                        {group.items.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <span className="block">{t(item.labelKey)}</span>
+                            <span className="mt-1 block text-xs leading-snug text-gray-500">{t(item.descriptionKey)}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Latest Models Section */}
