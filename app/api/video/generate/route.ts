@@ -14,6 +14,7 @@ import { submitVideoGeneration as submitBytePlusVideoGeneration } from "@/lib/se
 import { VideoGenerationRequest, getGenerationType } from "@/lib/types/video"
 import { checkUserCredits, deductUserCredits } from "@/lib/simple-credits-check"
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
+import { ensureMonthlyCreditsCurrent } from "@/lib/subscription/credit-buckets"
 import { checkGenerationAccess, getUserEntitlements } from "@/lib/subscription/entitlements"
 
 const USE_BYTEPLUS = process.env.USE_BYTEPLUS
@@ -113,6 +114,7 @@ export async function POST(request: NextRequest) {
                            originalModel === 'video-effects' ? 'video-effects' :
                            'vidfab-q1'
 
+    await ensureMonthlyCreditsCurrent(session.user.uuid)
     const entitlements = await getUserEntitlements(session.user.uuid)
     const accessCheck = checkGenerationAccess(entitlements, modelForCredits, resolution)
     if (!accessCheck.canAccess) {

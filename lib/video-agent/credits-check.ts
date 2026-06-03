@@ -9,6 +9,7 @@
  */
 
 import { deductUserCredits } from '@/lib/simple-credits-check'
+import { ensureMonthlyCreditsCurrent } from '@/lib/subscription/credit-buckets'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 import {
   CHARACTER_GENERATION_CREDITS,
@@ -38,6 +39,8 @@ async function checkAndDeductCredits(
   requiredCredits: number,
   operation: string
 ): Promise<CreditCheckResult> {
+  const refreshedCredits = await ensureMonthlyCreditsCurrent(userUuid)
+
   // 1. 获取用户当前积分
   const { data: user, error } = await supabaseAdmin
     .from(TABLES.USERS)
@@ -55,7 +58,7 @@ async function checkAndDeductCredits(
     }
   }
 
-  const userCredits = user.credits_remaining || 0
+  const userCredits = refreshedCredits?.total ?? (user.credits_remaining || 0)
 
   // 2. 检查是否足够
   if (userCredits < requiredCredits) {

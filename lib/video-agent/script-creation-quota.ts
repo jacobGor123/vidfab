@@ -11,6 +11,8 @@
 
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 import { deductUserCredits } from '@/lib/simple-credits-check'
+import { ensureMonthlyCreditsCurrent } from '@/lib/subscription/credit-buckets'
+import { getUserEntitlements } from '@/lib/subscription/entitlements'
 import type { PlanId } from '@/lib/subscription/types'
 
 /**
@@ -161,8 +163,10 @@ export async function checkAndDeductScriptCreation(
     }
   }
 
-  const planId = (user.subscription_plan || 'free') as PlanId
-  const userCredits = user.credits_remaining || 0
+  const refreshedCredits = await ensureMonthlyCreditsCurrent(userId)
+  const entitlements = await getUserEntitlements(userId)
+  const planId = entitlements.effectivePlan
+  const userCredits = refreshedCredits?.total ?? (user.credits_remaining || 0)
   const monthlyQuota = getMonthlyQuota(planId)
 
   // 2. 获取当月使用次数
@@ -280,14 +284,8 @@ export async function getScriptCreationQuotaStatus(userId: string): Promise<{
 }> {
   const month = getCurrentMonth()
 
-  // 获取用户订阅等级
-  const { data: user } = await supabaseAdmin
-    .from(TABLES.USERS)
-    .select('subscription_plan')
-    .eq('uuid', userId)
-    .single()
-
-  const planId = (user?.subscription_plan || 'free') as PlanId
+  const entitlements = await getUserEntitlements(userId)
+  const planId = entitlements.effectivePlan
   const monthlyQuota = getMonthlyQuota(planId)
 
   // 获取当月使用次数

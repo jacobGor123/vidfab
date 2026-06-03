@@ -5,6 +5,7 @@
 
 import { supabaseAdmin, TABLES, handleSupabaseError } from '@/lib/supabase';
 import { calculateCreditsRequired, CONCURRENT_LIMITS } from './pricing-config';
+import { ensureMonthlyCreditsCurrent } from './credit-buckets';
 import { checkGenerationAccess, getUserEntitlements } from './entitlements';
 import type {
   CreditsReservation,
@@ -66,7 +67,8 @@ export class CreditsManager {
       throw new Error(`User not found with UUID: ${userUuid}`);
     }
 
-    const currentBalance = user.credits_remaining || 0;
+    const refreshedCredits = await ensureMonthlyCreditsCurrent(userUuid);
+    const currentBalance = refreshedCredits?.total ?? (user.credits_remaining || 0);
 
     // 检查积分余额
     if (currentBalance < requiredCredits) {
@@ -293,7 +295,8 @@ export class CreditsManager {
       throw new Error('User not found');
     }
 
-    const currentBalance = user.credits_remaining || 0;
+    const refreshedCredits = await ensureMonthlyCreditsCurrent(userUuid);
+    const currentBalance = refreshedCredits?.total ?? (user.credits_remaining || 0);
     const canAfford = currentBalance >= requiredCredits;
 
     // 计算警告级别

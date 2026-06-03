@@ -5,6 +5,7 @@
 
 import { supabaseAdmin, TABLES } from "@/lib/supabase"
 import { calculateRequiredCredits, type VideoModel } from "@/lib/credits-calculator"
+import { ensureMonthlyCreditsCurrent } from "@/lib/subscription/credit-buckets"
 import { isMissingColumnError } from "@/lib/supabase-schema-compat"
 
 // 图片生成固定消耗 3 积分
@@ -133,6 +134,7 @@ export async function checkUserCredits(
   try {
     // 计算所需积分
     const requiredCredits = calculateRequiredCredits(model, resolution, duration, audio)
+    const refreshedCredits = await ensureMonthlyCreditsCurrent(userUuid)
 
     // 查询用户当前积分
     const { data: user, error } = await supabaseAdmin
@@ -153,7 +155,7 @@ export async function checkUserCredits(
       }
     }
 
-    const userCredits = user?.credits_remaining || 0
+    const userCredits = refreshedCredits?.total ?? (user?.credits_remaining || 0)
     const canAfford = userCredits >= requiredCredits
     const remainingCredits = Math.max(0, userCredits - requiredCredits)
 
@@ -192,6 +194,8 @@ export async function deductUserCredits(
       return refundUserCredits(userUuid, Math.abs(creditsToDeduct))
     }
 
+    const refreshedCredits = await ensureMonthlyCreditsCurrent(userUuid)
+
     if (creditsToDeduct === 0) {
       const { data: user } = await supabaseAdmin
         .from(TABLES.USERS)
@@ -199,7 +203,7 @@ export async function deductUserCredits(
         .eq('uuid', userUuid)
         .single()
 
-      return { success: true, newBalance: user?.credits_remaining || 0 }
+      return { success: true, newBalance: refreshedCredits?.total ?? (user?.credits_remaining || 0) }
     }
 
     const { data, error } = await supabaseAdmin.rpc('deduct_user_credits_atomic', {
@@ -346,6 +350,7 @@ export async function checkImageGenerationCredits(
 ): Promise<SimpleCreditCheckResult> {
   try {
     const requiredCredits = IMAGE_GENERATION_CREDITS
+    const refreshedCredits = await ensureMonthlyCreditsCurrent(userUuid)
 
     // 查询用户当前积分
     const { data: user, error } = await supabaseAdmin
@@ -366,7 +371,7 @@ export async function checkImageGenerationCredits(
       }
     }
 
-    const userCredits = user?.credits_remaining || 0
+    const userCredits = refreshedCredits?.total ?? (user?.credits_remaining || 0)
     const canAfford = userCredits >= requiredCredits
     const remainingCredits = Math.max(0, userCredits - requiredCredits)
 

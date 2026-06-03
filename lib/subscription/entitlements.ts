@@ -28,7 +28,7 @@ export function normalizePlanId(planId?: string | null): PlanId {
 
 export function isPeriodCurrent(periodEnd?: string | null): boolean {
   if (!periodEnd) {
-    return true
+    return false
   }
 
   const timestamp = new Date(periodEnd).getTime()

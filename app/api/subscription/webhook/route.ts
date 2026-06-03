@@ -6,8 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import stripe, { verifyWebhookSignature } from '@/lib/subscription/stripe-config';
+import stripe, { cancelSubscription, verifyWebhookSignature } from '@/lib/subscription/stripe-config';
 import { handleCheckoutSession } from '@/lib/subscription/checkout-handler';
+import { getInvoiceSubscriptionId } from '@/lib/subscription/invoice';
 import { SUBSCRIPTION_PLANS } from '@/lib/subscription/pricing-config';
 import { normalizePlanId } from '@/lib/subscription/entitlements';
 import { resetSubscriptionMonthlyCredits } from '@/lib/subscription/credit-buckets';
@@ -82,15 +83,36 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
-  const rawSubscription = (invoice as any).subscription;
-  if (!rawSubscription) return null;
-  return typeof rawSubscription === 'string' ? rawSubscription : rawSubscription.id;
-}
-
 function inferBillingCycle(subscription: Stripe.Subscription): 'monthly' | 'annual' {
   const interval = subscription.items.data[0]?.price?.recurring?.interval;
   return interval === 'year' ? 'annual' : 'monthly';
+}
+
+const FAILED_PAYMENT_SUBSCRIPTION_STATUSES = new Set(['incomplete', 'past_due', 'unpaid']);
+const TERMINAL_SUBSCRIPTION_STATUSES = new Set(['canceled', 'incomplete_expired']);
+
+async function cancelStripeSubscriptionAfterPaymentFailure(subscriptionId: string): Promise<boolean> {
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId).catch((error) => {
+    if (error?.code === 'resource_missing' || error?.statusCode === 404) {
+      return null;
+    }
+    throw error;
+  });
+
+  if (!subscription || TERMINAL_SUBSCRIPTION_STATUSES.has(subscription.status)) {
+    return true;
+  }
+
+  if (!FAILED_PAYMENT_SUBSCRIPTION_STATUSES.has(subscription.status)) {
+    console.warn('[WEBHOOK] Skipping failed-payment cancellation because subscription recovered or changed:', {
+      subscriptionId,
+      subscriptionStatus: subscription.status,
+    });
+    return false;
+  }
+
+  await cancelSubscription(subscriptionId, false);
+  return true;
 }
 
 /**
@@ -115,9 +137,18 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<v
     expand: ['items.data.price'],
   });
 
+  if (subscription.status !== 'active' && subscription.status !== 'trialing') {
+    console.warn('[WEBHOOK] Skipping renewal credit grant because subscription is not active:', {
+      invoiceId: invoice.id,
+      subscriptionId,
+      subscriptionStatus: subscription.status,
+    });
+    return;
+  }
+
   let { data: user } = await supabaseAdmin
     .from(TABLES.USERS)
-    .select('uuid, subscription_plan, credits_remaining')
+    .select('uuid, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining')
     .eq('subscription_stripe_id', subscriptionId)
     .single();
 
@@ -125,14 +156,16 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<v
   if (!user && metadataUserUuid) {
     const userResult = await supabaseAdmin
       .from(TABLES.USERS)
-      .select('uuid, subscription_plan, credits_remaining')
+      .select('uuid, subscription_plan, subscription_status, subscription_stripe_id, credits_remaining')
       .eq('uuid', metadataUserUuid)
       .single();
-    user = userResult.data;
+    if (userResult.data?.subscription_stripe_id === subscriptionId) {
+      user = userResult.data;
+    }
   }
 
   if (!user) {
-    console.error('[WEBHOOK] User not found for renewal invoice:', { invoiceId: invoice.id, subscriptionId });
+    console.error('[WEBHOOK] User not found or no longer linked for renewal invoice:', { invoiceId: invoice.id, subscriptionId });
     return;
   }
 
@@ -233,27 +266,24 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<v
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const subscriptionId = getInvoiceSubscriptionId(invoice);
   if (!subscriptionId) {
+    console.error('[WEBHOOK] Missing subscription ID on invoice.payment_failed:', {
+      invoiceId: invoice.id,
+      billingReason: (invoice as any).billing_reason,
+    });
     return;
   }
 
-  const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId).catch(() => null);
-  const periodEnd = subscription?.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
-    : undefined;
+  const shouldCleanup = await cancelStripeSubscriptionAfterPaymentFailure(subscriptionId);
+  if (!shouldCleanup) {
+    return;
+  }
 
-  await supabaseAdmin
-    .from(TABLES.USERS)
-    .update({
-      subscription_status: 'past_due',
-      ...(periodEnd && { subscription_period_end: periodEnd }),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('subscription_stripe_id', subscriptionId);
+  await handleSubscriptionCanceled(subscriptionId);
 
-  console.warn('[WEBHOOK] Marked subscription as past_due after failed invoice:', {
+  console.warn('[WEBHOOK] Canceled subscription after failed invoice:', {
     invoiceId: invoice.id,
     subscriptionId,
+    billingReason: (invoice as any).billing_reason,
   });
 }
 
@@ -303,6 +333,16 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription): Pro
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
   try {
+    if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+      const shouldCleanup = await cancelStripeSubscriptionAfterPaymentFailure(subscription.id);
+      if (!shouldCleanup) {
+        return;
+      }
+      await handleSubscriptionCanceled(subscription.id);
+      console.warn(`[WEBHOOK] Subscription ${subscription.id} became ${subscription.status} and was cancelled immediately`);
+      return;
+    }
+
     const { updateUser } = await import('@/services/user');
     const { supabaseAdmin, TABLES } = await import('@/lib/supabase');
 
@@ -316,6 +356,21 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
           .eq('subscription_stripe_id', subscription.id)
           .single();
         userUuid = user?.uuid;
+      } else {
+        const { data: user } = await supabaseAdmin
+          .from(TABLES.USERS)
+          .select('uuid, subscription_stripe_id')
+          .eq('uuid', userUuid)
+          .single();
+
+        if (user?.subscription_stripe_id !== subscription.id) {
+          console.warn('[WEBHOOK] Skipping subscription active update because user is no longer linked:', {
+            userUuid,
+            subscriptionId: subscription.id,
+            linkedSubscriptionId: user?.subscription_stripe_id,
+          });
+          return;
+        }
       }
 
       if (userUuid) {
