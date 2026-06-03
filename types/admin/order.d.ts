@@ -11,6 +11,8 @@ export interface Order {
   user_uuid: string | null;
   user_email: string | null;
   user_created_at: string | null;
+  user_credits_remaining: number | null;
+  user_subscription_status: string | null;
   paid_email: string | null;
   product_name: string | null;
   product_id: string | null;

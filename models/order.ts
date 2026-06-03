@@ -18,6 +18,8 @@ function billingCycleToInterval(cycle: string | null): OrderInterval | null {
 interface OrderUserInfo {
   email: string | null;
   created_at: string | null;
+  credits_remaining: number | null;
+  subscription_status: string | null;
 }
 
 function mapRow(row: any, userInfoMap: Map<string, OrderUserInfo> = new Map()): Order {
@@ -30,6 +32,8 @@ function mapRow(row: any, userInfoMap: Map<string, OrderUserInfo> = new Map()): 
     user_uuid: row.user_uuid ?? null,
     user_email: email,
     user_created_at: userInfo?.created_at ?? null,
+    user_credits_remaining: userInfo?.credits_remaining ?? null,
+    user_subscription_status: userInfo?.subscription_status ?? null,
     paid_email: email,
     product_name: row.metadata?.plan_name || row.plan_id || null,
     product_id: row.plan_id ?? null,
@@ -61,7 +65,7 @@ async function fetchUserInfoMap(
 
   const { data: users } = await supabase
     .from('users')
-    .select('uuid, email, created_at')
+    .select('uuid, email, created_at, credits_remaining, subscription_status')
     .in('uuid', uuids);
 
   return new Map(
@@ -70,6 +74,8 @@ async function fetchUserInfoMap(
       {
         email: u.email ?? null,
         created_at: u.created_at ?? null,
+        credits_remaining: typeof u.credits_remaining === 'number' ? u.credits_remaining : null,
+        subscription_status: u.subscription_status ?? null,
       },
     ])
   );
@@ -211,6 +217,8 @@ export async function getOrdersByPaidEmail(paidEmail: string): Promise<Order[] |
       {
         email: user.email,
         created_at: null,
+        credits_remaining: null,
+        subscription_status: null,
       },
     ],
   ]);

@@ -70,6 +70,54 @@ export default async function PaidOrdersPage({ searchParams }: PaidOrdersPagePro
       className: 'w-40',
     },
     {
+      name: 'user_credits_remaining',
+      title: 'Current Credits',
+      className: 'w-28 text-right',
+      callback: (row) => {
+        if (typeof row.user_credits_remaining !== 'number') {
+          return <span className="text-xs text-gray-400">-</span>;
+        }
+
+        return (
+          <span className="font-mono text-sm text-slate-700">
+            {row.user_credits_remaining}
+          </span>
+        );
+      },
+    },
+    {
+      name: 'user_subscription_status',
+      title: 'Subscription',
+      className: 'w-28',
+      callback: (row) => {
+        const status = String(row.user_subscription_status || 'unknown').toLowerCase();
+        const styles: Record<string, string> = {
+          active: 'bg-green-100 text-green-800 border-green-200',
+          cancelled: 'bg-red-100 text-red-800 border-red-200',
+          canceled: 'bg-red-100 text-red-800 border-red-200',
+          cancel: 'bg-red-100 text-red-800 border-red-200',
+          past_due: 'bg-amber-100 text-amber-800 border-amber-200',
+          inactive: 'bg-gray-100 text-gray-700 border-gray-200',
+          unknown: 'bg-gray-100 text-gray-500 border-gray-200',
+        };
+        const labels: Record<string, string> = {
+          active: 'Active',
+          cancelled: 'Cancel',
+          canceled: 'Cancel',
+          cancel: 'Cancel',
+          past_due: 'Past Due',
+          inactive: 'Inactive',
+          unknown: '-',
+        };
+
+        return (
+          <span className={`px-2 py-0.5 rounded text-xs font-medium border ${styles[status] || styles.unknown}`}>
+            {labels[status] || row.user_subscription_status || '-'}
+          </span>
+        );
+      },
+    },
+    {
       name: 'amount',
       title: 'Amount',
       className: 'w-24 text-right',
