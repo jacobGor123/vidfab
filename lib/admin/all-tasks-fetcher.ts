@@ -14,6 +14,7 @@ import {
   GenerationType,
 } from '@/types/admin/tasks';
 import { parseAdminTimestamp } from '@/lib/admin/datetime';
+import { attachPromptPurposeAnalyses } from '@/lib/admin/prompt-purpose-store';
 
 const MAX_TASK_PAGE_SIZE = 100;
 const DEFAULT_TASK_PAGE_SIZE = 50;
@@ -413,11 +414,19 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
 
   // 根据 taskType 决定获取哪种任务
   if (taskType === 'video_generation') {
-    return fetchVideoTasks({ ...options, limit });
+    const result = await fetchVideoTasks({ ...options, limit });
+    return {
+      ...result,
+      tasks: await attachPromptPurposeAnalyses(result.tasks),
+    };
   }
 
   if (taskType === 'image_generation') {
-    return fetchImageTasks({ ...options, limit });
+    const result = await fetchImageTasks({ ...options, limit });
+    return {
+      ...result,
+      tasks: await attachPromptPurposeAnalyses(result.tasks),
+    };
   }
 
   // taskType === undefined，获取所有任务（合并两个表）
@@ -452,7 +461,7 @@ export async function fetchAllTasks(options: FetchTasksOptions): Promise<FetchTa
   const nextCursor = hasMore ? stringifySourceTaskCursors(nextSourceCursors) : null;
 
   return {
-    tasks,
+    tasks: await attachPromptPurposeAnalyses(tasks),
     nextCursor,
     hasMore,
   };
@@ -540,16 +549,4 @@ export async function fetchTaskStats(taskType?: TaskType): Promise<TaskStats> {
     failed: videoStats.failed + imageStats.failed,
     processing: videoStats.processing + imageStats.processing,
   };
-}
-
-/**
- * 获取任务类型显示标签
- */
-export function getTaskTypeLabel(taskType: TaskType | 'all'): string {
-  const labels: Record<TaskType | 'all', string> = {
-    all: 'All Tasks',
-    video_generation: 'Video Generation',
-    image_generation: 'Image Generation',
-  };
-  return labels[taskType] || taskType;
 }

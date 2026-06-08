@@ -16,6 +16,60 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      prompt_purpose_analyses: {
+        Row: {
+          id: string
+          task_type: 'video_generation' | 'image_generation'
+          task_id: string
+          prompt_hash: string
+          category: string
+          label: string
+          summary: string | null
+          tags: string[]
+          confidence: number
+          status: 'pending' | 'completed' | 'failed' | 'skipped'
+          model: string | null
+          error_message: string | null
+          analyzed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          task_type: 'video_generation' | 'image_generation'
+          task_id: string
+          prompt_hash: string
+          category?: string
+          label?: string
+          summary?: string | null
+          tags?: string[]
+          confidence?: number
+          status?: 'pending' | 'completed' | 'failed' | 'skipped'
+          model?: string | null
+          error_message?: string | null
+          analyzed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          task_type?: 'video_generation' | 'image_generation'
+          task_id?: string
+          prompt_hash?: string
+          category?: string
+          label?: string
+          summary?: string | null
+          tags?: string[]
+          confidence?: number
+          status?: 'pending' | 'completed' | 'failed' | 'skipped'
+          model?: string | null
+          error_message?: string | null
+          analyzed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       video_agent_projects: {
         Row: {
           id: string

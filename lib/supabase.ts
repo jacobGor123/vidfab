@@ -229,6 +229,7 @@ export const TABLES = {
   VIDEO_JOBS: 'video_jobs', // Legacy table
   USER_VIDEOS: 'user_videos', // New video storage table
   USER_IMAGES: 'user_images', // Image storage table
+  PROMPT_PURPOSE_ANALYSES: 'prompt_purpose_analyses',
   USER_STORAGE_QUOTAS: 'user_storage_quotas',
   SUBSCRIPTIONS: 'subscriptions',
   PAYMENTS: 'payments',

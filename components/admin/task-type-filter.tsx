@@ -8,7 +8,7 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TaskType } from '@/types/admin/tasks';
-import { getTaskTypeLabel } from '@/lib/admin/all-tasks-fetcher';
+import { getTaskTypeLabel } from '@/lib/admin/task-labels';
 
 const TASK_TYPES: (TaskType | 'all')[] = [
   'all',

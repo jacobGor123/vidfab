@@ -6,11 +6,16 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { UnifiedTask, TaskType, TaskStats } from '@/types/admin/tasks';
+import {
+  PromptPurposeCategory,
+  UnifiedTask,
+  TaskType,
+  TaskStats,
+} from '@/types/admin/tasks';
 import { Table as TableSlotType } from '@/types/slots/table';
 import TableSlot from '@/components/dashboard/slots/table';
 import MediaPreview from './media-preview';
-import { getTaskTypeLabel } from '@/lib/admin/all-tasks-fetcher';
+import { getTaskTypeLabel } from '@/lib/admin/task-labels';
 import {
   Tooltip,
   TooltipContent,
@@ -18,7 +23,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
-import { Film, ImageIcon, Sparkles, Type, Volume2, Wand2, X } from 'lucide-react';
+import {
+  BrainCircuit,
+  Film,
+  ImageIcon,
+  Loader2,
+  Sparkles,
+  Type,
+  Volume2,
+  Wand2,
+  X,
+} from 'lucide-react';
 import {
   ADMIN_STATS_TIMEZONE_LABEL,
   formatAdminDateTime,
@@ -33,6 +48,40 @@ interface TasksListProps {
   stats: TaskStats;
 }
 
+interface AnalysisRunSummary {
+  scanned: number;
+  analyzed: number;
+  reused: number;
+  skipped: number;
+  failed: number;
+}
+
+const purposeCategoryStyles: Record<PromptPurposeCategory, string> = {
+  marketing_ad: 'bg-rose-50 text-rose-700 border-rose-200',
+  product_showcase: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+  social_content: 'bg-blue-50 text-blue-700 border-blue-200',
+  storytelling: 'bg-violet-50 text-violet-700 border-violet-200',
+  education_tutorial: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  entertainment_meme: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+  personal_memory: 'bg-amber-50 text-amber-700 border-amber-200',
+  character_avatar: 'bg-purple-50 text-purple-700 border-purple-200',
+  scene_visualization: 'bg-sky-50 text-sky-700 border-sky-200',
+  fashion_beauty: 'bg-pink-50 text-pink-700 border-pink-200',
+  music_dance: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  game_anime: 'bg-lime-50 text-lime-700 border-lime-200',
+  business_presentation: 'bg-slate-100 text-slate-700 border-slate-200',
+  image_editing_request: 'bg-teal-50 text-teal-700 border-teal-200',
+  other: 'bg-gray-100 text-gray-600 border-gray-200',
+};
+
+function formatPurposeConfidence(confidence: number): string {
+  if (!Number.isFinite(confidence) || confidence <= 0) {
+    return '';
+  }
+
+  return `${Math.round(confidence * 100)}%`;
+}
+
 export default function TasksListWithPagination({
   initialTasks,
   initialNextCursor,
@@ -45,6 +94,8 @@ export default function TasksListWithPagination({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [analyzingPrompts, setAnalyzingPrompts] = useState(false);
+  const [analysisSummary, setAnalysisSummary] = useState<AnalysisRunSummary | null>(null);
 
   // 邮箱排除搜索
   const [excludeEmailInput, setExcludeEmailInput] = useState('');
@@ -141,6 +192,128 @@ export default function TasksListWithPagination({
     } finally {
       setLoading(false);
     }
+  };
+
+  const analyzeRecentPrompts = async () => {
+    if (analyzingPrompts) return;
+
+    setAnalyzingPrompts(true);
+    setAnalysisSummary(null);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch('/api/admin/tasks/prompt-purpose/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          days: 10,
+          limit: 50,
+          taskType,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to analyze prompts');
+      }
+
+      setAnalysisSummary({
+        scanned: data.scanned || 0,
+        analyzed: data.analyzed || 0,
+        reused: data.reused || 0,
+        skipped: data.skipped || 0,
+        failed: data.failed || 0,
+      });
+      await fetchTasks(excludeEmail);
+    } catch (error) {
+      console.error('Failed to analyze recent prompts:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to analyze prompts');
+    } finally {
+      setAnalyzingPrompts(false);
+    }
+  };
+
+  const renderPromptPurpose = (item: UnifiedTask) => {
+    if (!item.prompt?.trim()) {
+      return <span className="text-xs text-gray-400">No text prompt</span>;
+    }
+
+    const purpose = item.prompt_purpose;
+    if (!purpose) {
+      return (
+        <span className="inline-flex w-fit items-center rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500">
+          Not analyzed
+        </span>
+      );
+    }
+
+    if (purpose.status === 'failed') {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex w-fit cursor-help items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                Analysis failed
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm">
+              <p className="text-sm whitespace-pre-wrap">
+                {purpose.error_message || 'Prompt purpose analysis failed.'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    if (purpose.status !== 'completed') {
+      return (
+        <span className="inline-flex w-fit items-center rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+          {purpose.status}
+        </span>
+      );
+    }
+
+    const confidence = formatPurposeConfidence(purpose.confidence);
+    const style = purposeCategoryStyles[purpose.category] || purposeCategoryStyles.other;
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex max-w-44 cursor-help flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <span className={`inline-flex w-fit rounded border px-2 py-0.5 text-xs font-semibold ${style}`}>
+                  {purpose.label}
+                </span>
+                {confidence && <span className="text-[11px] text-slate-500">{confidence}</span>}
+              </div>
+              {purpose.tags.length > 0 && (
+                <span className="line-clamp-1 text-[11px] text-slate-500">
+                  {purpose.tags.slice(0, 3).join(', ')}
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-sm">
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">{purpose.label}</p>
+              {purpose.summary && (
+                <p className="text-sm whitespace-pre-wrap">{purpose.summary}</p>
+              )}
+              {purpose.tags.length > 0 && (
+                <p className="text-xs text-slate-500">Tags: {purpose.tags.join(', ')}</p>
+              )}
+              {purpose.model && (
+                <p className="text-xs text-slate-400">Model: {purpose.model}</p>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
   };
 
   // Define table columns
@@ -428,6 +601,12 @@ export default function TasksListWithPagination({
         },
       },
       {
+        name: 'prompt_purpose',
+        title: 'AI Purpose',
+        className: 'w-44',
+        callback: renderPromptPurpose,
+      },
+      {
         name: 'error',
         title: 'Error',
         className: 'max-w-xs',
@@ -458,40 +637,69 @@ export default function TasksListWithPagination({
   return (
     <div>
       {/* 邮箱排除搜索框 */}
-      <div className="mb-6 flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Input
-            type="text"
-            placeholder="Enter keywords to exclude (comma-separated, e.g. teamone, test, example)..."
-            value={excludeEmailInput}
-            onChange={(e) => setExcludeEmailInput(e.target.value)}
-            className="pr-8"
-          />
-          {excludeEmailInput && (
-            <button
-              onClick={() => setExcludeEmailInput('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-        {excludeEmail && (
-          <div className="text-sm text-gray-500 flex items-center gap-2">
-            <span>Excluding:</span>
-            {excludeEmail.split(',').map((keyword, index) => {
-              const trimmed = keyword.trim();
-              if (!trimmed) return null;
-              return (
-                <span key={index} className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-semibold text-xs border border-red-200">
-                  {trimmed}
-                </span>
-              );
-            })}
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+            <div className="relative min-w-72 flex-1 max-w-md">
+              <Input
+                type="text"
+                placeholder="Enter keywords to exclude (comma-separated, e.g. teamone, test, example)..."
+                value={excludeEmailInput}
+                onChange={(e) => setExcludeEmailInput(e.target.value)}
+                className="pr-8"
+              />
+              {excludeEmailInput && (
+                <button
+                  onClick={() => setExcludeEmailInput('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            {excludeEmail && (
+              <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2">
+                <span>Excluding:</span>
+                {excludeEmail.split(',').map((keyword, index) => {
+                  const trimmed = keyword.trim();
+                  if (!trimmed) return null;
+                  return (
+                    <span key={index} className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-semibold text-xs border border-red-200">
+                      {trimmed}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {loading && excludeEmail && (
+              <span className="text-sm text-blue-500">Loading...</span>
+            )}
           </div>
-        )}
-        {loading && excludeEmail && (
-          <span className="text-sm text-blue-500">Loading...</span>
+          <button
+            type="button"
+            onClick={analyzeRecentPrompts}
+            disabled={analyzingPrompts || loading}
+            className="inline-flex min-h-9 items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:border-blue-300 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {analyzingPrompts ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <BrainCircuit className="h-4 w-4" />
+            )}
+            <span>{analyzingPrompts ? 'Analyzing...' : 'Analyze 10-day prompts'}</span>
+          </button>
+        </div>
+        {analysisSummary && (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span className="font-medium text-slate-700">AI purpose run:</span>
+            <span>{analysisSummary.scanned} scanned</span>
+            <span>{analysisSummary.analyzed} analyzed</span>
+            <span>{analysisSummary.reused} reused</span>
+            <span>{analysisSummary.skipped} skipped</span>
+            {analysisSummary.failed > 0 && (
+              <span className="text-red-600">{analysisSummary.failed} failed</span>
+            )}
+          </div>
         )}
       </div>
 

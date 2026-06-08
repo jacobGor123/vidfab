@@ -12,6 +12,37 @@ export type TaskStatus = 'generating' | 'downloading' | 'processing' | 'complete
 
 export type GenerationType = 'text_to_video' | 'image_to_video' | 'video_effects' | 'text_to_image' | 'image_to_image';
 
+export type PromptPurposeCategory =
+  | 'marketing_ad'
+  | 'product_showcase'
+  | 'social_content'
+  | 'storytelling'
+  | 'education_tutorial'
+  | 'entertainment_meme'
+  | 'personal_memory'
+  | 'character_avatar'
+  | 'scene_visualization'
+  | 'fashion_beauty'
+  | 'music_dance'
+  | 'game_anime'
+  | 'business_presentation'
+  | 'image_editing_request'
+  | 'other';
+
+export type PromptPurposeStatus = 'pending' | 'completed' | 'failed' | 'skipped';
+
+export interface PromptPurposeAnalysis {
+  category: PromptPurposeCategory;
+  label: string;
+  summary: string | null;
+  tags: string[];
+  confidence: number;
+  status: PromptPurposeStatus;
+  model: string | null;
+  analyzed_at: string | null;
+  error_message: string | null;
+}
+
 /**
  * Unified Task Interface
  * 基于 user_videos 表结构的统一任务接口
@@ -31,6 +62,7 @@ export interface UnifiedTask {
   generation_type: GenerationType; // text_to_video / image_to_video / video_effects
   input_image_url: string | null;  // settings.image_url（image_to_video 或 video_effects）
   prompt: string;                  // user_videos.prompt
+  prompt_purpose?: PromptPurposeAnalysis;
 
   // 输出数据
   video_url: string | null;        // user_videos.original_url
