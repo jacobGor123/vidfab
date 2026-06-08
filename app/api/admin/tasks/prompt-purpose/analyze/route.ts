@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     const result = await analyzeRecentPromptPurposes({
       days: parseNumber(body.days),
       limit: parseNumber(body.limit),
+      analysisLimit: parseNumber(body.analysisLimit),
       taskType,
       force: body.force === true,
     });

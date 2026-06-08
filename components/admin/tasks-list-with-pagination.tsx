@@ -5,9 +5,10 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   PromptPurposeCategory,
+  PromptPurposeAnalysisRunSummary,
   UnifiedTask,
   TaskType,
   TaskStats,
@@ -48,12 +49,9 @@ interface TasksListProps {
   stats: TaskStats;
 }
 
-interface AnalysisRunSummary {
-  scanned: number;
-  analyzed: number;
-  reused: number;
-  skipped: number;
-  failed: number;
+interface PromptAnalysisRequestOptions {
+  limit?: number;
+  analysisLimit?: number;
 }
 
 const purposeCategoryStyles: Record<PromptPurposeCategory, string> = {
@@ -82,6 +80,31 @@ function formatPurposeConfidence(confidence: number): string {
   return `${Math.round(confidence * 100)}%`;
 }
 
+async function parseJsonResponse(response: Response): Promise<any> {
+  const contentType = response.headers.get('content-type') || '';
+  const rawText = await response.text();
+
+  if (!rawText) {
+    return {};
+  }
+
+  if (!contentType.includes('application/json')) {
+    const message = rawText.replace(/\s+/g, ' ').trim().slice(0, 220);
+    throw new Error(
+      response.ok
+        ? `Unexpected server response: ${message}`
+        : `Request failed (${response.status}): ${message}`
+    );
+  }
+
+  try {
+    return JSON.parse(rawText);
+  } catch {
+    const message = rawText.replace(/\s+/g, ' ').trim().slice(0, 220);
+    throw new Error(`Invalid JSON response (${response.status}): ${message}`);
+  }
+}
+
 export default function TasksListWithPagination({
   initialTasks,
   initialNextCursor,
@@ -95,12 +118,13 @@ export default function TasksListWithPagination({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [analyzingPrompts, setAnalyzingPrompts] = useState(false);
-  const [analysisSummary, setAnalysisSummary] = useState<AnalysisRunSummary | null>(null);
+  const [analysisSummary, setAnalysisSummary] = useState<PromptPurposeAnalysisRunSummary | null>(null);
 
   // 邮箱排除搜索
   const [excludeEmailInput, setExcludeEmailInput] = useState('');
   const [excludeEmail, setExcludeEmail] = useState('');
   const [isInitialMount, setIsInitialMount] = useState(true);
+  const autoAnalyzeKeyRef = useRef<string | null>(null);
 
   /**
    * 防抖：输入停止 300ms 后更新搜索关键词
@@ -128,7 +152,7 @@ export default function TasksListWithPagination({
       }
 
       const response = await fetch(`/api/admin/tasks?${params.toString()}`);
-      const data = await response.json();
+      const data = await parseJsonResponse(response);
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to fetch tasks');
@@ -176,7 +200,7 @@ export default function TasksListWithPagination({
       }
 
       const response = await fetch(`/api/admin/tasks?${params.toString()}`);
-      const data = await response.json();
+      const data = await parseJsonResponse(response);
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to load more tasks');
@@ -194,7 +218,10 @@ export default function TasksListWithPagination({
     }
   };
 
-  const analyzeRecentPrompts = async () => {
+  const analyzeRecentPrompts = useCallback(async ({
+    limit = 100,
+    analysisLimit = 5,
+  }: PromptAnalysisRequestOptions = {}) => {
     if (analyzingPrompts) return;
 
     setAnalyzingPrompts(true);
@@ -209,11 +236,12 @@ export default function TasksListWithPagination({
         },
         body: JSON.stringify({
           days: 10,
-          limit: 50,
+          limit,
+          analysisLimit,
           taskType,
         }),
       });
-      const data = await response.json();
+      const data = await parseJsonResponse(response);
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to analyze prompts');
@@ -225,6 +253,7 @@ export default function TasksListWithPagination({
         reused: data.reused || 0,
         skipped: data.skipped || 0,
         failed: data.failed || 0,
+        remaining: data.remaining || 0,
       });
       await fetchTasks(excludeEmail);
     } catch (error) {
@@ -233,7 +262,39 @@ export default function TasksListWithPagination({
     } finally {
       setAnalyzingPrompts(false);
     }
-  };
+  }, [analyzingPrompts, excludeEmail, fetchTasks, taskType]);
+
+  useEffect(() => {
+    const firstTenWithPrompts = tasks
+      .slice(0, 10)
+      .filter((task) => task.prompt?.trim());
+
+    if (firstTenWithPrompts.length === 0) {
+      return;
+    }
+
+    const hasUnanalyzedPrompt = firstTenWithPrompts.some(
+      (task) => !task.prompt_purpose || task.prompt_purpose.status === 'pending'
+    );
+
+    if (!hasUnanalyzedPrompt || analyzingPrompts) {
+      return;
+    }
+
+    const autoAnalyzeKey = `${taskType || 'all'}:${firstTenWithPrompts
+      .map((task) => `${task.task_type}:${task.id}`)
+      .join('|')}`;
+
+    if (autoAnalyzeKeyRef.current === autoAnalyzeKey) {
+      return;
+    }
+
+    autoAnalyzeKeyRef.current = autoAnalyzeKey;
+    void analyzeRecentPrompts({
+      limit: 10,
+      analysisLimit: 10,
+    });
+  }, [analyzeRecentPrompts, analyzingPrompts, taskType, tasks]);
 
   const renderPromptPurpose = (item: UnifiedTask) => {
     if (!item.prompt?.trim()) {
@@ -677,7 +738,7 @@ export default function TasksListWithPagination({
           </div>
           <button
             type="button"
-            onClick={analyzeRecentPrompts}
+            onClick={() => analyzeRecentPrompts()}
             disabled={analyzingPrompts || loading}
             className="inline-flex min-h-9 items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:border-blue-300 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -686,7 +747,7 @@ export default function TasksListWithPagination({
             ) : (
               <BrainCircuit className="h-4 w-4" />
             )}
-            <span>{analyzingPrompts ? 'Analyzing...' : 'Analyze 10-day prompts'}</span>
+            <span>{analyzingPrompts ? 'Analyzing...' : 'Analyze next batch'}</span>
           </button>
         </div>
         {analysisSummary && (
@@ -698,6 +759,9 @@ export default function TasksListWithPagination({
             <span>{analysisSummary.skipped} skipped</span>
             {analysisSummary.failed > 0 && (
               <span className="text-red-600">{analysisSummary.failed} failed</span>
+            )}
+            {analysisSummary.remaining > 0 && (
+              <span>{analysisSummary.remaining} remaining</span>
             )}
           </div>
         )}

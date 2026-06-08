@@ -34,6 +34,7 @@ interface PromptPurposeModelResult extends PromptPurposeCompletedFields {}
 export interface AnalyzeRecentPromptPurposesOptions {
   days?: number;
   limit?: number;
+  analysisLimit?: number;
   taskType?: TaskType;
   force?: boolean;
 }
@@ -44,6 +45,7 @@ export interface AnalyzeRecentPromptPurposesResult {
   reused: number;
   skipped: number;
   failed: number;
+  remaining: number;
   errors: Array<{
     taskType: TaskType;
     taskId: string;
@@ -52,8 +54,10 @@ export interface AnalyzeRecentPromptPurposesResult {
 }
 
 const DEFAULT_ANALYSIS_DAYS = 10;
-const DEFAULT_ANALYSIS_LIMIT = 30;
-const MAX_ANALYSIS_LIMIT = 100;
+const DEFAULT_CANDIDATE_LIMIT = 100;
+const MAX_CANDIDATE_LIMIT = 300;
+const DEFAULT_LLM_ANALYSIS_LIMIT = 5;
+const MAX_LLM_ANALYSIS_LIMIT = 10;
 const MAX_PROMPT_CHARS = 4000;
 
 let genAI: GoogleGenerativeAI | null = null;
@@ -75,12 +79,20 @@ function getAnalysisModelName(): string {
   return process.env.PROMPT_PURPOSE_MODEL || MODEL_NAME;
 }
 
-function normalizeLimit(value: number | undefined): number {
+function normalizeCandidateLimit(value: number | undefined): number {
   if (!Number.isFinite(value) || !value || value < 1) {
-    return DEFAULT_ANALYSIS_LIMIT;
+    return DEFAULT_CANDIDATE_LIMIT;
   }
 
-  return Math.min(Math.floor(value), MAX_ANALYSIS_LIMIT);
+  return Math.min(Math.floor(value), MAX_CANDIDATE_LIMIT);
+}
+
+function normalizeLlmAnalysisLimit(value: number | undefined): number {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return DEFAULT_LLM_ANALYSIS_LIMIT;
+  }
+
+  return Math.min(Math.floor(value), MAX_LLM_ANALYSIS_LIMIT);
 }
 
 function normalizeDays(value: number | undefined): number {
@@ -292,7 +304,8 @@ export async function analyzeRecentPromptPurposes(
   }
 
   const days = normalizeDays(options.days);
-  const limit = normalizeLimit(options.limit);
+  const limit = normalizeCandidateLimit(options.limit);
+  const analysisLimit = normalizeLlmAnalysisLimit(options.analysisLimit);
   const candidates = await fetchRecentPromptCandidates(options.taskType, days, limit);
   const existing = await fetchAnalysesForTasks(
     candidates.map((candidate) => ({
@@ -311,8 +324,10 @@ export async function analyzeRecentPromptPurposes(
     reused: 0,
     skipped: 0,
     failed: 0,
+    remaining: 0,
     errors: [],
   };
+  let llmCalls = 0;
 
   for (const candidate of candidates) {
     const promptHash = getPromptPurposeHash(candidate.prompt);
@@ -340,7 +355,13 @@ export async function analyzeRecentPromptPurposes(
       continue;
     }
 
+    if (llmCalls >= analysisLimit) {
+      result.remaining += 1;
+      continue;
+    }
+
     try {
+      llmCalls += 1;
       const analysis = await analyzePromptPurpose(candidate);
       await upsertPromptPurposeAnalysis({
         taskType: candidate.taskType,

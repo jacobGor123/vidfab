@@ -126,3 +126,12 @@ export interface FetchTasksResult {
   nextCursor: string | null;
   hasMore: boolean;
 }
+
+export interface PromptPurposeAnalysisRunSummary {
+  scanned: number;
+  analyzed: number;
+  reused: number;
+  skipped: number;
+  failed: number;
+  remaining: number;
+}
