@@ -31,6 +31,23 @@ interface PromptPurposeCandidate {
 
 interface PromptPurposeModelResult extends PromptPurposeCompletedFields {}
 
+export interface AnalyzePromptPurposeTaskInput {
+  taskType: TaskType;
+  taskId: string;
+  userId?: string | null;
+  prompt?: string | null;
+  createdAt?: string | null;
+  generationType?: GenerationType | string | null;
+  force?: boolean;
+}
+
+export interface AnalyzePromptPurposeTaskResult {
+  taskType: TaskType;
+  taskId: string;
+  status: 'analyzed' | 'reused' | 'skipped' | 'failed';
+  error?: string;
+}
+
 export interface AnalyzeRecentPromptPurposesOptions {
   days?: number;
   limit?: number;
@@ -55,7 +72,7 @@ export interface AnalyzeRecentPromptPurposesResult {
 
 const DEFAULT_ANALYSIS_DAYS = 10;
 const DEFAULT_CANDIDATE_LIMIT = 100;
-const MAX_CANDIDATE_LIMIT = 300;
+const MAX_CANDIDATE_LIMIT = 1000;
 const DEFAULT_LLM_ANALYSIS_LIMIT = 5;
 const MAX_LLM_ANALYSIS_LIMIT = 10;
 const MAX_PROMPT_CHARS = 4000;
@@ -107,6 +124,28 @@ function normalizePrompt(prompt: string): string {
   return prompt.trim().slice(0, MAX_PROMPT_CHARS);
 }
 
+function normalizeGenerationTypeValue(value: unknown, fallback: GenerationType): GenerationType {
+  switch (value) {
+    case 'text-to-video':
+    case 'text_to_video':
+      return 'text_to_video';
+    case 'image-to-video':
+    case 'image_to_video':
+      return 'image_to_video';
+    case 'video-effects':
+    case 'video_effects':
+      return 'video_effects';
+    case 'text-to-image':
+    case 'text_to_image':
+      return 'text_to_image';
+    case 'image-to-image':
+    case 'image_to_image':
+      return 'image_to_image';
+    default:
+      return fallback;
+  }
+}
+
 function normalizeTags(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -128,17 +167,25 @@ function clampConfidence(value: unknown): number {
 }
 
 function determineVideoGenerationType(settings: any): GenerationType {
-  const type = settings?.generationType;
-  if (type === 'image-to-video' || type === 'image_to_video') return 'image_to_video';
-  if (type === 'video-effects' || type === 'video_effects') return 'video_effects';
-  return 'text_to_video';
+  if (settings?.effectId || settings?.effectName || settings?.model === 'video-effects') {
+    return 'video_effects';
+  }
+
+  if (
+    settings?.image_url ||
+    settings?.imageUrl ||
+    settings?.image ||
+    settings?.inputImage ||
+    settings?.input_image
+  ) {
+    return 'image_to_video';
+  }
+
+  return normalizeGenerationTypeValue(settings?.generationType, 'text_to_video');
 }
 
 function determineImageGenerationType(type: unknown): GenerationType {
-  if (type === 'image-to-image' || type === 'image_to_image') {
-    return 'image_to_image';
-  }
-  return 'text_to_image';
+  return normalizeGenerationTypeValue(type, 'text_to_image');
 }
 
 function buildAnalysisPrompt(candidate: PromptPurposeCandidate): string {
@@ -213,6 +260,133 @@ async function analyzePromptPurpose(
     confidence: clampConfidence(parsed.confidence),
     model: modelName,
   };
+}
+
+function buildPromptPurposeCandidate(input: AnalyzePromptPurposeTaskInput): PromptPurposeCandidate | null {
+  const prompt = typeof input.prompt === 'string' ? input.prompt.trim() : '';
+  const taskId = typeof input.taskId === 'string' ? input.taskId.trim() : '';
+
+  if (!taskId || !prompt) {
+    return null;
+  }
+
+  return {
+    taskType: input.taskType,
+    taskId,
+    userId: input.userId || null,
+    prompt,
+    createdAt: input.createdAt || new Date().toISOString(),
+    generationType: normalizeGenerationTypeValue(
+      input.generationType,
+      input.taskType === 'image_generation' ? 'text_to_image' : 'text_to_video'
+    ),
+  };
+}
+
+export async function analyzePromptPurposeTask(
+  input: AnalyzePromptPurposeTaskInput
+): Promise<AnalyzePromptPurposeTaskResult> {
+  if (!process.env.GOOGLE_AI_API_KEY) {
+    throw new Error('GOOGLE_AI_API_KEY is not configured');
+  }
+
+  const candidate = buildPromptPurposeCandidate(input);
+  if (!candidate) {
+    return {
+      taskType: input.taskType,
+      taskId: input.taskId,
+      status: 'skipped',
+    };
+  }
+
+  const promptHash = getPromptPurposeHash(candidate.prompt);
+  const existing = await fetchAnalysesForTasks([
+    {
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+    },
+  ]);
+  const existingAnalysis = existing.get(`${candidate.taskType}:${candidate.taskId}`);
+
+  if (!input.force && existingAnalysis?.status === 'completed' && existingAnalysis.prompt_hash === promptHash) {
+    return {
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+      status: 'skipped',
+    };
+  }
+
+  const reusable = !input.force
+    ? (await fetchCompletedAnalysesByPromptHash([promptHash])).get(promptHash)
+    : undefined;
+
+  if (reusable) {
+    await upsertPromptPurposeAnalysis({
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+      promptHash,
+      status: 'completed',
+      ...reusable,
+    });
+
+    return {
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+      status: 'reused',
+    };
+  }
+
+  try {
+    const analysis = await analyzePromptPurpose(candidate);
+    await upsertPromptPurposeAnalysis({
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+      promptHash,
+      status: 'completed',
+      ...analysis,
+    });
+
+    return {
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+      status: 'analyzed',
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown analysis error';
+    await upsertPromptPurposeAnalysis({
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+      promptHash,
+      status: 'failed',
+      category: 'other',
+      label: PROMPT_PURPOSE_CATEGORY_LABELS.other,
+      confidence: 0,
+      tags: [],
+      model: getAnalysisModelName(),
+      errorMessage: message.slice(0, 500),
+    });
+
+    return {
+      taskType: candidate.taskType,
+      taskId: candidate.taskId,
+      status: 'failed',
+      error: message,
+    };
+  }
+}
+
+export function queuePromptPurposeAnalysis(input: AnalyzePromptPurposeTaskInput): void {
+  if (!input.taskId || input.taskId.startsWith('temp-') || !input.prompt?.trim()) {
+    return;
+  }
+
+  void analyzePromptPurposeTask(input).catch((error) => {
+    console.error('[PromptPurpose] Background analysis failed:', {
+      taskType: input.taskType,
+      taskId: input.taskId,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  });
 }
 
 async function fetchRecentVideoCandidates(cutoffIso: string, limit: number): Promise<PromptPurposeCandidate[]> {

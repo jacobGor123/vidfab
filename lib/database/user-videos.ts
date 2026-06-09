@@ -7,6 +7,7 @@ import { supabase, supabaseAdmin, TABLES, handleSupabaseError } from '../supabas
 import type { UserVideo, UserStorageQuota, UserQuotaInfo } from '../supabase'
 import { resilientDbOperation, ErrorReporter } from '@/lib/utils/error-handling'
 import { UnifiedStorageManager } from '../storage/unified-storage-manager'
+import { queuePromptPurposeAnalysis } from '@/lib/admin/prompt-purpose-analyzer'
 
 /**
  * 订阅状态判定（含暂停 7 天宽限期）
@@ -44,6 +45,23 @@ export class UserVideosDB {
   private static quotaCache = new Map<string, { data: UserQuotaInfo; timestamp: number }>()
   private static readonly QUOTA_CACHE_TTL = 5000 // 5 seconds cache (reduced for debugging)
 
+  private static queuePromptPurposeForVideo(video: UserVideo | null | undefined): void {
+    if (!video?.id || video.id.startsWith('temp-')) {
+      return
+    }
+
+    const settings = video.settings as any
+
+    queuePromptPurposeAnalysis({
+      taskType: 'video_generation',
+      taskId: video.id,
+      userId: video.user_id,
+      prompt: video.prompt,
+      createdAt: video.created_at,
+      generationType: settings?.generationType || null
+    })
+  }
+
   /**
    * Create a new video record
    * 🔥 修复：自动处理用户不存在的情况
@@ -80,8 +98,10 @@ export class UserVideosDB {
             .single()
 
           if (!error) {
-            console.log(`✅ 视频直接创建成功: ${video.id}`)
-            return video as UserVideo
+            const createdVideo = video as UserVideo
+            console.log(`✅ 视频直接创建成功: ${createdVideo.id}`)
+            this.queuePromptPurposeForVideo(createdVideo)
+            return createdVideo
           }
 
           console.log(`⚠️ 直接创建失败，错误码: ${error.code}`)
@@ -89,7 +109,9 @@ export class UserVideosDB {
           // 🔥 如果是外键约束错误，使用强制方法直接解决
           if (error.code === '23503' && error.message.includes('user_videos_user_id_fkey')) {
             console.log(`🔧 外键约束错误，启动用户创建流程`)
-            return await this.forceCreateUserAndVideo(userId, userEmail, data)
+            const createdVideo = await this.forceCreateUserAndVideo(userId, userEmail, data)
+            this.queuePromptPurposeForVideo(createdVideo)
+            return createdVideo
           }
 
           // 其他错误直接抛出

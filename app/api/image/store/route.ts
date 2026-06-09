@@ -9,6 +9,30 @@ import { getServerSession } from 'next-auth'
 import { authConfig } from '@/auth/config'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 import { VideoStorageManager } from '@/lib/storage'
+import { queuePromptPurposeAnalysis } from '@/lib/admin/prompt-purpose-analyzer'
+
+function getIncomingPrompt(settings: any): string | null {
+  return typeof settings?.prompt === 'string' && settings.prompt.trim()
+    ? settings.prompt.trim()
+    : null
+}
+
+function queuePromptPurposeForImage(input: {
+  imageId: string
+  userId: string
+  prompt?: string | null
+  generationType?: string | null
+  createdAt?: string | null
+}) {
+  queuePromptPurposeAnalysis({
+    taskType: 'image_generation',
+    taskId: input.imageId,
+    userId: input.userId,
+    prompt: input.prompt,
+    createdAt: input.createdAt || null,
+    generationType: input.generationType || null
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,6 +105,7 @@ async function processImageStorage(userId: string, userEmail: string, data: {
   settings: any
 }) {
   const { wavespeedRequestId, originalUrl, settings } = data
+  const db = supabaseAdmin as any
 
   console.log(`📸 Processing image storage:`, {
     userId,
@@ -95,7 +120,7 @@ async function processImageStorage(userId: string, userEmail: string, data: {
     console.log(`🔍 [Image Store] Checking if user exists: ${userId}`)
     console.log(`🔍 [Image Store] TABLES.USERS = ${TABLES.USERS}`)
 
-    const { data: user, error: userError } = await supabaseAdmin
+    const { data: user, error: userError } = await db
       .from(TABLES.USERS)
       .select('uuid, email')
       .eq('uuid', userId)
@@ -119,9 +144,9 @@ async function processImageStorage(userId: string, userEmail: string, data: {
     console.log(`✅ [Image Store] User verified: ${user.email}`)
 
     // 检查是否已存在
-    const { data: existingImages } = await supabaseAdmin
+    const { data: existingImages } = await db
       .from(TABLES.USER_IMAGES)
-      .select('id, status, storage_url')
+      .select('id, user_id, status, storage_url, prompt, generation_type, created_at')
       .eq('wavespeed_request_id', wavespeedRequestId)
       .eq('user_id', userId)
       .limit(1)
@@ -129,9 +154,34 @@ async function processImageStorage(userId: string, userEmail: string, data: {
     if (existingImages && existingImages.length > 0) {
       const existingImage = existingImages[0]
       console.log(`✅ Image already exists: ${existingImage.id}`)
+      const incomingPrompt = getIncomingPrompt(settings)
+      const shouldPatchPrompt = !!incomingPrompt && (!existingImage.prompt || existingImage.prompt === 'Generated image')
+      const promptForAnalysis = shouldPatchPrompt
+        ? incomingPrompt
+        : existingImage.prompt || incomingPrompt || 'Generated image'
+      const generationType = settings.generationType || existingImage.generation_type || 'text-to-image'
 
       // 如果已完成，直接返回
       if (existingImage.status === 'completed' && existingImage.storage_url) {
+        if (shouldPatchPrompt) {
+          await db
+            .from(TABLES.USER_IMAGES)
+            .update({
+              prompt: incomingPrompt,
+              generation_type: generationType,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingImage.id)
+        }
+
+        queuePromptPurposeForImage({
+          imageId: existingImage.id,
+          userId,
+          prompt: promptForAnalysis,
+          generationType,
+          createdAt: existingImage.created_at
+        })
+
         return NextResponse.json({
           success: true,
           data: {
@@ -145,14 +195,24 @@ async function processImageStorage(userId: string, userEmail: string, data: {
       }
 
       // 否则更新状态为已完成
-      await supabaseAdmin
+      await db
         .from(TABLES.USER_IMAGES)
         .update({
           status: 'completed',
           storage_url: originalUrl,
+          prompt: incomingPrompt || existingImage.prompt || 'Generated image',
+          generation_type: generationType,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingImage.id)
+
+      queuePromptPurposeForImage({
+        imageId: existingImage.id,
+        userId,
+        prompt: promptForAnalysis,
+        generationType,
+        createdAt: existingImage.created_at
+      })
 
       return NextResponse.json({
         success: true,
@@ -222,7 +282,7 @@ async function processImageStorage(userId: string, userEmail: string, data: {
       }
     }
 
-    const { data: imageData, error: dbError } = await supabaseAdmin
+    const { data: imageData, error: dbError } = await db
       .from(TABLES.USER_IMAGES)
       .insert({
         user_id: userId,
@@ -261,6 +321,14 @@ async function processImageStorage(userId: string, userEmail: string, data: {
     if (storagePath) {
       console.log(`   - Storage path: ${storagePath}`)
     }
+
+    queuePromptPurposeForImage({
+      imageId: imageData.id,
+      userId,
+      prompt: settings.prompt || 'Generated image',
+      generationType: settings.generationType || 'text-to-image',
+      createdAt: new Date().toISOString()
+    })
 
     return NextResponse.json({
       success: true,
@@ -314,7 +382,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 查询图片信息
-    const { data: image, error } = await supabaseAdmin
+    const db = supabaseAdmin as any
+    const { data: image, error } = await db
       .from(TABLES.USER_IMAGES)
       .select('id, status, storage_url, error_message, created_at, updated_at')
       .eq('id', imageId)

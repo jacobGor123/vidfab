@@ -1,9 +1,11 @@
 import Link from "next/link";
 import AdminPageHeader from "@/components/admin/admin-page-header";
 import DailyStatsChart from "@/components/admin/daily-stats-chart";
+import PromptPurposeStatsChart from "@/components/admin/prompt-purpose-stats-chart";
 import {
   ADMIN_STATS_DAY_OPTIONS,
   fetchDailyAdminStats,
+  fetchPromptPurposeStats,
   normalizeStatsDays,
 } from "@/lib/admin/dashboard-stats";
 
@@ -32,10 +34,15 @@ export default async function AdminAnalyticsPage({
 }: AnalyticsPageProps) {
   const days = normalizeStatsDays(searchParams.days);
   const includeVideoAgent = searchParams.includeVideoAgent === "true";
-  const stats = await fetchDailyAdminStats({
-    days,
-    includeVideoAgent,
-  });
+  const [stats, promptPurposeStats] = await Promise.all([
+    fetchDailyAdminStats({
+      days,
+      includeVideoAgent,
+    }),
+    fetchPromptPurposeStats({
+      days,
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -44,36 +51,36 @@ export default async function AdminAnalyticsPage({
         description="Daily registrations and task volume."
         actions={
           <>
-          {ADMIN_STATS_DAY_OPTIONS.map((option) => {
-            const isActive = option === stats.days;
+            {ADMIN_STATS_DAY_OPTIONS.map((option) => {
+              const isActive = option === stats.days;
 
-            return (
-              <Link
-                key={option}
-                href={analyticsHref(option, includeVideoAgent)}
-                data-active={isActive}
-                className={`rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
-                  isActive
-                    ? "admin-tab-trigger border-blue-600 bg-blue-600 text-white"
-                    : "admin-tab-trigger border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:text-blue-700"
-                }`}
-              >
-                {option}d
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  key={option}
+                  href={analyticsHref(option, includeVideoAgent)}
+                  data-active={isActive}
+                  className={`rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "admin-tab-trigger border-blue-600 bg-blue-600 text-white"
+                      : "admin-tab-trigger border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:text-blue-700"
+                  }`}
+                >
+                  {option}d
+                </Link>
+              );
+            })}
 
-          <Link
-            href={analyticsHref(days, !includeVideoAgent)}
-            data-active={includeVideoAgent}
-            className={`rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
-              includeVideoAgent
-                ? "admin-tab-trigger border-red-200 bg-red-50 text-red-700 hover:border-red-300"
-                : "admin-tab-trigger border-gray-200 bg-white text-gray-700 hover:border-red-200 hover:text-red-700"
-            }`}
-          >
-            Video Agent {includeVideoAgent ? "On" : "Off"}
-          </Link>
+            <Link
+              href={analyticsHref(days, !includeVideoAgent)}
+              data-active={includeVideoAgent}
+              className={`rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
+                includeVideoAgent
+                  ? "admin-tab-trigger border-red-200 bg-red-50 text-red-700 hover:border-red-300"
+                  : "admin-tab-trigger border-gray-200 bg-white text-gray-700 hover:border-red-200 hover:text-red-700"
+              }`}
+            >
+              Video Agent {includeVideoAgent ? "On" : "Off"}
+            </Link>
           </>
         }
       />
@@ -91,6 +98,8 @@ export default async function AdminAnalyticsPage({
         timezone={stats.timezone}
         includeVideoAgent={stats.includeVideoAgent}
       />
+
+      <PromptPurposeStatsChart stats={promptPurposeStats} />
     </div>
   );
 }

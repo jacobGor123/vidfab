@@ -9,6 +9,7 @@
     "start": "next start",
     "worker": "tsx worker/queue-worker.ts",
     "worker:dev": "tsx watch worker/queue-worker.ts",
+    "prompt-purpose:backfill": "tsx scripts/backfill-prompt-purpose-analyses.ts",
     "lighthouse": "lighthouse http://localhost:3000 --view --preset=mobile",
     "lighthouse:desktop": "lighthouse http://localhost:3000 --view --preset=desktop",
     "lighthouse:budget": "lighthouse http://localhost:3000 --budget-path=./lighthouse-budget.json --view"

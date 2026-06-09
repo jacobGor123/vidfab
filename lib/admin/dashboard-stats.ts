@@ -1,10 +1,17 @@
 import { getSupabaseAdminClient } from "@/models/db";
 import { ADMIN_STATS_TIMEZONE } from "@/lib/admin/datetime";
+import type { PromptPurposeCategory, TaskType } from "@/types/admin/tasks";
+import {
+  PROMPT_PURPOSE_CATEGORY_LABELS,
+  isPromptPurposeCategory,
+} from "@/lib/admin/prompt-purpose-categories";
+import { getPromptPurposeHash } from "@/lib/admin/prompt-purpose-store";
 
 export const ADMIN_STATS_DAY_OPTIONS = [7, 30, 90, 180, 365] as const;
 export const DEFAULT_ADMIN_STATS_DAYS = 30;
 export { ADMIN_STATS_TIMEZONE };
 const FALLBACK_PAGE_SIZE = 1000;
+const PROMPT_PURPOSE_ANALYSIS_QUERY_CHUNK_SIZE = 100;
 
 export type AdminStatsDays = (typeof ADMIN_STATS_DAY_OPTIONS)[number];
 
@@ -35,6 +42,28 @@ export interface DailyAdminStatsResult {
   rows: DailyAdminStats[];
   summary: DailyAdminStatsSummary;
   error?: string;
+}
+
+export interface PromptPurposeStatsItem {
+  category: PromptPurposeCategory;
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+export interface PromptPurposeStatsResult {
+  days: AdminStatsDays;
+  timezone: string;
+  total: number;
+  taskCount: number;
+  items: PromptPurposeStatsItem[];
+  error?: string;
+}
+
+interface PromptPurposeTaskRow {
+  taskType: TaskType;
+  taskId: string;
+  promptHash: string;
 }
 
 const EMPTY_SUMMARY: DailyAdminStatsSummary = {
@@ -221,6 +250,191 @@ async function fetchCreatedAtRows({
   }
 
   return rows;
+}
+
+async function fetchPromptPurposeTaskRows({
+  table,
+  taskType,
+  startDate,
+  endDate,
+  timezone,
+  dateSet,
+}: {
+  table: string;
+  taskType: TaskType;
+  startDate: string;
+  endDate: string;
+  timezone: string;
+  dateSet: Set<string>;
+}): Promise<PromptPurposeTaskRow[]> {
+  const supabase = getSupabaseAdminClient() as any;
+  const rows: PromptPurposeTaskRow[] = [];
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from(table)
+      .select("id, prompt, created_at")
+      .gte("created_at", `${startDate}T00:00:00.000Z`)
+      .lt("created_at", `${endDate}T00:00:00.000Z`)
+      .neq("status", "deleted")
+      .not("prompt", "is", null)
+      .neq("prompt", "")
+      .order("created_at", { ascending: false })
+      .range(offset, offset + FALLBACK_PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(`${table}: ${error.message}`);
+    }
+
+    const page = data ?? [];
+    rows.push(
+      ...page
+        .filter(
+          (row: {
+            id?: string | null;
+            prompt?: string | null;
+            created_at?: string | null;
+          }) => {
+            if (!row.id || !row.prompt?.trim() || !row.created_at) {
+              return false;
+            }
+
+            const localDate = getDateInTimeZone(
+              parseDatabaseTimestamp(row.created_at),
+              timezone,
+            );
+            return dateSet.has(localDate);
+          },
+        )
+        .map((row: { id: string; prompt: string }) => ({
+          taskType,
+          taskId: row.id,
+          promptHash: getPromptPurposeHash(row.prompt),
+        })),
+    );
+
+    if (page.length < FALLBACK_PAGE_SIZE) {
+      break;
+    }
+
+    offset += FALLBACK_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+export async function fetchPromptPurposeStats({
+  days,
+  timezone = ADMIN_STATS_TIMEZONE,
+}: {
+  days?: string | number | null;
+  timezone?: string;
+} = {}): Promise<PromptPurposeStatsResult> {
+  const normalizedDays = normalizeStatsDays(days);
+  const rows = buildEmptyRows(normalizedDays, timezone);
+  const dateSet = new Set(rows.map((row) => row.date));
+  const startDate = addDays(rows[0].date, -1);
+  const endDate = addDays(rows[rows.length - 1].date, 2);
+
+  try {
+    const [videoTasks, imageTasks] = await Promise.all([
+      fetchPromptPurposeTaskRows({
+        table: "user_videos",
+        taskType: "video_generation",
+        startDate,
+        endDate,
+        timezone,
+        dateSet,
+      }),
+      fetchPromptPurposeTaskRows({
+        table: "user_images",
+        taskType: "image_generation",
+        startDate,
+        endDate,
+        timezone,
+        dateSet,
+      }),
+    ]);
+
+    const taskRows = [...videoTasks, ...imageTasks];
+    const taskMap = new Map(
+      taskRows.map((task) => [`${task.taskType}:${task.taskId}`, task]),
+    );
+    const counts = new Map<PromptPurposeCategory, number>();
+    const supabase = getSupabaseAdminClient() as any;
+
+    for (const taskIdChunk of chunkArray(
+      taskRows.map((task) => task.taskId),
+      PROMPT_PURPOSE_ANALYSIS_QUERY_CHUNK_SIZE,
+    )) {
+      if (taskIdChunk.length === 0) {
+        continue;
+      }
+
+      const { data, error } = await supabase
+        .from("prompt_purpose_analyses")
+        .select("task_type, task_id, prompt_hash, category, status")
+        .eq("status", "completed")
+        .in("task_id", taskIdChunk);
+
+      if (error) {
+        throw new Error(`prompt_purpose_analyses: ${error.message}`);
+      }
+
+      for (const row of data ?? []) {
+        const key = `${row.task_type}:${row.task_id}`;
+        const task = taskMap.get(key);
+        if (!task || task.promptHash !== row.prompt_hash) {
+          continue;
+        }
+
+        const category = isPromptPurposeCategory(row.category)
+          ? row.category
+          : "other";
+        counts.set(category, (counts.get(category) ?? 0) + 1);
+      }
+    }
+
+    const total = Array.from(counts.values()).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+    const items = Array.from(counts.entries())
+      .map(([category, count]) => ({
+        category,
+        label: PROMPT_PURPOSE_CATEGORY_LABELS[category],
+        count,
+        percentage: total > 0 ? (count / total) * 100 : 0,
+      }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+    return {
+      days: normalizedDays,
+      timezone,
+      total,
+      taskCount: taskRows.length,
+      items,
+    };
+  } catch (error) {
+    console.error("Failed to fetch prompt purpose stats:", error);
+    return {
+      days: normalizedDays,
+      timezone,
+      total: 0,
+      taskCount: 0,
+      items: [],
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }
 
 async function fetchDailyAdminStatsFallback({
