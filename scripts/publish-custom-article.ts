@@ -120,6 +120,10 @@ async function main() {
     process.exit(1)
   }
 
+  if (Array.isArray(article.htmlContent)) {
+    article.htmlContent = article.htmlContent.join('\n')
+  }
+
   // 基本字段校验
   const required = ['title', 'slug', 'htmlContent', 'metaTitle', 'metaDescription', 'images']
   for (const key of required) {

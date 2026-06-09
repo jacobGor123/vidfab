@@ -75,11 +75,6 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tools/sora2" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
-                    {t('nav.sora2')}
-                  </Link>
-                </li>
-                <li>
                   <Link href="/tools/kling3" className="text-gray-400 hover:text-white transition-colors duration-200 ease-out">
                     {t('nav.kling3')}
                   </Link>

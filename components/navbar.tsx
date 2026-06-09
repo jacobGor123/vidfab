@@ -180,7 +180,7 @@ export function Navbar({ scrolled }: NavbarProps) {
                         {t('nav.aiStudio')}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <div className="grid grid-cols-2 gap-6 p-4 w-[420px] bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
+                        <div className="grid grid-cols-3 gap-6 p-4 w-[640px] bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
                           {/* AI Video Section */}
                           <div className="min-w-0">
                             <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider mb-3 px-3">
@@ -259,6 +259,33 @@ export function Navbar({ scrolled }: NavbarProps) {
                               </NavigationMenuLink>
                             </div>
                           </div>
+
+                          {/* Latest Models Section */}
+                          <div className="min-w-0">
+                            <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider mb-3 px-3">
+                              {t('nav.latestModels')}
+                            </div>
+                            <div className="space-y-1">
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/tools/veo3"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white">{t('nav.veo3')}</div>
+                                  <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.veo3Provider')}</p>
+                                </Link>
+                              </NavigationMenuLink>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href="/tools/kling3"
+                                  className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                                >
+                                  <div className="text-sm font-medium leading-none text-white">{t('nav.kling3')}</div>
+                                  <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.kling3Provider')}</p>
+                                </Link>
+                              </NavigationMenuLink>
+                            </div>
+                          </div>
                         </div>
                       </NavigationMenuContent>
                     </NavigationMenuItem>
@@ -307,47 +334,6 @@ export function Navbar({ scrolled }: NavbarProps) {
                     </div>
                   </div>
                 </div>
-
-                <NavigationMenu>
-                  <NavigationMenuList>
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-300 ease-apple bg-transparent hover:bg-white/10 data-[state=open]:!bg-white/10 data-[active]:!bg-white/10 focus:!bg-white/10">
-                        {t('nav.latestModels')}
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <div className="w-56 gap-1 p-2 bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg">
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href="/tools/veo3"
-                              className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                            >
-                              <div className="text-sm font-medium leading-none text-white">{t('nav.veo3')}</div>
-                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.veo3Provider')}</p>
-                            </Link>
-                          </NavigationMenuLink>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href="/tools/sora2"
-                              className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                            >
-                              <div className="text-sm font-medium leading-none text-white">{t('nav.sora2')}</div>
-                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.sora2Provider')}</p>
-                            </Link>
-                          </NavigationMenuLink>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href="/tools/kling3"
-                              className="block select-none rounded-md px-3 py-2 leading-none no-underline outline-none transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
-                            >
-                              <div className="text-sm font-medium leading-none text-white">{t('nav.kling3')}</div>
-                              <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">{t('nav.kling3Provider')}</p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </div>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
 
                 <Link
                   href="/pricing"
@@ -517,6 +503,30 @@ export function Navbar({ scrolled }: NavbarProps) {
                       </Link>
                     </div>
                   </div>
+
+                  {/* Divider */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                  {/* Latest Models */}
+                  <div className="space-y-2">
+                    <div className="text-xs uppercase font-semibold text-gray-400 tracking-wider">{t('nav.latestModels')}</div>
+                    <div className="ml-3 space-y-1">
+                      <Link
+                        href="/tools/veo3"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {t('nav.veo3')} <span className="text-xs text-gray-500 ml-1">{t('nav.veo3Provider')}</span>
+                      </Link>
+                      <Link
+                        href="/tools/kling3"
+                        className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {t('nav.kling3')} <span className="text-xs text-gray-500 ml-1">{t('nav.kling3Provider')}</span>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
 
                 {/* AI Video Tools Section */}
@@ -541,34 +551,6 @@ export function Navbar({ scrolled }: NavbarProps) {
                       </div>
                     </div>
                   ))}
-                </div>
-
-                {/* Latest Models Section */}
-                <div className="space-y-2 border border-white/10 rounded-lg p-3">
-                  <div className="text-base font-heading text-white font-medium">{t('nav.latestModels')}</div>
-                  <div className="ml-3 space-y-1">
-                    <Link
-                      href="/tools/veo3"
-                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {t('nav.veo3')} <span className="text-xs text-gray-500 ml-1">{t('nav.veo3Provider')}</span>
-                    </Link>
-                    <Link
-                      href="/tools/sora2"
-                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {t('nav.sora2')} <span className="text-xs text-gray-500 ml-1">{t('nav.sora2Provider')}</span>
-                    </Link>
-                    <Link
-                      href="/tools/kling3"
-                      className="block py-2 text-sm text-gray-200 hover:text-brand-purple-DEFAULT transition-colors duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {t('nav.kling3')} <span className="text-xs text-gray-500 ml-1">{t('nav.kling3Provider')}</span>
-                    </Link>
-                  </div>
                 </div>
 
                 <Link
