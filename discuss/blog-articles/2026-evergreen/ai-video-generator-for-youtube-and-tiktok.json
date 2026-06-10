@@ -5,8 +5,19 @@
   "metaTitle": "AI Video Generator for YouTube and TikTok",
   "metaDescription": "Create AI videos for YouTube Shorts and TikTok with the right workflow, hook structure, aspect ratio, pacing, and export checks.",
   "canonicalUrl": "https://vidfab.ai/blog/ai-video-generator-for-youtube-and-tiktok",
-  "tags": ["ai video generator for youtube and tiktok", "youtube shorts", "tiktok ai video", "short form video", "vidfab"],
-  "keywords": ["ai video generator for youtube and tiktok", "ai video generator for youtube shorts", "ai video generator for tiktok", "short form ai video"],
+  "tags": [
+    "ai video generator for youtube and tiktok",
+    "youtube shorts",
+    "tiktok ai video",
+    "short form video",
+    "vidfab"
+  ],
+  "keywords": [
+    "ai video generator for youtube and tiktok",
+    "ai video generator for youtube shorts",
+    "ai video generator for tiktok",
+    "short form ai video"
+  ],
   "category": "guide",
   "faqSchema": [
     {
@@ -26,7 +37,17 @@
       "answer": "Use a script-to-storyboard workflow: write a hook, split the idea into shots, review storyboard frames, generate vertical video, and export for the platform."
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "filename": "ai-video-generator-for-youtube-and-tiktok-cover.jpg",
+      "prompt": "16:9 editorial blog cover for AI videos for short-form social channels: vertical video previews floating around a creator workstation, phone and laptop screens with abstract motion thumbnails, energetic but professional lighting, no platform logos, no readable text, no watermark.",
+      "aspect_ratio": "16:9",
+      "output_format": "jpg",
+      "usage": "cover",
+      "alt": "AI Video Generator for YouTube and TikTok: Best Workflows and Tools",
+      "url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-ai-video-generator-for-youtube-and-tiktok-1781057888926.jpg"
+    }
+  ],
   "htmlContent": [
     "<article>",
     "<section id='intro-section'>",
@@ -117,5 +138,6 @@
     "<p>Try a simple before and after, three mistakes, one quick tutorial, or a short story with a twist. These formats are easy to script and storyboard.</p>",
     "</section>",
     "</article>"
-  ]
+  ],
+  "featured_image_url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-ai-video-generator-for-youtube-and-tiktok-1781057888926.jpg"
 }

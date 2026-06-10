@@ -5,8 +5,19 @@
   "metaTitle": "Free AI Video Generator Tools: What to Try",
   "metaDescription": "Explore free AI video generator tools, understand watermark and export limits, and learn when a free plan is enough for real video creation.",
   "canonicalUrl": "https://vidfab.ai/blog/free-ai-video-generator-tools",
-  "tags": ["free ai video generator tools", "free ai video", "ai video generator", "no watermark", "vidfab"],
-  "keywords": ["free ai video generator tools", "free ai video generator", "free text to video ai", "ai video free plan"],
+  "tags": [
+    "free ai video generator tools",
+    "free ai video",
+    "ai video generator",
+    "no watermark",
+    "vidfab"
+  ],
+  "keywords": [
+    "free ai video generator tools",
+    "free ai video generator",
+    "free text to video ai",
+    "ai video free plan"
+  ],
   "category": "guide",
   "faqSchema": [
     {
@@ -26,7 +37,17 @@
       "answer": "Check watermark, duration, resolution, queue speed, commercial usage, storage limits, and whether the output can be downloaded in the format you need."
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "filename": "free-ai-video-generator-tools-cover.jpg",
+      "prompt": "16:9 editorial blog cover for free AI video generator tools: a compact creator setup with a laptop, simple storyboard cards, video timeline blocks, and a starter toolkit mood, bright clean modern lighting, accessible and practical, premium tech blog style, no readable text, no logos, no watermark.",
+      "aspect_ratio": "16:9",
+      "output_format": "jpg",
+      "usage": "cover",
+      "alt": "Free AI Video Generator Tools: What You Can Use for Free",
+      "url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-free-ai-video-generator-tools-1781057899321.jpg"
+    }
+  ],
   "htmlContent": [
     "<article>",
     "<section id='intro-section'>",
@@ -128,5 +149,6 @@
     "<p>Upgrade when free limits block your real workflow, especially if you need clean exports, more volume, faster rendering, higher resolution, or commercial rights.</p>",
     "</section>",
     "</article>"
-  ]
+  ],
+  "featured_image_url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-free-ai-video-generator-tools-1781057899321.jpg"
 }

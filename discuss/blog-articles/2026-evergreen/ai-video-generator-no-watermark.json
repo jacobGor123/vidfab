@@ -5,8 +5,19 @@
   "metaTitle": "AI Video Generator Without Watermark: Options",
   "metaDescription": "Compare watermark-free AI video options, understand free vs paid export rules, and check what matters before generating videos.",
   "canonicalUrl": "https://vidfab.ai/blog/ai-video-generator-no-watermark",
-  "tags": ["ai video generator no watermark", "watermark free ai video", "free ai video", "video export", "vidfab"],
-  "keywords": ["ai video generator no watermark", "ai video generator without watermark", "watermark free ai video generator", "free ai video no watermark"],
+  "tags": [
+    "ai video generator no watermark",
+    "watermark free ai video",
+    "free ai video",
+    "video export",
+    "vidfab"
+  ],
+  "keywords": [
+    "ai video generator no watermark",
+    "ai video generator without watermark",
+    "watermark free ai video generator",
+    "free ai video no watermark"
+  ],
   "category": "guide",
   "faqSchema": [
     {
@@ -26,7 +37,17 @@
       "answer": "Check watermark rules, plan level, export resolution, commercial usage rights, file format, and whether the clean export applies to all generation modes."
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "filename": "ai-video-generator-no-watermark-cover.jpg",
+      "prompt": "16:9 editorial blog cover for watermark-free AI video exports: a polished final video preview on a laptop with clean empty corners, export-ready frames, premium creator studio mood, crisp lighting, subtle purple and silver accents, no readable text, no logos, no watermark.",
+      "aspect_ratio": "16:9",
+      "output_format": "jpg",
+      "usage": "cover",
+      "alt": "AI Video Generator Without Watermark: Best Options to Try",
+      "url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-ai-video-generator-no-watermark-1781057891188.jpg"
+    }
+  ],
   "htmlContent": [
     "<article>",
     "<section id='intro-section'>",
@@ -111,5 +132,6 @@
     "<p>Only if the tool's commercial usage terms allow it. Check plan-level rights before running paid campaigns.</p>",
     "</section>",
     "</article>"
-  ]
+  ],
+  "featured_image_url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-ai-video-generator-no-watermark-1781057891188.jpg"
 }

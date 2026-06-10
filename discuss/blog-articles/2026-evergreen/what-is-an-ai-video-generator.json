@@ -5,8 +5,19 @@
   "metaTitle": "What Is an AI Video Generator? How It Works",
   "metaDescription": "Learn what an AI video generator is, how it works, common use cases, tool types, benefits, limitations, safety, and how to choose one.",
   "canonicalUrl": "https://vidfab.ai/blog/what-is-an-ai-video-generator",
-  "tags": ["what is an ai video generator", "ai video generator", "text to video", "image to video", "vidfab"],
-  "keywords": ["what is an ai video generator", "ai video generator", "how ai video generators work", "ai video tools"],
+  "tags": [
+    "what is an ai video generator",
+    "ai video generator",
+    "text to video",
+    "image to video",
+    "vidfab"
+  ],
+  "keywords": [
+    "what is an ai video generator",
+    "ai video generator",
+    "how ai video generators work",
+    "ai video tools"
+  ],
   "category": "guide",
   "faqSchema": [
     {
@@ -26,7 +37,17 @@
       "answer": "They can be used safely when you respect copyright, likeness rights, platform policies, and commercial usage terms. Avoid generating misleading, infringing, or unauthorized content."
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "filename": "what-is-an-ai-video-generator-cover.jpg",
+      "prompt": "16:9 editorial blog cover explaining what an AI video generator is: abstract AI engine converting simple prompt cards into a sequence of cinematic video frames, modern browser-based creative tool vibe, clean dark glass interface, purple and cyan highlights, no readable text, no logos, no watermark.",
+      "aspect_ratio": "16:9",
+      "output_format": "jpg",
+      "usage": "cover",
+      "alt": "What Is an AI Video Generator? How It Works, Use Cases, and Limits",
+      "url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-what-is-an-ai-video-generator-1781057905243.jpg"
+    }
+  ],
   "htmlContent": [
     "<article>",
     "<section id='intro-section'>",
@@ -124,5 +145,6 @@
     "<p>Yes, if the workflow is structured. Beginners should choose tools with script input, storyboard review, simple formats, and clear export rules.</p>",
     "</section>",
     "</article>"
-  ]
+  ],
+  "featured_image_url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-what-is-an-ai-video-generator-1781057905243.jpg"
 }

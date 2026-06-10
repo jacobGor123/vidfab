@@ -5,8 +5,19 @@
   "metaTitle": "Best AI Video Generator Tools by Use Case",
   "metaDescription": "Compare AI video generator tools by workflow, quality, ease of use, creative control, social video fit, and marketing use cases.",
   "canonicalUrl": "https://vidfab.ai/blog/best-ai-video-generator-tools",
-  "tags": ["best ai video generator tools", "ai video generator", "video tools", "story to video", "vidfab"],
-  "keywords": ["best ai video generator tools", "ai video generator tools", "best ai video tools", "ai video generator comparison"],
+  "tags": [
+    "best ai video generator tools",
+    "ai video generator",
+    "video tools",
+    "story to video",
+    "vidfab"
+  ],
+  "keywords": [
+    "best ai video generator tools",
+    "ai video generator tools",
+    "best ai video tools",
+    "ai video generator comparison"
+  ],
   "category": "guide",
   "faqSchema": [
     {
@@ -26,7 +37,17 @@
       "answer": "Beginners usually do best with tools that guide the full process from script to storyboard to export. A prompt-only generator can be powerful, but it gives less structure to new users."
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "filename": "best-ai-video-generator-tools-cover.jpg",
+      "prompt": "16:9 editorial blog cover for a comparison of AI video generator tools: multiple floating video creation panels and model cards on a sleek workstation, cinematic clips represented as abstract thumbnails, balanced neutral lighting with purple and teal accents, polished SaaS product photography style, no readable text, no logos, no watermark.",
+      "aspect_ratio": "16:9",
+      "output_format": "jpg",
+      "usage": "cover",
+      "alt": "Best AI Video Generator Tools: Top Picks by Workflow and Use Case",
+      "url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-best-ai-video-generator-tools-1781057896321.jpg"
+    }
+  ],
   "htmlContent": [
     "<article>",
     "<section id='intro-section'>",
@@ -127,5 +148,6 @@
     "<p>Start free if you are learning. Upgrade only when you understand which limits affect your real workflow: watermark, speed, resolution, length, or commercial use.</p>",
     "</section>",
     "</article>"
-  ]
+  ],
+  "featured_image_url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-best-ai-video-generator-tools-1781057896321.jpg"
 }

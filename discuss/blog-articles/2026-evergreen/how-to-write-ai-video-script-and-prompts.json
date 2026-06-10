@@ -5,8 +5,19 @@
   "metaTitle": "How to Write AI Video Scripts and Prompts",
   "metaDescription": "Write better AI video scripts and prompts with clear structure, visual details, shot planning, examples, and consistency tips.",
   "canonicalUrl": "https://vidfab.ai/blog/how-to-write-ai-video-script-and-prompts",
-  "tags": ["ai video scripts", "ai video prompts", "prompt writing", "story to video", "vidfab"],
-  "keywords": ["how to write ai video scripts", "ai video prompts", "ai video script prompt", "text to video prompt examples"],
+  "tags": [
+    "ai video scripts",
+    "ai video prompts",
+    "prompt writing",
+    "story to video",
+    "vidfab"
+  ],
+  "keywords": [
+    "how to write ai video scripts",
+    "ai video prompts",
+    "ai video script prompt",
+    "text to video prompt examples"
+  ],
   "category": "guide",
   "faqSchema": [
     {
@@ -26,7 +37,17 @@
       "answer": "Use reference images, consistent character descriptions, stable style choices, and a storyboard workflow that keeps character details attached to each shot."
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "filename": "how-to-write-ai-video-script-and-prompts-cover.jpg",
+      "prompt": "16:9 editorial blog cover for writing AI video scripts and prompts: script note cards transforming into storyboard frames and cinematic thumbnails on a desk, clean writing workspace, pencil, keyboard, soft studio light, high-end tech blog aesthetic, no readable text, no logos, no watermark.",
+      "aspect_ratio": "16:9",
+      "output_format": "jpg",
+      "usage": "cover",
+      "alt": "How to Write AI Video Scripts and Prompts That Work",
+      "url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-how-to-write-ai-video-script-and-prompts-1781057901591.jpg"
+    }
+  ],
   "htmlContent": [
     "<article>",
     "<section id='intro-section'>",
@@ -119,5 +140,6 @@
     "<p>Rewrite the script in more visual terms and review storyboard frames before final video generation.</p>",
     "</section>",
     "</article>"
-  ]
+  ],
+  "featured_image_url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-how-to-write-ai-video-script-and-prompts-1781057901591.jpg"
 }

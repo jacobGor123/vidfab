@@ -5,8 +5,19 @@
   "metaTitle": "How to Create AI Videos Without Editing Skills",
   "metaDescription": "Create AI videos without editing skills using a script-to-storyboard workflow that handles shot planning, visual generation, and export.",
   "canonicalUrl": "https://vidfab.ai/blog/ai-video-workflow-without-editing-skills",
-  "tags": ["create ai videos without editing skills", "ai video workflow", "story to video", "no editing", "vidfab"],
-  "keywords": ["create ai videos without editing skills", "ai video workflow", "make ai video without editing", "story to video"],
+  "tags": [
+    "create ai videos without editing skills",
+    "ai video workflow",
+    "story to video",
+    "no editing",
+    "vidfab"
+  ],
+  "keywords": [
+    "create ai videos without editing skills",
+    "ai video workflow",
+    "make ai video without editing",
+    "story to video"
+  ],
   "category": "guide",
   "faqSchema": [
     {
@@ -26,7 +37,17 @@
       "answer": "Use 9:16 for TikTok, Reels, and YouTube Shorts. Use 16:9 for YouTube, websites, presentations, and explainers."
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "filename": "ai-video-workflow-without-editing-skills-cover.jpg",
+      "prompt": "16:9 editorial blog cover for a no-editing AI video workflow: a simplified visual pipeline from script cards to storyboard frames to final video preview, one focused creator reviewing the flow on a laptop, clean modern studio, purple and blue ambient accents, no readable text, no logos, no watermark.",
+      "aspect_ratio": "16:9",
+      "output_format": "jpg",
+      "usage": "cover",
+      "alt": "How to Create AI Videos Without Editing Skills",
+      "url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-ai-video-workflow-without-editing-skills-1781057893528.jpg"
+    }
+  ],
   "htmlContent": [
     "<article>",
     "<section id='intro-section'>",
@@ -119,5 +140,6 @@
     "<p>Yes. A script-to-video workflow is especially useful for faceless content because it turns written ideas into repeatable visual sequences.</p>",
     "</section>",
     "</article>"
-  ]
+  ],
+  "featured_image_url": "https://ycahbhhuzgixfrljtqmi.supabase.co/storage/v1/object/public/user-images/images/blog-system/blog-ai-video-workflow-without-editing-skills-1781057893528.jpg"
 }
