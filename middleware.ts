@@ -25,6 +25,35 @@ const AUTH_ROUTES = ['/login', '/signup'];
 // Protected routes (matched after stripping locale prefix)
 const PROTECTED_ROUTES = ['/profile', '/settings', '/video', '/subscription'];
 
+const LEGACY_BLOG_REDIRECTS: Record<string, string> = {
+  '/blog/ai-video-generator-linkedin-professional-content-2026':
+    '/blog/ai-video-generator-social-media-marketing-complete-guide-2025',
+  '/blog/ai-video-generator-tiktok-best-tools-creators-2026':
+    '/blog/ai-video-generator-tiktok-best-tools-creators-2025',
+  '/blog/ai-video-generator-beginners-step-by-step-tutorial-2026':
+    '/blog/ai-video-generator-for-beginners',
+  '/blog/ai-video-generator-social-media-marketing-complete-guide-2026':
+    '/blog/ai-video-generator-social-media-marketing-complete-guide-2025',
+  '/blog/how-to-make-ghibli-style-ai-videos-complete-tutorial-2026':
+    '/blog/how-to-make-ghibli-style-ai-videos-complete-tutorial-2025',
+  '/blog/ai-video-generator-beginners-without-music-auto-soundtrack-2026':
+    '/blog/ai-video-workflow-without-editing-skills',
+  '/blog/ai-video-generator-beginners-without-coding-zero-technical-skills-2026':
+    '/blog/ai-video-workflow-without-editing-skills',
+  '/blog/ai-video-generator-weddings-romantic-memories-without-filming-2026':
+    '/blog/ai-kissing-videos-create-romantic-effects-seconds',
+  '/blog/ai-video-generator-instagram-reels-best-practices-2026':
+    '/blog/best-ai-video-generator-for-youtube-shorts',
+  '/blog/ai-video-effects-online-free-60-templates-2026':
+    '/ai-video-effects',
+  '/blog/text-to-video-ai-complete-guide-2026':
+    '/blog/text-to-video-ai-complete-guide-2025',
+  '/blog/best-ai-video-generator-complete-comparison-guide-2026':
+    '/blog/best-ai-video-generator-complete-comparison-guide-2025',
+  '/blog/ai-video-generator-free-online-top-tools-2026':
+    '/blog/ai-video-generator-free-online-top-tools-2025',
+};
+
 function getStrippedPath(pathname: string): string {
   // Strip non-default locale prefixes: /zh/foo → /foo, /ja/foo → /foo
   const nonDefaultLocales = routing.locales.filter(l => l !== routing.defaultLocale);
@@ -92,6 +121,13 @@ export default async function middleware(req: NextRequest) {
   // next-intl's automatic hreflang Link header for non-existent translations.
   const localePath = getPathWithoutLocalePrefix(pathname);
   if (isBlogPath(localePath.pathname)) {
+    const legacyRedirectTarget = LEGACY_BLOG_REDIRECTS[localePath.pathname];
+    if (legacyRedirectTarget) {
+      const redirectUrl = new URL(legacyRedirectTarget, nextUrl.origin);
+      redirectUrl.search = nextUrl.search;
+      return NextResponse.redirect(redirectUrl, 301);
+    }
+
     if (localePath.locale) {
       const canonicalUrl = new URL(localePath.pathname, nextUrl.origin);
       canonicalUrl.search = nextUrl.search;
