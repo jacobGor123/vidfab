@@ -13,6 +13,8 @@ import {
   getServiceSchema,
 } from "@/lib/seo/structured-data"
 import { routing } from "@/i18n/routing"
+import { getAlternateLinks } from "@/lib/seo/alternate-links"
+import { getLocalizedUrl } from "@/lib/seo/metadata"
 
 interface PageProps {
   params: Promise<{
@@ -31,12 +33,13 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { toolSlug } = await params
+  const { locale, toolSlug } = await params
   const config = getSeoToolPageConfig(toolSlug)
 
   if (!config) return {}
 
   const path = `/tools/${config.slug}`
+  const url = getLocalizedUrl(path, locale)
 
   return {
     title: config.metadata.title,
@@ -45,11 +48,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: config.metadata.title,
       description: config.metadata.description,
-      url: path,
+      url,
       type: "website",
     },
     alternates: {
-      canonical: path,
+      canonical: url,
+      languages: getAlternateLinks(path),
     },
   }
 }

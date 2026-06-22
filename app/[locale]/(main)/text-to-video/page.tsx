@@ -1,11 +1,14 @@
 import { Metadata } from 'next'
 import TextToVideoClient from './text-to-video-client'
-import { textToVideoMetadata } from '@/lib/seo/metadata'
+import { localizedMetadata, textToVideoMetadata } from '@/lib/seo/metadata'
 import { StructuredData } from '@/components/seo/structured-data'
 import { getServiceSchema } from '@/lib/seo/structured-data'
 import { setRequestLocale } from 'next-intl/server'
 
-export const metadata: Metadata = textToVideoMetadata
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  return localizedMetadata(textToVideoMetadata, '/text-to-video', locale)
+}
 
 // 🔥 强制动态渲染，避免预渲染时 usePathname 错误
 export const dynamic = 'force-dynamic'

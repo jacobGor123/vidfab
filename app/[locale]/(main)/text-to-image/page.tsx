@@ -1,11 +1,14 @@
 import { Metadata } from 'next'
 import TextToImageClient from './text-to-image-client'
-import { textToImageMetadata } from '@/lib/seo/metadata'
+import { localizedMetadata, textToImageMetadata } from '@/lib/seo/metadata'
 import { StructuredData } from '@/components/seo/structured-data'
 import { getServiceSchema } from '@/lib/seo/structured-data'
 import { setRequestLocale } from 'next-intl/server'
 
-export const metadata: Metadata = textToImageMetadata
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  return localizedMetadata(textToImageMetadata, '/text-to-image', locale)
+}
 
 // 🔥 强制动态渲染，避免预渲染时 usePathname 错误
 export const dynamic = 'force-dynamic'

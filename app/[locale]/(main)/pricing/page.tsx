@@ -1,11 +1,14 @@
 import { Metadata } from 'next'
 import PricingPageClient from './pricing-client'
-import { pricingMetadata } from '@/lib/seo/metadata'
+import { localizedMetadata, pricingMetadata } from '@/lib/seo/metadata'
 import { StructuredData } from '@/components/seo/structured-data'
 import { getFAQSchema, getProductSchema } from '@/lib/seo/structured-data'
 import { setRequestLocale } from 'next-intl/server'
 
-export const metadata: Metadata = pricingMetadata
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  return localizedMetadata(pricingMetadata, '/pricing', locale)
+}
 
 // 🔥 强制动态渲染，避免预渲染时 usePathname 错误
 export const dynamic = 'force-dynamic'

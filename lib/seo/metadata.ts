@@ -6,6 +6,7 @@
 
 import { Metadata } from 'next'
 import { getAlternateLinks } from '@/lib/seo/alternate-links'
+import { defaultLocale, isValidLocale } from '@/i18n/locale'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
 
@@ -16,6 +17,34 @@ interface PageMetadataProps {
   keywords?: string[]
   ogImage?: string
   twitterImage?: string
+}
+
+function getLocalePrefix(locale: string): string {
+  return isValidLocale(locale) && locale !== defaultLocale ? `/${locale}` : ''
+}
+
+export function getLocalizedUrl(path: string, locale: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  return `${baseUrl}${getLocalePrefix(locale)}${normalizedPath}`
+}
+
+export function localizedMetadata(metadata: Metadata, path: string, locale: string): Metadata {
+  const url = getLocalizedUrl(path, locale)
+
+  return {
+    ...metadata,
+    alternates: {
+      ...(metadata.alternates ?? {}),
+      canonical: url,
+      languages: getAlternateLinks(path),
+    },
+    openGraph: metadata.openGraph
+      ? {
+          ...metadata.openGraph,
+          url,
+        }
+      : metadata.openGraph,
+  }
 }
 
 /**
