@@ -2,6 +2,7 @@ import { Job } from 'bullmq'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database } from '@/lib/database.types'
 import type { VideoAgentSyncVideoStatusJobData } from '@/lib/queue/types'
+import { normalizeBullMQJobId } from '@/lib/queue/job-id'
 
 type ProjectVideoClip = Database['public']['Tables']['project_video_clips']['Row']
 
@@ -60,11 +61,13 @@ export async function handleVideoAgentSyncVideoStatus(job: Job): Promise<any> {
           .eq('id', clip.id)
 
         if (videoUrl) {
+          const clipDownloadJobId = normalizeBullMQJobId(`va:clip:download:${projectId}:${clip.shot_number}`)
+
           await queue.add(
             'video_clip_download',
             {
               type: 'video_clip_download',
-              jobId: `va:clip:download:${projectId}:${clip.shot_number}`,
+              jobId: clipDownloadJobId,
               userId: jobData.userId,
               videoId: projectId,
               projectId,
@@ -73,7 +76,7 @@ export async function handleVideoAgentSyncVideoStatus(job: Job): Promise<any> {
               createdAt: now,
             } as any,
             {
-              jobId: `va:clip:download:${projectId}:${clip.shot_number}`,
+              jobId: clipDownloadJobId,
               priority: 3,
               attempts: 6,
               backoff: { type: 'exponential', delay: 10000 },

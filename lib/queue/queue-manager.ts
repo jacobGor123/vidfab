@@ -21,6 +21,7 @@ import { handleVideoAgentSyncVideoStatus } from '@/lib/queue/handlers/video-agen
 import { handleStoryboardGeneration } from '@/lib/queue/handlers/video-agent/storyboard-generation'
 import { handleStoryboardDownload } from '@/lib/queue/handlers/video-agent/storyboard-download'
 import { handleVideoClipDownload } from '@/lib/queue/handlers/video-agent/video-clip-download'
+import { normalizeBullMQJobId } from '@/lib/queue/job-id'
 
 
 // Queue configuration
@@ -63,8 +64,11 @@ export class VideoQueueManager {
     options?: Partial<JobConfig>
   ): Promise<string> {
     try {
-      const job = await this.queue.add(type, data, {
-        jobId: data.jobId,
+      const jobId = normalizeBullMQJobId(data.jobId)
+      const jobData = jobId === data.jobId ? data : ({ ...data, jobId } as VideoJobData)
+
+      const job = await this.queue.add(type, jobData, {
+        jobId,
         priority: options?.priority === 'critical' ? 1 :
                  options?.priority === 'high' ? 2 :
                  options?.priority === 'normal' ? 3 : 4,
@@ -138,7 +142,8 @@ export class VideoQueueManager {
    */
   async getJobStatus(jobId: string): Promise<any> {
     try {
-      const job = await this.queue.getJob(jobId)
+      const queueJobId = normalizeBullMQJobId(jobId)
+      const job = await this.queue.getJob(queueJobId)
       if (!job) {
         return null
       }
@@ -166,7 +171,8 @@ export class VideoQueueManager {
    */
   async cancelJob(jobId: string): Promise<boolean> {
     try {
-      const job = await this.queue.getJob(jobId)
+      const queueJobId = normalizeBullMQJobId(jobId)
+      const job = await this.queue.getJob(queueJobId)
       if (!job) {
         return false
       }

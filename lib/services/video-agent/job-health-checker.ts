@@ -10,6 +10,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Queue } from 'bullmq';
 import { redisBullMQ } from '@/lib/redis-bullmq';
+import { normalizeBullMQJobId } from '@/lib/queue/job-id';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -47,7 +48,7 @@ export async function detectZombieJobs(): Promise<ZombieJob[]> {
   const now = Date.now();
 
   for (const project of projects) {
-    const jobId = `va:compose:${project.id}`;
+    const jobId = normalizeBullMQJobId(`va:compose:${project.id}`);
 
     // 2. 检查队列中是否存在任务
     const job = await queue.getJob(jobId);
@@ -79,7 +80,7 @@ export async function recoverZombieJob(projectId: string): Promise<void> {
   console.log(`[HealthCheck] 🔧 Recovering zombie job: ${projectId}`);
 
   // 策略1：尝试从已完成的队列中恢复结果
-  const jobId = `va:compose:${projectId}`;
+  const jobId = normalizeBullMQJobId(`va:compose:${projectId}`);
   const completed = await queue.getCompleted();
   const failed = await queue.getFailed();
 
