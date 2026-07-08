@@ -438,17 +438,29 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
   // Initialize BroadcastChannel for cross-tab sync
   useEffect(() => {
     if (typeof window === "undefined") return
+    if (typeof window.BroadcastChannel !== "function") return
 
-    broadcastChannelRef.current = new BroadcastChannel(BROADCAST_CHANNEL_NAME)
+    let channel: BroadcastChannel
+    try {
+      channel = new window.BroadcastChannel(BROADCAST_CHANNEL_NAME)
+    } catch (error) {
+      console.warn("[VideoProvider] BroadcastChannel unavailable; cross-tab sync disabled", error)
+      return
+    }
 
-    broadcastChannelRef.current.onmessage = (event) => {
-      if (event.data.type === "SYNC_STATE") {
+    broadcastChannelRef.current = channel
+
+    channel.onmessage = (event) => {
+      if (event.data?.type === "SYNC_STATE") {
         dispatch({ type: "SYNC_FROM_BROADCAST", payload: event.data.state })
       }
     }
 
     return () => {
-      broadcastChannelRef.current?.close()
+      channel.close()
+      if (broadcastChannelRef.current === channel) {
+        broadcastChannelRef.current = null
+      }
     }
   }, [])
 
