@@ -5,10 +5,11 @@
  */
 
 import { Metadata } from 'next'
-import { getAlternateLinks } from '@/lib/seo/alternate-links'
-import { defaultLocale, isValidLocale } from '@/i18n/locale'
-
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'
+import {
+  getAlternateLinks,
+  getLocalizedUrl as buildLocalizedUrl,
+} from '@/lib/seo/alternate-links'
+import { defaultLocale } from '@/i18n/locale'
 
 interface PageMetadataProps {
   title: string
@@ -19,13 +20,8 @@ interface PageMetadataProps {
   twitterImage?: string
 }
 
-function getLocalePrefix(locale: string): string {
-  return isValidLocale(locale) && locale !== defaultLocale ? `/${locale}` : ''
-}
-
 export function getLocalizedUrl(path: string, locale: string): string {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  return `${baseUrl}${getLocalePrefix(locale)}${normalizedPath}`
+  return buildLocalizedUrl(path, locale)
 }
 
 export function localizedMetadata(metadata: Metadata, path: string, locale: string): Metadata {
@@ -47,6 +43,23 @@ export function localizedMetadata(metadata: Metadata, path: string, locale: stri
   }
 }
 
+export function englishOnlyMetadata(metadata: Metadata, path: string): Metadata {
+  const url = getLocalizedUrl(path, defaultLocale)
+
+  return {
+    ...metadata,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: metadata.openGraph
+      ? {
+          ...metadata.openGraph,
+          url,
+        }
+      : metadata.openGraph,
+  }
+}
+
 /**
  * Generate page-specific metadata with hreflang alternates
  */
@@ -58,7 +71,7 @@ export function generatePageMetadata({
   ogImage = '/og-image.webp',
   twitterImage = '/twitter-image.webp',
 }: PageMetadataProps): Metadata {
-  const url = `${baseUrl}${path}`
+  const url = getLocalizedUrl(path, defaultLocale)
 
   return {
     title,

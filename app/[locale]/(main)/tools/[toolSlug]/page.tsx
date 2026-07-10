@@ -13,7 +13,6 @@ import {
   getServiceSchema,
 } from "@/lib/seo/structured-data"
 import { routing } from "@/i18n/routing"
-import { getAlternateLinks } from "@/lib/seo/alternate-links"
 import { getLocalizedUrl } from "@/lib/seo/metadata"
 
 interface PageProps {
@@ -33,13 +32,13 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale, toolSlug } = await params
+  const { toolSlug } = await params
   const config = getSeoToolPageConfig(toolSlug)
 
   if (!config) return {}
 
   const path = `/tools/${config.slug}`
-  const url = getLocalizedUrl(path, locale)
+  const url = getLocalizedUrl(path, routing.defaultLocale)
 
   return {
     title: config.metadata.title,
@@ -53,7 +52,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     alternates: {
       canonical: url,
-      languages: getAlternateLinks(path),
     },
   }
 }

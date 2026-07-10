@@ -1,6 +1,6 @@
 import HomeClient from './home-client'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
-import { getAlternateLinks } from '@/lib/seo/alternate-links'
+import { getAlternateLinks, getLocalizedUrl } from '@/lib/seo/alternate-links'
 
 // 🔥 强制动态渲染，避免预渲染时 usePathname 错误
 export const dynamic = 'force-dynamic'
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: t('meta.title'),
     description: t('meta.description'),
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai'}${locale === 'en' ? '' : '/' + locale}/`,
+      canonical: getLocalizedUrl('/', locale),
       languages: getAlternateLinks('/'),
     },
   }

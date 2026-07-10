@@ -16,6 +16,7 @@ import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
+import { isEnglishOnlyPublicPath } from './lib/seo/english-only-routes';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -128,6 +129,27 @@ export default async function middleware(req: NextRequest) {
       return NextResponse.redirect(redirectUrl, 301);
     }
 
+    if (localePath.locale) {
+      const canonicalUrl = new URL(localePath.pathname, nextUrl.origin);
+      canonicalUrl.search = nextUrl.search;
+      return NextResponse.redirect(canonicalUrl, 301);
+    }
+
+    const reqHeaders = new Headers(req.headers);
+    reqHeaders.set('x-next-intl-locale', routing.defaultLocale);
+
+    const rewriteUrl = new URL(`/${routing.defaultLocale}${localePath.pathname}`, nextUrl.origin);
+    rewriteUrl.search = nextUrl.search;
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: { headers: reqHeaders },
+    });
+    response.headers.set('x-next-intl-locale', routing.defaultLocale);
+    return response;
+  }
+
+  // Other public pages whose content currently exists only in English.
+  if (isEnglishOnlyPublicPath(localePath.pathname)) {
     if (localePath.locale) {
       const canonicalUrl = new URL(localePath.pathname, nextUrl.origin);
       canonicalUrl.search = nextUrl.search;

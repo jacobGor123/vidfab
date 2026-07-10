@@ -1,12 +1,9 @@
 import { Metadata } from 'next'
 import ContactClient from './contact-client'
-import { contactMetadata, localizedMetadata } from '@/lib/seo/metadata'
+import { contactMetadata, englishOnlyMetadata } from '@/lib/seo/metadata'
 import { setRequestLocale } from 'next-intl/server'
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
-  const { locale } = await params
-  return localizedMetadata(contactMetadata, '/contact', locale)
-}
+export const metadata: Metadata = englishOnlyMetadata(contactMetadata, '/contact')
 
 // 🔥 强制动态渲染，避免预渲染时 usePathname 错误
 export const dynamic = 'force-dynamic'

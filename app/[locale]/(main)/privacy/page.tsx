@@ -1,12 +1,9 @@
 import { Metadata } from 'next'
 import { setRequestLocale } from 'next-intl/server'
 import PrivacyClient from './privacy-client'
-import { localizedMetadata, privacyMetadata } from '@/lib/seo/metadata'
+import { englishOnlyMetadata, privacyMetadata } from '@/lib/seo/metadata'
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
-  const { locale } = await params
-  return localizedMetadata(privacyMetadata, '/privacy', locale)
-}
+export const metadata: Metadata = englishOnlyMetadata(privacyMetadata, '/privacy')
 
 // 🔥 强制动态渲染，避免预渲染时 usePathname 错误
 export const dynamic = 'force-dynamic'

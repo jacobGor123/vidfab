@@ -1,7 +1,26 @@
 // lib/seo/alternate-links.ts
 import { routing } from '@/i18n/routing';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai';
+const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai').replace(/\/+$/, '');
+
+function normalizePath(path: string): string {
+  const trimmedPath = path.trim();
+
+  if (!trimmedPath || trimmedPath === '/') {
+    return '';
+  }
+
+  const pathWithLeadingSlash = trimmedPath.startsWith('/')
+    ? trimmedPath
+    : `/${trimmedPath}`;
+
+  return pathWithLeadingSlash.replace(/\/+$/, '');
+}
+
+export function getLocalizedUrl(path: string, locale: string): string {
+  const localePrefix = locale === routing.defaultLocale ? '' : `/${locale}`;
+  return `${BASE_URL}${localePrefix}${normalizePath(path)}`;
+}
 
 /**
  * 生成 hreflang alternate 链接映射
@@ -20,10 +39,9 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://vidfab.ai';
 export function getAlternateLinks(path: string): Record<string, string> {
   const result: Record<string, string> = {};
   for (const locale of routing.locales) {
-    const prefix = locale === routing.defaultLocale ? '' : `/${locale}`;
-    result[locale] = `${BASE_URL}${prefix}${path}`;
+    result[locale] = getLocalizedUrl(path, locale);
   }
   // x-default points to the default locale (English)
-  result['x-default'] = `${BASE_URL}${path}`;
+  result['x-default'] = getLocalizedUrl(path, routing.defaultLocale);
   return result;
 }
