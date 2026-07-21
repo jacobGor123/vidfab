@@ -6,14 +6,10 @@
 'use client';
 
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import Heading from '@tiptap/extension-heading';
 import { useCallback, useState } from 'react';
 import { format as prettierFormat } from 'prettier/standalone';
 import parserHtml from 'prettier/plugins/html';
+import { createBlogEditorExtensions } from './tiptap-extensions';
 import {
   Bold,
   Italic,
@@ -47,31 +43,7 @@ export default function TiptapEditor({
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({
-        heading: false, // 使用自定义的 Heading
-      }),
-      Heading.configure({
-        levels: [1, 2, 3],
-        HTMLAttributes: {
-          class: 'tiptap-heading',
-        },
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg',
-        },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-blue-600 underline',
-        },
-      }),
-      Placeholder.configure({
-        placeholder,
-      }),
-    ],
+    extensions: createBlogEditorExtensions(placeholder),
     content,
     editorProps: {
       attributes: {
